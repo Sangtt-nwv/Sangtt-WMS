@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegisterRealtimeQuantity</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Document Handler for registering the realtime quantity.
+/// </summary>
+public class TFMRegisterRealtimeQuantity extends TFMDocumentHandler
+{
+    // Got from TFMDocumentQueue.DeviceID
+    TFMDocumentDeviceId _DeviceID;
+    // Order Element
+    String20            _Type;
+    Num                 _OrderNumber;
+    boolean             _clearOrderLines;
+    // Line Element
+    Num                 _LineNumber;
+    ItemId              _ItemNumber;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>canBeEnqueued</Name>
+				<Source><![CDATA[
+    public boolean canBeEnqueued()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>clearOrderLines</Name>
+				<Source><![CDATA[
+    private void clearOrderLines()
+    {
+        TFMRealtimeRegisteredQuantity realtimeRegistredQuantity;
+    
+        ttsBegin;
+    
+        delete_from realtimeRegistredQuantity
+            where realtimeRegistredQuantity.DeviceId      == _DeviceID
+               && realtimeRegistredQuantity.OrderNumber   == _OrderNumber
+               && realtimeRegistredQuantity.Type          == _Type;
+    
+        ttsCommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getReferenceDataMethods</Name>
+				<Source><![CDATA[
+    public Set getReferenceDataMethods()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return subStr(classStr(TFMRegisterRealtimeQuantity),4,100);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    public Set getDocumentTypes()
+    {
+        Set retMap = new Set(Types::String);
+        retMap.add(subStr(classStr(TFMRegisterRealtimeQuantity),4,100));
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLine</Name>
+				<Source><![CDATA[
+    private void getLine(XmlElement lineElement)
+    {
+        _LineNumber = lineElement.attributes().getNamedItem( TFMConstants::AttributeLineNumber() ).value();
+        _ItemNumber = lineElement.attributes().getNamedItem( TFMConstants::AttributeItemNumber() ).value();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getOrder</Name>
+				<Source><![CDATA[
+    private boolean getOrder(XmlElement orderElement)
+    {
+        boolean                 success = false;
+        XmlNamedNodeMap         attributes;
+        TFMDocumentQueue        mobDocumentQueue;
+
+        mobDocumentQueue = TFMDocumentQueue::find( this.parmMessageId() );
+    
+        try
+        {
+            attributes          = orderElement.attributes();
+            _DeviceID           = mobDocumentQueue.DeviceId;
+            _OrderNumber        = attributes.getNamedItem( TFMConstants::AttributeBackendId() ).value();
+            _Type               = attributes.getNamedItem( TFMConstants::AttributeOrderType() ).value();
+            if (orderElement.hasAttribute(TFMConstants::AttributeClearOrderLines()))
+            {
+                _clearOrderLines    = (attributes.getNamedItem( TFMConstants::AttributeClearOrderLines() ).value() == TFMConstants::true());
+            }
+            success             = true;
+        }
+        catch(Exception::CLRError)
+        {
+            success             = false;
+        }
+        return success;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRegistration</Name>
+				<Source><![CDATA[
+    private void getRegistration(XmlElement regElement, TFMRealtimeRegisteredQuantity realtimeRegistredQuantity)
+    {
+        str d;
+
+        // Attributes
+        d = regElement.attributes().getNamedItem( TFMConstants::AttributeCreated() ).value();
+        realtimeRegistredQuantity.Timestamp = TFMHelper::convertStr2utcDateTime( d );
+    
+        // Elements
+        realtimeRegistredQuantity.ActionType            = regElement.getNamedElement( TFMConstants::ActionType() ).text();
+        realtimeRegistredQuantity.FromInventLocationID  = regElement.getNamedElement( TFMConstants::FromBin() ).text();
+        realtimeRegistredQuantity.ToInventLocationID    = regElement.getNamedElement( TFMConstants::ToBin() ).text();
+        realtimeRegistredQuantity.BatchID               = regElement.getNamedElement( TFMConstants::LotNumber() ).text();
+        realtimeRegistredQuantity.SerialNumber          = regElement.getNamedElement( TFMConstants::SerialNumber() ).text();
+        realtimeRegistredQuantity.Quantity              = TFMHelper::convertStr2Num( regElement.getNamedElement( TFMConstants::Quantity() ).text() );
+        realtimeRegistredQuantity.UnitOfMeasure         = regElement.getNamedElement( TFMConstants::UnitOfMeasure() ).text();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initRealtimeRegistration</Name>
+				<Source><![CDATA[
+    private void initRealtimeRegistration(TFMRealtimeRegisteredQuantity realtimeRegistredQuantity)
+    {
+        realtimeRegistredQuantity.clear();
+    
+        realtimeRegistredQuantity.DeviceId      = _DeviceID;
+        realtimeRegistredQuantity.Type          = _Type;
+        realtimeRegistredQuantity.OrderNumber   = _OrderNumber;
+    
+        realtimeRegistredQuantity.LineNumber    = _LineNumber;
+        realtimeRegistredQuantity.ItemId        = _ItemNumber;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prepareLine</Name>
+				<Source><![CDATA[
+    private void prepareLine()
+    {
+        TFMRealtimeRegisteredQuantity realtimeRegistredQuantity;
+    
+        ttsBegin;
+    
+        delete_from realtimeRegistredQuantity
+            where realtimeRegistredQuantity.DeviceId      == _DeviceID
+               && realtimeRegistredQuantity.OrderNumber   == _OrderNumber
+               && realtimeRegistredQuantity.Type          == _Type
+               && realtimeRegistredQuantity.LineNumber    == _LineNumber
+               && realtimeRegistredQuantity.ItemId        == _ItemNumber;
+    
+        ttsCommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public void process()
+    {
+        TFMRealtimeRegisteredQuantity  realtimeRegistredQuantity;
+        XmlElement              orderElement;
+        XmlElement              lineElement;
+        XmlElement              regElement;
+        int i;
+        int z;
+        
+        RecordInsertList recordsToBeInserted = new RecordInsertList(tableNum(TFMRealtimeRegisteredQuantity)); // This collection will store the records that must be inserted into the database
+        resultStr = 'OK'; // Not a label Must be 'OK'
+    
+        // Test for the requestData elements and a Order sub-element
+        if (requestXml.root().getNamedElement(TFMConstants::requestData()) && requestXml.root().getNamedElement(TFMConstants::requestData()).getNamedElement(TFMConstants::Order()))
+        {
+            orderElement = requestXml.root().getNamedElement(TFMConstants::requestData()).getNamedElement(TFMConstants::Order());
+    
+            if (this.getOrder(orderElement))
+            {
+                if (_clearOrderLines)
+                {
+                    this.clearOrderLines();
+                    return;
+                }
+            }
+            else
+            {
+                // Could not parse the Order element
+                return;
+            }
+            
+            try
+            {
+                
+                // Loop over the Line elements
+                for (i = 0; i < orderElement.childNodes().length(); i++)
+                {
+                    lineElement = orderElement.childNodes().item(i);
+                    this.getLine(lineElement);
+                    this.prepareLine();
+    
+                    // Loop over the Registration elements
+                    for(z = 0; z < lineElement.childNodes().length(); z++)
+                    {
+                        regElement = lineElement.childNodes().item(z);
+    
+                        this.initRealtimeRegistration(realtimeRegistredQuantity);
+                        this.getRegistration(regElement, realtimeRegistredQuantity);
+                        realtimeRegistredQuantity.RegistrationNumber = ( z + 1 );
+                        //realtimeRegistredQuantity.insert();
+                        recordsToBeInserted.add(realtimeRegistredQuantity);
+                    }
+                }
+                
+            }
+            catch
+            {
+                // Empty by design - since Handler should not fail.
+                resultStr = 'OK';
+            }
+            recordsToBeInserted.insertDatabase();
+            
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

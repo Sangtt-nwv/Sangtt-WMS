@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsProcessCreateTagCountingJournalLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Process definition class for journal line creation for tag counting. Combines several logic blocks
+/// </summary>
+class MwmsProcessCreateTagCountingJournalLine extends TFMProcess
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsProcessCreateTagCountingJournalLine Construct(Name thisName = staticMethodStr(TFMConstants, CreateTagCountingJournalLine), AddUpdate _addOrUpdate = AddUpdate::Add)
+    {
+        return new MwmsProcessCreateTagCountingJournalLine(thisName, _addOrUpdate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaders</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration getHeaders()
+    {
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(Name _processName = staticMethodStr(TFMConstants, CreateTagCountingJournalLine), AddUpdate _addOrUpdate = AddUpdate::Add)
+    {
+        processName = _processName;
+        MwmsLogicBlockCreateTagCountingJournalLicensePlateLine     LPBlock = MwmsLogicBlockCreateTagCountingJournalLicensePlateLine::Construct();
+        MwmsLogicBlockCreateTagCountingJournalLine                 itemBlock           = MwmsLogicBlockCreateTagCountingJournalLine::Construct();
+        itemBlock.parmCreateOrUpdate(_addOrUpdate);
+        LPBlock.parmCreateOrUpdate(_addOrUpdate);
+        super();
+
+        MwmsProcessCreateTransferJournalLine::addBlocksForHandlingLicenseAndItems(this, itemBlock, LPBlock);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

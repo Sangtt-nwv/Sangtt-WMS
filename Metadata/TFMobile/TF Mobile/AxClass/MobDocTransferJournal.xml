@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocTransferJournal</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[
+TFMTableName(tableStr(InventJournalTable), 'Transfer'),
+    TFMTableName(tableStr(inventJournalTrans), 'Transfer'),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), 'CreateTransferJournalLine', methodStr(MobDocTransferJournal,createCreatePLJournalLineConfiguration)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), 'TransferJournalLine', methodStr(MobDocTransferJournal, createCreatePLJournalLineConfiguration)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'CreateTransferJournal', methodStr(MobDocTransferJournal, postCreateTransferJournal)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), 'DeleteJournalLine', methodStr(MobDocTransferJournal, createDeleteJournalLineConfiguration)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'DeleteJournalLine', methodStr(MobDocTransferJournal, postDeleteInventJournalTransLine)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'CreateTransferJournalLine', methodStr(MobDocTransferJournal, postCreateTransferJournalLine)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'TransferJournalLine',methodStr(MobDocTransferJournal,postUpdateTransferJournalLine)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'PostJournal', methodStr(MobDocTransferJournal, postJournal)),
+    TFMDocumentType(classStr(TFMLookup), 'TransferJournal', methodStr(MobDocTransferJournal, lookupTransferJournals)),
+    TFMDocumentType(classStr(TFMLookup), 'TransferJournalLine', methodStr(MobDocTransferJournal, lookupTransferJournalLines)),
+    TFMPageLineAdhocRequest(methodStr(MobDocTransferJournal, postJournal), 'Post',resourceStr(MobPost),true),
+    TFMMenu('TransferJournal', "@SYS123858", "@SYS123858", methodstr(MobimageHandlerCombinedImages, transferJournalIcon), true, true, ['Miscellaneous', 'Warehouse']),
+    TFMMenu('DeleteJournalLine', "@SYS121177", "@SYS121177", resourceStr(MobTrashCanEmpty), false, true)
+]
+class MobDocTransferJournal  extends TFMDocumentHandler
+{
+    inventJournalTrans                  inventJournalTrans;
+    inventJournalTable                  inventJournalTable;
+    inventDim                           inventDim;
+    inventTable                         inventTable;
+    TFMRequestItemAndDimensionElement   docRequest;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret = super();
+        ret.insert('CreateTransferJournalLine',"@SYS319116");
+        ret.insert('CreateTransferJournal', "@SYS18287");
+        ret.insert('Post', "@SYS6098");
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return "@SYS144119";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {    
+        TFMPages    pages = MobInventJournalTableCommon::modifyPages(super(),InventJournalType::Transfer, "@SYS318133",  methodstr(MobimageHandlerCombinedImages, transferJournalIcon), true);
+        TFMPageUnplannedItemRegistration uirPage = pages.getPage('DeleteJournalLine');
+
+        TFMPageUnplannedItemRegistrationConfiguration config =  uirPage.getConfiguration();
+
+        config.parmClose(true);
+
+        TFMPageUnplannedItemRegistration pjPage = pages.getPage('PostJournal');
+
+        pjPage.parmIcon(resourceStr(MobPost));
+
+        return pages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createDeleteJournalLineConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates a delete journal Line Configuration.
+    /// </summary>
+    protected Map createDeleteJournalLineConfiguration()
+    {
+        Map ReturnMap = new Map(Types::Integer, Types::Class);
+
+        // Add a step to ask the user if the line should be deleted
+        ReturnMap.insert(10, TFMRegistrationCollectorRadioButton::RadioButtonStepMap(10,MobConstants::YesNo(),"@SYS304126","@SYS21354",'',"@SYS5461","@SYS5461"+';'+"@SYS2048"));
+
+        return ReturnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postDeleteInventJournalTransLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to delete Inventory journal trans lines.
+    /// </summary>
+    [TFMPostMethod(tableStr(inventJournalTable)),TFMPostMethod(tableStr(inventJournalTrans))]
+    public void postDeleteInventJournalTransLine()
+    {
+        Common      common = docRequest.getReferredRecord();
+        WHSLicensePlate LP;
+        InventJournalTrans      line;
+        InventJournalTrans_Tag  tagLine;
+        InventDim           iDim;
+        InventJournalId     journalId = docRequest.parmJournalId();
+        if (!journalId && docRequest.parmContextValues())
+        {
+            journalId = docRequest.parmContextValues().getFieldValue(MobConstants::JournalId());
+        }
+        if (docRequest.getFieldValue(MobConstants::YesNo()) == "@SYS2048")
+        {
+            return;
+        }
+
+        ttsbegin;
+        if (common.tableId == tableNum(InventJournalTrans) || common.tableId == tableNum(InventJournalTrans_tag))
+        {
+            common.selectForUpdate(true);
+            common.delete();
+        }
+        else
+        {
+            LP = common;
+            delete_from line
+                where line.JournalId == journalId
+                exists join iDim where iDim.inventDimId == line.InventDimId && iDim.LicensePlateId == LP.LicensePlateId;
+            delete_from tagLine
+                where tagLine.JournalId == journalId
+                exists join iDim where iDim.inventDimId == tagLine.InventDimId && iDim.LicensePlateId == LP.LicensePlateId;
+            
+        }    
+        
+
+        
+        ttscommit;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CreateTransferJournalHeader</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration CreateTransferJournalHeader()
+    {
+        TFMReferenceDataConfiguration conf = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorText	journalDesc = new TFMRegistrationCollectorText(1,extendedTypeStr(Description),"@SYS6303","@SYS6303","@SYS6303");
+        
+        
+        journalDesc.parmOptional(false);
+        conf.addCollector(journalDesc);
+        
+        return conf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DeleteJournalLineHeader</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration DeleteJournalLineHeader()
+    {
+        TFMReferenceDataConfiguration conf = new TFMReferenceDataConfiguration();
+
+        conf.addCollector(TFMGetReferenceData::defaultReferenceIdentity(10));
+        
+        return conf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CreateTransferJournalLineHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the create Profit/Loss page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration CreateTransferJournalLineHeader()
+    {
+        TFMReferenceDataConfiguration refConf = this.TransferJournalCfgHeader();
+        TFMRegistrationCollectorList    fromWarehouse = TFMGetReferenceData::createDefaultWarehouseReferenceData(10, strLwr(extendedTypeStr(InventLocationId)), "@SYS25253", methodStr(TFMGetReferenceData,WarehouseList));
+        // Warehouse to move from
+        fromWarehouse.parmLinkedElement(20);
+        fromWarehouse.parmLinkColumn(extendedTypeStr(InventLocationId));
+        refConf.addCollector(fromWarehouse);
+        // Warehouse to move to
+        refConf.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(20,'To'+ strLwr(extendedTypeStr(InventLocationId)), "@SYS8519", methodStr(TFMGetReferenceData,WarehouseList)));
+        // Item number text box
+        refConf.addCollector(TFMGetReferenceData::defaultItemIdOrLPCollector(30));
+        
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TransferJournalLineCfgHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Profit/Loss Journal Lines page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration TransferJournalLineCfgHeader()
+    {
+        return MobInventJournalTableCommon::journalLinesHeader();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TransferJournalCfgHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Profit/Loss Journals page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration TransferJournalCfgHeader()
+    {
+        return MobInventJournalTableCommon::journalLinesHeader();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTransferJournalLines</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to return Profit/Loss Journal Line elements to the mobile client.
+    /// </summary>
+    /// <returns>A MobLookupResponseElement instance containing the data needed for he lookup page on the mobile device.</returns>
+    protected TFMLookupResponseElement lookupTransferJournalLines()
+    {
+        MobDocTransferJournal::handleDefaultItemIdOrLPCollector(docRequest);
+        return MobInventJournalTableCommon::lookupInventJournalLines(docRequest.parmJournalId(),this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTransferJournals</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to return Profit/Loss Journal elements to the mobile client.
+    /// </summary>
+    /// <returns>A MobLookupResponseElement instance containing the data needed for he lookup page on the mobile device.</returns>
+    
+    protected TFMLookupResponseElement lookupTransferJournals()
+    {
+        return MobInventJournalTableCommon::lookupInventJournals(InventJournalType::Transfer, docRequest.parmJournalId(), docRequest.parmWarehouse());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preProcess</Name>
+				<Source><![CDATA[
+    public boolean preProcess()
+    {
+
+        // Get the dimension setup for the item
+        docRequest = request;
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createCreatePLJournalLineConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create Profit/Loss Journal line configurations.
+    /// </summary>
+    
+    public Map createCreatePLJournalLineConfiguration()
+    {
+        Map returnMap;
+        MobDocUnplannedMove docUnplannedMove;
+        SysDictType         dictType;
+        
+        MobDocTransferJournal::handleDefaultItemIdOrLPCollector(docRequest);
+
+        if (docRequest.parmItemId())
+        {
+
+            //Single Item
+            docUnplannedMove = new MobDocUnplannedMove();
+            docUnplannedMove.parmRequest(docRequest);
+            docUnplannedMove.preProcess();
+            return docUnplannedMove.unplannedMoveRegistrationCollectors();
+        } 
+        else if (docRequest.parmLicensePlateId())
+        {
+            //License plate, ask for to location        
+            returnMap = new Map(Types::String, Types::Class);
+            dictType = new SysDictType(extendedTypeNum(WMSLocationId));
+            returnMap.insert(MobConstants::ToLocation(),TFMRegistrationCollectorText::TextStepMap(false,30,'To' + extendedTypeStr(WMSLocationId),"@MobileWMS:MEL44","@SYS50351","@MobileWMS:MEL45",dictType.stringLen()));
+        } 
+        
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postCreateTransferJournal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create Profit/Loss journals.
+    /// </summary>
+    [TFMPostMethod(tableStr(inventJournalTable))]
+    public void postCreateTransferJournal()
+    {
+        InventJournalTableData		jourTableData;
+        InventJournalName			inventJournalName;
+        
+        str							description			= docRequest.getFieldValue(extendedTypeStr(description));
+        InventLocationId            inventLocationId    = docRequest.parmContextValues().getFieldValue(extendedTypeStr(InventLocationId));
+        
+    
+        // Get the name of the profit/loss journal to create
+        inventJournalName = InventJournalName::find(MobParameters::find().InventJournalNameTransfer,true);
+
+        ttsBegin;
+    
+        jourTableData = JournalTableData::newTable(inventJournalTable);
+    
+        inventJournalTable.JournalId            = jourTableData.nextJournalId();
+        inventJournalTable.JournalType          = inventJournalType::Transfer;
+        inventJournalTable.MobReleasedToMobile  = true;
+        inventJournalTable.NumOfLines           = 0;
+        
+        inventJournalTable.InventLocationId		= inventLocationId;
+        inventJournalTable.InventSiteId			= InventLocation::find(inventLocationId).InventSiteId;
+
+        jourTableData.initFromJournalName(inventJournalName);
+        inventJournalTable.Description          = description;
+    
+        inventJournalTable.insert();
+        ttsCommit;
+    
+        resultStr = "@MobileWMS:TransferJournalcreatedsuccesfull";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postCreateTransferJournalLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create Profit/Loss journal lines.
+    /// </summary>
+    [TFMPostMethod(tableStr(inventJournalTable)),TFMPostMethod(tableStr(inventJournalTrans))]
+    public void postCreateTransferJournalLine()
+    {
+        InventDim           inventDimIssue;
+        InventDim           inventDimReceipt;        
+        Qty                 qty;
+        
+        MobDocTransferJournal::handleDefaultItemIdOrLPCollector(docRequest);
+        ItemId              itemId = docRequest.parmItemId();
+
+        inventJournalTable = InventJournalTable::find(docRequest.parmJournalId(),true);
+
+        if (!itemId && docRequest.parmLicensePlateId())
+        {
+            //License Plæjt
+            MobPostHelper::AddMoveLicensePlateToJournal(inventJournalTable, docRequest.parmLicensePlateId(),docRequest.parmToInventLocationId(), docRequest.parmToWMSLocationId());
+            MobPostHelper::validateInventJournalTransfer(inventJournalTable);
+            resultStr =  "@MobileWMS:MEL47";
+            return;
+        }
+        
+        inventDimIssue.data(docRequest.parmInventDim());
+        inventDimReceipt.data(docRequest.parmInventDim());
+
+        inventDimIssue = docRequest.createFromInventDim(inventDimIssue);
+        inventDimReceipt = docRequest.createToInventDim(inventDimReceipt);
+        qty = docRequest.parmQuantity();
+        
+
+        inventJournalTrans = MobPostHelper::inventJournalTransferLineCreate(inventJournalTable, qty,itemId,inventDimIssue, inventDimReceipt);
+
+        MobPostHelper::validateInventJournalTransfer(inventJournalTable);
+        resultStr =  "@MobileWMS:MEL47";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postUpdateTransferJournalLine</Name>
+				<Source><![CDATA[
+    public void postUpdateTransferJournalLine()
+    {
+        
+        inventJournalTable = InventJournalTable::find(docRequest.parmJournalId(),true);
+
+        
+        // Update Line(s)
+        this.updateJournalLines(docRequest.getReferredRecord(), docRequest.parmToWMSLocationId(), docRequest.parmJournalId());
+        MobPostHelper::validateInventJournalTransfer(inventJournalTable);
+        resultStr =  "@MobileWMS:MEL47";
+
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateJournalLines</Name>
+				<Source><![CDATA[
+    protected void updateJournalLines(Common _line, WMSLocationId _wmsLocation, InventJournalId _journalId)
+    {
+        InventJournalTrans  line;
+        WHSLicensePlate     LP;
+        InventDim           iDim, iDimTo;
+        ttsbegin;
+        if (_line.tableId == tableNum(InventJournalTrans))
+        {
+            line = _line;
+            line.selectForUpdate(true);
+            iDimTo = line.ToInventDim();
+            iDimTo.wmsLocationId = _wmsLocation;
+            line.ToinventDimID = InventDim::findOrCreate(iDimTo).inventDimId;
+            line.update();
+        }
+        else
+        {
+            LP = _line;
+            while select forupdate line
+                where line.JournalId == _journalId
+                join iDim where iDim.inventDimId == line.InventDimId && iDim.LicensePlateId == LP.LicensePlateId
+            {
+                iDimTo = line.ToInventDim();
+                iDimTo.wmsLocationId = _wmsLocation;
+                line.ToinventDimID = InventDim::findOrCreate(iDimTo).inventDimId;
+                line.update();
+            }
+        }
+
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postJournal</Name>
+				<Source><![CDATA[
+    [TFMDocumentType(classStr(TFMPostAdhocRegistration), 'PostJournal')]
+    public str postJournal()
+    {
+        ttsbegin;
+        inventJournalTable = inventJournalTable::find(docRequest.parmJournalId(),true);
+
+        MobPostHelper::postInventJournalTransfer(inventJournalTable);
+        ttscommit;
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleDefaultItemIdOrLPCollector</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This was previously done in the TFMRequestInventDimElement. The new process handling in 4.0 copies the values in a block instead.
+    /// This is to support the (Revert to Classic versions of the processes)
+    /// </summary>
+    public static void handleDefaultItemIdOrLPCollector(TFMRequestInventDimElement _docRequest)
+    {
+        InventDim   localInventDim;
+
+        str combinedHeaderName = extendedTypeStr(ItemId) + extendedTypeStr(WHSLicensePlateId);
+        str itemIdWHSLicensePlateId  = _docRequest.getFieldValue(combinedHeaderName);
+
+        if(itemIdWHSLicensePlateId)
+        {
+            if (WHSLicensePlate::exist(itemIdWHSLicensePlateId))
+            {
+                _docRequest.parmLicensePlateId(itemIdWHSLicensePlateId);
+            }
+            else
+            {
+                _docRequest.parmItemId(itemIdWHSLicensePlateId);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxLabelFile xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobileWMS_da</Name>
+	<LabelContentFileName>MobileWMS.da.label.txt</LabelContentFileName>
+	<LabelFileId>MobileWMS</LabelFileId>
+	<Language>da</Language>
+	<RelativeUriInModelStore>TFMobile\TF Mobile\AxLabelFile\LabelResources\da\MobileWMS.da.label.txt</RelativeUriInModelStore>
+</AxLabelFile>

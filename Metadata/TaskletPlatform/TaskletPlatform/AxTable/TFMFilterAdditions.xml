@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMFilterAdditions</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMFilterAdditions extends common
+{
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>AddFilterField</Name>
+				<Source><![CDATA[
+    public static void AddFilterField(MethodName _filterName, Name _filterFieldName, ExtendedDataTypeName _EDTBasedOn)
+    {
+        TFMFilterAdditions filterAdditions;
+        ttsbegin;
+        select forupdate filterAdditions where filterAdditions.FilterName == _filterName && filterAdditions.FilterFieldName == _filterFieldName;
+        
+        if(filterAdditions && filterAdditions.RecId)
+        {
+            filterAdditions.EDTBasedOn = _EDTBasedOn;
+            filterAdditions.write();
+        } 
+        else
+        {
+            filterAdditions.FilterName = _filterName;
+            filterAdditions.FilterFieldName = _filterFieldName;
+            filterAdditions.EDTBasedOn = _EDTBasedOn;
+            filterAdditions.insert();
+        }
+        ttscommit;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exist</Name>
+				<Source><![CDATA[
+    public static boolean exist(MethodName _filterName, Name _filterFieldName)
+    {
+        TFMFilterAdditions filterAdditions;
+
+        select firstonly filterAdditions where filterAdditions.FilterName == _filterName && filterAdditions.FilterFieldName == _filterFieldName;
+        
+        return filterAdditions.recid;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteFilterField</Name>
+				<Source><![CDATA[
+    public static void deleteFilterField(MethodName _filterName, Name _filterFieldName)
+    {
+        TFMFilterAdditions				filterAdditions;
+        TFMFilterAdditionsDataBinding	dataBinding;
+        TFMFilterFieldValues			fieldValues;
+        ttsbegin;
+        select firstonly forupdate filterAdditions where filterAdditions.FilterName == _filterName && filterAdditions.FilterFieldName == _filterFieldName;
+		if (filterAdditions.recId)
+        {
+            filterAdditions.delete();
+
+            delete_from dataBinding where dataBinding.FilterName == filterAdditions.FilterName && dataBinding.FilterFieldName == filterAdditions.FilterFieldName;
+            delete_from fieldValues where fieldValues.FilterName == filterAdditions.FilterName && fieldValues.FilterFieldName == filterAdditions.FilterFieldName;
+
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addToFilter</Name>
+				<Source><![CDATA[
+    public static void addToFilter(MethodName _filterName, TFMReferenceDataConfiguration _config)
+    {
+        TFMFilterAdditions			filterAdditions;
+        TFMRegistrationCollector	collector;
+
+        while select filterAdditions where filterAdditions.FilterName == _filterName && filterAdditions.EDTBasedOn && _filterName
+        {
+            collector = TFMRegistrationCollector::collectorFromEDT(filterAdditions.EDTBasedOn);
+
+            TFMFilterFieldValues::addSavedValuesToCollector(_filterName,filterAdditions.FilterFieldName,collector);
+
+            _config.addCollector(collector);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@SYS190436</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>FilterName</TitleField1>
+	<TitleField2>FilterFieldName</TitleField2>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FilterName</Name>
+			<ExtendedDataType>MethodName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FilterFieldName</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>EDTBasedOn</Name>
+			<ExtendedDataType>ExtendedDataTypeName</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

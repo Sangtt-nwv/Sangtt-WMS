@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobListOrderLinesReceive</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListIdAttribute('ReceiveLines')]
+class MobListOrderLinesReceive extends TFMListOrderLines
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+    public TFMListConfiguration getList()
+    {
+        TFMListConfiguration ret;
+
+        dontShowDimTracking = true;
+
+        ret = super();
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

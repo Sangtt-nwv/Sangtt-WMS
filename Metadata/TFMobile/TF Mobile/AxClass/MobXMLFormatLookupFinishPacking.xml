@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatLookupFinishPacking</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableNameAttribute(tableStr(wmsPickingRoute),'FinishPackingOrder')]
+class MobXMLFormatLookupFinishPacking extends TFMXMLFormatLookup
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        wmsPickingRoute		wMSPickingRoute	 = common;
+        //Map					stationContent;
+        //Set					items = new Set(Types::String);
+        //MapEnumerator		mEnum;
+        //InventSum			iSum;
+        //str					itemsStr;
+        WMSPickingRouteID	routeId = wMSPickingRoute.pickingRouteID;
+        MobToteContent		mobReg;
+        MobToteTable		toteTable;
+        WMSOrderTrans		orderTrans;
+        Map					itemIDs = new Map(Types::String,Types::Real);        
+        MapEnumerator		mEnum;
+        ItemId          itemId;
+        str             itemString = '';
+        str             itemImageStr = '';
+        Set							pickingRoutes = MobConsolidatedPickingRouteOrders::getRouteSiblings(routeId);
+        SetEnumerator				sEnum = pickingRoutes.getEnumerator();
+        super();
+        
+        if (MobConsolidatedPickingRouteOrders::Exists(wMSPickingRoute.pickingRouteID))
+        {
+            displayLine1            = "@SYS110110" + ': ' + MobConsolidatedPickingRouteOrders::belongsTo(wMSPickingRoute.pickingRouteID);
+            routeId					= MobConsolidatedPickingRouteOrders::belongsTo(wMSPickingRoute.pickingRouteID);
+        }
+        else
+        {
+            displayLine1            = new DictField(tablenum(WMSPickingRoute), fieldnum(WMSPickingRoute, PickingRouteID)).Label() + ': ' + wMSPickingRoute.pickingRouteID;
+        }
+
+        fieldsToAdd.insert(extendedTypeStr(WMSPickingRouteID),wMSPickingRoute.pickingRouteID);
+        fieldsToAdd.insert(MobConstants::Barcode(),wMSPickingRoute.pickingRouteID);
+        
+        displayLine2            = strfmt('%1: %2', enum2str(wMSPickingRoute.transType), wMSPickingRoute.transRefId);
+        displayLine3            = new DictField(tablenum(WMSPickingRoute), fieldnum(WMSPickingRoute, ActivationDateTime)).Label() + ': ' + strfmt('%1', DateTimeUtil::date(WMSPickingRoute.ActivationDateTime));
+        displayLine5            = new DictField(tablenum(SalesTable), fieldnum(SalesTable, SalesType)).label() + ': ' + (MobConsolidatedPickingRouteOrders::belongsTo(wMSPickingRoute.pickingRouteID) ? "@SYS110110" : strfmt('%1', SalesTable::find(wMSPickingRoute.transRefId).SalesType));
+        //imageID					= tableStr(WMSPickingRoute) + '|' + fieldStr(WMSPickingRoute, pickingRouteID) + '|' + routeId;
+        
+        while (sEnum.moveNext())
+        {
+            routeId = sEnum.current();
+            while select toteTable where toteTable.Status != TFMDocumentQueueStatus::Completed
+            join firstonly mobReg where mobReg.ToteID == toteTable.ToteId
+            join orderTrans where orderTrans.RecId == mobReg.RefRecId && orderTrans.routeId == routeId
+            {        
+                itemIDs.insert(orderTrans.ItemId, (itemIDs.exists(orderTrans.ItemId) ? itemIDs.lookup(orderTrans.ItemId) : 0) + mobReg.qty);
+                itemId = orderTrans.ItemId;
+            }
+        }
+
+        mEnum = itemIDs.getEnumerator();
+        while(mEnum.moveNext())
+        {
+            itemString += (itemString ? "@MobileWMS:lineBreak" : '') + mEnum.currentKey() + ': ' + MobHelper::formatItemQty(mEnum.currentValue(), inventTable::find(mEnum.currentKey()).inventUnitId()) + ' ' +inventTable::find(mEnum.currentKey()).inventUnitId();
+            itemImageStr += (itemImageStr ? ',' : '') + mEnum.currentKey();
+        }
+        imageID = itemImageStr;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

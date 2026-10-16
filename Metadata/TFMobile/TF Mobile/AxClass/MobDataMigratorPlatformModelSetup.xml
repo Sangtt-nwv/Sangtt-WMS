@@ -1,0 +1,960 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDataMigratorPlatformModelSetup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobDataMigratorPlatformModelSetup extends RunBase
+{
+    DialogField             checkmarkField, selectcheckmarkField, outputCheckmarkField;
+    Map                     fields;
+    DialogGroup             dlg;
+    FormBuildButtonControl  fbc;
+    int                     qty;
+    Map                     checkmarkFields;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>selectAllButton</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// When the checkbox for flipping the checkboxes in a certain group is changed.
+    /// </summary>
+    public void selectAllButton(FormCheckBoxControl _formButtonControl)
+    {
+        str modelName = _formButtonControl.parentControl().name();
+        _formButtonControl.value(!_formButtonControl.value());
+
+        if(!checkmarkFields.exists(modelName)) 
+        {
+            return;
+        }
+
+        Map checkMarksForModel = checkmarkFields.lookup(modelName);
+        MapEnumerator mEnum = checkMarksForModel.getEnumerator();
+        int setInt = -1;
+        while(mEnum.moveNext())
+        {
+            DialogField dField = mEnum.currentValue();
+            if(setInt == -1)
+            {
+                setInt = !dField.value();
+            }
+            dField.value(setInt);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Dialog displayed for the user with tables that can be migrated to the new model.
+    /// </summary>
+    /// <returns></returns>
+    public Object dialog()
+    {
+        Dialog                      dialog = super();
+        Map                         models = MobDataMigratorPlatformModelSetup::getTables();
+        MapEnumerator               modelEnum = models.getEnumerator();
+        MapEnumerator               tableEnum;     
+        common                      common;
+        checkmarkFields = new Map(Types::String, Types::Class);
+        Map checkmarkFieldsForModel;
+
+        str classicModelName = 'TF Mobile';
+        str platformModelName = "@TFM:MEL18";
+
+        // Set a title for dialog
+        dialog.caption("@TFM:MigratedatatonewTFplatform");
+        dialog.addText("@TFM:Unselectedfieldscontainsdatainth");
+        
+        fields = new Map (Types::String, Types::Class);
+        Map platformTables = models.lookup(platformModelName);
+
+        while (modelEnum.moveNext())
+        {
+            if(modelEnum.currentKey() == platformModelName)
+            {
+                continue; //only the other models are interesting
+            }
+
+            checkmarkFieldsForModel = new Map(Types::String, Types::Class);
+
+            Map tables = modelEnum.currentValue();
+            if(tables.elements())
+            {
+                dlg = dialog.addGroup(modelEnum.currentKey(), null, modelEnum.currentKey());
+                dlg.columns(1);
+                selectcheckmarkField = dialog.addField(extendedTypeStr(NoYesId), "@TFM:Selectdeselectall", "@TFM:Flipthecheckboxesforthegroup");
+
+                selectcheckmarkField.registerOverrideMethod(
+                methodStr(FormCheckBoxControl, clicked),
+                methodStr(MobDataMigratorPlatformModelSetup, selectAllButton),
+                this);
+            }
+
+            dlg = dialog.addGroup();
+            dlg.columns(2);
+            dlg.hideIfEmpty(false);
+
+            tableEnum = modelEnum.currentValue().GetEnumerator();
+            while (tableEnum.moveNext())
+            {
+                //check if the table is in Mob - tables
+                if(!platformTables.exists(this.convertToTFMModel(tableEnum.currentKey())) || !this.hasData(tableEnum.currentKey())) // check if the table in the model exists in the
+                {
+                    continue;
+                }
+                checkmarkField = dialog.addField(extendedTypeStr(NoYesId), tableEnum.currentValue() ? tableEnum.currentValue() : tableEnum.currentKey(), tableEnum.currentKey());
+                checkmarkField.value(!this.hasData(this.convertToTFMModel(tableEnum.currentKey())));
+                checkmarkFieldsForModel.add(checkmarkField.name(), checkmarkField);
+                fields.insert(tableEnum.currentKey(),checkmarkField);
+            }
+            checkmarkFields.add(modelEnum.currentKey(), checkmarkFieldsForModel);
+        }
+
+        dlg = dialog.addGroup("@TFM:MigrationSetup");
+        dlg.columns(1);
+        dlg.heightMode(FormHeight::SizeToAvailable);
+        outputCheckmarkField = dialog.addField(extendedTypeStr(NoYesId), "@TFM:Onlyoutputfile", "@TFM:Outputtheasfileonlyinsteadofupda");
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>reloadDialog</Name>
+				<Source><![CDATA[
+    public void reloadDialog(FormCheckBoxControl _ctrl)
+    {
+        this.dialog();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertToTFMModel</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Converts the input to the correct migration for Mob -> TFM. It uses the MigrationMap to find the correct migration.
+    /// If nothing is found in the a simple rename is used.
+    /// </summary>
+    /// <param name = "_input"></param>
+    /// <returns></returns>
+    private str convertToTFMModel(str _input)
+    {
+        Map migrationMap = this.getMigrationMap();
+        if(migrationMap.exists(_input))
+        {
+            return migrationMap.lookup(_input);
+        }
+        return strReplace(_input, 'Mob', 'TFM');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>hasData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks if a certain table contains data.
+    /// </summary>
+    /// <param name = "_tableName">The name of the table</param>
+    /// <returns>True, if the table contains data otherwise false.</returns>
+    private boolean hasData(str _tableName)
+    {
+        DictTable dictTable = new DictTable(tableName2Id(_tableName));
+        Common common;
+        boolean hasData = false;
+        if (dictTable)
+        {
+            common = dictTable.makeRecord();
+            select firstOnly common;
+            if (common.RecId)
+            {
+                hasData = true;
+            }
+        }
+        return hasData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTables</Name>
+				<Source><![CDATA[
+    public static Map getTables()
+    {
+        return TFMExportSetup::getTables();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prompt</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public boolean prompt()
+    {
+        boolean ret;
+        ret = super();
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    // Retrieve values from Dialog
+    public boolean getFromDialog()
+    {
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    protected boolean canRunInNewSession()
+    {
+        boolean ret;
+
+        ret = false;
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The run method that will be run when the accept/ok button is clicked.
+    /// </summary>
+    public void run()
+    {
+        MapEnumerator mEnum = fields.getEnumerator();
+        str             output;
+        
+        while ( mEnum.moveNext())
+        {
+            checkmarkField = mEnum.currentValue();
+            if (!checkmarkField.value())
+            {
+                continue;
+            }
+            str tableOutput = this.getTable(mEnum.currentKey());
+
+            tableOutput = this.convertTable(mEnum.currentKey(), tableOutput);
+
+            output += tableOutput;
+        }
+
+        if(outputCheckmarkField.value())
+        {
+            this.sendFileToUser(output);
+        } 
+        else
+        {
+            TFMImportSetup::importFromText(output);
+            this.postRunFixes();
+            TFMProvider::invalidateProviders(); // invalidate the providers so the data from the delta layer will be used.
+            Info("@TFM:Dataimported");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postRunFixes</Name>
+				<Source><![CDATA[
+    protected void postRunFixes()
+    {
+        //Lists fixes
+        this.listsCheck();
+
+        //online Validation fix
+        this.fixOnlineValidation();
+        //Menu group Folder fix
+        this.fixMenuGroupFolder();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fixMenuGroupFolder</Name>
+				<Source><![CDATA[
+    protected void fixMenuGroupFolder()
+    {
+        MobMenuGroups fromGroup;
+        TFMMenuGroups toGroup;
+
+        if (!fields.exists(tableStr(MobMenuGroups)) && !fields.exists(tableStr(TFMMenuGroups)))
+        {
+            return;
+        }
+        ttsbegin;
+        while select fromGroup where fromGroup.ShowFolder
+        {
+            toGroup = TFMMenuGroups::Find(fromGroup.MenuGroupId,true);
+            toGroup.GroupingTypeIcon = 'Folder';
+            toGroup.update();
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fixOnlineValidation</Name>
+				<Source><![CDATA[
+    protected void fixOnlineValidation()
+    {
+        MobWorkflowStepsOnlineValidation fromValidate;
+        TFMWorkflowStepsOnlineValidation toValidate;
+
+        if (!fields.exists(tableStr(MobWorkflowStepsOnlineValidation)) && !fields.exists(tableStr(TFMWorkflowStepsOnlineValidation)))
+        {
+            return;
+        }
+
+        delete_from toValidate where !toValidate.ValidationType;
+
+        while select fromValidate
+        {
+            toValidate.WorkflowName     = fromValidate.WorkflowName;
+            toValidate.DocumentTypeId   = fromValidate.DocumentTypeId;
+            toValidate.PageID           = fromValidate.PageID;
+            toValidate.ValidationType   = enum2Symbol(enumNum(MobWorkflowValidationTypes), fromValidate.ValidationTypes);
+            toValidate.insert();
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>listsCheck</Name>
+				<Source><![CDATA[
+    protected void listsCheck()
+    {
+        TFMLists            listTbl;
+             
+        TFMListNode         listNode, listNodeParent;
+        TFMListAttribute    listAttr;
+        MobListNode         oldListNode;
+        MobListAttribute    oldListAttr;
+        Set                 reimportList = new Set(Types::String);
+        SetEnumerator       sEnum;
+        Map                 recId2recId = new Map(Types::Int64, Types::Int64);
+        Map                 migrationMap = this.getMigrationMap();
+
+        while select listTbl
+        {
+            select firstonly listNodeParent where listNodeParent.ListId == listTbl.ListId && !listNodeParent.parentNode;
+            select firstonly listNode where listNode.parentNode == listNodeParent.recid;
+
+            if (!listNode)
+            {
+                reimportList.add(listTbl.ListId);
+            }
+        }
+        
+        sEnum = reimportList.getEnumerator();
+        ttsbegin;
+        while(sEnum.moveNext())
+        {
+            delete_from listNodeParent where listNodeParent.ListId == sEnum.current();
+
+            while select oldListNode where oldListNode.ListId == sEnum.current()
+            {
+                buf2Buf(oldListNode, listNode);
+                listNode.NodeName = migrationMap.exists(listNode.NodeName) ? migrationMap.lookup(listNode.NodeName) : listNode.NodeName;
+                listNode.insert();
+                recId2recId.insert(oldListNode.RecId,listNode.RecId);
+            }
+            while Select forupdate listNode where listNode.ListId == sEnum.current()
+            {
+                listNode.ParentNode = recId2recId.exists(listNode.ParentNode) ? recId2recId.lookup(listNode.ParentNode) : listNode.ParentNode;
+                listNode.update();
+            }
+
+            while select forupdate listAttr
+            {
+                listAttr.ParentNode = recId2recId.exists(listAttr.ParentNode) ? recId2recId.lookup(listAttr.ParentNode) : listAttr.ParentNode;
+                listAttr.update();
+            }
+        }
+
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Converts the a table output to TFM tables and content. 
+    /// </summary>
+    /// <param name = "_tableName"></param>
+    /// <param name = "_tableOutput"></param>
+    /// <returns></returns>
+    private str convertTable(str _tableName, str _tableOutput)
+    {
+        str tableOutput = _tableOutput;
+        Map migrationMap = this.getMigrationMap();
+        MapEnumerator mEnum = migrationMap.getEnumerator();
+
+        while(mEnum.moveNext())
+        {
+            tableOutput = this.FindMobWordsAndReplace(tableOutput, migrationMap);
+        }
+
+        return tableOutput;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindMobWordsAndReplace</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds Mob words and replaces it with the corresponding TFM class/table if any.
+    /// </summary>
+    /// <param name = "_input"></param>
+    /// <param name = "_migrationMap"></param>
+    /// <returns></returns>
+    public str FindMobWordsAndReplace(str _input, Map _migrationMap)
+    {
+        str output = _input;
+        System.Text.RegularExpressions.MatchCollection matches;
+        System.Text.RegularExpressions.Match match;
+        System.Text.RegularExpressions.Regex regex;
+        str pattern = @"\bMob\w*";
+
+        regex = new System.Text.RegularExpressions.Regex(pattern);
+        matches = regex.Matches(_input);
+
+        for (int i = 0; i < matches.get_Count(); i++)
+        {
+            match = matches.get_Item(i);
+
+            //if the TFM name exists then replace Mob with TFM
+            str classNameStr = match.get_Value();
+            str tfmClassNameStr = this.convertToTFMModel(classNameStr);
+            if(_migrationMap.exists(classNameStr) 
+                || tableName2Id(tfmClassNameStr)
+                || className2Id(tfmClassNameStr))
+            {
+                output = strReplace(output, classNameStr, tfmClassNameStr);
+            }
+        }
+        return output;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendFileToUser</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sends the file to the user to download.
+    /// </summary>
+    /// <param name = "_output">The content of the file to output.</param>
+    private void sendFileToUser(str _output)
+    {
+        str fileName = 'TFMExport';
+        str contentType = 'application/text';
+        str fileExtension = '.tfe';
+        #if.isAX6
+        System.IO.StreamWriter sw;
+        str filePath = WinAPI::getSaveFileName(0,['Tasklet Factory Export format','*'+fileExtension],'',"@SYS56237",fileExtension,fileName);
+        InteropPermission perm = new InteropPermission(InteropKind::ClrInterop);
+        perm.assert();
+
+        sw = new System.IO.StreamWriter(filePath);
+        sw.Write(_output);
+        sw.Flush();
+        sw.Close();
+        sw.Dispose();
+
+        CodeAccessPermission::revertAssert();
+        
+        
+        #endif
+        #ifnot.IsAX6 //365
+        System.IO.MemoryStream stream = new System.IO.MemoryStream();
+        System.IO.StreamWriter writer = new System.IO.StreamWriter(stream,System.Text.Encoding::GetEncoding(1252));
+        writer.Write(_output);
+        writer.Flush();
+        
+        stream.Position = 0;
+        FileUploadTemporaryStorageStrategy fileUploadStrategy = new FileUploadTemporaryStorageStrategy();
+        FileUploadTemporaryStorageResult fileUploadResult = fileUploadStrategy.uploadFile(stream, fileName + fileExtension, contentType , fileExtension);
+        Browser br = new Browser();
+        br.navigate(fileUploadResult.getDownloadUrl(),false, false);
+        #endif
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets output of the table.
+    /// </summary>
+    /// <param name = "_tableName">The name of the table.</param>
+    /// <returns>String output for the table in the TFE format.</returns>
+    private str getTable(TableName _tableName)
+    {
+        str             output;
+        str             tmpStr;
+        int             endPos;
+        str             addedFields;
+        Map             refs;
+        MapEnumerator   refsEnum;
+        Common table = new SysDictTable(tableName2Id(_tableName)).makeRecord();
+        while select table
+        {
+            addedFields = '';
+            tmpStr = table.xml();
+            endPos = strScan(tmpStr, '</Table:Record>',1, strLen(tmpStr));
+            refs =  this.addClassReferenceKey(table);
+            refs.insert('RecId',int642Str(table.RecId));
+            refsEnum = refs.getEnumerator();
+            while (refsEnum.moveNext())
+            {
+                addedFields += '<Table:Field name="'+refsEnum.currentKey()+'">'+refsEnum.currentValue()+'</Table:Field>' + "@TFM:lineBreak";
+            }
+            tmpStr = subStr(tmpStr,1,endPos-1) + addedFields + subStr(tmpStr,endPos, strLen(tmpStr));
+            output += tmpStr;
+        }
+        return output;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addClassReferenceKey</Name>
+				<Source><![CDATA[
+    private Map addClassReferenceKey(Common _table)
+    {
+        DictTable       dt          = new DictTable(_table.tableId);
+        Map             classRefs   = new Map(Types::String, Types::String);
+        dictField       df;
+        int             fieldCount  = dt.fieldCnt();
+        int             fieldNo     = 0;
+        
+        for (fieldNo = 0; fieldNo <= fieldCount; fieldNo++)
+        {
+            df = new DictField(_table.tableId,dt.fieldCnt2Id(fieldNo));
+            if (df.typeId() && (new DictType(df.typeId()).extend() == extendedTypeNum(ClassId) || df.typeId() == extendedTypeNum(ClassId)))
+            {
+                classRefs.insert(df.name() + 'AOTName', classId2Name(_table.(dt.fieldCnt2Id(fieldNo))));
+            }
+        }
+        
+        return classRefs;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        MobDataMigratorPlatformModelSetup migrationDialog = new MobDataMigratorPlatformModelSetup();
+        
+        // Prompt the dialog, if user clicks in OK it returns true
+        if (migrationDialog.prompt())
+        {
+            migrationDialog.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return conNull();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container packedClass)
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMigrationMap</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The migration map used for migrating classes etc. from Mob to TFM Model.
+    /// </summary>
+    /// <returns>The map</returns>
+    public Map getMigrationMap()
+    {
+        Map migrationMap = new Map(Types::String, Types::String);
+        
+        migrationMap.add('MobPageMenuItems', 'TFMPageMenuItems');
+        migrationMap.add('MobTranslationProvider', 'TFMTranslationProvider');
+        migrationMap.add('MobImageAggregate', 'TFMImageAggregate');
+        migrationMap.add('MobStateMinus', 'TFMStateMinus');
+        migrationMap.add('MobDocumentTypeParameters', 'TFMDocumentTypeParameters');
+        migrationMap.add('MobDataSources', 'TFMDataSources');
+        migrationMap.add('MobGroupByVendor', 'TFMGroupByVendor');
+        migrationMap.add('MobInventRefType', 'TFMInventRefType');
+        migrationMap.add('MobPostMethodAttribute', 'TFMPostMethodAttribute');
+        migrationMap.add('MobPageLookupConfiguration', 'TFMPageLookupConfiguration');
+        migrationMap.add('MobToteTable', 'TFMToteTable');
+        migrationMap.add('MobPageLineAdhocRequest', 'TFMPageLineAdhocRequest');
+        migrationMap.add('MobPageOverrideDialog', 'TFMPageOverrideDialog');
+        migrationMap.add('MobOrderListGetOrderLinesDocumentType', 'TFMOrderListGetOrderLinesDocumentType');
+        migrationMap.add('MobRequestOrdersElement', 'TFMRequestOrdersElement');
+        migrationMap.add('MobDocumentTypeAttribute', 'TFMDocumentTypeAttribute');
+        migrationMap.add('MobOfflineUpdateModeEDT', 'TFMOfflineUpdateModeEDT');
+        migrationMap.add('MobMenuExport', 'TFMMenuExport');
+        migrationMap.add('MobExpression', 'TFMExpression');
+        migrationMap.add('MobStateUnplanned', 'TFMStateUnplanned');
+        migrationMap.add('MobCollectorMap', 'TFMCollectorMap');
+        migrationMap.add('MobDocRegisterGenericImage', 'TFMDocRegisterGenericImage');
+        migrationMap.add('MobRequestElement', 'TFMRequestElement');
+        migrationMap.add('MobDocGetItemImages', 'TFMDocGetItemImages');
+        migrationMap.add('MobDocumentOverview', 'TFMDocumentOverview');
+        migrationMap.add('MobExportFonts', 'TFMExportFonts');
+        migrationMap.add('MobFeedbackPart', 'TFMFeedbackPart');
+        migrationMap.add('MobAutomaticAccept', 'TFMAutomaticAccept');
+        migrationMap.add('MobWorkflowValidation', 'TFMWorkflowValidation');
+        migrationMap.add('MobListUsageViewer', 'TFMListUsageViewer');
+        migrationMap.add('MobListValuesElement', 'TFMListValuesElement');
+        migrationMap.add('MobRequestWarehouseElement', 'TFMRequestWarehouseElement');
+        migrationMap.add('MobImageEditor', 'TFMImageEditor');
+        migrationMap.add('MobTimeStamp', 'TFMTimeStamp');
+        migrationMap.add('MobTranslationLookup', 'TFMTranslationLookup');
+        migrationMap.add('MobReferenceDataFilterList', 'TFMReferenceDataFilterList');
+        migrationMap.add('MobDocumentNodes', 'TFMDocumentNodes');
+        migrationMap.add('MobWorkflowValidationType', 'TFMWorkflowValidationType');
+        migrationMap.add('MobDocumentUserOrGroup', 'TFMDocumentUserOrGroup');
+        migrationMap.add('MobPageOrderList', 'TFMPageOrderList');
+        migrationMap.add('MobHelpPart', 'TFMHelpPart');
+        migrationMap.add('MobNodeName', 'TFMNodeName');
+        migrationMap.add('MobPageOfflineManagementConfiguration', 'TFMPageOfflineManagementConfiguration');
+        migrationMap.add('MobOrder', 'TFMOrder');
+        migrationMap.add('MobListELementAttribute', 'TFMListELementAttribute');
+        migrationMap.add('MobDocumentXML', 'TFMDocumentXML');
+        migrationMap.add('MobRequestFiltersElement', 'TFMRequestFiltersElement');
+        migrationMap.add('MobPickReturnOrders', 'TFMPickReturnOrders');
+        migrationMap.add('MobOrderLinesResponseElement', 'TFMOrderLinesResponseElement');
+        migrationMap.add('MobExpressionEditor', 'TFMExpressionEditor');
+        migrationMap.add('MobUnderDeliveryValidation', 'TFMUnderDeliveryValidation');
+        migrationMap.add('MobActionOnEmptyListEDT', 'TFMActionOnEmptyListEDT');
+        migrationMap.add('MobRequestQuarantineElement', 'TFMRequestQuarantineElement');
+        migrationMap.add('MobPageConfigurator', 'TFMPageConfigurator');
+        migrationMap.add('MobGS1AISetup', 'TFMGS1AISetup');
+        migrationMap.add('MobOrderTypeInterface', 'TFMOrderTypeInterface');
+        migrationMap.add('MobPage', 'TFMPage');
+        migrationMap.add('MobListOrdersWithImage', 'TFMListOrdersWithImage');
+        migrationMap.add('MobPageID', 'TFMPageID');
+        migrationMap.add('MobDataSetField', 'TFMDataSetField');
+        migrationMap.add('MobDocumentMessageID', 'TFMDocumentMessageID');
+        migrationMap.add('MobWorkflowBlockDimensions', 'TFMWorkflowBlockDimensions');
+        migrationMap.add('MobRegistrationCollectorList', 'TFMRegistrationCollectorList');
+        migrationMap.add('MobDocumentResultViewer', 'TFMDocumentResultViewer');
+        migrationMap.add('MobInventLocationGroupRights', 'TFMInventLocationGroupRights');
+        migrationMap.add('MobTestEndpoint', 'TFMTestEndpoint');
+        migrationMap.add('MobRegistrationCollectorText', 'TFMRegistrationCollectorText');
+        migrationMap.add('MobWorkflowScanBehaviourWhenRegisteringQuantity', 'TFMWorkflowScanBehaviourWhenRegisteringQuantity');
+        migrationMap.add('MobHandled', 'TFMHandled');
+        migrationMap.add('MobGenericDataHelper', 'TFMGenericDataHelper');
+        migrationMap.add('MobMediaID', 'TFMMediaID');
+        migrationMap.add('MobGraphicsHelper', 'TFMGraphicsHelper');
+        migrationMap.add('MobListLookup', 'TFMListLookup');
+        migrationMap.add('MobRegistrationCollectorMultiLine', 'TFMRegistrationCollectorMultiLine');
+        migrationMap.add('MobListEdit', 'TFMListEdit');
+        migrationMap.add('MobDocumentContentSubject', 'TFMDocumentContentSubject');
+        migrationMap.add('MobPagesProvider', 'TFMPagesProvider');
+        migrationMap.add('MobInventDimSetup', 'TFMInventDimSetup');
+        migrationMap.add('MobTableNameAndField', 'TFMTableNameAndField');
+        migrationMap.add('MobGS1AI', 'TFMGS1AI');
+        migrationMap.add('MobParameters', 'TFMParameters');
+        migrationMap.add('MobTranslations', 'TFMTranslations');
+        migrationMap.add('MobImageHandler', 'TFMImageHandler');
+        migrationMap.add('MobImportSetup', 'TFMImportSetup');
+        migrationMap.add('MobLookupResponse', 'TFMLookupResponse');
+        migrationMap.add('MobParameter', 'TFMParameter');
+        migrationMap.add('MobXMLDeserializer', 'TFMXMLDeserializer');
+        migrationMap.add('MobProcessOverview', 'TFMProcessOverview');
+        migrationMap.add('MobListWidth', 'TFMListWidth');
+        migrationMap.add('MobDocumentDeviceId', 'TFMDocumentDeviceId');
+        migrationMap.add('MobMenuSorting', 'TFMMenuSorting');
+        migrationMap.add('MobRegistrationCollectorImage', 'TFMRegistrationCollectorImage');
+        migrationMap.add('MobVerticalAlignment', 'TFMVerticalAlignment');
+        migrationMap.add('MobApplicationConfigImporter', 'TFMApplicationConfigImporter');
+        migrationMap.add('MobWorkflowDefinitionStandard', 'TFMWorkflowDefinitionStandard');
+        migrationMap.add('MobPromptForUnit', 'TFMPromptForUnit');
+        migrationMap.add('MobDocumentTypeId', 'TFMDocumentTypeId');
+        migrationMap.add('MobMediaQueue', 'TFMMediaQueue');
+        migrationMap.add('MobDocumentConnector', 'TFMDocumentConnector');
+        migrationMap.add('MobGS1Table', 'TFMGS1Table');
+        migrationMap.add('MobCollectorMapAttribute', 'TFMCollectorMapAttribute');
+        migrationMap.add('MobRequestLineElement', 'TFMRequestLineElement');
+        migrationMap.add('MobListYAlign', 'TFMListYAlign');
+        migrationMap.add('MobPageWizard', 'TFMPageWizard');
+        migrationMap.add('MobPagesMap', 'TFMPagesMap');
+        migrationMap.add('MobPageLookup', 'TFMPageLookup');
+        migrationMap.add('MobPageMenuItemType', 'TFMPageMenuItemType');
+        migrationMap.add('MobOfflineUpdateMode', 'TFMOfflineUpdateMode');
+        migrationMap.add('MobPageType', 'TFMPageType');
+        migrationMap.add('MobFontSizes', 'TFMFontSizes');
+        migrationMap.add('MobStateMinusRed', 'TFMStateMinusRed');
+        migrationMap.add('MobOrderListPostOrderDocumentType', 'TFMOrderListPostOrderDocumentType');
+        migrationMap.add('MobFilterAdditionsDataBinding', 'TFMFilterAdditionsDataBinding');
+        migrationMap.add('MobHtmlViewerCtrl', 'TFMHtmlViewerCtrl');
+        migrationMap.add('MobWorkLog', 'TFMWorkLog');
+        migrationMap.add('MobDeviceTable', 'TFMDeviceTable');
+        migrationMap.add('MobRegistrationCollector', 'TFMRegistrationCollector');
+        migrationMap.add('MobListValueIf', 'TFMListValueIf');
+        migrationMap.add('MobRegistrationCollectorQuantityByScan', 'TFMRegistrationCollectorQuantityByScan');
+        migrationMap.add('MobReferenceDataMethod', 'TFMReferenceDataMethod');
+        migrationMap.add('MobPost', 'TFMPost');
+        migrationMap.add('MobRegistrationCollectorSignature', 'TFMRegistrationCollectorSignature');
+        migrationMap.add('MobPeriodic', 'TFMPeriodic');
+        migrationMap.add('MobLineCompletedDefinitionTypes', 'TFMLineCompletedDefinitionTypes');
+        migrationMap.add('MobPageOfflineManagement', 'TFMPageOfflineManagement');
+        migrationMap.add('MobCreateMenuSettings', 'TFMCreateMenuSettings');
+        migrationMap.add('MobReferenceDataMethodAttribute', 'TFMReferenceDataMethodAttribute');
+        migrationMap.add('MobRequestGetOrderLinesElement', 'TFMRequestGetOrderLinesElement');
+        migrationMap.add('MobRegistrationCollectorInteger', 'TFMRegistrationCollectorInteger');
+        migrationMap.add('MobReplaceAppend', 'TFMReplaceAppend');
+        migrationMap.add('MobXMLFormatOrders', 'TFMXMLFormatOrders');
+        migrationMap.add('MobWorkflowFastForwardMode', 'TFMWorkflowFastForwardMode');
+        migrationMap.add('MobRegisteredOnMobileWMS', 'TFMRegisteredOnMobileWMS');
+        migrationMap.add('MobRegistrationCollectorImageCapture', 'TFMRegistrationCollectorImageCapture');
+        migrationMap.add('MobClassificationID', 'TFMClassificationID');
+        migrationMap.add('MobMenuItemStateConfiguration', 'TFMMenuItemStateConfiguration');
+        migrationMap.add('MobCrypt', 'TFMCrypt');
+        migrationMap.add('MobDocumentTypeCreator', 'TFMDocumentTypeCreator');
+        migrationMap.add('MobDocumentTmpHandlerLookup', 'TFMDocumentTmpHandlerLookup');
+        migrationMap.add('MobDeviceType', 'TFMDeviceType');
+        migrationMap.add('MobPageMenuItemTypes', 'TFMPageMenuItemTypes');
+        migrationMap.add('MobListLookupNoSlash', 'TFMListLookupNoSlash');
+        migrationMap.add('MobPagePendingRegistrations', 'TFMPagePendingRegistrations');
+        migrationMap.add('MobListColumn', 'TFMListColumn');
+        migrationMap.add('MobAccumulateByVendor', 'TFMAccumulateByVendor');
+        migrationMap.add('MobDocumentType', 'TFMDocumentType');
+        migrationMap.add('MobDocumentAnswerDate', 'TFMDocumentAnswerDate');
+        migrationMap.add('MobWorkflowCancelBehaviour', 'TFMWorkflowCancelBehaviour');
+        migrationMap.add('MobDocumentHandlerDescription', 'TFMDocumentHandlerDescription');
+        migrationMap.add('MobMultiSelectionTable', 'TFMMultiSelectionTable');
+        migrationMap.add('MobRegistrationNumber', 'TFMRegistrationNumber');
+        migrationMap.add('MobMenuConfig', 'TFMMenuConfig');
+        migrationMap.add('MobPageOrderLinesConfiguration', 'TFMPageOrderLinesConfiguration');
+        migrationMap.add('MobPageLineAdhocRequestAttribute', 'TFMPageLineAdhocRequestAttribute');
+        migrationMap.add('MobDocumentService', 'TFMDocumentService');
+        migrationMap.add('MobRegistrationLog', 'TFMRegistrationLog');
+        migrationMap.add('MobPageMenuItemsAdditionalProperties', 'TFMPageMenuItemsAdditionalProperties');
+        migrationMap.add('MobGraphRectInteraction', 'TFMGraphRectInteraction');
+        migrationMap.add('MobConnectionWizard', 'TFMConnectionWizard');
+        migrationMap.add('MobToteContent', 'TFMToteContent');
+        migrationMap.add('MobAttributeName', 'TFMAttributeName');
+        migrationMap.add('MobApplicationConfigImport', 'TFMApplicationConfigImport');
+        migrationMap.add('MobAdmin', 'TFMAdmin');
+        migrationMap.add('Mob-Admin', 'TFM-Admin');
+        migrationMap.add('MobTableNameAttribute', 'TFMTableNameAttribute');
+        migrationMap.add('MobXMLFormatLookup', 'TFMXMLFormatLookup');
+        migrationMap.add('MobDocumentStrictValidation', 'TFMDocumentStrictValidation');
+        migrationMap.add('MobServiceId', 'TFMServiceId');
+        migrationMap.add('MobRegistrationCollectorDate', 'TFMRegistrationCollectorDate');
+        migrationMap.add('MobPageDatasources', 'TFMPageDatasources');
+        migrationMap.add('MobPageHelper', 'TFMPageHelper');
+        migrationMap.add('MobImageHelper', 'TFMImageHelper');
+        migrationMap.add('MobBackendIDInterface', 'TFMBackendIDInterface');
+        migrationMap.add('MobListLookupJournalHeader', 'TFMListLookupJournalHeader');
+        migrationMap.add('MobPostHelper', 'TFMPostHelper');
+        migrationMap.add('MobListTextElement', 'TFMListTextElement');
+        migrationMap.add('MobDataSourceBlockLockOrderList', 'TFMDataSourceBlockLockOrderList');
+        migrationMap.add('MobOrderTypes', 'TFMOrderTypes');
+        migrationMap.add('MobOrderPostDataSet', 'TFMOrderPostDataSet');
+        migrationMap.add('MobValidationWarningTypes', 'TFMValidationWarningTypes');
+        migrationMap.add('MobImportLists', 'TFMImportLists');
+        migrationMap.add('MobEmptyLocation', 'TFMEmptyLocation');
+        migrationMap.add('MobTranslationLabelIdLookupTable', 'TFMTranslationLabelIdLookupTable');
+        migrationMap.add('MobGS1ReferenceValue', 'TFMGS1ReferenceValue');
+        migrationMap.add('MobPageUnplannedItemRegistrationConfiguration', 'TFMPageUnplannedItemRegistrationConfiguration');
+        migrationMap.add('MobDocumentUserType', 'TFMDocumentUserType');
+        migrationMap.add('MobListLookupWithRegistrations', 'TFMListLookupWithRegistrations');
+        migrationMap.add('MobTraceLog', 'TFMTraceLog');
+        migrationMap.add('MobCreateDocumentHandlers', 'TFMCreateDocumentHandlers');
+        migrationMap.add('MobFilterAdditions', 'TFMFilterAdditions');
+        migrationMap.add('MobDocumentQueueCleanup', 'TFMDocumentQueueCleanup');
+        migrationMap.add('MobStandardItem', 'TFMStandardItem');
+        migrationMap.add('MobXMLFormatOrderLines', 'TFMXMLFormatOrderLines');
+        migrationMap.add('MobStatePlus', 'TFMStatePlus');
+        migrationMap.add('MobValueInteractionPermissionEnum', 'TFMValueInteractionPermissionEnum');
+        migrationMap.add('MobOperationMode', 'TFMOperationMode');
+        migrationMap.add('MobDocCustomFunctionFlow', 'TFMDocCustomFunctionFlow');
+        migrationMap.add('MobACtionTypes', 'TFMACtionTypes');
+        migrationMap.add('MobDocumentAnswerDateTime', 'TFMDocumentAnswerDateTime');
+        migrationMap.add('MobPages', 'TFMPages');
+        migrationMap.add('MobListConfiguration', 'TFMListConfiguration');
+        migrationMap.add('MobGetReferenceData', 'TFMGetReferenceData');
+        migrationMap.add('MobDocGetMedia', 'TFMDocGetMedia');
+        migrationMap.add('MobListCountOrderLines', 'TFMListCountOrderLines');
+        migrationMap.add('MobLookup', 'TFMLookup');
+        migrationMap.add('MobRegistrationCollectorDecimal', 'TFMRegistrationCollectorDecimal');
+        migrationMap.add('MobDynaFilter', 'TFMDynaFilter');
+        migrationMap.add('MobMenu', 'TFMMenu');
+        migrationMap.add('MobCollectorConfigurationAdditionalAttribute', 'TFMCollectorConfigurationAdditionalAttribute');
+        migrationMap.add('MobTakePlaceBothEnum', 'TFMTakePlaceBothEnum');
+        migrationMap.add('MobOrderListResponseElement', 'TFMOrderListResponseElement');
+        migrationMap.add('MobListEditor', 'TFMListEditor');
+        migrationMap.add('MobList', 'TFMList');
+        migrationMap.add('MobDocumentQueueStatus', 'TFMDocumentQueueStatus');
+        migrationMap.add('MobPostAdhocRegistration', 'TFMPostAdhocRegistration');
+        migrationMap.add('MobRequestBasicElement', 'TFMRequestBasicElement');
+        migrationMap.add('MobFormLookupHelper', 'TFMFormLookupHelper');
+        migrationMap.add('MobExportSetup', 'TFMExportSetup');
+        migrationMap.add('MobLookupResponseElement', 'TFMLookupResponseElement');
+        migrationMap.add('MobPageUnplannedItemRegistration', 'TFMPageUnplannedItemRegistration');
+        migrationMap.add('MobResourceLookup', 'TFMResourceLookup');
+        migrationMap.add('MobPageListDataBinding', 'TFMPageListDataBinding');
+        migrationMap.add('MobRequestItemAndDimensionElement', 'TFMRequestItemAndDimensionElement');
+        migrationMap.add('MobLocationContentIcon', 'TFMLocationContentIcon');
+        migrationMap.add('MobWorkflowDefinition', 'TFMWorkflowDefinition');
+        migrationMap.add('MobListHeight', 'TFMListHeight');
+        migrationMap.add('MobRegistrationCollectors', 'TFMRegistrationCollectors');
+        migrationMap.add('MobWorkflowBlockQuantity', 'TFMWorkflowBlockQuantity');
+        migrationMap.add('MobCountByLP', 'TFMCountByLP');
+        migrationMap.add('MobOrderPostDataSetAttribute', 'TFMOrderPostDataSetAttribute');
+        migrationMap.add('MobInventDimHelper', 'TFMInventDimHelper');
+        migrationMap.add('MobPrimaryInputMethod', 'TFMPrimaryInputMethod');
+        migrationMap.add('MobImageCombiner', 'TFMImageCombiner');
+        migrationMap.add('MobOrderListGetOrdersDocumentType', 'TFMOrderListGetOrdersDocumentType');
+        migrationMap.add('MobHelper', 'TFMHelper');
+        migrationMap.add('MobMenuGroups', 'TFMMenuGroups');
+        migrationMap.add('MobScanToSelectBehaviourTypes', 'TFMScanToSelectBehaviourTypes');
+        migrationMap.add('MobWorkflows', 'TFMWorkflows');
+        migrationMap.add('MobPageOrderListConfiguration', 'TFMPageOrderListConfiguration');
+        migrationMap.add('MobDataSourceChooseData', 'TFMDataSourceChooseData');
+        migrationMap.add('MobRegexLookup', 'TFMRegexLookup');
+        migrationMap.add('MobFormXMLFormatter', 'TFMFormXMLFormatter');
+        migrationMap.add('MobDocumentQueueProcessor', 'TFMDocumentQueueProcessor');
+        migrationMap.add('MobListRow', 'TFMListRow');
+        migrationMap.add('MobRequestFinishTote', 'TFMRequestFinishTote');
+        migrationMap.add('MobPageOverviewSubPageNavigator', 'TFMPageOverviewSubPageNavigator');
+        migrationMap.add('MobPostMethod', 'TFMPostMethod');
+        migrationMap.add('MobGS1Name', 'TFMGS1Name');
+        migrationMap.add('MobWorkflowStepId', 'TFMWorkflowStepId');
+        migrationMap.add('MobDisplayLineOverride', 'TFMDisplayLineOverride');
+        migrationMap.add('MobMenuItemActionLookup', 'TFMMenuItemActionLookup');
+        migrationMap.add('MobDocumentQueue', 'TFMDocumentQueue');
+        migrationMap.add('MobRegistrations', 'TFMRegistrations');
+        migrationMap.add('MobRequestRegistrationElement', 'TFMRequestRegistrationElement');
+        migrationMap.add('MobRegistrationCollectorRadioButton', 'TFMRegistrationCollectorRadioButton');
+        migrationMap.add('MobPageActionAttribute', 'TFMPageActionAttribute');
+        migrationMap.add('MobListOverview', 'TFMListOverview');
+        migrationMap.add('MobOfflineModeTypes', 'TFMOfflineModeTypes');
+        migrationMap.add('MobListIdAttribute', 'TFMListIdAttribute');
+        migrationMap.add('MobClassificationHierarchy', 'TFMClassificationHierarchy');
+        migrationMap.add('MobDocAttachments', 'TFMDocAttachments');
+        migrationMap.add('MobGraphRectInteractionWorkflow', 'TFMGraphRectInteractionWorkflow');
+        migrationMap.add('MobValidationDocumentType', 'TFMValidationDocumentType');
+        migrationMap.add('MobListXAlign', 'TFMListXAlign');
+        migrationMap.add('MobExportLists', 'TFMExportLists');
+        migrationMap.add('Mob2DBarcodeGenerator', 'TFM2DBarcodeGenerator');
+        migrationMap.add('MobReferenceDataConfiguration', 'TFMReferenceDataConfiguration');
+        migrationMap.add('MobAutomaticAcceptEDT', 'TFMAutomaticAcceptEDT');
+        migrationMap.add('MobListImageElement', 'TFMListImageElement');
+        migrationMap.add('MobSearchSetup', 'TFMSearchSetup');
+        migrationMap.add('MobUser', 'TFMUser');
+        migrationMap.add('Mob-User', 'TFM-User');
+        migrationMap.add('MobRegistrationCollectorMultiScan', 'TFMRegistrationCollectorMultiScan');
+        migrationMap.add('MobOverDeliveryValidation', 'TFMOverDeliveryValidation');
+        migrationMap.add('MobToteId', 'TFMToteId');
+        migrationMap.add('MobGS1ReferenceTypes', 'TFMGS1ReferenceTypes');
+        migrationMap.add('MobRequestGetOrdersElement', 'TFMRequestGetOrdersElement');
+        migrationMap.add('MobPageMenuItemsHelper', 'TFMPageMenuItemsHelper');
+        migrationMap.add('MobPageMenuConfiguration', 'TFMPageMenuConfiguration');
+        migrationMap.add('MobRegistrationCollectorTypeAndQuantity', 'TFMRegistrationCollectorTypeAndQuantity');
+        migrationMap.add('MobRegistrationCollectorInformation', 'TFMRegistrationCollectorInformation');
+        migrationMap.add('MobWorkflowsTable', 'TFMWorkflowsTable');
+        migrationMap.add('MobPagePendingRegistrationsConfiguration', 'TFMPagePendingRegistrationsConfiguration');
+        migrationMap.add('MobLineSelection', 'TFMLineSelection');
+        migrationMap.add('MobInquiries', 'TFMInquiries');
+        migrationMap.add('MobProcessSessionID', 'TFMProcessSessionID');
+        migrationMap.add('MobExportList', 'TFMExportList');
+        migrationMap.add('MobRequestApplication', 'TFMRequestApplication');
+        migrationMap.add('MobFontID', 'TFMFontID');
+        migrationMap.add('MobDocumentAnswerTime', 'TFMDocumentAnswerTime');
+        migrationMap.add('MobActionOnEmptyList', 'TFMActionOnEmptyList');
+        migrationMap.add('MobGenericParms', 'TFMGenericParms');
+        migrationMap.add('MobPageConfiguration', 'TFMPageConfiguration');
+        migrationMap.add('MobTableName', 'TFMTableName');
+        migrationMap.add('MobXMLFormat', 'TFMXMLFormat');
+        migrationMap.add('MobGetRegistrationConfiguration', 'TFMGetRegistrationConfiguration');
+        migrationMap.add('MobPostOrderPromptOverride', 'TFMPostOrderPromptOverride');
+        migrationMap.add('MobConstants', 'TFMConstants');
+        migrationMap.add('MobRevertToClassic', 'TFMRevertToClassic');
+        migrationMap.add('MobInputTypes', 'TFMInputTypes');
+        migrationMap.add('MobWorkflowValidationTypes', 'TFMWorkflowValidationTypes');
+        migrationMap.add('MobDocRegisterBarcode', 'TFMDocRegisterBarcode');
+        migrationMap.add('MobExpressions', 'TFMExpressions');
+        migrationMap.add('MobValueInteractionPermission', 'TFMValueInteractionPermission');
+        migrationMap.add('MobOutputCacheSetup', 'TFMOutputCacheSetup');
+        migrationMap.add('MobListOrderLines', 'TFMListOrderLines');
+        migrationMap.add('MobWorkflowType', 'TFMWorkflowType');
+        migrationMap.add('MobDocumentNode', 'TFMDocumentNode');
+        migrationMap.add('MobPostResponseData', 'TFMPostResponseData');
+        migrationMap.add('MobScanBehaviour', 'TFMScanBehaviour');
+        migrationMap.add('MobListValueIfEnum', 'TFMListValueIfEnum');
+        migrationMap.add('MobFonts', 'TFMFonts');
+        migrationMap.add('MobScanToSelectBehaviour', 'TFMScanToSelectBehaviour');
+        migrationMap.add('MobListNewVersion', 'TFMListNewVersion');
+        migrationMap.add('MobPickIcon', 'TFMPickIcon');
+        migrationMap.add('MobPageClassOverrideDialog', 'TFMPageClassOverrideDialog');
+        migrationMap.add('MobPageOverview', 'TFMPageOverview');
+        migrationMap.add('MobParameters_Mobobile_Extension', 'TFMParameters_TFMobile_Extension');
+        migrationMap.add('MobRequestInventDimElement', 'TFMRequestInventDimElement');
+        migrationMap.add('MobDeviceConnectionGuide', 'TFMDeviceConnectionGuide');
+        migrationMap.add('MobDocumentHandler', 'TFMDocumentHandler');
+        migrationMap.add('MobDescription', 'TFMDescription');
+        migrationMap.add('MobPageOrderLines', 'TFMPageOrderLines');
+        migrationMap.add('MobImages', 'TFMImages');
+        migrationMap.add('MobReferenceData', 'TFMReferenceData');
+        migrationMap.add('MobBackendId', 'TFMBackendId');
+        migrationMap.add('MobQueryPages', 'TFMDeltaPages');
+
+        return migrationMap;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

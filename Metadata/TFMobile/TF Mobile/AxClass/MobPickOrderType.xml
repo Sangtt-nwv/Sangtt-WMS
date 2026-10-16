@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobPickOrderType</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The parent class of all the classes to provide data for the pick order page.
+/// </summary>
+abstract class MobPickOrderType extends MobOrder implements TFMOrderTypeInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>OrderType</Name>
+				<Source><![CDATA[
+    public MobOrderTypes OrderType()
+    {
+        #mob
+        return MobConstants::Pick();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateResponse</Name>
+				<Source><![CDATA[
+    public static TFMOrderListResponseElement generateResponse(TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+        ListEnumerator				lEnum           = new DictClass(className2Id(classStr(MobPickOrderType))).extendedBy(true).getEnumerator();
+        MobPickOrderType			typeCls;
+        DictClass					dc;        
+        Map							returnMap = new Map(Types::string, Types::Record);
+        MapEnumerator				mEnum;
+        int							i = 1;
+        TFMOrderTypes               orderType = _filters.parmTFMOrderTypes();
+        TFMTableNameAttribute       TableName;
+        TFMOrderListResponseElement	response = TFMOrderListResponseElement::Construct(MobConstants::Pick());
+        while (lEnum.moveNext())
+        {
+            
+            dc = new DictClass(lEnum.current());
+            if (dc == null)
+            {
+                continue;
+            }
+            TableName = dc.getAttribute(classStr(TFMTableNameAttribute));
+            if (!TableName || (orderType && orderType != TableName.parmTableName() + (TableName.parmOrderType() ? ';'+TableName.parmOrderType() : '')))
+            {
+                continue;
+            }
+            if (orderType)
+            {
+                response.parmPageId(subStr(MobConstants::Pick() + strReplace(orderType,';',''),1,30));
+            }
+            typeCls = dc.makeObject() as MobPickOrderType;            
+            returnMap = MobHelper::mergeMaps(typeCls.getHeaderRecords(_filters, _scannedValue), returnMap);
+        }
+        response.mergeRecordMap(returnMap);
+
+        return response;
+		
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

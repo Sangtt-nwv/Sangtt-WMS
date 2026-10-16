@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsProcessRegisterBarcode</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Process definition for Barcode Registration
+/// </summary>
+class MwmsProcessRegisterBarcode extends TFMProcess
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        TFMLogicBlockItemInfo           infoBlock = new TFMLogicBlockItemInfo();
+        MwmsLogicBlockRegisterBarcode   regBarcode= MwmsLogicBlockRegisterBarcode::Construct();
+        processName = TFMConstants::RegisterBarcode();
+        super();
+        this.addBlock(infoBlock);
+        this.addBlock(regBarcode);
+        this.linkBlocks(infoBlock, regBarcode, '1', '1');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

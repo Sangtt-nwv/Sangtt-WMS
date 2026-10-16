@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListNewVersion</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMListNewVersion
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Main</Name>
+				<Source><![CDATA[
+    public static void Main(Args _args)
+    {
+        TFMLists		list = _args.record();
+        TFMListNewVersion::makeANewVersionOfAList(list.ListId);
+        TFMListNewVersion::refreshCallingForm(_args, list.ListId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeANewVersionOfAList</Name>
+				<Source><![CDATA[
+    public static void makeANewVersionOfAList(TFMListID _listID)
+    {
+        TFMListsVersion	lVersion = TFMListsVersion::Find(_listId);
+        TFMListNode		lNode;
+        TFMListsVersion	newVersion;
+
+        select firstonly lNode where lNode.ListId == lVersion.ListId && lNode.Version == lVersion.Version;
+
+        if(lNode)
+        {
+            buf2Buf(lVersion, newVersion);
+            newVersion.ListId = _listId;
+            newVersion.Version++;
+            newVersion.Locked = false;
+            newVersion.insert();
+            TFMListNewVersion::copySubTree(0,lVersion.ListId,lVersion.Version,0,newVersion.Version);
+        }
+        else
+        {
+            TFMListNewVersion::copyListFromCode(_listId, TFMListsProvider::getAllLists().getList(_listId)); //copies from code to TFMLists with the same name to be able to overwrite a list.
+            ttsbegin;
+            lVersion = TFMListsVersion::Find(_listId, 1, true);
+            lVersion.Locked = false;
+            lVersion.update();
+            ttscommit;
+        }
+        TFMListsProvider::instance().invalidateProvider();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeNewList</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Make a new list. Either by creating a new or copying and existing list;
+    /// </summary>
+    /// <param name = "_copyFromListId"></param>
+    /// <param name = "_copyToListId"></param>
+    public static void makeNewList(TFMListID _copyToListId, TFMListID _copyFromListId)
+    {
+        TFMLists		newList;
+        TFMList         copyFromList;
+        TFMListsVersion	newVersion;
+        TFMListNode		firstNode;
+        TFMListNode		firstNodeChild;
+        TFMListNode		firstNewNode;
+
+        if (_copyFromListId)
+        {
+            // copy the existing list
+            copyFromList = TFMListsProvider::getAllLists().getList(_copyFromListId);
+            if(copyFromList)
+            {
+                TFMListsVersion copyFromListVersion = TFMListsVersion::Find(copyFromList.parmListName(), 0, false);
+
+                select firstonly firstNode where firstNode.ListId == _copyFromListId && firstNode.Version == copyFromListVersion.Version && firstNode.ParentNode == 0;
+                if(firstNode)
+                {
+                    newList.ListId = _copyToListId;
+                    newList.insert();
+                            
+                    buf2Buf(copyFromListVersion, newVersion);
+
+                    newVersion.ListId= _copyToListId;
+                    newVersion.Version = 1;
+                    newVersion.Locked = false;
+                    newVersion.insert();
+
+                    buf2Buf(firstNode,firstNewNode);
+
+                    firstNewNode.ListId = newVersion.ListId;
+                    firstNewNode.Version = newVersion.Version;
+                    firstNewNode.insert();
+
+                    while select firstNodeChild where firstNodeChild.ParentNode == firstNode.RecId
+                    {
+                        TFMListNode::pasteNodeFromNode(firstNodeChild,firstNewNode);
+                    }
+                }
+                else
+                {
+                    // else copy from class.
+                    TFMListNewVersion::copyListFromCode(_copyToListId, copyFromList);
+                }
+            }
+        }
+        else if(_copyToListId)
+        {
+            //Just creating a new list - no copy.
+            newList.ListId = _copyToListId;
+            newList.insert();
+
+            newVersion.ListId= _copyToListId;
+            newVersion.Version = 1;
+            newVersion.insert();
+
+            // we add the rows because it should always be there and it cannot be added in the list editor.
+            TFMListNode::addNode('rows', 0, _copyToListId, newVersion.Version);
+        }
+
+        TFMListsProvider::instance().invalidateProvider();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>copyListFromCode</Name>
+				<Source><![CDATA[
+    public static void copyListFromCode(str _listName, TFMList _listToCopyFrom)
+    {
+        XmlElement containerElem;
+        TFMList list = _listToCopyFrom;
+
+        list.parmListName(_listName);
+        containerElem = XmlDocument::newBlank().createElement('lists');
+
+        // this should only import the custom components and not its subcomponents.
+        list.getList().appendToXML(containerElem, false); // get list will use the code version of the list configuration
+
+        TFMImportLists::importList(containerElem.firstChild(), false); // the list will be imported but not approved.
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>copySubTree</Name>
+				<Source><![CDATA[
+    private static void copySubTree(RefRecId _parent, TFMListId _listID, Version _version, RefRecId _newParent, Version _newVersion, TFMListId _newListId = '')
+    {
+        TFMListNode				nodes;
+        TFMListNode				newNode;
+        TFMListAttribute		fromAttribute, toAttribute;
+        
+        
+        while select nodes order by LineNum where nodes.ParentNode == _parent && nodes.ListId == _listID && nodes.Version == _version
+        {
+            buf2Buf(nodes,newNode);
+            newNode.ListId	= _newListId ? _newListId : newNode.ListId;
+            newNode.Version	= _newVersion;
+            newNode.ParentNode = _newParent;
+            newNode.insert();
+
+            while select fromAttribute where fromAttribute.ParentNode == nodes.RecId
+            {
+                buf2Buf(fromAttribute, toAttribute);
+                toAttribute.ParentNode = newNode.RecId;
+                toAttribute.insert();
+            }
+
+            TFMListNewVersion::copySubTree(nodes.RecId, _listID, _version, newNode.RecId, _newVersion, _newListId);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>refreshCallingForm</Name>
+				<Source><![CDATA[
+    public static void refreshCallingForm(args _args, str _listId)
+    {
+        FormDataSource fds;
+    
+        if(_args &&
+       _args.record() &&
+       _args.record().isFormDataSource())
+        {
+            fds = _args.record().dataSource();
+
+            fds.reread();
+            fds.research(true);
+            fds.findValue(fieldName2Id(tableNum(TFMLists), 'ListId'), _listId);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

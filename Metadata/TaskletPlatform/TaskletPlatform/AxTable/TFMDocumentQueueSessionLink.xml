@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentQueueSessionLink</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMDocumentQueueSessionLink extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addLink</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public static void addLink(TFMDocumentMessageId _messageId, TFMProcessSessionID _session, Description _desc, boolean _isPost, TFMDocumentDeviceId _device)
+    {
+        TFMDocumentQueueSessionLink linkTable;
+        
+        linkTable.MessageId = _messageId;
+        linkTable.SessionID = _session;
+        linkTable.insert();
+
+        TFMProcessSessions::createIfNotExist(_session, _desc,_isPost, _device);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>delete</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void delete()
+    {
+        TFMProcessSessions processSessions;
+
+        super();
+
+        // Delete related work log if session ID does not exists in links
+        if(!TFMDocumentQueueSessionLink::existSessionLink(this.SessionID))
+        {
+            delete_from processSessions
+                where processSessions.ProcessSessionID == this.SessionID;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>existSessionLink</Name>
+				<Source><![CDATA[
+    public static boolean existSessionLink(TFMProcessSessionID _sessionId)
+    {
+        TFMDocumentQueueSessionLink sessionLink;
+
+        select firstonly sessionLink where sessionLink.SessionID == _sessionId;
+
+        return sessionLink.RecId != 0;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>SysRowVersionNumber</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>SysRowVersionNumber</ExtendedDataType>
+			<Null>Yes</Null>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SessionID</Name>
+			<ExtendedDataType>TFMProcessSessionID</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldGuid">
+			<Name>MessageId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentMessageId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>TFMDocumentQueue</Name>
+			<RelatedTable>TFMDocumentQueue</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>MessageId</Name>
+					<Field>MessageId</Field>
+					<RelatedField>MessageId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>TFMProcessSessions</Name>
+			<RelatedTable>TFMProcessSessions</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>SessionID</Name>
+					<Field>SessionID</Field>
+					<RelatedField>ProcessSessionID</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

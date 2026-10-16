@@ -1,0 +1,592 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMFilterTreeBuilder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMFilterTreeBuilder
+{
+    //ImageListAppl_checkbox   imageList;
+    FormTreeControl     tree;
+    Map                 expMap;
+    Map                 id2idx;
+    Map                 idx2id;
+    Map                 contextId2Name;
+    Map                 contextId2Record;
+    int                 idCounter; 
+    Map					idx2parentName;
+    Map					idx2className;
+    Map					idx2fieldName;
+    Map					idx2parentIdx;
+    Map					configFilters;
+    boolean				onlyFilters;
+    FormGroupControl    fgc;
+    FormButtonControl	addButton;
+    FormButtonControl	deleteButton;
+    TableName           tableName;
+    ClassName           currentClass;
+    MethodName			filterName;
+    FormGroupControl	dataGroup;
+    int					nextID;
+    str                 filterNameDelimitation;
+    str                 nameOfClass;
+    TFMReferenceDataConfiguration  refData;
+    Map                             headers;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    private void new(FormTreeControl _tree, FormGroupControl _fgc, FormGroupControl _dataGroup, str _filterNameDelimitation = '')
+    {
+        tree = _tree;
+        fgc = _fgc;
+        
+        dataGroup = _dataGroup;
+        filterNameDelimitation = _filterNameDelimitation;
+        this.resetMaps();
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resetMaps</Name>
+				<Source><![CDATA[
+    protected void resetMaps()
+    {
+        headers= TFMHeadersProvider::GetPageHeaders();
+        refData = headers.exists(filterNameDelimitation) ? headers.lookup(filterNameDelimitation) : null;
+        id2idx = new Map(Types::Int64,Types::Int64);
+        idx2id = new Map(Types::Int64,Types::Int64);
+        idx2parentName = new Map(Types::Int64, Types::String);
+        idx2parentIdx = new Map(Types::Int64, Types::Int64);
+        idx2fieldName = new Map(Types::Int64, Types::String);
+        idx2className = new Map(Types::Int64, Types::String);
+
+        /*configFilters = TFMFormLookupHelper::getConfigurableFilters(filterNameDelimitation);
+        nameOfClass = '';
+        if (configFilters.elements() == 1)
+        {
+            nameOfClass = conPeek(configFilters.pack(),5);
+            nameOfClass = subStr(nameOfClass,1,strScan(nameOfClass,'.',1,100)-1);
+        }*/
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>currentfilterName</Name>
+				<Source><![CDATA[
+    public MethodName currentfilterName()
+    {
+        return idx2parentName.exists(tree.getSelection()) ? idx2parentName.lookup(tree.getSelection()) : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>currentClassName</Name>
+				<Source><![CDATA[
+    public ClassName currentClassName()
+    {
+        return idx2className.exists(tree.getSelection()) ? idx2className.lookup(tree.getSelection()) : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFilterNameDelimitation</Name>
+				<Source><![CDATA[
+    public str parmFilterNameDelimitation(str _filterNameDelimitation = filterNameDelimitation)
+    {
+        filterNameDelimitation = _filterNameDelimitation;
+        return filterNameDelimitation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>currentfilterFieldName</Name>
+				<Source><![CDATA[
+    public Name currentfilterFieldName()
+    {
+        return idx2fieldName.exists(tree.getSelection()) ? idx2fieldName.lookup(tree.getSelection()) :'';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    Public static TFMFilterTreeBuilder Construct(FormTreeControl _tree, FormGroupControl _fgc, FormGroupControl _dataGroup, str _filterNameDelimitation = '')
+    {
+        return new TFMFilterTreeBuilder(_tree,_fgc,_dataGroup, _filterNameDelimitation);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setButtons</Name>
+				<Source><![CDATA[
+    public void setButtons(FormButtonControl	_addButton, FormButtonControl	_deleteButton)
+    {
+        addButton = _addButton;
+        if (!filterNameDelimitation)
+        {
+            addButton.registerOverrideMethod(methodstr(formButtonControl, clicked),methodstr(TFMFilterTreeBuilder, add_clicked),this);
+        }
+        deleteButton = _deleteButton;
+        if (!filterNameDelimitation)
+        {
+            deleteButton.registerOverrideMethod(methodstr(formButtonControl, clicked),methodstr(TFMFilterTreeBuilder, delete_clicked),this);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildTree</Name>
+				<Source><![CDATA[
+    public TreeItemIdx buildTree(int64 _parentKey, TreeItemIdx _parentIdx, int64 _returnIdx = 0)
+    {
+        //FormTreeItem                    formTreeItem;        
+        TreeItemIdx                     idx;
+        ClassId                         clsId;
+        TreeItemIdx                     retIdx = 0;//, tIdx;       
+        DictClass                       dc = new DictClass(className2Id(classStr(TFMDocumentHandler)));
+        DictClass                       subClass;
+        TFMDocumentHandler              docHand;
+        //TFMReferenceDataMethodAttribute refDataAttribute = new TFMReferenceDataMethodAttribute();
+        List                            extendingClasses = dc.extendedBy(true);
+        ListEnumerator                  lEnum = extendingClasses.getEnumerator();
+
+        tree.deleteAll();
+        this.resetMaps();
+        /*clsId = className2Id(nameOfClass);
+        while (lEnum.moveNext())
+        {            
+            if (clsId && clsId != lEnum.current())
+            {
+                continue;
+            }
+            subClass = new DictClass(lEnum.current());
+            if (subClass == null ||subClass.isAbstract())
+            {
+                continue;
+            }
+            docHand = subClass.makeObject() as TFMDocumentHandler;
+            idx = this.addDocumentTreeItem(docHand);
+            
+        }*/
+        this.addFilterTreeItem();
+        addButton.enabled(false);
+        return retIdx;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addFilterTreeItem</Name>
+				<Source><![CDATA[
+    private TreeItemIdx addFilterTreeItem()
+    {
+        //TreeItemIdx					idx = this.addTreeItemId(_doc.description(),classIdGet(_doc),classIdGet(_doc),0);
+        TreeItemIdx					filterNameIdx;
+        SetEnumerator				sEnum;
+        TFMRegistrationCollector	regCol;
+        int							i, j;
+        Set							otherSet;
+        
+        
+        
+        if (refData && refData.parmUseDynaFilter())
+        {
+            i++;
+            filterNameIdx  = this.addTreeItemId(refData.parmKey(),i,refData.parmKey(),0);
+            filterName =          refData.parmKey();
+            sEnum = refData.getCollectors().getEnumerator();
+            j = 1;
+            while(sEnum.moveNext())
+            {
+                regCol = sEnum.current();
+
+                this.addFilterFieldTreeItem(refData.parmKey(),filterNameIdx,regCol,refData.parmKey(),i*j*65);
+                j++;
+            }
+        }
+        
+        return filterNameIdx;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTreeItemId</Name>
+				<Source><![CDATA[
+    private TreeItemIdx addTreeItemId(Name _name, int64 _id, anytype _data, TreeItemIdx _parentIdx)
+    {
+        FormTreeItem    formTreeItem = new FormTreeItem();
+        TreeItemIdx     idx;
+        
+        //BP Deviation Documented
+        formTreeItem.text(_name);
+
+        formTreeItem.data(_data);
+        formTreeItem.image(12209);
+        
+        idx = tree.addItem(_parentIdx, 0, formTreeItem);
+        
+        id2idx.insert(_id,idx);
+        idx2id.insert(idx,_id);
+
+        return idx;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>delete_clicked</Name>
+				<Source><![CDATA[
+    public void delete_clicked(FormControl _control)
+    {
+        int currentIdx = tree.getSelection();
+        if (idx2parentName.exists(currentIdx))
+        {
+            TFMFilterAdditions::deleteFilterField(idx2parentName.lookup(currentIdx),idx2fieldName.lookup(currentIdx));
+            tree.select(idx2parentIdx.lookup(currentIdx));
+            tree.delete(currentIdx);
+        }
+		
+		
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>selectionChanged</Name>
+				<Source><![CDATA[
+    public void selectionChanged(int _idx, anytype _data)
+    {
+        SysDictClass					DC;
+        //int								i, j;
+        //DictMethod						DM;
+        //TFMParameterAttribute			parmAttr;
+        //Map								filters = TFMFormLookupHelper::getConfigurableFilters();
+        SetEnumerator					collectors;
+        TFMReferenceDataConfiguration	filterConfig;
+        anytype							filterObject;
+        TFMRegistrationCollector		collector;
+        FormStringControl				formStringControl;
+        FormCheckBoxControl				chkcontrol;
+        FormComboBoxControl				comboBox;
+        FormInt64Control				intControl;
+        //Array							array;
+        str								filterStr, clsName, mthdName;
+        Map								controls;
+        MapEnumerator					mEnum;
+        FormControl						control;
+        deleteButton.enabled(false);
+        addButton.enabled(false);
+        dataGroup.enabled(false);
+        dataGroup.visible(false);
+        fgc.columns(1);
+
+        while (fgc.controlCount())
+        {
+            fgc.formRun().design().removeControl(fgc.controlNum(1).id());
+        }
+        
+        
+        if (typeOf(_data) == Types::Class && TFMHelper::List2Set(new SysDictClass(classNum(TFMRegistrationCollector)).extendedBy(true)).in(classidget(_data)))
+        {
+            collector  = _data;
+            controls = collector.PopulateGroup(fgc, false,false,'','',null,false);
+            fgc.columns(2);
+            mEnum = controls.getEnumerator();
+			while (mEnum.moveNext())
+            {
+                control = mEnum.currentValue();
+                if (classIdGet(control) == classNum(FormStringControl))
+                {
+                    formStringControl = control;
+                    formStringControl.registerOverrideMethod(methodStr(FormStringControl,modified), methodStr(TFMFilterTreeBuilder, control_modified),this);
+                }
+                else if (classIdGet(control) == classNum(FormCheckBoxControl))
+                {
+                    chkcontrol = control;
+                    chkcontrol.registerOverrideMethod(methodStr(FormCheckBoxControl,modified), methodStr(TFMFilterTreeBuilder, control_modified),this);
+                }
+                else if (classIdGet(control) == classNum(FormComboBoxControl))
+                {
+                    comboBox = control;
+                    comboBox.registerOverrideMethod(methodStr(FormComboBoxControl,modified), methodStr(TFMFilterTreeBuilder, control_modified),this);
+                }
+                else if (classIdGet(control) == classNum(FormInt64Control))
+                {
+                    intControl = control;
+                    intControl.registerOverrideMethod(methodStr(FormInt64Control,modified), methodStr(TFMFilterTreeBuilder, control_modified),this);
+                }
+            }
+            if (idx2parentName.exists(tree.getSelection()))
+            {
+                deleteButton.enabled(TFMFilterAdditions::exist(idx2parentName.lookup(tree.getSelection()),idx2fieldName.lookup(tree.getSelection())));
+                //dataGroup.enabled(TFMFilterAdditions::exist(idx2parentName.lookup(tree.getSelection()),idx2fieldName.lookup(tree.getSelection())));
+                //dataGroup.visible(dataGroup.enabled());
+                dataGroup.enabled(true);
+                dataGroup.visible(dataGroup.enabled());
+                fgc.enabled(deleteButton.enabled());
+            }
+            //deleteButton.enabled(true);
+            return;
+        }
+        addButton.enabled(false);
+        deleteButton.enabled(false);
+        filterStr = _data;
+        
+        filterConfig = headers.exists(filterStr) ? headers.lookup(filterStr) : null;
+        if (!filterConfig)
+        {
+            return;
+        }
+        filterName = filterConfig.parmKey() ? filterConfig.parmKey() : mthdName;
+        filterConfig.parmKey(filterName);
+        collectors = filterConfig.getCollectors().getEnumerator();
+        while (collectors.moveNext())
+        {
+            collector = collectors.current();
+            formStringControl = fgc.addControl(FormControlType::String,collector.parmName());
+            formStringControl.allowEdit(false);
+            formStringControl.label(collector.parmLabel());
+        }
+        
+        addButton.enabled(true);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_modified</Name>
+				<Source><![CDATA[
+    public boolean control_modified(FormControl _control)
+    {
+        //Info (_control.name() + ' modified');
+        MethodName					callMethod = SysTest::hasMethod(_control,methodStr(FormCheckBoxControl, value)) ? methodStr(FormCheckBoxControl, value) : methodStr(FormControl, valueStr);
+        TFMRegistrationCollector	regCollector;
+        anytype						treeData = tree.getItem(tree.getSelection()).data();
+        TFMFilterFieldValues::addValue(idx2parentName.lookup(tree.getSelection()),idx2fieldName.lookup(tree.getSelection()),_control.name(),new SysDictClass(classIdGet(_control)).callObject(callMethod,_control));
+
+        if (typeOf(treeData) == Types::Class && new SysDictClass(classIdGet(treeData)).extend() == classNum(TFMRegistrationCollector))
+        {
+			regCollector = treeData;
+            TFMFilterFieldValues::addSavedValuesToCollector(idx2parentName.lookup(tree.getSelection()),idx2fieldName.lookup(tree.getSelection()),regCollector);
+
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getContextMenuOptions</Name>
+				<Source><![CDATA[
+    public str getContextMenuOptions()
+    {
+        //str ret;
+        ContextMenu menu = new ContextMenu();
+        List options = new List(Types::Class);
+        //int             ids;
+        
+        contextId2Name = new Map(Types::Integer,Types::String);
+        contextId2Record = new Map(Types::Integer,Types::Record);
+
+        menu.ContextMenuOptions(options);
+    
+        return menu.Serialize();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>selectedMenuOption</Name>
+				<Source><![CDATA[
+    public void selectedMenuOption(int _selectedOption)
+    {
+        if (_selectedOption == -5000)
+        {
+            Info ('delete');
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDocumentTreeItem</Name>
+				<Source><![CDATA[
+    private TreeItemIdx addDocumentTreeItem(TFMDocumentHandler _doc)
+    {
+        TreeItemIdx					idx = this.addTreeItemId(_doc.description(),classIdGet(_doc),classIdGet(_doc),0);
+        TreeItemIdx					/*filterIdx, pagesIdx, flowsIdx, parmsIdx,*/ filterNameIdx;//, filterFieldNameIdx;
+        SetEnumerator				sEnum;
+        SysDictClass				DC = new SysDictClass(classIdGet(_doc));
+        
+        //DictMethod					DM;
+        //TFMParameterAttribute		parmAttr;
+        //Array						array;
+        TFMRegistrationCollector	regCol;
+        int							i, j;
+        boolean						foundOne;
+        Set							methodSet = _doc.getReferenceDataMethods();
+        Set							otherSet;
+        MapEnumerator				mEnum;
+        //str							isCustom;
+        if (methodSet == null)
+        {
+            methodSet = new Set(Types::String);
+        }
+        otherSet = new Set(Types::String);
+        mEnum = TFMAttributeHandler::getMethodNamesFromSysAttribute(classIdGet(_doc),new TFMReferenceDataMethodAttribute()).getEnumerator();
+		while (mEnum.moveNext())
+        {
+            otherSet.add(mEnum.currentKey());
+        }
+        methodSet = Set::union(methodSet,otherSet);
+        foundOne = false;
+        if (methodSet.elements())
+        {            
+            sEnum  = methodSet.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                i++;
+                if (configFilters.exists(DC.name() + '.' + sEnum.current() + '()') && (!filterNameDelimitation || filterNameDelimitation == sEnum.current()))
+                {
+                    filterNameIdx  = this.addTreeItemId(sEnum.current(),i,DC.name() + '.' + sEnum.current(),idx);
+                    idx2className.insert(filterNameIdx,DC.name());
+                    mEnum = TFMFormLookupHelper::getConfigurableFilterFields(DC.name() + '.' + sEnum.current()).getEnumerator();
+                    j = 1;
+					while(mEnum.moveNext())
+                    {
+                        regCol = mEnum.currentValue();
+                        /*isCustom = TFMFilterAdditions::exist(sEnum.current(),regCol.parmName()) ? ' {Custom}' :'';
+
+                        filterFieldNameIdx = this.addTreeItemId(mEnum.currentKey() + ' (' + subStr(classId2Name(classIdGet(regCol)),strLen(classStr(TFMRegistrationCollector))+1,strLen (classId2Name(classIdGet(regCol)))) +')'+isCustom,j*i*65,mEnum.currentValue(),filterNameIdx);
+                        idx2fieldName.insert(filterFieldNameIdx,regCol.parmName());
+                        idx2parentName.insert(filterFieldNameIdx,sEnum.current());
+                        idx2className.insert(filterFieldNameIdx,DC.name());*/
+                        this.addFilterFieldTreeItem(sEnum.current(),filterNameIdx,regCol,DC.name(),i*j*65);
+                        j++;
+                    }
+                    foundOne = true;
+                }				
+            }            
+        }
+        nextID = i*j*65;
+
+        if (!foundOne)
+        {
+            tree.delete(idx);
+        }
+        return idx;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addFilterFieldTreeItem</Name>
+				<Source><![CDATA[
+    private void addFilterFieldTreeItem(MethodName _filterName, int _parentIdx, TFMRegistrationCollector	_regCol, ClassName _className, int _id)
+    {
+        str isCustom = TFMFilterAdditions::exist(_filterName,_regCol.parmName()) ? ' {Custom}' :'';
+
+        int filterFieldNameIdx = this.addTreeItemId(_regCol.parmName() + ' (' + subStr(classId2Name(classIdGet(_regCol)),strLen(classStr(TFMRegistrationCollector))+1,strLen (classId2Name(classIdGet(_regCol)))) +')'+isCustom,_id,_regCol,_parentIdx);
+        idx2fieldName.insert(filterFieldNameIdx,_regCol.parmName());
+        idx2parentName.insert(filterFieldNameIdx,_filterName);
+        idx2className.insert(filterFieldNameIdx,_className);
+        idx2parentIdx.insert(filterFieldNameIdx,_parentIdx);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>add_clicked</Name>
+				<Source><![CDATA[
+    public void add_clicked(FormControl _control, TableName _tableName = '')
+    {
+        dialog		                    dialog = new dialog();
+        DialogField                     dialogFLD = _tableName ? dialog.addField(extendedTypeStr(FieldName)) : dialog.addField(extendedTypeStr(ExtendedDataTypeName));
+        str			                    EDTName;
+        ExtendedTypeId                  edtId;
+        TFMFilterAdditionsDataBinding   TFMFilterAdditionsDataBinding;
+        
+        dialog.caption("@SYS329055");
+        if (_tableName)
+        {
+            dialogFLD.registerOverrideMethod(methodStr(FormStringControl,lookup), methodStr(TFMFilterTreeBuilder,lookupFields),this);
+            tableName = _tableName;
+        }
+        dialog.run();
+
+        if(!dialog.closedOk())
+        {
+            return;
+        }
+        EDTName = dialogFLD.value();
+
+        if (_tableName)
+        {
+            edtId = new SysDictField(tableName2Id(_tableName),fieldName2Id(tableName2Id(_tableName),EDTName)).typeId();
+            if(!edtId)
+            {
+                Error ("@TFM:IncompatibleField");
+            }
+            TFMFilterAdditionsDataBinding.FieldName = EDTName;
+            EDTName = extendedTypeId2name(edtId);
+            TFMFilterAdditionsDataBinding.FilterName = filterName;
+            TFMFilterAdditionsDataBinding.FilterFieldName = EDTName;
+            //TFMFilterAdditionsDataBinding.ClassName = this.currentClassName();
+            TFMFilterAdditionsDataBinding.TableName = _tableName;
+            
+            TFMFilterAdditionsDataBinding.insert();
+            
+        }
+        
+        TFMFilterAdditions::AddFilterField(filterName,EDTName,EDTName);
+
+        nextID++;
+        this.addFilterFieldTreeItem(filterName,tree.getSelection(),TFMRegistrationCollector::collectorFromEDT(EDTName),filterName,nextID);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupFields</Name>
+				<Source><![CDATA[
+    public void lookupFields(FormControl _formControl)
+    {
+        TFMFormLookupHelper::lookupTableFieldNamesWithEDT(tableName, _formControl);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>expanding</Name>
+				<Source><![CDATA[
+    public boolean expanding(TreeItemIdx _idx, FormTreeExpand _action, anytype _data)
+    {
+        boolean ret;
+        FormTreeItem item = tree.getItem(_idx);
+
+        if (!item.stateExpandedOnce())
+        {
+            this.buildTree(item.data(), _idx);
+            //ret = super(_idx, _action, _data);
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

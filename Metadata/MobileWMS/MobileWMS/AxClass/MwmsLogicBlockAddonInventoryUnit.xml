@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockAddonInventoryUnit</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MwmsLogicBlockAddonInventoryUnit extends TFMLogicBlockAddon
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addonName</Name>
+				<Source><![CDATA[
+    public Name addonName()
+    {
+        return "@TaskletMobileWMS:InventoryUnitPrompt";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>compatibleWithBlock</Name>
+				<Source><![CDATA[
+    public boolean compatibleWithBlock(TFMLogicBlock _block)
+    {
+        TFMLogicBlockDataCollectionInterface    collectBlock;
+        TFMRegistrationCollector                quantity;
+        boolean                                 askForItem;
+        if ( _block is TFMLogicBlockDataCollectionInterface)
+        {
+            collectBlock = _block as TFMLogicBlockDataCollectionInterface;
+            quantity = collectBlock.registrationCollectors().getCollector(TFMConstants::Quantity());
+            askForItem = collectBlock.registrationCollectors().getCollector(extendedTypeStr(itemId)) != null || collectblock.headerFieldsNeeded().collectorNameExists(extendedTypeStr(itemId));
+            return quantity!= null && askForItem;
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addonDescription</Name>
+				<Source><![CDATA[
+    public Description255 addonDescription()
+    {
+        return "@TaskletMobileWMS:Modifierforaddinginventoryunitas";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRegistrationCollectors</Name>
+				<Source><![CDATA[
+    public void modifyRegistrationCollectors(TFMRegistrationCollectors _collectors)
+    {
+        TFMRegistrationCollectorList    uomList = MwmsLogicBlockAddonInventoryUnit::makeUnitOfMeasureCollector();
+        TFMRegistrationCollector        quantity = _collectors.getCollector(TFMConstants::Quantity());
+        
+        uomList.parmId(quantity.parmId()-1);
+        _collectors.addCollector(uomList, true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeUnitOfMeasureCollector</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectorList makeUnitOfMeasureCollector()
+    {
+        TFMRegistrationCollectorList    uomList = TFMRegistrationCollectorList::ListStep(false,1000,extendedTypeStr(UnitIDBase),"@SYS40864","@SYS40864",'','');
+        TFMConditions                   conditions = TFMConditions::Construct();
+        TFMCondition                    conditionChild, conditionParent;
+        
+        conditions.addCondition(TFMCondition::Construct(classStr(MwmsLogicContextUnitOfMeasure),['{itemId}'],'ListOfUnitsOfMeasure'),methodStr(TFMListValuesAndDataTable, parmListValues));
+                    
+        conditions.addCondition(TFMCondition::Construct(classStr(MwmsLogicContextUnitOfMeasure),['{itemId}'],'DefaultUnitID'),methodStr(TFMRegistrationCollector, parmDefaultValue));
+        
+        conditionParent = TFMCondition::ConstructOperator(classStr(TFMLogicContextInverterOperator));
+        conditions.addCondition(conditionParent,methodStr(TFMRegistrationCollector,parmActive));
+        conditionChild = TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldstr(InventDim, inventSerialId), '{itemId}'],'active');
+        conditions.addCondition(conditionChild,methodStr(TFMRegistrationCollector,parmActive));
+        conditions.addLink(conditionChild,conditionParent, methodStr(TFMRegistrationCollector,parmActive));
+        
+        uomList.parmConditions(conditions);
+        
+        return uomList;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRequestBeforePost</Name>
+				<Source><![CDATA[
+    public void modifyRequestBeforePost(TFMRequestElement _request)
+    {
+        Qty         qty = str2Num(_request.getFieldValue(MobConstants::Quantity()));
+        UnitIDBase  unit= _request.getFieldValue(extendedTypeStr(UnitIDBase));
+        ItemId      item= _request.getFieldValue(extendedTypeStr(ItemId));
+        InventTable iTable = InventTable::find(item);
+        UnitIDBase  unitDefault;
+
+        if (!iTable || !unit || !qty)
+        {
+            return;
+        }
+        unitDefault = iTable.inventUnitId();
+
+        if (unitDefault == unit)
+        {
+            return;
+        }
+        qty = UnitOfMeasureConverter::convert(  qty,
+                                                        UnitOfMeasure::findBySymbol(unit).RecId,
+                                                        UnitOfMeasure::findBySymbol(unitDefault).RecId,
+                                                        true,
+                                                        iTable.Product().RecId,
+                                                        false);
+        
+        _request.addField(MobConstants::Quantity(), strFmt('%1',qty), true);
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

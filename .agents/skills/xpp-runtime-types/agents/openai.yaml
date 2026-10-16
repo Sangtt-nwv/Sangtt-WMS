@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Runtime Types"
+  short_description: "Use collections, utcdatetime, .NET interop, and Dict* reflection"
+  default_prompt: "Use $xpp-runtime-types to work with a collection, date/time, or reflection type for this D365FO change."

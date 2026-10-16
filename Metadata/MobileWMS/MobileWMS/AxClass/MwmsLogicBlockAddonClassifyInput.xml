@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockAddonClassifyInput</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MwmsLogicBlockAddonClassifyInput extends TFMLogicBlockAddon
+{
+    const str ScanBarcodeFieldName = 'ScanBarcodeField';
+
+    private Map uniqueValuesFields;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addonName</Name>
+				<Source><![CDATA[
+    public Name addonName()
+    {
+        return "Classify Item Id";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resetUniqueFields</Name>
+				<Source><![CDATA[
+    public void resetUniqueFields()
+    {
+        uniqueValuesFields = new Map(Types::String, Types::AnyType);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        this.resetUniqueFields();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>compatibleWithBlock</Name>
+				<Source><![CDATA[
+    public boolean compatibleWithBlock(TFMLogicBlock _block)
+    {
+        TFMReferenceDataConfiguration headers = _block.components().getHeaders();
+        SetEnumerator headersSet = headers.getCollectors().getEnumerator();
+        while(headersSet.moveNext())
+        {
+            TFMRegistrationCollector header = headersSet.current();
+            if(header.isAcceptingValuesFrom(extendedTypeStr(ItemId)))
+            {
+                return true;
+            }
+        }
+        
+        return classIdGet(_block) == classNum(MwmsLogicBlockMoveInvent);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addonDescription</Name>
+				<Source><![CDATA[
+    public Description255 addonDescription()
+    {
+        return "Modifier for changing the item id header field to a field that will classify the input to e.g. Batch, Serialnumber or ItemId depending on input in the field.";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyHeaderCollectors</Name>
+				<Source><![CDATA[
+    public void modifyHeaderCollectors(TFMReferenceDataConfiguration _refConf)
+    {
+        SetEnumerator enums = _refConf.getCollectors().getEnumerator();
+        while(enums.moveNext())
+        {
+            TFMRegistrationCollector header = enums.current();
+            if(header.isAcceptingValuesFrom(extendedTypeStr(ItemId)))
+            {
+                TFMRegistrationCollectorText textCollector = header;
+
+                header.parmName(ScanBarcodeFieldName);
+
+                str eanAI =  TFMGS1Table::AIsfromEDT(extendedTypeStr(InventBatchId)) + ';' + TFMGS1Table::AIsfromEDT(extendedTypeStr(InventSerialId)) + ';' + TFMGS1Table::AIsfromEDT(extendedTypeStr(ItemId));
+                header.parmEanAi(eanAI);
+                header.parmLabel("Identifier");
+                textCollector.parmLength(200);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRequest</Name>
+				<Source><![CDATA[
+    public void modifyRequest(TFMRequestElement _request)
+    {
+        this.resetUniqueFields();
+
+        str barcodeStr = _request.getFieldValue(ScanBarcodeFieldName);
+        if(!barcodeStr)
+        {
+            return;
+        }
+
+        ItemId itemId = barcodeStr;
+
+        InventTable inventTable = InventTable::find(barcodeStr);
+        if(inventTable.ItemId)
+        {
+            itemId = inventTable.ItemId;
+            this.addToRequest(_request, extendedTypeStr(ItemId), itemID);
+            this.findUniqueValues(itemId, _request);
+            return;
+        }
+
+        InventItemBarcode inventItemBarcode = InventItemBarcode::findInputBarcode(barcodeStr);
+        if(inventItemBarcode.ItemId)
+        {
+            itemId = inventItemBarcode.ItemId;
+            _request.addField(extendedTypeStr(ItemId), itemId, true);
+            this.findUniqueValues(itemId, _request);
+            return;
+        }
+
+        InventItemGTIN inventItemGTIN = InventItemGTIN::findGTIN(barcodeStr);
+        if(inventItemGTIN.ItemId)
+        {
+            itemId = inventItemGTIN.ItemId;
+            this.addToRequest(_request, extendedTypeStr(ItemId), itemID);
+            this.findUniqueValues(itemId, _request);
+            return;
+        }
+
+        // Classify the barcode
+        // And find unique values
+
+        InventSum inventSum = MobInventSumHelper::findInventSum(barcodeStr);
+        if(inventSum.ItemId)
+        {
+            itemId = inventSum.ItemId;
+            InventDim inventDim = inventSum.inventDim();
+            this.addToRequest(_request, extendedTypeStr(ItemId), itemID);
+            _request.parmInventDim(inventDim);
+            
+            if(inventDim.inventBatchId)
+            {
+                this.addToRequest(_request, extendedTypeStr(InventBatchId), barcodeStr);
+                this.findUniqueValues(itemId, _request, extendedTypeStr(InventBatchId), barcodeStr);
+            } 
+            else if(inventDim.inventSerialId)
+            {
+                this.addToRequest(_request, extendedTypeStr(InventSerialId), barcodeStr);
+                this.findUniqueValues(itemId, _request, extendedTypeStr(InventSerialId), '', barcodeStr);
+            }
+        
+            return;
+        }
+
+        str replaceValue = TFMClassificationHierarchy::findAndReplaceInput(barcodeStr, extendedTypeStr(ItemId));
+
+        if(replaceValue)
+        {
+            itemId = replaceValue;
+            this.addToRequest(_request, extendedTypeStr(ItemId), itemID);
+            return;
+        }
+
+        itemId = null;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRegistrationCollectors</Name>
+				<Source><![CDATA[
+    public void modifyRegistrationCollectors(TFMRegistrationCollectors _collectors)
+    {
+        TFMRegistrationCollector collector;
+        MapEnumerator mEnum = _collectors.collectorMap().getEnumerator();
+        TFMConditions conditions;
+        TFMConnectedConditions conditionsForActiveMethod;
+
+        while(mEnum.moveNext())
+        {
+            collector = mEnum.currentValue();
+            if(!collector.origins().hasTable(tableStr(InventDim)) )
+            {
+                continue;
+            }
+
+            conditions = collector.parmConditions();
+            conditionsForActiveMethod = conditions.conditionsForMethod(methodStr(TFMRegistrationCollector,parmActive));
+            
+            // find out if the conditions has already been added
+            TFMCondition valueFromContext = TFMCondition::Construct(classStr(TFMLogicContextFieldValue),[collector.parmName(), true],'');
+            TFMCondition toBoolean = TFMCondition::ConstructOperator(classStr(TFMLogicContextToBoolean));
+            TFMCondition inverter = TFMCondition::ConstructOperator(classStr(TFMLogicContextInverterOperator));
+            
+
+            TFMCondition endCondition;
+            
+            MapEnumerator mmEnum = conditionsForActiveMethod.getEnumerator();
+            Set endNodes = conditionsForActiveMethod.endNodes();
+            while(mmEnum.moveNext())
+            {
+                TFMCondition currentCondition = mmEnum.currentValue();
+                if(endNodes.in(currentCondition.GetHashCode()))
+                {
+                    endCondition = currentCondition;
+                }
+            }
+
+            conditions.addCondition(valueFromContext, methodStr(TFMRegistrationCollector,parmActive));
+            conditions.addCondition(toBoolean, methodStr(TFMRegistrationCollector,parmActive));
+            conditions.addCondition(inverter, methodStr(TFMRegistrationCollector,parmActive));
+            
+            conditions.addLink(valueFromContext, toBoolean, methodStr(TFMRegistrationCollector,parmActive));
+            conditions.addLink(toBoolean, inverter, methodStr(TFMRegistrationCollector,parmActive));
+            
+            // move the condition to the new andGate
+            if(endCondition)
+            {
+                TFMCondition andGate = TFMCondition::ConstructOperator(classStr(TFMLogicContextAndGate));
+                conditions.addCondition(andGate, methodStr(TFMRegistrationCollector,parmActive));
+                conditions.addLink(inverter, andGate, methodStr(TFMRegistrationCollector,parmActive));
+
+                conditions.addLink(endCondition, andGate, methodStr(TFMRegistrationCollector,parmActive));
+            }
+        }
+
+        if(uniqueValuesFields)
+        {
+            mEnum = uniqueValuesFields.getEnumerator();
+            while(mEnum.moveNext())
+            {
+                _collectors.addAdditionalValue(strLwr(mEnum.currentKey()), mEnum.currentValue());
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addOnHandQty</Name>
+				<Source><![CDATA[
+    public void addOnHandQty(TFMRequestElement _request)
+    {
+        if(_request.parmItemId() && _request.parmInventDim())
+        {
+            InventTable inventTable = InventTable::find(_request.parmItemId());
+            InventQty onHandQty = InventSumDatePhysicalDim::onHandQty(MobHelper::today(), _request.parmItemId(), _request.parmInventDim(), InventDimParm::activeDimFlag(InventDimGroupSetup::newInventTable(inventTable)));
+            if(onHandQty)
+            {
+                this.addToRequest(_request, classStr(InventOnHandQty), onHandQty);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findUniqueValues</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds unique values for the item and adds them to the request fields. E.g. WMSLocationId
+    /// </summary>
+    public boolean findUniqueValues(ItemId _itemId, TFMRequestElement _request, str _excludeField = '', InventBatchId _batchId = '', InventSerialId _serialId = '')
+    {
+        InventSum          inventSum;
+        InventDim          inventDim;
+
+        // Product dimensions
+        EcoResItemConfigurationName uniqueConfig;
+        EcoResItemSizeName uniqueSize;
+        EcoResItemColorName      uniqueColor;
+        EcoResItemStyleName      uniqueStyle;
+        EcoResVersionName  uniqueVersion;
+
+        // Storage dimensions
+        InventSiteId       uniqueSite;
+        InventLocationId   uniqueWarehouse;
+        WMSLocationId      uniqueLocation;
+        WHSInventStatusId     uniqueStatus;
+        WHSLicensePlateId  uniqueLicensePlate;
+        
+
+        // Tracking dimensions
+        InventBatchId      uniqueBatch;
+        InventSerialId     uniqueSerial;
+
+        // Flags
+        boolean multipleConfig;
+        boolean multipleSize;
+        boolean multipleColor;
+        boolean multipleStyle;
+        boolean multipleVersion;
+
+        boolean multipleSite;
+        boolean multipleWarehouse;
+        boolean multipleLocation;
+        boolean multipleStatus;
+        boolean multipleLicensePlate;
+
+        boolean multipleBatch;
+        boolean multipleSerial;
+
+        while select InventDimId
+        from inventSum
+        where inventSum.ItemId == _itemId
+              && !inventSum.Closed
+              && inventSum.AvailPhysical
+        join inventDim
+        where inventDim.InventDimId == inventSum.InventDimId
+            && (
+            (_batchId == '' && _serialId == '') // no filter
+            || (_batchId != '' && inventDim.InventBatchId == _batchId)
+            || (_serialId != '' && inventDim.InventSerialId == _serialId)
+            )
+        {
+            // Product dimensions
+
+            if (!uniqueConfig)
+            {
+                uniqueConfig = inventDim.ConfigId;
+            }
+            else if (uniqueConfig != inventDim.ConfigId)
+            {
+                multipleConfig = true;
+            }
+
+            if (!uniqueSize)
+            {
+                uniqueSize = inventDim.InventSizeId;
+            }
+            else if (uniqueSize != inventDim.InventSizeId)
+            {
+                multipleSize = true;
+            }
+
+            if (!uniqueColor)
+            {
+                uniqueColor = inventDim.InventColorId;
+            }
+            else if (uniqueColor != inventDim.InventColorId)
+            {
+                multipleColor = true;
+            }
+
+            if (!uniqueStyle)
+            {
+                uniqueStyle = inventDim.InventStyleId;
+            }
+            else if (uniqueStyle != inventDim.InventStyleId)
+            {
+                multipleStyle = true;
+            }
+
+            if (!uniqueVersion)
+            {
+                uniqueVersion = inventDim.InventVersionId;
+            }
+            else if (uniqueVersion != inventDim.InventVersionId)
+            {
+                multipleVersion = true;
+            }
+
+            // Storage dimensions
+
+            if (!uniqueSite)
+            {
+                uniqueSite = inventDim.InventSiteId;
+            }
+            else if (uniqueSite != inventDim.InventSiteId)
+            {
+                multipleSite = true;
+            }
+
+            if (!uniqueWarehouse)
+            {
+                uniqueWarehouse = inventDim.InventLocationId;
+            }
+            else if (uniqueWarehouse != inventDim.InventLocationId)
+            {
+                multipleWarehouse = true;
+            }
+
+            if (!uniqueLocation)
+            {
+                uniqueLocation = inventDim.WMSLocationId;
+            }
+            else if (uniqueLocation != inventDim.WMSLocationId)
+            {
+                multipleLocation = true;
+            }
+
+            if (!uniqueStatus)
+            {
+                uniqueStatus = inventDim.InventStatusId;
+            }
+            else if (uniqueStatus != inventDim.InventStatusId)
+            {
+                multipleStatus = true;
+            }
+
+            if (!uniqueLicensePlate)
+            {
+                uniqueLicensePlate = inventDim.LicensePlateId;
+            }
+            else if (uniqueLicensePlate != inventDim.LicensePlateId)
+            {
+                multipleLicensePlate = true;
+            }
+
+            // Tracking dimensions
+            if (!uniqueBatch)
+            {
+                uniqueBatch = inventDim.InventBatchId;
+            }
+            else if (uniqueBatch != inventDim.InventBatchId)
+            {
+                multipleBatch = true;
+            }
+
+            if (!uniqueSerial)
+            {
+                uniqueSerial = inventDim.InventSerialId;
+            }
+            else if (uniqueSerial != inventDim.InventSerialId)
+            {
+                multipleSerial = true;
+            }
+        }
+
+        if(!multipleLocation && uniqueConfig)
+        {
+            this.addToRequest(_request, extendedTypeStr(EcoResItemConfigurationName), uniqueConfig, _excludeField);
+        }
+        if(!multipleSize && uniqueSize)
+        {
+            this.addToRequest(_request, extendedTypeStr(EcoResItemSizeName), uniqueSize, _excludeField);
+        }
+        if(!multipleColor && uniqueColor)
+        {
+            this.addToRequest(_request, extendedTypeStr(EcoResItemColorName), uniqueColor, _excludeField);
+        }
+        if(!multipleVersion && uniqueVersion)
+        {
+            this.addToRequest(_request, extendedTypeStr(EcoResVersionName), uniqueVersion, _excludeField);
+        }
+        if(!multipleSite && uniqueSite)
+        {
+            this.addToRequest(_request, extendedTypeStr(InventSiteId), uniqueSite, _excludeField);
+        }
+        if(!multipleWarehouse && uniqueWarehouse)
+        {
+            this.addToRequest(_request, extendedTypeStr(InventLocationId), uniqueWarehouse, _excludeField);
+        }
+        if(!multipleLocation && uniqueLocation)
+        {
+            this.addToRequest(_request, extendedTypeStr(WMSLocationId), uniqueLocation, _excludeField);
+        }       
+        if(!multipleStatus && uniqueStatus)
+        {
+            this.addToRequest(_request, extendedTypeStr(WHSInventStatusId), uniqueStatus, _excludeField);
+        }
+        if(!multipleLicensePlate && uniqueLicensePlate)
+        {
+            this.addToRequest(_request, extendedTypeStr(WHSLicensePlateId), uniqueLicensePlate, _excludeField);
+        }
+
+        // add on hand qty
+        this.addOnHandQty(_request);
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addToRequest</Name>
+				<Source><![CDATA[
+    private void addToRequest(TFMRequestElement _request, str _fieldName, anytype _value, str _excludeField = '')
+    {
+        if(_excludeField != _fieldName)
+        {
+            _request.addField(_fieldName, _value, true);
+        }
+        
+        uniqueValuesFields.add(_fieldName, _value);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

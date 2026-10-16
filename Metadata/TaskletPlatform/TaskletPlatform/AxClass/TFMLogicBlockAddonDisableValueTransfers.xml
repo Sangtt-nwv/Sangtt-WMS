@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicBlockAddonDisableValueTransfers</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicBlockAddonDisableValueTransfers extends TFMLogicBlockAddon
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addonName</Name>
+				<Source><![CDATA[
+    public Name addonName()
+    {
+        return "@TFM:DisableValueTransferonNewRecord";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>compatibleWithBlock</Name>
+				<Source><![CDATA[
+    public boolean compatibleWithBlock(TFMLogicBlock _block)
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addonDescription</Name>
+				<Source><![CDATA[
+    public Description255 addonDescription()
+    {    
+        return "@TFM:Ensuresthatvaluesarenottransferr";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRegistrationCollectors</Name>
+				<Source><![CDATA[
+    public void modifyRegistrationCollectors(TFMRegistrationCollectors _collectors)
+    {
+        MapEnumerator               mEnum = _collectors.collectorMap().getEnumerator();
+        TFMRegistrationCollector    col;
+        super(_collectors);
+
+        while (mEnum.moveNext())
+        {
+            col = mEnum.currentValue();
+            col.parmDisableValueTransfer(true);
+        }
+            
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyHeaderCollectors</Name>
+				<Source><![CDATA[
+    public void modifyHeaderCollectors(TFMReferenceDataConfiguration _refConf)
+    {
+        SetEnumerator               sEnum = _refConf.getCollectors().getEnumerator();
+        TFMRegistrationCollector    col;
+        super(_refConf);
+
+        while (sEnum.moveNext())
+        {
+            col = sEnum.current();
+            col.parmDisableValueTransfer(col.getEDT() == extendedTypeStr(itemId));
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowJsonCreatorRegistrationCollectors</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDrawFlowJsonCreatorRegistrationCollectors extends TFMDrawFlowJsonCreator
+{
+    Map                           blockContracts;
+    Map							  depthMap;
+    Set                           HeaderCollectors;
+    Map                           blockname2Id;
+    Map                           tracks;
+    Map                           trackNodes2update;
+    Map                           trackXs;
+    Map                           nodeId2Collector;
+    Map                           trackStarts;
+    TFMLogicBlockCollection       collection;
+    Map                           sectionContracts;
+    TFMDrawFlowControlInteraction interactionClass;
+
+    const int yPosAdjustment = 200;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>classHandled</Name>
+				<Source><![CDATA[
+    public ClassName classHandled()
+    {
+        return classStr(TFMLogicBlockCollection);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>jSon</Name>
+				<Source><![CDATA[
+    public str jSon(Object _class, TFMDrawFlowControlInteraction _interactionClass = null)
+    {        
+        TFMLogicBlock                   lb;
+        TFMBlockConnectionNode          node;
+        MapEnumerator                   mEnum;
+        SetEnumerator                   sEnum;
+        TFMDrawFlowContract             contract = TFMDrawFlowContract::Construct();
+        TFMRegistrationCollector        collector;
+        TFMDrawFlowLogicBlockContract   startContract;
+        TFMDrawFlowLogicBlockContract   headerContract;
+
+        collection = _class;
+        interactionClass = _interactionClass;
+
+        node = collection.getStartNode();
+
+        if(!node)
+        {
+            return '';
+        }
+
+        mEnum = collection.blocksSet().getEnumerator();
+        sEnum = collection.getHeaders().getCollectors().getEnumerator();
+
+        blockContracts      = new Map(Types::Integer, Types::Class);
+        HeaderCollectors    = new Set(Types::string);
+        blockname2Id        = new Map(Types::String, Types::Integer);
+        tracks              = new Map(Types::Integer, Types::Class);
+        trackNodes2update   = new Map(Types::Integer, Types::Class);
+        nodeId2Collector    = new Map(Types::Integer, Types::Class);
+        trackXs             = new Map(Types::Integer, Types::Integer);
+        trackStarts         = new Map(Types::Integer, Types::Integer);
+        sectionContracts    = new Map(Types::string, Types::Class);
+
+        while (mEnum.moveNext())
+        {
+            lb = mEnum.currentValue();
+            blockname2Id.insert(lb.parmName(), lb.GetHashCode());
+        }
+        while (sEnum.moveNext())
+        {
+            collector = sEnum.current();
+            HeaderCollectors.add(collector.parmName());
+        }
+
+        headerContract = TFMDrawFlowJsonCreatorWorkLog::headerContract(collection.getProcess().getHeaders(),50,300);
+        blockContracts.add(headerContract.parmId(),headerContract); 
+        startContract = this.buildBlockNodeGraph(node,1, 0 , headerContract);
+        
+        startContract = this.updateNodesPlacement();
+        this.setConnectionsInAllTracks();
+        mEnum = blockContracts.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            contract.addBlockContract(mEnum.currentValue());
+        }
+        
+        return TFMJsonSerializer::serializeClass(contract);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>connectContracts</Name>
+				<Source><![CDATA[
+    protected void connectContracts(TFMDrawFlowLogicBlockContract _from, TFMDrawFlowLogicBlockContract _to, str _forceFromNodeName = '')
+    {
+        List    inList = new List(Types::Class), outList = new List(Types::Class);
+        str     outputName = _forceFromNodeName ? _forceFromNodeName : _from.nextOutput();        
+        outList.addEnd(TFMDrawFlowLogicBlockConnectionContract::Construct(int2Str(_to.parmId()), 'input_1',''));                    
+        inList.addEnd(TFMDrawFlowLogicBlockConnectionContract::Construct(int2Str(_from.parmId()),'', outputName));
+        _from.parmOutputs().insert(outputName,TFMDrawFlowLogicBlockInputsOutputs::Construct(outList));
+        _to.parmInputs().insert('input_1', TFMDrawFlowLogicBlockInputsOutputs::Construct(inList));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateNodesPlacement</Name>
+				<Source><![CDATA[
+    protected TFMDrawFlowLogicBlockContract updateNodesPlacement()
+    {
+        Map                             sectionNodes;
+        MapEnumerator                   sections = sectionContracts.getEnumerator();
+        MapEnumerator                   sectionContent;
+        Set                             Xes;
+        int                             i;
+        TFMDrawFlowLogicBlockContract   contract;
+        TFMDrawFlowLogicBlockContract   previousContract;
+        TFMDrawFlowLogicBlockContract   firstContract;
+        int                             xOffset = 250;
+        while(sections.moveNext())
+        {
+            sectionNodes = sections.currentValue();
+            sectionContent = sectionNodes.getEnumerator();
+            Xes = new Set(Types::Integer);
+            previousContract = null;
+            while(sectionContent.moveNext())
+            {
+                contract = sectionContent.currentValue();
+                if (!firstContract)
+                {
+                    firstContract= contract;
+                }
+                Xes.add(contract.parmPosX());
+            }
+
+            sectionContent = sectionNodes.getEnumerator();
+            i = 4;
+            while(sectionContent.moveNext())
+            {
+                contract = sectionContent.currentValue();
+
+                contract.parmPosX(xOffset + conPeek(Xes.pack(),i));
+
+                i++;
+                previousContract = contract;
+            }
+        }
+        return firstContract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setConnectionsInAllTracks</Name>
+				<Source><![CDATA[
+    protected void setConnectionsInAllTracks()
+    {
+        MapEnumerator                   contractEnum = blockContracts.getEnumerator();
+        MapEnumerator                   trackEnum;
+        Map                             tracksPositions = new Map(Types::Integer, Types::Class);
+        Map                             trackContracts;
+        TFMDrawFlowLogicBlockContract   contract;
+        TFMDrawFlowLogicBlockContract   prevContract;        
+        Map                             latestTrackContract = new Map(Types::Integer, Types::Class);
+        while (contractEnum.moveNext())
+        {
+            //run through all contracts created, and add them to Map in order of x-position, and y position;
+            contract = contractEnum.currentValue();
+            trackContracts = tracksPositions.exists(contract.parmPosY()) ? tracksPositions.lookup(contract.parmPosY()) : new Map(Types::Integer, Types::Class);
+            trackContracts.insert(contract.parmPosX(), contract);
+            tracksPositions.insert(contract.parmPosY(), trackContracts);
+        }
+
+        //Go through each track, set connections
+        trackEnum = tracksPositions.getEnumerator();
+        while (trackEnum.moveNext())
+        {
+            trackContracts = trackEnum.currentValue();
+            prevContract = null;
+            contractEnum = trackContracts.getEnumerator();
+            while(contractEnum.moveNext())
+            {
+                contract = contractEnum.currentValue();
+                if (!prevContract && latestTrackContract.exists(contract.parmPosX()))
+                {
+                    //First node in track, check if it is connected from other track.
+                    prevContract = latestTrackContract.lookup(contract.parmPosX());
+                }
+                if (prevContract)
+                {
+                    this.connectContracts(prevContract, contract);
+                    latestTrackContract.insert(contract.parmPosX(), prevContract);
+                }
+                
+                prevContract = contract;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nextNodeForTrack</Name>
+				<Source><![CDATA[
+    protected int nextNodeForTrack(int _trackNo)
+    {
+        int result = trackXs.exists(_trackNo) ? trackXs.lookup(_trackNo) : (trackXs.exists(_trackNo-1) ? trackXs.lookup(_trackNo-1) + 1 : 0);
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>incrementTrack</Name>
+				<Source><![CDATA[
+    protected int incrementTrack(int _trackNo, int _forceX = 0)
+    {
+        int x2insert = (trackXs.exists(_trackNo) ? trackXs.lookup(_trackNo) : _forceX) + 1;
+
+        trackXs.insert(_trackNo,x2insert);
+        return x2insert;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildBlockNodeGraph</Name>
+				<Source><![CDATA[
+    protected TFMDrawFlowLogicBlockContract buildBlockNodeGraph(TFMBlockConnectionNode _node, int _trackNo = 0, int _trackStart = 0, TFMDrawFlowLogicBlockContract _fromContract = null, int _sectionID = 0)
+    {
+        ListEnumerator                  lEnum = _node.getToLinks().getEnumerator();
+        int                             trackCount = _trackNo;
+        TFMBlockConnectionNode          childNode;
+        int                             trackStart;
+        int                             childCount = 0;
+        TFMDrawFlowLogicBlockContract   createdContract;   
+        TFMDrawFlowLogicBlockContract   subContract;
+        TFMLogicBlock                   block           = _node.parmBlock();
+        int                             sectionAdd;
+        if (!(block is TFMLogicBlockDataCollectionInterface))
+        {
+            //Increment section Id
+            sectionAdd++;
+        }
+        createdContract = this.createTreeNode(_node,_trackNo, _trackStart, /*_fromContract,*/ _sectionID + sectionAdd);
+        trackStart = this.nextNodeForTrack(_trackNo); 
+        while (lEnum.moveNext())
+        {
+            childNode = lEnum.current();
+            trackCount = max(1,tracks.elements()) + childCount;
+
+            subContract = this.buildBlockNodeGraph(childNode, trackCount, trackStart, createdContract, _sectionID + sectionAdd);
+
+            childCount = 1;
+        }
+        return createdContract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createTreeNode</Name>
+				<Source><![CDATA[
+    protected TFMDrawFlowLogicBlockContract createTreeNode(TFMBlockConnectionNode _node, int _trackNo, int _trackStart = 0, int _sectionId = 0)
+    {
+
+        TFMDrawFlowBlockStyle                   blockStyle;
+        ListEnumerator                          lEnum;
+        TFMDrawFlowLogicBlockContract           blockContract   = new TFMDrawFlowLogicBlockContract();
+        
+        TFMLogicBlock                           block           = _node.parmBlock();
+        List                                    inList          = new List(Types::Class), outList = new List(Types::Class);        
+        int                                     outputs;
+        str                                     connectName;
+        TFMLogicBlockDataCollectionInterface    dataInterface;
+        TFMLogicBlockPrePostDataCollectionInterface    prePostdataInterface;
+        MapEnumerator                           mEnum;
+        TFMRegistrationCollector                collector;
+        TFMRegistrationCollectors               baseCollectors, onlineCollectors;
+        Set							            stepIds         = new Set(Types::Integer);
+        int							            firstId         = 5000;
+        int							            lastId          = 0;
+        SetEnumerator				            stepEnum;
+        int							            stepCount       = 0;
+        Map							            prevNextNodes   = new Map(Types::Integer, Types::Integer);
+        Map							            nextPrevNodes   = new Map(Types::Integer, Types::Integer);
+        int                                     trackX          = _trackStart;
+        Map                                     trackNodes      = tracks.exists(_trackNo) ? tracks.lookup(_trackNo) : new Map(Types::Integer, Types::Class);
+        Set                                     trackSet;
+
+        if (block is TFMLogicBlockDataCollectionInterface)
+        {
+            dataInterface = block as TFMLogicBlockDataCollectionInterface;
+            baseCollectors = collection.getBlockCollectors(block);
+            if (block is TFMLogicBlockPrePostDataCollectionInterface)
+            {
+                prePostdataInterface = block as TFMLogicBlockPrePostDataCollectionInterface;
+                onlineCollectors = prePostdataInterface.prePostRegistrationCollectors();
+                if (onlineCollectors)
+                {
+                    baseCollectors.mergeCollectors(onlineCollectors);
+                }
+            }
+            
+            mEnum = (baseCollectors ? baseCollectors.collectorMap() : new Map(Types::Integer, Types::Class)).getEnumerator();
+
+            while (mEnum.moveNext())
+            {
+                collector = mEnum.currentValue();
+                if (HeaderCollectors.in(collector.parmName()))
+                {
+                    continue;
+                }
+                collector.origins().parmOriginBlockName(block.parmName());
+                blockContract = this.createNode(collector,_trackNo, block.blockName(), block.blockIcon(), trackX+stepCount,_sectionId);
+                stepCount++;
+            }            
+            return blockContract;
+        }
+
+        blockContract.parmId(blockname2Id.lookup(block.parmName()));
+        blockContract.parmData(TFMDrawFlowLogicBlockDataContract::Construct(block.parmName(),classId2Name(classIdGet(block))));
+
+        blockStyle = TFMDrawFlowBlockStyle::findStyleClass(classStr(TFMLogicBlock));
+        blockContract.parmHtml(blockStyle.htmlForClass(block));
+        blockContract.parmPosX(300 + trackX * 250);
+        blockContract.parmPosY(100 + yPosAdjustment * _trackNo);
+        
+        this.incrementTrack(_trackNo, trackX);
+        trackNodes.insert(blockContract.parmId(),blockContract);
+        tracks.insert(_trackNo, trackNodes);
+        blockContracts.insert(blockContract.parmId(),blockContract);
+
+        if (!trackStarts.exists(_trackNo))
+        {
+            trackStarts.insert(_trackNo, trackX);
+        }
+        return blockContract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createNode</Name>
+				<Source><![CDATA[
+    protected TFMDrawFlowLogicBlockContract createNode(TFMRegistrationCollector _node, int _trackNo, str _fromBlock, str _fromBlockIcon, int _trackStart = 0, int _sectionID = 0)
+    {
+        ListEnumerator                  lEnum;
+        TFMDrawFlowLogicBlockContract   blockContract = new TFMDrawFlowLogicBlockContract();
+        int                             trackX      = _trackStart; 
+        List                            inList = new List(Types::Class), outList = new List(Types::Class);
+        int                             breadthForDepth = 0;
+        Map                             trackNodes = tracks.exists(_trackNo) ? tracks.lookup(_trackNo) : new Map(Types::Integer, Types::Class);
+        Set                             trackSet;
+
+        int                             overrideId = TFMProcessCollectorDeviations::collectorOverrideID(_node.parmName(), collection.getProcess() ,_trackNo);
+        TFMDrawFlowBlockStyle           blockStyle;
+        Map                             sectionNodes;
+        _node.parmId(overrideId ? overrideId : str2Int(int2Str(_trackNo) + strRFix(int2Str(trackX),3,'0') + '00'));
+
+        blockContract.parmId(_node.parmId());
+        blockContract.parmData(TFMDrawFlowLogicBlockDataContract::Construct(_node.parmName(),classId2Name(classIdGet(_node))));
+
+        if(!_node.getInteractionClass())
+        {
+            _node.setInteractionClass(interactionClass);
+        }
+        blockStyle = TFMDrawFlowBlockStyle::findStyleClass(classStr(TFMRegistrationCollector));
+        
+        blockContract.parmHtml(blockStyle.htmlForClass(_node));
+        blockContract.parmOutputs().insert('output_1',TFMDrawFlowLogicBlockInputsOutputs::Construct(outList));
+        blockContract.parmInputs().insert('input_1', TFMDrawFlowLogicBlockInputsOutputs::Construct(inList));
+        blockContract.parmPosX(50 +trackX * 250);
+        blockContract.parmPosY(100 + yPosAdjustment * _trackNo);
+        
+        this.incrementTrack(_trackNo);
+        trackNodes.insert(blockContract.parmId(),blockContract);
+        tracks.insert(_trackNo, trackNodes);
+        
+        blockContracts.insert(blockContract.parmId(),blockContract);
+        
+        trackSet = trackNodes2update.exists(_trackNo) ? trackNodes2update.lookup(_trackNo) : new Set(Types::Integer);
+        trackSet.add(_node.parmId());
+        trackNodes2update.insert(_trackNo,trackSet);
+        
+        nodeId2Collector.insert(_node.parmId(), _node);
+        
+        sectionNodes = sectionContracts.exists(int2Str(_trackNo)+int2Str(_sectionID)) ? sectionContracts.lookup(int2Str(_trackNo)+int2Str(_sectionID)) : new Map(Types::Integer, Types::Class);
+        sectionNodes.insert(blockContract.parmId(),blockContract);
+        sectionContracts.insert(int2Str(_trackNo)+int2Str(_sectionID), sectionNodes);
+        
+        if (!trackStarts.exists(_trackNo))
+        {
+            trackStarts.insert(_trackNo, trackX);
+        }
+        
+        return blockContract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>regCollector2Contract</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Create contract for RegistrationCollectorBlock.
+    /// </summary>
+    /// <param name = "_node"></param>
+    /// <param name = "_posX"></param>
+    /// <param name = "_posY"></param>
+    /// <param name = "_additionalText"></param>
+    /// <param name = "_boxText"></param>
+    /// <returns></returns>
+    public static TFMDrawFlowLogicBlockContract regCollector2Contract(TFMRegistrationCollector _node, int _posX, int _posY)
+    {        
+        TFMDrawFlowLogicBlockContract   blockContract = new TFMDrawFlowLogicBlockContract();        
+        List                            inList = new List(Types::Class), outList = new List(Types::Class);        
+        TFMDrawFlowBlockStyle           blockStyle;
+        
+        blockContract.parmId(_node.parmId());
+        blockContract.parmData(TFMDrawFlowLogicBlockDataContract::Construct(_node.parmName(),classId2Name(classIdGet(_node))));
+        blockStyle = TFMDrawFlowBlockStyle::findStyleClass(classStr(TFMRegistrationCollector));
+        blockContract.parmHtml(blockStyle.htmlForClass(_node));
+        blockContract.parmOutputs().insert('output_1',TFMDrawFlowLogicBlockInputsOutputs::Construct(outList));
+        blockContract.parmInputs().insert('input_1', TFMDrawFlowLogicBlockInputsOutputs::Construct(inList));
+        blockContract.parmPosX(_posX);
+        blockContract.parmPosY(_posY);
+        
+        return blockContract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeId2Collector</Name>
+				<Source><![CDATA[
+    public Map nodeId2Collector()
+    {
+        return nodeId2Collector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveJson2Data</Name>
+				<Source><![CDATA[
+    public void saveJson2Data(str _json, str _keyValue, object _keyObject)
+    {
+        str json = _json;
+        return;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>instanceFromJson</Name>
+				<Source><![CDATA[
+    public Object instanceFromJson(str _json)
+    {
+        Object ret;
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

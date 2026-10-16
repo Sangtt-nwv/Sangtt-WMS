@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDataSourceParameterAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMDataSourceParameterAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    str						GroupString;
+    LabelString             LabelString;
+    anytype                 defaultValue;
+    HelpTxt                 helpText;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(anytype _defaultValue, LabelString _labelString = '', str _groupString = '', HelpTxt _helpText = '')
+    {
+        super();
+        
+        labelString = _labelString;
+        defaultValue = _defaultValue;
+        GroupString = _groupString;
+        helpText = _helpText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDefaultValue</Name>
+				<Source><![CDATA[
+    public anytype parmDefaultValue(anytype _defaultValue = defaultValue)
+    {
+        defaultValue = _defaultValue;
+        return defaultValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmGroupString</Name>
+				<Source><![CDATA[
+    public str parmGroupString(str _GroupString = GroupString)
+    {
+        GroupString = _GroupString;
+ 
+        return GroupString ? GroupString : "@SYS315099";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLabelString</Name>
+				<Source><![CDATA[
+    public LabelString parmLabelString(LabelString _labelString = LabelString)
+    {
+        LabelString = _labelString;
+ 
+        return LabelString;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHelpText</Name>
+				<Source><![CDATA[
+    public LabelString parmHelpText(LabelString _helpText = helpText)
+    {
+        helpText = _helpText;
+ 
+        return helpText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMDataSourceParameterAttribute)+';'+';' + GroupString +';' + LabelString;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

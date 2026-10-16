@@ -1,0 +1,2231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ImageCaptureAcceptButton" xml:space="preserve">
+    <value>Accept</value>
+    <comment>Button text for accepting to save an image taken with the camera.</comment>
+  </data>
+  <data name="ImageCaptureCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button text for declining to save an image taken with the camera.</comment>
+  </data>
+  <data name="ImageCaptureCommentHint" xml:space="preserve">
+    <value>Enter comment</value>
+    <comment>Hint text to indicate to the user that comment text below an image can be entered.</comment>
+  </data>
+  <data name="ImageCaptureDeleteButton" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Button text for deleting a saved image.</comment>
+  </data>
+  <data name="ImageCaptureInitiateButton" xml:space="preserve">
+    <value>Open camera (+)</value>
+    <comment>Button text for opening the camera to take a picture.</comment>
+  </data>
+  <data name="MenuCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button text for the cancel action in the pop up menus.</comment>
+  </data>
+  <data name="MenuDefaultHeader" xml:space="preserve">
+    <value>Menu</value>
+    <comment>Header title displayed in the top of the pop up menus.</comment>
+  </data>
+  <data name="SubStepMultiScanClearButtonText" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button text for clearing the list of scanned values on the multi scan step in the registration collector.</comment>
+  </data>
+  <data name="ValidationDialogAcceptButtonText" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Button text for accepting a validation question.</comment>
+  </data>
+  <data name="ValidationDialogDeclineButtonText" xml:space="preserve">
+    <value>No</value>
+    <comment>Generic Button text for declining a validation question.</comment>
+  </data>
+  <data name="ValidationDialogIntegerValueExceeded" xml:space="preserve">
+    <value>You cannot register more than '{0}' for this item.</value>
+    <comment>Validation error message displayed when a registration surpasses the limit given.</comment>
+  </data>
+  <data name="ValidationDialogIntegerValueExceededContinue" xml:space="preserve">
+    <value>You are about to register '{0}' on an item with an expected limit of '{1}'. Do you want to continue?</value>
+    <comment>Validation error message displayed when a registration surpasses the limit given, and the user is allowed to do so by accepting the dialog presented.</comment>
+  </data>
+  <data name="ValidationFailedDialogTitle" xml:space="preserve">
+    <value>Validation Failed</value>
+    <comment>Generic header title displayed when a dialog is presented due to a validation error.</comment>
+  </data>
+  <data name="ValidationIntegerValueTooHigh" xml:space="preserve">
+    <value>Value must be less than '{0}'.</value>
+    <comment>Validation error message displayed when a value greater than the accepted value is entered.</comment>
+  </data>
+  <data name="ValidationIntegerValueTooLow" xml:space="preserve">
+    <value>Value must be greater than '{0}'.</value>
+    <comment>Validation error message displayed when a value less than the accepted value is entered.</comment>
+  </data>
+  <data name="ValidationListUndefined" xml:space="preserve">
+    <value>The defined list of valid values could not be found. Value scanned '{0}'.</value>
+    <comment>Validation error message displayed when no list items are present, even though the configuration tells the validator to look for them.</comment>
+  </data>
+  <data name="LotExpirationDateValidationAlreadyAssociated" xml:space="preserve">
+    <value>The lot number '{0}' is already associated with another expiration date.</value>
+    <comment>Validation error presented when a registration is made, and the lot number entered is already associated with another expiration date.</comment>
+  </data>
+  <data name="ValidationTextTooLong" xml:space="preserve">
+    <value>Value too long, limit is '{0}'.</value>
+    <comment>Validation error message displayed when entering a value which is too long.</comment>
+  </data>
+  <data name="ValidationValueNotInList" xml:space="preserve">
+    <value>Value '{0}' is not in the list of valid values.</value>
+    <comment>Validation error message displayed when an entered value is not present in the list of valid values.</comment>
+  </data>
+  <data name="ValidationNoActiveOrderLine" xml:space="preserve">
+    <value>No order line selected.</value>
+    <comment>Validation error message displayed when no order line is selected.</comment>
+  </data>
+  <data name="ValidationQuantityTooHigh" xml:space="preserve">
+    <value>You cannot register more than '{0}' for this item.</value>
+    <comment>Validation error message displayed when trying to register a larger quantity than allowed for the item.</comment>
+  </data>
+  <data name="ValidationUnitsQuantityTooHigh" xml:space="preserve">
+    <value>You cannot register more than '{0}' {1}.</value>
+    <comment>Validation error message displayed when trying to register a larger quantity than allowed for the unit (or a "box" of items).</comment>
+  </data>
+  <data name="ValidationNoMoreUnitsCanBeRegistered" xml:space="preserve">
+    <value>You cannot register more full units.</value>
+    <comment>Validation error message displayed when trying to register a larger quantity than allowed for the item.</comment>
+  </data>
+  <data name="ValidationDialogQuantityValueExceededContinue" xml:space="preserve">
+    <value>You are about to register {0} on an item with an expected limit of {1}. Do you want to continue?</value>
+    <comment>Validation error message displayed when a registration surpasses the limit given, and the user is allowed to do so by accepting the dialog presented.</comment>
+  </data>
+  <data name="ValidationDialogUnitsQuantityValueExceededContinue" xml:space="preserve">
+    <value>You are about to register {0} of a {2} with an expected limit of {1}. Do you want to continue?</value>
+    <comment>Validation error message displayed when a registration surpasses the limit given, and the user is allowed to do so by accepting the dialog presented.</comment>
+  </data>
+  <data name="ScanEditHintText" xml:space="preserve">
+    <value>Type the barcode</value>
+    <comment>Help text next to an input field, when manual entry is enabled.</comment>
+  </data>
+  <data name="ImageCaptureEditTitle" xml:space="preserve">
+    <value>Edit Image</value>
+    <comment>Header text displayed when editing a saved image.</comment>
+  </data>
+  <data name="UnplannedPostingProblemDiscardButtonText" xml:space="preserve">
+    <value>Discard</value>
+    <comment>Button text for discarding a posting problem dialog.</comment>
+  </data>
+  <data name="UnplannedPostingProblemMessage" xml:space="preserve">
+    <value>A problem arose when trying to post the registration. Retry or discard - be aware that the registration will be lost when discarded. Error details:
+{0}</value>
+    <comment>Message displayed after a failed post of an unplanned registration.</comment>
+  </data>
+  <data name="UnplannedPostingProblemRetryButtonText" xml:space="preserve">
+    <value>Retry</value>
+    <comment>Button text for retrying to post a previously unsuccessful unplanned registrations post.</comment>
+  </data>
+  <data name="UnplannedPostingProblemTitle" xml:space="preserve">
+    <value>Posting Problem</value>
+    <comment>The dialog title for the posting problem message.</comment>
+  </data>
+  <data name="MissingConfigurationDismissButtonText" xml:space="preserve">
+    <value>Close</value>
+    <comment>Button text for dismissing the error message stating that no registration collector configuration was returned.</comment>
+  </data>
+  <data name="MissingConfigurationMessage" xml:space="preserve">
+    <value>No configuration was found for type '{0}'.</value>
+    <comment>Error message describing that no registration collector configuration was returned from the backend for a given type.</comment>
+  </data>
+  <data name="MissingConfigurationTitle" xml:space="preserve">
+    <value>Missing Configuration</value>
+    <comment>Header text for the error message stating that no registration collector configuration was returned from the backend.</comment>
+  </data>
+  <data name="HasUnconfirmedRegistrations" xml:space="preserve">
+    <value>You are not allowed to make new registrations at this time, nor make changes to existing ones. The current registrations have been sent to the server, but the server did not reply. Try posting again.</value>
+    <comment>Message displayed whenever registrations have been sent to the server, and the application has not received a response.</comment>
+  </data>
+  <data name="OrderPostingProblemMessage" xml:space="preserve">
+    <value>A problem arose when trying to post the order. Retry now or try again later. Error details:
+{0}</value>
+    <comment>Error message displayed when a problem was encountered posting registrations to the backend.</comment>
+  </data>
+  <data name="OrderPostingProblemRetryButtonText" xml:space="preserve">
+    <value>Retry now</value>
+    <comment>Button text for retrying to send registrations which previously failed.</comment>
+  </data>
+  <data name="OrderPostingProblemTitle" xml:space="preserve">
+    <value>Posting problem</value>
+    <comment>Header title displayed when a problem posting registrations is encountered.</comment>
+  </data>
+  <data name="OrderPostingProblemTryLaterButtonText" xml:space="preserve">
+    <value>Try later</value>
+    <comment>Button text for agreeing to try posting the failed post again later.</comment>
+  </data>
+  <data name="OrderPostingRetryCancelButtonText" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button text for cancelling the dialog where failed order posting can be done.</comment>
+  </data>
+  <data name="ConfirmPostingAcceptButtonText" xml:space="preserve">
+    <value>Confirm</value>
+    <comment>Button text for confirming an action on a confirmation dialog.</comment>
+  </data>
+  <data name="ConfirmPostingCancelButtonText" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button text for declining an action on a confirmation dialog.</comment>
+  </data>
+  <data name="ConfirmPostingTitle" xml:space="preserve">
+    <value>Confirmation Required</value>
+    <comment>Title displayed on top of a confirmation dialog.</comment>
+  </data>
+  <data name="ReleaseOrderMenuItemWithOrderId" xml:space="preserve">
+    <value>Release '{BackendId}'</value>
+    <comment>Menu item text for performing the unlock order action - includes the order id.</comment>
+  </data>
+  <data name="OrderLinesPageViewOrderLineNotFound" xml:space="preserve">
+    <value>No order line matched the scanned value. {0}</value>
+    <comment>Message displayed when a barcode is scanned and no order line matches the scanned value.</comment>
+  </data>
+  <data name="LoginPageLicenseIsNotValid" xml:space="preserve">
+    <value>License is not valid.</value>
+    <comment>Information text displayed on the login screen if the license is invalid.</comment>
+  </data>
+  <data name="SerialNumberAlreadyRegistered" xml:space="preserve">
+    <value>The serial number '{0}' is already registered.</value>
+    <comment>Validation error message stating that the serial number is already registered.</comment>
+  </data>
+  <data name="PostDialogWhenAllRegistrationsAreDone" xml:space="preserve">
+    <value>You have completed registrations on all order lines. Do you want to post the order?</value>
+    <comment>Message for the dialog appearing when all order lines are fully registered, asking the user to post the order.</comment>
+  </data>
+  <data name="PostDialogWhenAllRegistrationsAreDoneCancelButton" xml:space="preserve">
+    <value>No</value>
+    <comment>Button text for preventing posting when all order lines are fully registered.</comment>
+  </data>
+  <data name="PostDialogWhenAllRegistrationsAreDoneOKButton" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Button text for accepting to post all order line registrations.</comment>
+  </data>
+  <data name="ShowDialogInfoDismiss" xml:space="preserve">
+    <value>Close</value>
+    <comment>Button text for dismissing a dialog.</comment>
+  </data>
+  <data name="ConfigurationErrorOkButtonText" xml:space="preserve">
+    <value>OK</value>
+    <comment>Button text for acknowledging that a configuration error exist.</comment>
+  </data>
+  <data name="ConfigurationErrorTitle" xml:space="preserve">
+    <value>Configuration Error</value>
+    <comment>Error message title displayed on configuration error.</comment>
+  </data>
+  <data name="LookupConfigurationErrorHeaderConfigurationKey" xml:space="preserve">
+    <value>The lookup 'header configuration key' is missing from the page definition in application.cfg.</value>
+    <comment>Error message describing that the header configuration key is missing from the page definition in the application.cfg configuration file.</comment>
+  </data>
+  <data name="LookupConfigurationErrorLookupType" xml:space="preserve">
+    <value>The lookup 'type' is missing from the page definition in application.cfg.</value>
+    <comment>Error message describing that the type is missing from the page definition in the application.cfg configuration file.</comment>
+  </data>
+  <data name="OrderLevelRegistrationsMenuItem" xml:space="preserve">
+    <value>Order Registrations</value>
+    <comment>Menu item text for opening the order level registration.</comment>
+  </data>
+  <data name="ValidationValueTooHigh" xml:space="preserve">
+    <value>Value must be less than, or equal to '{0}'.</value>
+    <comment>Validation error message displayed when an entered value is greater than the allowed value.</comment>
+  </data>
+  <data name="UnplannedSummaryClearButton" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button text for clearing the summary. Present when performing unplanned item registrations, without using the registration collector.</comment>
+  </data>
+  <data name="LookupPostingProblemDiscardButtonText" xml:space="preserve">
+    <value>Discard</value>
+    <comment>Button text for discarding a registration which previously failed to post.</comment>
+  </data>
+  <data name="LookupPostingProblemMessage" xml:space="preserve">
+    <value>A problem arose when trying to post the registration. Retry or discard - be aware that the registration will be lost when discarded. Error details:
+{0}</value>
+    <comment>Error message displayed when a lookup page fails to post registrations.</comment>
+  </data>
+  <data name="LookupPostingProblemRetryButtonText" xml:space="preserve">
+    <value>Retry</value>
+    <comment>Button text for retrying to post a previously failed post.</comment>
+  </data>
+  <data name="LookupPostingProblemTitle" xml:space="preserve">
+    <value>Posting Problem</value>
+    <comment>The dialog title/caption for the posting problem message.</comment>
+  </data>
+  <data name="LoginPageLicenseExpirationWarning" xml:space="preserve">
+    <value>License will expire in '{0}' day(s).</value>
+    <comment>Information text displayed on the login screen if the license is about to expire.</comment>
+  </data>
+  <data name="ScanEditExpectedText" xml:space="preserve">
+    <value>Expected:</value>
+    <comment>Text on a registration step next to the value expected for a given step.</comment>
+  </data>
+  <data name="ScanEditNoValueText" xml:space="preserve">
+    <value>Scan barcode</value>
+    <comment>The text displayed on an input field in scan mode, urging the user to scan a barcode. The text is replaced if an expected or actual value is present.</comment>
+  </data>
+  <data name="ValidationLotNoMatch" xml:space="preserve">
+    <value>The entered lot number '{0}' does not match the expected value '{1}'.</value>
+    <comment>Validation error message displayed when the entered lot number does not match the expected value defined by the order line.</comment>
+  </data>
+  <data name="ValidationLotInvalidFormat" xml:space="preserve">
+    <value>The scanned value '{0}' does not comply with the barcode format defined in the "BarcodeFormat" field for this order line '{1}'.</value>
+    <comment>Validation error message displayed whenever a barcode is scanned that does not comply with the allowed barcode format defined by the order line.</comment>
+  </data>
+  <data name="ValidationFromBinNoMatch" xml:space="preserve">
+    <value>You are only allowed to take items from the suggested {FromBinType}.</value>
+    <comment>Validation error message displayed when a from bin is scanned that does not match the expected value defined by the order line.</comment>
+  </data>
+  <data name="ValidationDialogFromBinChangeTitle" xml:space="preserve">
+    <value>Validation Failed</value>
+    <comment>Title displayed when the user is requested to decide whether or not to perform the from bin change.</comment>
+  </data>
+  <data name="ValidationDialogFromBinChangeMessage" xml:space="preserve">
+    <value>Unexpected {FromBinType}: '{0}'. Do you want to use the {FromBinType} anyway?</value>
+    <comment>Message caused by a mismatch between the expected from bin and the entered from bin, requiring the user to accept the change, if it is intentional.</comment>
+  </data>
+  <data name="ValidationDialogFromBinChangeAcceptButton" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Button text for accepting to change the from bin to something other than the expected.</comment>
+  </data>
+  <data name="ValidationDialogFromBinChangeCancelButton" xml:space="preserve">
+    <value>No</value>
+    <comment>Button text for declining to change the from bin to something other than the expected.</comment>
+  </data>
+  <data name="ValidationFromBinChangeDeclined" xml:space="preserve">
+    <value>Please change the {FromBinType}, to match the suggested value.</value>
+    <comment>Validation error message displayed whenever a from bin change was declined.</comment>
+  </data>
+  <data name="ValidationFromBinInvalidFormat" xml:space="preserve">
+    <value>The scanned value '{0}' does not comply with the barcode format defined in the "BarcodeFormat" field for this order line '{1}'.</value>
+    <comment>Validation error message displayed whenever a barcode is scanned that does not comply with the allowed barcode format defined by the order line.</comment>
+  </data>
+  <data name="ValidationToBinNoMatch" xml:space="preserve">
+    <value>You are only allowed to place the items in the suggested {ToBinType}.</value>
+    <comment>Validation error message displayed when a to bin is scanned that does not match the expected value defined by the order line.</comment>
+  </data>
+  <data name="ValidationDialogToBinChangeTitle" xml:space="preserve">
+    <value>Confirmation Required</value>
+    <comment>Title displayed when the user is requested to decide whether or not to perform the from bin change.</comment>
+  </data>
+  <data name="ValidationDialogToBinChangeMessage" xml:space="preserve">
+    <value>Unexpected {ToBinType}: {0}. Do you want to use the {ToBinType} anyway?</value>
+    <comment>Message caused by a mismatch between the expected to bin and the entered to bin, requiring the user to accept the change, if it is intentional.</comment>
+  </data>
+  <data name="ValidationDialogToBinChangeAcceptButton" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Button text for accepting to change the to bin to something other than the expected.</comment>
+  </data>
+  <data name="ValidationDialogToBinChangeCancelButton" xml:space="preserve">
+    <value>No</value>
+    <comment>Button text for declining to change the to bin to something other than the expected.</comment>
+  </data>
+  <data name="ValidationToBinChangeDeclined" xml:space="preserve">
+    <value>Please change the {ToBinType}, to match the suggested value.</value>
+    <comment>Validation error message displayed when the user actively declined to change the to location after a location was entered which does not match the expected value.</comment>
+  </data>
+  <data name="ValidationToBinInvalidFormat" xml:space="preserve">
+    <value>The scanned value '{0}' does not comply with the barcode format defined in the "BarcodeFormat" field for this order line '{1}'.</value>
+    <comment>Validation error message displayed whenever a barcode is scanned that does not comply with the allowed barcode format defined by the order line.</comment>
+  </data>
+  <data name="LoginPageSelectEndPoint" xml:space="preserve">
+    <value>Select Endpoint</value>
+    <comment>Text on the login form indicating which information is available in the drop down.</comment>
+  </data>
+  <data name="LocalizationCustomStringDidNotExist" xml:space="preserve">
+    <value>'{0}' does not exist.</value>
+    <comment>Error text displayed when a custom label does not exist in any translation.</comment>
+  </data>
+  <data name="LocalizationCustomStringFormatFailed" xml:space="preserve">
+    <value>'{0}' failed with argument list '{1}'.</value>
+    <comment>Error text displayed when there is an error to generate a custom translated string.</comment>
+  </data>
+  <data name="LocalizationPropertyStringFormatFailed" xml:space="preserve">
+    <value>'{0}' failed with argument list '{1}'.</value>
+    <comment>Error text displayed when there is an error to generate a translated string.</comment>
+  </data>
+  <data name="ListOpenMenuItem" xml:space="preserve">
+    <value>Open</value>
+    <comment>Menu item text for performing the opening action.</comment>
+  </data>
+  <data name="ListUpdateMenuItem" xml:space="preserve">
+    <value>Update</value>
+    <comment>Menu item text for performing the update action.</comment>
+  </data>
+  <data name="LoginPageLogin" xml:space="preserve">
+    <value>Login</value>
+    <comment>Button text for the login button.</comment>
+  </data>
+  <data name="LookupPageHeaderAccept" xml:space="preserve">
+    <value>Accept</value>
+    <comment>Button text for accepting the header values on a lookup page.</comment>
+  </data>
+  <data name="LookupPageHeaderReset" xml:space="preserve">
+    <value>Reset</value>
+    <comment>Button text for resetting the header values on a lookup page.</comment>
+  </data>
+  <data name="LoginInvalidCredentials" xml:space="preserve">
+    <value>The username, password and domain combination is invalid.</value>
+    <comment>Error message displayed if login failed due to invalid credentials.</comment>
+  </data>
+  <data name="OrderListFilterApply" xml:space="preserve">
+    <value>Apply</value>
+    <comment>Button text for applying the filter on the order list page.</comment>
+  </data>
+  <data name="OrderListFilterReset" xml:space="preserve">
+    <value>Reset</value>
+    <comment>Button text for resetting the filter on the order list page.</comment>
+  </data>
+  <data name="PostOrderMenuItem" xml:space="preserve">
+    <value>Post</value>
+    <comment>Menu item text for performing the posting action.</comment>
+  </data>
+  <data name="UnplannedItemRegistrationHeaderAccept" xml:space="preserve">
+    <value>Accept</value>
+    <comment>Button text for accepting the header values on an unplanned page.</comment>
+  </data>
+  <data name="UnplannedItemRegistrationHeaderReset" xml:space="preserve">
+    <value>Reset</value>
+    <comment>Button text for resetting the header values on an unplanned page.</comment>
+  </data>
+  <data name="UnplannedItemRegistrationHeaderSubmit" xml:space="preserve">
+    <value>Submit</value>
+    <comment>Button text for submitting the header values on an unplanned page.</comment>
+  </data>
+  <data name="LoginPageDomainPlaceHolder" xml:space="preserve">
+    <value>Enter Domain</value>
+    <comment>Instructional text on the login form in the "domain" input field. Disappears when the user enters a value.</comment>
+  </data>
+  <data name="LoginPagePasswordPlaceHolder" xml:space="preserve">
+    <value>Enter Password</value>
+    <comment>Instructional text on the login form in the "password" input field. Disappears when the user enters a value.</comment>
+  </data>
+  <data name="LoginPageUsernamePlaceHolder" xml:space="preserve">
+    <value>Enter Username</value>
+    <comment>Instructional text on the login form in the "username" input field. Disappears when the user enters a value.</comment>
+  </data>
+  <data name="SettingVersionGroupName" xml:space="preserve">
+    <value>Versions</value>
+    <comment>The name of the version group header in the settings page.</comment>
+  </data>
+  <data name="SettingAppVersionHeader" xml:space="preserve">
+    <value>Application version: </value>
+    <comment>The label text for the app version on the settings page.</comment>
+  </data>
+  <data name="SettingDbVersionHeader" xml:space="preserve">
+    <value>Database version: </value>
+    <comment>The label text for the database version on the settings page.</comment>
+  </data>
+  <data name="ValidationQuantityPlaceExceedsTake" xml:space="preserve">
+    <value>You cannot place a higher quantity '{0}' than has been taken '{1}'.</value>
+    <comment>Validation error message displayed when performing a move action and trying to place a higher quantity than was taken.</comment>
+  </data>
+  <data name="RegistrationCannotEditSerialMessage" xml:space="preserve">
+    <value>Registrations containing serial number information cannot be edited. Delete and redo the registration again if necessary.</value>
+    <comment>Error message displayed when a user wants to edit a registration, which is performed on an item which is serial number controlled.</comment>
+  </data>
+  <data name="RegistrationCannotEditTitle" xml:space="preserve">
+    <value>Cannot Edit Registration</value>
+    <comment>Header title displayed when a user want's to edit a registration where changes are not permitted.</comment>
+  </data>
+  <data name="RegistrationDeleteTakeLessThanPlaceMessage" xml:space="preserve">
+    <value>The quantity of the taken items '{0}' cannot be less than the quantity of the placed items '{1}'. Delete the place registration before deleting the take registration.</value>
+    <comment>Error message displayed when trying to place more items than have been taken when performing a move.</comment>
+  </data>
+  <data name="ValidationLotAlreadyPlaced" xml:space="preserve">
+    <value>All items with lot number '{0}' have already been placed.</value>
+    <comment>Validation error message displayed when trying to place more items than taken while performing a move.</comment>
+  </data>
+  <data name="ValidationLotNoTakeMatch" xml:space="preserve">
+    <value>The lot number '{0}' does not match the one from the take action.</value>
+    <comment>Validation error message displayed when performing a move action and the entered lot number does not match the lot number registered during the take action.</comment>
+  </data>
+  <data name="ValidationSerialNumberPlaceMustMatchTake" xml:space="preserve">
+    <value>No take registration exists with serial number '{0}'. You can only place an item that has already been taken.</value>
+    <comment>Validation error message displayed when performing a move action, and the serial number entered was not registered during the take action.</comment>
+  </data>
+  <data name="IncompleteMoveRegistrationAcceptButton" xml:space="preserve">
+    <value>Post completed</value>
+    <comment>Button text for posting completed move registrations.</comment>
+  </data>
+  <data name="IncompleteMoveRegistrationCancelButton" xml:space="preserve">
+    <value>Abort</value>
+    <comment>Button text for declining to post completed move registrations.</comment>
+  </data>
+  <data name="IncompleteMoveRegistrationMessage" xml:space="preserve">
+    <value>One or more incomplete registrations exist. Make sure that the take and place quantities match, otherwise the registration cannot be posted.
+You may continue to post the completed registrations.</value>
+    <comment>Message describing that only complete move registrations will be posted.</comment>
+  </data>
+  <data name="IncompleteMoveRegistrationTitle" xml:space="preserve">
+    <value>Incomplete Registration</value>
+    <comment>Title displayed when attempting to post incomplete move registrations.</comment>
+  </data>
+  <data name="OrderLinesPageViewNoMatch" xml:space="preserve">
+    <value>No order lines matched the filter.</value>
+    <comment>Message displayed when no order lines match the filter accepted on the order lines page.</comment>
+  </data>
+  <data name="OrderListPageViewNoMatch" xml:space="preserve">
+    <value>No orders matched the filter.</value>
+    <comment>Message displayed when no orders match the filter accepted on the order list page.</comment>
+  </data>
+  <data name="LoginPageCancelButtonLabel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button text for cancelling the login.</comment>
+  </data>
+  <data name="LoginFailedToGetToken" xml:space="preserve">
+    <value>Failed to get the authentication token. Error details:
+{0}</value>
+    <comment>Error message displayed if getting an Azure authentication token failed.</comment>
+  </data>
+  <data name="LoginGetReferenceDataFailed" xml:space="preserve">
+    <value>Getting reference data failed. Server response:
+{0}</value>
+    <comment>Error message displayed if getting the reference data failed.</comment>
+  </data>
+  <data name="LoginPageGettingReferenceData" xml:space="preserve">
+    <value>Getting reference data...</value>
+    <comment>Information text displayed when the application is getting reference data.</comment>
+  </data>
+  <data name="LoginPageLoggingIn" xml:space="preserve">
+    <value>Authenticating...</value>
+    <comment>Information text displayed when the application is authenticating the user information during login.</comment>
+  </data>
+  <data name="RegistrationsDialogConfirmDeleteAllAccept" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Button text for accepting to delete all order registrations.</comment>
+  </data>
+  <data name="RegistrationsDialogConfirmDeleteAllCancel" xml:space="preserve">
+    <value>No</value>
+    <comment>Button text for declining to delete all order registrations.</comment>
+  </data>
+  <data name="RegistrationsDialogConfirmDeleteAllMessage" xml:space="preserve">
+    <value>Are you sure you want to delete all registrations?</value>
+    <comment>Message displayed when the delete all registrations item was selected from the menu on the order lines page.</comment>
+  </data>
+  <data name="RegistrationsDialogConfirmDeleteAllTitle" xml:space="preserve">
+    <value>Delete All Registrations</value>
+    <comment>Header title displayed when the delete all registrations dialog is open.</comment>
+  </data>
+  <data name="OnlineLotNumberValidationFailed" xml:space="preserve">
+    <value>Online lot number validation failed. Error details:
+{0}</value>
+    <comment>Error message stating that the online lot number validation failed.</comment>
+  </data>
+  <data name="OnlineFromBinValidationFailed" xml:space="preserve">
+    <value>Validating the {FromBinType} online failed. Error details:
+{0}</value>
+    <comment>Error message stating that online FromBin validation failed.</comment>
+  </data>
+  <data name="OnlineToBinValidationFailed" xml:space="preserve">
+    <value>Validating the {ToBinType} online failed. Error details:
+{0}</value>
+    <comment>Error message stating that the online ToBin validation failed.</comment>
+  </data>
+  <data name="OnlineSerialNumberValidationFailed" xml:space="preserve">
+    <value>Online serial number validation failed. Error details:
+{0}</value>
+    <comment>Error message stating that the online serial number validation failed.</comment>
+  </data>
+  <data name="OnlineSerialNumberToItemNumberFailed" xml:space="preserve">
+    <value>Finding item number online via serial number failed. Error details:
+{0}</value>
+    <comment>Error message stating that no item number was found from the scanned serial number.</comment>
+  </data>
+  <data name="RegistrationCollectorValueOrderNoMatch" xml:space="preserve">
+    <value>The scanned barcode does not belong to the selected order line.</value>
+    <comment>Error message displayed when a barcode is scanned on the order lines page with a value which does not match any of the order lines.</comment>
+  </data>
+  <data name="OnlineValidationForceAccept" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Button text for accepting to ignore the warning returned by the online validator.</comment>
+  </data>
+  <data name="OnlineValidationForceDecline" xml:space="preserve">
+    <value>No</value>
+    <comment>Button text for declining to ignore the warning returned by the online validator.</comment>
+  </data>
+  <data name="OnlineValidationForceMessage" xml:space="preserve">
+    <value>Do you want to ignore the warning and try again?</value>
+    <comment>Error message asking the user if the warning returned by the online validator should be ignored.</comment>
+  </data>
+  <data name="OnlineValidationForceTitle" xml:space="preserve">
+    <value>Warning</value>
+    <comment>Header title for the force warning returned by the online validator.</comment>
+  </data>
+  <data name="RegistrationCollectorConfigurationMissing" xml:space="preserve">
+    <value>Configuration for the registration collector is missing.</value>
+    <comment>Error message displayed when there is no registration collector configuration defined for the page.</comment>
+  </data>
+  <data name="RegistrationCollectorNoSteps" xml:space="preserve">
+    <value>No steps defined in the registration collector.</value>
+    <comment>Error message displayed when no steps are present in a registration collector.</comment>
+  </data>
+  <data name="OrderLinesDeleteAllOrderRegistrationsMenuItem" xml:space="preserve">
+    <value>Delete All Registrations</value>
+    <comment>Menu item text for deleting all registrations for the order.</comment>
+  </data>
+  <data name="ConfirmDeleteAllOrderRegistrationsAcceptButtonText" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Button text for confirming to deleting all order registrations.</comment>
+  </data>
+  <data name="ConfirmDeleteAllOrderRegistrationsCancelButtonText" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button text for declining to deleting all order registrations.</comment>
+  </data>
+  <data name="ConfirmDeleteAllOrderRegistrationsMessage" xml:space="preserve">
+    <value>You are about to delete any registrations made on order '{0}'. Do you want to continue?</value>
+    <comment>Pop up message for deleting all order registrations.</comment>
+  </data>
+  <data name="ConfirmDeleteAllOrderRegistrationsTitle" xml:space="preserve">
+    <value>Delete All Registrations</value>
+    <comment>Confirmation message text for when delete all order registrations have been selected.</comment>
+  </data>
+  <data name="PrintError" xml:space="preserve">
+    <value>Print problem: {0}</value>
+    <comment>Error message displayed whenever a problem with a printer is present.</comment>
+  </data>
+  <data name="PrintErrorTitle" xml:space="preserve">
+    <value>Printing error</value>
+    <comment>Header title for the dialog presented when printer problems are present.</comment>
+  </data>
+  <data name="PrintMissingReferenceData" xml:space="preserve">
+    <value>Printer information is missing in the reference data. The '{0}' table might be missing or it is empty.</value>
+    <comment>Error message displayed when printer information is expected, but not present in the reference data.</comment>
+  </data>
+  <data name="PrintMissingReferenceDataOKButtonText" xml:space="preserve">
+    <value>OK</value>
+    <comment>Button text for acknowledging that printer configuration is missing in reference data.</comment>
+  </data>
+  <data name="PrintMissingReferenceDataTitle" xml:space="preserve">
+    <value>Missing Printer Information</value>
+    <comment>Header title displayed when printer configuration is missing from reference data.</comment>
+  </data>
+  <data name="PrintUnknownPrinterType" xml:space="preserve">
+    <value>Could not find printer. This is most commonly due to an unknown printer type. Error details:
+{0}</value>
+    <comment>Error message displayed when a printer is not supported by the application.</comment>
+  </data>
+  <data name="PrintConfigurationMissing" xml:space="preserve">
+    <value>The '{0}' printer configuration is missing.</value>
+    <comment>Message displayed when configuration is missing for a printer.</comment>
+  </data>
+  <data name="MenuAdhocPostingProblemDiscardButtonText" xml:space="preserve">
+    <value>Discard</value>
+    <comment>Button text for discarding a registration which previously failed to post. </comment>
+  </data>
+  <data name="MenuAdhocPostingProblemMessage" xml:space="preserve">
+    <value>A problem arose when trying to post the adhoc registration. Retry or discard - be aware that the registration will be lost when discarded. Error details:
+{0}</value>
+    <comment>Error message displayed when an adhoc registration fails to post a registration.</comment>
+  </data>
+  <data name="MenuAdhocPostingProblemRetryButtonText" xml:space="preserve">
+    <value>Retry</value>
+    <comment>Button text for retrying to post a previously failed adhoc post.</comment>
+  </data>
+  <data name="MenuAdhocPostingProblemTitle" xml:space="preserve">
+    <value>Posting Problem</value>
+    <comment>Header text for an adhoc posting error.</comment>
+  </data>
+  <data name="AdhocDeleteAdhocRegistration" xml:space="preserve">
+    <value>Delete registration</value>
+    <comment>Delete message displayed when deleting an adhoc registration.</comment>
+  </data>
+  <data name="AdhocResubmitAdhocRegistration" xml:space="preserve">
+    <value>Resubmit registration</value>
+    <comment>Button text for allowing the user to resubmit registrations.</comment>
+  </data>
+  <data name="ResubmitAdhocPostingProblemCancelButtonText" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button text for declining to post the previously failed post of adhoc registrations.</comment>
+  </data>
+  <data name="ResubmitAdhocPostingProblemMessage" xml:space="preserve">
+    <value>A problem arose when trying to repost the adhoc registration. Retry or Cancel - the registration will still be in the list when Cancelled. Error details:
+{0}</value>
+    <comment>Message displayed after a failed post of adhoc registrations.</comment>
+  </data>
+  <data name="ResubmitAdhocPostingProblemRetryButtonText" xml:space="preserve">
+    <value>Retry</value>
+    <comment>Button text for reposting the previously failed post of adhoc registrations.</comment>
+  </data>
+  <data name="ResubmitAdhocPostingProblemTitle" xml:space="preserve">
+    <value>Reposting problem</value>
+    <comment>Header title displayed after a failed post of adhoc registrations..</comment>
+  </data>
+  <data name="AdhocPageHasPendingRegistrationsDialogAcceptButtonText" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Button text for accepting to go to the registrations page.</comment>
+  </data>
+  <data name="AdhocPageHasPendingRegistrationsDialogCancelButtonText" xml:space="preserve">
+    <value>No</value>
+    <comment>Button text for declining to go to the registrations page.</comment>
+  </data>
+  <data name="AdhocPageHasPendingRegistrationsDialogMessage" xml:space="preserve">
+    <value>There are pending registrations. Do you want to go to the list of registrations?</value>
+    <comment>Pop up message asking the user to go to the registrations page or not.</comment>
+  </data>
+  <data name="AdhocPageHasPendingRegistrationsDialogTitle" xml:space="preserve">
+    <value>Pending Registrations</value>
+    <comment>Title message on a pop up, asking the user to go to the registrations page.</comment>
+  </data>
+  <data name="AdhocViewRegistrations" xml:space="preserve">
+    <value>View pending registrations</value>
+    <comment>Button text for allowing the user to view pending registrations.</comment>
+  </data>
+  <data name="PrintMultiplePrintersCancelText" xml:space="preserve">
+    <value>Cancel Print</value>
+    <comment>Button text for cancelling the print dialog.</comment>
+  </data>
+  <data name="PrintMultiplePrintersTitleText" xml:space="preserve">
+    <value>Select a printer.</value>
+    <comment>Header title displayed when the user is asked to select a printer.</comment>
+  </data>
+  <data name="PrintMissingColumnDataReferenceData" xml:space="preserve">
+    <value>Printer information is missing in reference data. The '{0}' column is missing or no data available.</value>
+    <comment>Error message displayed when printer information is expected, configuration is in reference data, however, one or more fields are missing.</comment>
+  </data>
+  <data name="OrderLinesPageViewNoMatchDismissButtonText" xml:space="preserve">
+    <value>Close</value>
+    <comment>Button text for dismissing the message appearing when no order lines match a filter.</comment>
+  </data>
+  <data name="LookupSearchReturnedEmptyResult" xml:space="preserve">
+    <value>The search returned no results. Please try a new search.</value>
+    <comment>Message stating that the search performed on a lookup page did not return any results.</comment>
+  </data>
+  <data name="ValidationDialogDecimalValueExceeded" xml:space="preserve">
+    <value>You cannot register more than '{0}' for this item.</value>
+    <comment>Validation error message displayed when a registration surpasses the limit given.</comment>
+  </data>
+  <data name="ValidationDialogDecimalValueExceededContinue" xml:space="preserve">
+    <value>You are about to register '{0}' on an item with an expected limit of '{1}'. Do you want to continue?</value>
+    <comment>Validation error message displayed when a registration surpasses the limit given, and the user is allowed to do so by accepting the dialog presented.</comment>
+  </data>
+  <data name="UnknownErrorOccurred" xml:space="preserve">
+    <value>An unknown error occurred.</value>
+    <comment>Generic error message, where the area and cause is unknown.</comment>
+  </data>
+  <data name="LabelledEntryEnterButtonText" xml:space="preserve">
+    <value>Enter</value>
+    <comment>Button text for the "enter" button on the keyboard.</comment>
+  </data>
+  <data name="ScanFormatExceptionDialogTitle" xml:space="preserve">
+    <value>Invalid Barcode Format</value>
+    <comment>Title of the dialog displayed when barcode scan throws a FormatException e.g. on wrong AI format.</comment>
+  </data>
+  <data name="ScanFormatExceptionDialogMessage" xml:space="preserve">
+    <value>Barcode format error '{0}'. The scanned value was '{1}'.</value>
+    <comment>Error message displayed when a barcode is scanned with an incorrect format.</comment>
+  </data>
+  <data name="ScanFormatExceptionInRegistrationCollectorDialogMessage" xml:space="preserve">
+    <value>Barcode format error '{0}'. The scanned value was '{1}'.</value>
+    <comment>Error message displayed in the registration collector when a barcode is scanned with an incorrect format.</comment>
+  </data>
+  <data name="LoginApplicationInitializationFailed" xml:space="preserve">
+    <value>Failed to load application. Error details:
+{0}</value>
+    <comment>Error message displayed if the application fails to load.</comment>
+  </data>
+  <data name="LoginGetConfigurationFailed" xml:space="preserve">
+    <value>Getting configuration failed. Error details:
+{0}</value>
+    <comment>Error message displayed if an error occurred getting the configuration for the application.</comment>
+  </data>
+  <data name="LoginPageGettingConfiguration" xml:space="preserve">
+    <value>Getting configuration...</value>
+    <comment>Information text displayed when the application is getting the configuration.</comment>
+  </data>
+  <data name="LoginPageLoadingApplication" xml:space="preserve">
+    <value>Loading application...</value>
+    <comment>Information text displayed on the login screen when the application is loading.</comment>
+  </data>
+  <data name="ValidationMinValue" xml:space="preserve">
+    <value>Value must be greater than, or equal to '{0}'.</value>
+    <comment>Validation error message displayed when the entered value is less than the allowed value.</comment>
+  </data>
+  <data name="RegistrationCollectorFromBinHeader" xml:space="preserve">
+    <value>Scan {FromBinType} (Take)</value>
+    <comment>Header displayed when registering the From Bin.</comment>
+  </data>
+  <data name="RegistrationCollectorFromBinHelpLabel" xml:space="preserve">
+    <value>Scan the {FromBinType} you are taking the item from.</value>
+    <comment>Help label displayed when registration the From Bin.</comment>
+  </data>
+  <data name="RegistrationCollectorToBinHeader" xml:space="preserve">
+    <value>Scan {ToBinType} (Place)</value>
+    <comment>Header displayed when registering the To Bin.</comment>
+  </data>
+  <data name="RegistrationCollectorToteEmptyHeader" xml:space="preserve">
+    <value>Scan empty Tote</value>
+    <comment>Header displayed when registering the first Tote for an order.</comment>
+  </data>
+  <data name="RegistrationCollectorToBinHelpLabel" xml:space="preserve">
+    <value>Scan the {ToBinType} you are placing the item into.</value>
+    <comment>Help label displayed when registration the To Bin.</comment>
+  </data>
+  <data name="RegistrationCollectorToteEmptyHelpLabel" xml:space="preserve">
+    <value>Scan the empty Tote you are placing the item into.</value>
+    <comment>Help label displayed when registering the first Tote for an order.</comment>
+  </data>
+  <data name="RegistrationCollectorExpirationDateHeader" xml:space="preserve">
+    <value>Set Expiration Date</value>
+    <comment>Header displayed when registering the Expiration Date.</comment>
+  </data>
+  <data name="RegistrationCollectorExpirationDateHelpLabel" xml:space="preserve">
+    <value>Set the Expiration Date for the item</value>
+    <comment>Help label displayed when registration the Expiration Date.</comment>
+  </data>
+  <data name="RegistrationCollectorLotNumberHeader" xml:space="preserve">
+    <value>Scan Lot Number</value>
+    <comment>Header displayed when registering the Lot Number.</comment>
+  </data>
+  <data name="RegistrationCollectorLotNumberHelpLabel" xml:space="preserve">
+    <value>Scan the Lot Number for the item.</value>
+    <comment>Help label displayed when registration the Lot Number.</comment>
+  </data>
+  <data name="RegistrationCollectorSerialNumberHeader" xml:space="preserve">
+    <value>Scan Serial Number</value>
+    <comment>Header displayed when registering the Serial Number.</comment>
+  </data>
+  <data name="RegistrationCollectorSerialNumberHelpLabel" xml:space="preserve">
+    <value>Scan the Serial Number for the item.</value>
+    <comment>Help label displayed when registration the Serial Number.</comment>
+  </data>
+  <data name="RegistrationCollectorQuantityHeader" xml:space="preserve">
+    <value>Enter Quantity</value>
+    <comment>Header displayed when registering the Quantity.</comment>
+  </data>
+  <data name="RegistrationCollectorQuantityHelpLabel" xml:space="preserve">
+    <value>Enter the quantity to complete the registration.</value>
+    <comment>Help label displayed when registration the Quantity.</comment>
+  </data>
+  <data name="RegistrationCollectorQuantityMaxAmountReached" xml:space="preserve">
+    <value>You cannot register more full units.</value>
+    <comment>Error shown in the help label stating that no registrations can be made (for example, can't register a box of 4 pcs if only 3 can be registered)</comment>
+  </data>
+  <data name="RegistrationCollectorQuantityByScanHeader" xml:space="preserve">
+    <value>Scan Item</value>
+    <comment>Header displayed when registering the Quantity By Scan.</comment>
+  </data>
+  <data name="RegistrationCollectorQuantityByScanHelpLabel" xml:space="preserve">
+    <value>Scan to increment quantity.</value>
+    <comment>Help label displayed when registration the Quantity By Scan.</comment>
+  </data>
+  <data name="RegistrationCollectorToteHelpLabel" xml:space="preserve">
+    <value>Scan the Tote you are placing the item into.</value>
+    <comment>Help label displayed when registration the Tote.</comment>
+  </data>
+  <data name="RegistrationCollectorToteHeader" xml:space="preserve">
+    <value>Scan Tote</value>
+    <comment>Header displayed when registering the Tote.</comment>
+  </data>
+  <data name="ValidationStringEmpty" xml:space="preserve">
+    <value>Input cannot be empty.</value>
+    <comment>Validation error message displayed when a string cannot be empty.</comment>
+  </data>
+  <data name="ValidationStringNoDecimalsAllowed" xml:space="preserve">
+    <value>Only full units are allowed</value>
+    <comment>Validation error message displayed if input has decimals.</comment>
+  </data>
+  <data name="ValidationStringTooShort" xml:space="preserve">
+    <value>Input is too short.</value>
+    <comment>Validation error message displayed when an input string is too short.</comment>
+  </data>
+  <data name="MainMenuAdjustQuantity" xml:space="preserve">
+    <value>Adjust Quantity</value>
+    <comment>Title for main menu button - Adjust Quantity</comment>
+  </data>
+  <data name="MainMenuBinContent" xml:space="preserve">
+    <value>Bin Content</value>
+    <comment>Title for main menu button - Bin Content</comment>
+  </data>
+  <data name="MainMenuBulkMove" xml:space="preserve">
+    <value>Bulk Move</value>
+    <comment>Title for main menu button - Bulk Move</comment>
+  </data>
+  <data name="MainMenuCount" xml:space="preserve">
+    <value>Count</value>
+    <comment>Title for main menu button - Count</comment>
+  </data>
+  <data name="MainMenuCreatePallet" xml:space="preserve">
+    <value>Create Pallet</value>
+    <comment>Title for main menu button - Create Pallet</comment>
+  </data>
+  <data name="MainMenuCreateSalesOrder" xml:space="preserve">
+    <value>Create Sales Order</value>
+    <comment>Title for main menu button - Create Sales Order</comment>
+  </data>
+  <data name="MainMenuItemCrossReference" xml:space="preserve">
+    <value>Item Cross Reference</value>
+    <comment>Title for main menu button - Item Cross Reference</comment>
+  </data>
+  <data name="MainMenuItemDimensions" xml:space="preserve">
+    <value>Item Dimension</value>
+    <comment>Title for main menu button - Item Dimensions</comment>
+  </data>
+  <data name="MainMenuItemIssue" xml:space="preserve">
+    <value>Item Issue</value>
+    <comment>Title for main menu button - Item Issue</comment>
+  </data>
+  <data name="MainMenuLocateItem" xml:space="preserve">
+    <value>Locate Item</value>
+    <comment>Title for main menu button - Locate Item</comment>
+  </data>
+  <data name="MainMenuLocationContent" xml:space="preserve">
+    <value>Location Content</value>
+    <comment>Title for main menu button - Location Content</comment>
+  </data>
+  <data name="MainMenuMove" xml:space="preserve">
+    <value>Move</value>
+    <comment>Title for main menu button - Move</comment>
+  </data>
+  <data name="MainMenuNegativeAdjustment" xml:space="preserve">
+    <value>Negative Adjustment</value>
+    <comment>Title for main menu button - Negative Adjustment</comment>
+  </data>
+  <data name="MainMenuPalletTransportLookup" xml:space="preserve">
+    <value>Pallet Transport</value>
+    <comment>Title for main menu button - Pallet Transport</comment>
+  </data>
+  <data name="MainMenuPick" xml:space="preserve">
+    <value>Pick</value>
+    <comment>Title for main menu button - Pick</comment>
+  </data>
+  <data name="MainMenuPrintLabel" xml:space="preserve">
+    <value>Print</value>
+    <comment>Title for main menu button - Print Label</comment>
+  </data>
+  <data name="MainMenuProfitLossJournalLookup" xml:space="preserve">
+    <value>Inventory Adjustment</value>
+    <comment>Title for main menu button - Inventory Adjustment</comment>
+  </data>
+  <data name="MainMenuPutAway" xml:space="preserve">
+    <value>Put Away</value>
+    <comment>Title for main menu button - PutAway</comment>
+  </data>
+  <data name="MainMenuQuarantineOrders" xml:space="preserve">
+    <value>Quarantine Order</value>
+    <comment>Title for main menu button - Quarantine Orders</comment>
+  </data>
+  <data name="MainMenuReceive" xml:space="preserve">
+    <value>Receive</value>
+    <comment>Title for main menu button - Receive</comment>
+  </data>
+  <data name="MainMenuReportAsFinished" xml:space="preserve">
+    <value>Report As Finished</value>
+    <comment>Title for main menu button - Report As Finished</comment>
+  </data>
+  <data name="MainMenuSales" xml:space="preserve">
+    <value>Sales</value>
+    <comment>Title for main menu button - Sales</comment>
+  </data>
+  <data name="MainMenuSubstituteItems" xml:space="preserve">
+    <value>Substitute Item</value>
+    <comment>Title for main menu button - Substitute Items</comment>
+  </data>
+  <data name="MainMenuTagCountingJournalLookup" xml:space="preserve">
+    <value>Unplanned Tag Counting</value>
+    <comment>Title for main menu button - Unplanned Tag Counting</comment>
+  </data>
+  <data name="MainMenuTransportLookup" xml:space="preserve">
+    <value>Pallet Transport</value>
+    <comment>Title for main menu button - Pallet Transport</comment>
+  </data>
+  <data name="MainMenuUnplannedCount" xml:space="preserve">
+    <value>Unplanned Count</value>
+    <comment>Title for main menu button - Unplanned Count</comment>
+  </data>
+  <data name="MainMenuUnplannedMove" xml:space="preserve">
+    <value>Unplanned Move</value>
+    <comment>Title for main menu button - Unplanned Move</comment>
+  </data>
+  <data name="MainMenuUnplannedPalletMove" xml:space="preserve">
+    <value>Unplanned Pallet Transport</value>
+    <comment>Title for main menu button - Unplanned Pallet Move</comment>
+  </data>
+  <data name="MainMenuUpdateShelf" xml:space="preserve">
+    <value>Update Shelf</value>
+    <comment>Title for main menu button - Update Shelf</comment>
+  </data>
+  <data name="RegistrationsDeleteRegistrationMenuItem" xml:space="preserve">
+    <value>Delete Registration</value>
+    <comment>Menu item text for deleting a single registration.</comment>
+  </data>
+  <data name="RegistrationDeleteAllRegistrationsMenuItem" xml:space="preserve">
+    <value>Delete All Registrations</value>
+    <comment>Menu item text for deleting all registrations.</comment>
+  </data>
+  <data name="OrderLinesRegistrationMenuItem" xml:space="preserve">
+    <value>Registrations</value>
+    <comment>Menu item text for displaying the registrations page.</comment>
+  </data>
+  <data name="PageAdjustQuantityTitle" xml:space="preserve">
+    <value>Adjust Quantity</value>
+    <comment>Page title for Adjust Quantity.</comment>
+  </data>
+  <data name="PageBinContentTitle" xml:space="preserve">
+    <value>Bin Content</value>
+    <comment>Page title for Bin Content.</comment>
+  </data>
+  <data name="PageBulkMoveTitle" xml:space="preserve">
+    <value>Bulk Move</value>
+    <comment>Page title for Bulk Move.</comment>
+  </data>
+  <data name="PageCountOrderListTitle" xml:space="preserve">
+    <value>Count Orders</value>
+    <comment>Page title for Count Order List.</comment>
+  </data>
+  <data name="PageCountOrderLinesTitle" xml:space="preserve">
+    <value>Count Order Lines</value>
+    <comment>Page title for Count Order Lines.</comment>
+  </data>
+  <data name="PageCreatePalletTitle" xml:space="preserve">
+    <value>Create Pallet</value>
+    <comment>Page title for Create Pallet.</comment>
+  </data>
+  <data name="PageItemCrossReferenceTitle" xml:space="preserve">
+    <value>Item Cross Reference</value>
+    <comment>Page title for Item Cross Reference.</comment>
+  </data>
+  <data name="PageItemDimensionsTitle" xml:space="preserve">
+    <value>Item Dimension</value>
+    <comment>Page title for Item Dimensions.</comment>
+  </data>
+  <data name="PageLocateItemTitle" xml:space="preserve">
+    <value>Locate Item</value>
+    <comment>Page title for Locate Item.</comment>
+  </data>
+  <data name="PageLocationContentTitle" xml:space="preserve">
+    <value>Location Content</value>
+    <comment>Page title for Location Content.</comment>
+  </data>
+  <data name="PageMoveOrderListTitle" xml:space="preserve">
+    <value>Move Orders</value>
+    <comment>Page title for Move Order List.</comment>
+  </data>
+  <data name="PageMoveOrderLinesTitle" xml:space="preserve">
+    <value>Move Order Lines</value>
+    <comment>Page title for Move Order Lines.</comment>
+  </data>
+  <data name="PageNegativeAdjustmentTitle" xml:space="preserve">
+    <value>Negative Adjustment</value>
+    <comment>Page title for Negative Adjustment.</comment>
+  </data>
+  <data name="PagePalletTransportLookupTitle" xml:space="preserve">
+    <value>Pallet Transport</value>
+    <comment>Page title for Pallet Transport Lookup.</comment>
+  </data>
+  <data name="PagePickOrderListTitle" xml:space="preserve">
+    <value>Pick Orders</value>
+    <comment>Page title for Pick Order List.</comment>
+  </data>
+  <data name="PagePickOrderLinesTitle" xml:space="preserve">
+    <value>Pick Order Lines</value>
+    <comment>Page title for Pick Order Lines.</comment>
+  </data>
+  <data name="PagePrintLabelTitle" xml:space="preserve">
+    <value>Print</value>
+    <comment>Page title for Print Label.</comment>
+  </data>
+  <data name="PageProfitLossJournalLineLookupTitle" xml:space="preserve">
+    <value>Inv. Adj. Lines</value>
+    <comment>Page title for Profit Loss Journal Lookup.</comment>
+  </data>
+  <data name="PagePutAwayOrderListTitle" xml:space="preserve">
+    <value>Put Away Orders</value>
+    <comment>Page title for Put Away Order List.</comment>
+  </data>
+  <data name="PagePutAwayOrderLinesTitle" xml:space="preserve">
+    <value>Put Away Order Lines</value>
+    <comment>Page title for Put Away Order Lines.</comment>
+  </data>
+  <data name="PageQuarantineOrdersTitle" xml:space="preserve">
+    <value>Quarantine Orders</value>
+    <comment>Page title for Quarantine Orders.</comment>
+  </data>
+  <data name="PageReceiveOrderListTitle" xml:space="preserve">
+    <value>Receive Orders</value>
+    <comment>Page title for Receive Order List.</comment>
+  </data>
+  <data name="PageReceiveOrderLinesTitle" xml:space="preserve">
+    <value>Receive Order Lines</value>
+    <comment>Page title for Receive Order Lines.</comment>
+  </data>
+  <data name="PageReportAsFinishedTitle" xml:space="preserve">
+    <value>Report as Finished</value>
+    <comment>Page title for Report As Finished.</comment>
+  </data>
+  <data name="PageSalesOrderListTitle" xml:space="preserve">
+    <value>Sales Orders</value>
+    <comment>Page title for Sales Order List.</comment>
+  </data>
+  <data name="PageSalesOrderLineTitle" xml:space="preserve">
+    <value>Sales Order Lines</value>
+    <comment>Page title for Sales Order Lines.</comment>
+  </data>
+  <data name="PageSubstituteItemsTitle" xml:space="preserve">
+    <value>Substitute Item</value>
+    <comment>Page title for Substitute Items.</comment>
+  </data>
+  <data name="PageTagCountingJournalLookupTitle" xml:space="preserve">
+    <value>Tag Counting Journals</value>
+    <comment>Page title for Tag Counting Journal Lookup.</comment>
+  </data>
+  <data name="PageTagCountingJournalLineLookupLookupTitle" xml:space="preserve">
+    <value>Tag Counting Journal Lines</value>
+    <comment>Page title for Tag Counting Journal Line Lookup.</comment>
+  </data>
+  <data name="PageUnplannedCountTitle" xml:space="preserve">
+    <value>Unplanned Count</value>
+    <comment>Page title for Unplanned Count.</comment>
+  </data>
+  <data name="PageUnplannedMoveTitle" xml:space="preserve">
+    <value>Unplanned Move</value>
+    <comment>Page title for Unplanned Move.</comment>
+  </data>
+  <data name="PageUnplannedPalletMoveTitle" xml:space="preserve">
+    <value>Unplanned Pallet Move</value>
+    <comment>Page title for Unplanned Pallet Move.</comment>
+  </data>
+  <data name="PageCreateProfitLossJournalTitle" xml:space="preserve">
+    <value>Inv. Adj. Journals</value>
+    <comment>Page title for Create Profit Loss Journal.</comment>
+  </data>
+  <data name="PageCreateProfitLossJournalLineTitle" xml:space="preserve">
+    <value>Create Inv. Adj. Journal</value>
+    <comment>Page title for Create Profit Loss Journal Line.</comment>
+  </data>
+  <data name="PageCreateTagCountingJournalTitle" xml:space="preserve">
+    <value>Create Tag Counting Journal</value>
+    <comment>Page title for Create Tag Counting Journal.</comment>
+  </data>
+  <data name="PageCreateTagCountingJournalLineTitle" xml:space="preserve">
+    <value>Add Tag Counting Line</value>
+    <comment>Page title for Create Tag Counting Journal Line.</comment>
+  </data>
+  <data name="PageDeliveryOrderLinesTitle" xml:space="preserve">
+    <value>Delivery Order Lines</value>
+    <comment>Page title for Delivery Order Line.</comment>
+  </data>
+  <data name="PageDeliveryOrderListTitle" xml:space="preserve">
+    <value>Delivery Orders</value>
+    <comment>Page title for Delivery Order List.</comment>
+  </data>
+  <data name="PageRegistrationsTitle" xml:space="preserve">
+    <value>Registrations</value>
+    <comment>Page title for Registrations.</comment>
+  </data>
+  <data name="SignatureViewAcceptButton" xml:space="preserve">
+    <value>Accept</value>
+    <comment>The text of the accept button on Signature View</comment>
+  </data>
+  <data name="SignatureViewCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>The text of the cancel button on the Signature View</comment>
+  </data>
+  <data name="SignatureViewCaptionText" xml:space="preserve">
+    <value>SIGN HERE</value>
+    <comment>The caption text placed under the signature line on Signature View</comment>
+  </data>
+  <data name="SignatureViewClearText" xml:space="preserve">
+    <value>Clear</value>
+    <comment>The text of the label to clear the line drawn on the Signature View</comment>
+  </data>
+  <data name="SignatureViewPromptText" xml:space="preserve">
+    <value>X</value>
+    <comment>The text placed left most on the line on the Signature View</comment>
+  </data>
+  <data name="SignatureViewTitle" xml:space="preserve">
+    <value>Sign</value>
+    <comment>Title displayed in the top when collecting a signature.</comment>
+  </data>
+  <data name="SignatureWrongInputFormat" xml:space="preserve">
+    <value>Signature is in a wrong format. It must be a Base64 encoded string. The cause is must often a default value in a wrong format.</value>
+    <comment>The validation error message shown to the user if the signature provided is not a Base64 encoded string. This often happens if a defaultValue is provided in a wrong format.</comment>
+  </data>
+  <data name="LoginPageUpdatingProfile" xml:space="preserve">
+    <value>Updating profile...</value>
+    <comment>Status text displayed on the login page when updating the user profile.</comment>
+  </data>
+  <data name="LoginUpdateProfileFailed" xml:space="preserve">
+    <value>Profile update failed. Error details:
+{0}</value>
+    <comment>Error message shown on the login page if the profile update fails.</comment>
+  </data>
+  <data name="OnlineToteValidationFailed" xml:space="preserve">
+    <value>Validating the Tote online failed. {0}</value>
+    <comment>Error displayed when an online tote validation fails.</comment>
+  </data>
+  <data name="ValidationNewToteAccept" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Button text for accepting a new tote.</comment>
+  </data>
+  <data name="ValidationNewToteDecline" xml:space="preserve">
+    <value>No</value>
+    <comment>Button text for declining to use a new tote.</comment>
+  </data>
+  <data name="ValidationNewToteScanned" xml:space="preserve">
+    <value>You have scanned a new tote '{0}'. Do you want to start using it?</value>
+    <comment>Message displayed in a message box when a new tote is scanned.</comment>
+  </data>
+  <data name="ValidationNewToteTitle" xml:space="preserve">
+    <value>New tote scanned</value>
+    <comment>Title displayed in a message box when the user has scanned a new tote.</comment>
+  </data>
+  <data name="ValidationScanExistingTote" xml:space="preserve">
+    <value>Scan an existing tote.</value>
+    <comment>Error message telling the user to scan an existing tote.</comment>
+  </data>
+  <data name="ValidationToteInvalidFormat" xml:space="preserve">
+    <value>The scanned value '{0}' does not comply with the barcode format defined in the "BarcodeFormat" field for this order line '{1}'.</value>
+    <comment>Error message displayed when a user has scanned a barcode which does not comply with the format defined.</comment>
+  </data>
+  <data name="ValidationToteOccupied" xml:space="preserve">
+    <value>The tote '{0}' is in use by '{1}'.</value>
+    <comment>Error message displayed when a tote is scanned that is already in use.</comment>
+  </data>
+  <data name="ToteLabelPrefix" xml:space="preserve">
+    <value>Tote:</value>
+    <comment>Prefix displayed in front of a selected tote.</comment>
+  </data>
+  <data name="IncorrectValueType" xml:space="preserve">
+    <value>'{0}' is not a valid value.</value>
+    <comment>The value entered is not in a correct format.</comment>
+  </data>
+  <data name="ValidationToteFailedToCreate" xml:space="preserve">
+    <value>Failed to create the tote using the value '{0}'.</value>
+    <comment>Validation error message displayed when a tote could not be saved to the database.</comment>
+  </data>
+  <data name="OrderLinesExitRegistrationsExist" xml:space="preserve">
+    <value>Registrations have been made on this order. Please select to either stay on the page to process the registrations or leave and then return to process the order later by either posting or deleting the registrations.</value>
+    <comment>Message displayed when leaving the order lines page, and unposted registrations on the order line exist.</comment>
+  </data>
+  <data name="MainMenuToteShipping" xml:space="preserve">
+    <value>Tote Shipping</value>
+    <comment>Text for main menu button - Tote Shipping</comment>
+  </data>
+  <data name="MainMenuSettings" xml:space="preserve">
+    <value>Settings</value>
+    <comment>Text for main menu button - Settings</comment>
+  </data>
+  <data name="MainMenuShip" xml:space="preserve">
+    <value>Shipping</value>
+    <comment>Text for main menu button - Shipping</comment>
+  </data>
+  <data name="PageSettingsTitle" xml:space="preserve">
+    <value>Settings</value>
+    <comment>Page title for Settings.</comment>
+  </data>
+  <data name="PageShipOrderListTitle" xml:space="preserve">
+    <value>Shipping Orders</value>
+    <comment>Page title for Ship Order List.</comment>
+  </data>
+  <data name="PageToteShippingTitle" xml:space="preserve">
+    <value>Tote Shipping</value>
+    <comment>Page title for Tote Shipping.</comment>
+  </data>
+  <data name="PageShipOrderLinesTitle" xml:space="preserve">
+    <value>Shipping Order Lines</value>
+    <comment>Page title for Ship Order Lines.</comment>
+  </data>
+  <data name="UpdateOrdersNotAllowed" xml:space="preserve">
+    <value>The list of orders cannot be updated because there are registrations in progress. Please finish the registrations so the list can be updated.</value>
+    <comment>Error message displayed when trying to update the list of orders and that is not allow. E.g. in the Offline scenario where all registrations must have been posted before the list of orders may be updated.</comment>
+  </data>
+  <data name="OrderlinesUpdateFailed" xml:space="preserve">
+    <value>Failed to retrieve the order lines for the orders. Please try again.</value>
+    <comment>Error message displayed if something goes wrong when trying to fetch the order lines in an Offline scenario.</comment>
+  </data>
+  <data name="FinishOrderMenuItem" xml:space="preserve">
+    <value>Finish</value>
+    <comment>Menu item text for performing the finish action. Only available in offline scenario to indicate it is ready to be posted.</comment>
+  </data>
+  <data name="FinishDialogWhenAllRegistrationsAreDone" xml:space="preserve">
+    <value>You have completed registrations on all order lines. Do you want to mark the order as finished?</value>
+    <comment>Message for the dialog appearing when all order lines are fully registered, asking the user to mark the order as finish in Offline scenario.</comment>
+  </data>
+  <data name="PostAllOrders" xml:space="preserve">
+    <value>Post Orders</value>
+    <comment>Menu item text for posting all orders that are ready to be posted.</comment>
+  </data>
+  <data name="PostOrdersSummaryDialogMessage" xml:space="preserve">
+    <value>Post summary:
+Completed: {0}
+Errors/Exception: {1}</value>
+    <comment>Message of the dialog displayed as a summary when posting orders in offline scenario</comment>
+  </data>
+  <data name="PostOrdersSummaryDialogTitle" xml:space="preserve">
+    <value>Post Orders Done</value>
+    <comment>Title of the dialog displayed as a summary when posting orders in offline scenario</comment>
+  </data>
+  <data name="ClearSuccessfulOrdersMenuItem" xml:space="preserve">
+    <value>Clear Completed Orders</value>
+    <comment>Menu item text for performing the action for deleting completed orders from the database. Only available in offline scenario to clear the list after PostAllOrders.</comment>
+  </data>
+  <data name="PostDialogWhenAllRegistrationsAreDoneTitle" xml:space="preserve">
+    <value>Post the order?</value>
+    <comment>Title of the dialog appearing when all order lines are fully registered, asking the user to post the order.</comment>
+  </data>
+  <data name="FinishDialogWhenAllRegistrationsAreDoneTitle" xml:space="preserve">
+    <value>Finish the order?</value>
+    <comment>Title of the dialog appearing when all order lines are fully registered, asking the user to mark the order as finish in Offline scenario.</comment>
+  </data>
+  <data name="MainMenuRegisterBarcode" xml:space="preserve">
+    <value>Register Barcode</value>
+    <comment>Title for main menu button - Register Barcode.</comment>
+  </data>
+  <data name="PageRegisterBarcodeTitle" xml:space="preserve">
+    <value>Register Barcode</value>
+    <comment>Page title for Register Barcode.</comment>
+  </data>
+  <data name="SelectOrderLineDialogHeaderTitle" xml:space="preserve">
+    <value>Select the Order Line</value>
+    <comment>Title displayed when the user is asked to select the orderline. The dialog is shown when the ScanToSelectBehavior is set to User and more than one orderline are matched when scanning on the list of orderlines.</comment>
+  </data>
+  <data name="ValidationDialogValueNoMatch" xml:space="preserve">
+    <value>The entered {0} '{1}' is not valid. The expected value is '{2}'. </value>
+    <comment>Validation error message displayed when an entered value does not match the expected value.</comment>
+  </data>
+  <data name="ValidationDialogValueNoMatchChange" xml:space="preserve">
+    <value>The entered {0} '{1}' does not match the expected value '{2}'. Do you want to use it anyway?</value>
+    <comment>Validation error message displayed when the user is requested to decide whether or not to use the expected value.</comment>
+  </data>
+  <data name="ValidationDialogValueNoMatchChangeTitle" xml:space="preserve">
+    <value>Validation Failed</value>
+    <comment>Title displayed when the user is requested to decide whether or not to use the unexpected value.</comment>
+  </data>
+  <data name="LotNumber" xml:space="preserve">
+    <value>Lot Number</value>
+    <comment>Generic translation of a lot number used as a fill in parameter.</comment>
+  </data>
+  <data name="SerialNumber" xml:space="preserve">
+    <value>Serial Number</value>
+    <comment>Generic translation of a serial number used as a fill in parameter.</comment>
+  </data>
+  <data name="ScanInfoBarcodeScannedLabelText" xml:space="preserve">
+    <value>Barcode information:</value>
+    <comment>The label text for the Barcode information field on the ScanInfo page</comment>
+  </data>
+  <data name="ScanInfoEngineLabelText" xml:space="preserve">
+    <value>Engine:</value>
+    <comment>The label text for the Engine field on the ScanInfo page</comment>
+  </data>
+  <data name="ScanInfoHelpLabelText" xml:space="preserve">
+    <value>-&gt; Scan a barcode to update fields &lt;-</value>
+    <comment>The label text for the help label on the ScanInfo page</comment>
+  </data>
+  <data name="ScanInfoRawValueLabelText" xml:space="preserve">
+    <value>Raw value:</value>
+    <comment>The label text for the Raw value field on the ScanInfo page</comment>
+  </data>
+  <data name="ScanInfoSymbologyLabelText" xml:space="preserve">
+    <value>Symbology:</value>
+    <comment>The label text for the Symbology field on the ScanInfo page</comment>
+  </data>
+  <data name="MainMenuScanInfo" xml:space="preserve">
+    <value>Scan Info</value>
+    <comment>Title for main menu button - Scan Info</comment>
+  </data>
+  <data name="PageScanInfoTitle" xml:space="preserve">
+    <value>Scan Info</value>
+    <comment>Page title for Scan Info</comment>
+  </data>
+  <data name="ChangesNotAllowedInFinishedStateDismissButton" xml:space="preserve">
+    <value>Close</value>
+    <comment>Button text for the dismiss button on the dialog displayed when in offline scenario and changes are not allowed</comment>
+  </data>
+  <data name="ChangesNotAllowedInFinishedStateMessage" xml:space="preserve">
+    <value>The order has been marked as finished and changes are not allowed.</value>
+    <comment>Message of the dialog displayed when in offline scenario and changes are not allowed</comment>
+  </data>
+  <data name="ChangesNotAllowedInFinishedStateTitle" xml:space="preserve">
+    <value>Changes not allowed</value>
+    <comment>Title of the dialog displayed when in offline scenario and changes are not allowed</comment>
+  </data>
+  <data name="OrderInsertFailed" xml:space="preserve">
+    <value>Adding orders to the list failed. Are there duplicate orders in the list? Error details:
+{0}</value>
+    <comment>Error message describing that the list of orders is invalid, and may contain duplicates. </comment>
+  </data>
+  <data name="OrderLineInsertFailed" xml:space="preserve">
+    <value>Adding order lines to the list failed. Are there duplicate order lines in the list? Error details:
+{0}</value>
+    <comment>Error message describing that the list of order lines is invalid, and may contain duplicates.</comment>
+  </data>
+  <data name="PostInProgressDialogDismissButtonText" xml:space="preserve">
+    <value>Close</value>
+    <comment>Text of the button of the dialog displayed when tapping the back button while posting</comment>
+  </data>
+  <data name="PostInProgressDialogMessage" xml:space="preserve">
+    <value>You cannot go back when posting.</value>
+    <comment>Message of the dialog displayed when tapping the back button while posting</comment>
+  </data>
+  <data name="PostInProgressDialogTitle" xml:space="preserve">
+    <value>Post in Progress</value>
+    <comment>Title of the dialog displayed when tapping the back button while posting</comment>
+  </data>
+  <data name="LoginPersistReferenceDataFailed" xml:space="preserve">
+    <value>Saving reference data failed. Error details:
+{0}</value>
+    <comment>Error message displayed if processing/persisting the reference data failed.</comment>
+  </data>
+  <data name="PageSearchTitle" xml:space="preserve">
+    <value>Search</value>
+    <comment>The title of the generic search page.</comment>
+  </data>
+  <data name="SearchConfigurationErrorMissing" xml:space="preserve">
+    <value>The search configuration is missing. It should have been transferred from the previous page.</value>
+    <comment>Error message describing that the search configuration is missing and should have been transferred from the previous page.</comment>
+  </data>
+  <data name="SearchConfigurationErrorSearchType" xml:space="preserve">
+    <value>The search 'type' is missing from the configuration transferred to this page.</value>
+    <comment>Error message describing that the search type is missing from the configuration transferred to the search page.</comment>
+  </data>
+  <data name="EnterBarcodeMenuItem" xml:space="preserve">
+    <value>Type Barcode</value>
+    <comment>Title of the menu item for entering barcodes manually.</comment>
+  </data>
+  <data name="EnterBarcodeText" xml:space="preserve">
+    <value>Type barcode</value>
+    <comment>Label text for the enter barcode view.</comment>
+  </data>
+  <data name="TypeAndQtyTotalText" xml:space="preserve">
+    <value>Total</value>
+    <comment>The text for the total label on the Type and Quantity step</comment>
+  </data>
+  <data name="HigherPriorityLinesExistBlock" xml:space="preserve">
+    <value>There are still '{0}' order lines with a higher priority that needs to be registered first.</value>
+    <comment>Message displayed telling the user that higher priority order lines exist, and that they need to be completed before selecting this one.</comment>
+  </data>
+  <data name="HigherPriorityLinesExistWarning" xml:space="preserve">
+    <value>There are still '{0}' order lines with a higher priority that should be registered first. Do you want to continue anyway?</value>
+    <comment>Message displayed asking the user whether to continue to select an order line while higher priority lines exist that have not yet been completed.</comment>
+  </data>
+  <data name="OrderLineAcceptSelectingLowerPriority" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Button title for accepting to select an order line which has a lower priority, than some order lines that have not been completed.</comment>
+  </data>
+  <data name="OrderLineDeclineSelectingLowerPriority" xml:space="preserve">
+    <value>No</value>
+    <comment>Button title for declining to select an order line which has a lower priority, than some order lines that have not been completed.</comment>
+  </data>
+  <data name="OrderLineMoveCompletedPromptToSeeRegistrations" xml:space="preserve">
+    <value>The full quantity has been registered. Do you want to see the registrations?</value>
+    <comment>Message displayed when a user selects a fully registered order line, prompting the user to decide whether to open the registrations or the chosen line.</comment>
+  </data>
+  <data name="RequestCancelled" xml:space="preserve">
+    <value>The request was cancelled.</value>
+    <comment>Error message used when a request is cancelled.</comment>
+  </data>
+  <data name="DefaultBinType" xml:space="preserve">
+    <value>Bin</value>
+    <comment>The general designation of the bin or location where items are stored.</comment>
+  </data>
+  <data name="DefaultLotType" xml:space="preserve">
+    <value>Lot</value>
+    <comment>The general designation of a Lot number.</comment>
+  </data>
+  <data name="SettingKeysGroupName" xml:space="preserve">
+    <value>Keys</value>
+    <comment>Setting header title for keys on the settings page</comment>
+  </data>
+  <data name="SettingsKeysShowKeyPressesLabel" xml:space="preserve">
+    <value>Show keypresses on settings page:</value>
+    <comment>Label for the show keypresses setting on the settings page</comment>
+  </data>
+  <data name="SearchHeaderBarcodeLabel" xml:space="preserve">
+    <value>Barcode:</value>
+    <comment>Title of the header for barcode in the default configuration for order lines search</comment>
+  </data>
+  <data name="SearchHeaderDescriptionLabel" xml:space="preserve">
+    <value>Description:</value>
+    <comment>Title of the header for description in the default configuration for order lines search</comment>
+  </data>
+  <data name="SearchHeaderLotLabel" xml:space="preserve">
+    <value>Lot number:</value>
+    <comment>Title of the header for lot number  in the default configuration for order lines search</comment>
+  </data>
+  <data name="SearchHeaderNumberLabel" xml:space="preserve">
+    <value>Item number:</value>
+    <comment>Title of the header for item number in the default configuration for order lines search</comment>
+  </data>
+  <data name="SearchHeaderSerialLabel" xml:space="preserve">
+    <value>Serial number:</value>
+    <comment>Title of the header for serial number in the default configuration for order lines search</comment>
+  </data>
+  <data name="SearchForOrderLinesMenuItem" xml:space="preserve">
+    <value>Find Order Line</value>
+    <comment>Title for the menu item for order lines search</comment>
+  </data>
+  <data name="PickerNoValueText" xml:space="preserve">
+    <value>No item selected</value>
+    <comment>The text in the dropdown list when no value can be selected due to a validation error of the provided default value</comment>
+  </data>
+  <data name="ValidationWrongListInput" xml:space="preserve">
+    <value>Value '{0}' is not a valid value</value>
+    <comment>Validation error message displayed when e.g. a default value is set that is not in the list in the reference data</comment>
+  </data>
+  <data name="DropDownListDefaultSearchHelpLabelText" xml:space="preserve">
+    <value>Search in the list</value>
+    <comment>Help label text displayed above the text field in the search box that appear in the dropdown lists</comment>
+  </data>
+  <data name="OrderLineCancelRemainingQuantityMenuItem" xml:space="preserve">
+    <value>Cancel Remaining Quantity</value>
+    <comment>Menu item title/text for cancelling the remaining quantity of an order line.</comment>
+  </data>
+  <data name="RegistrationCannotEditCancelActionMessage" xml:space="preserve">
+    <value>Registrations containing cancelled order lines cannot be edited. Delete the registration and make new registrations if necessary.</value>
+    <comment>Error message displayed when a user wants to edit a registration containing cancelled order lines.</comment>
+  </data>
+  <data name="LoginOfflineFailed" xml:space="preserve">
+    <value>Failed to login using offline credentials. They may be out of date, or incorrect. Try again or login while being online.</value>
+    <comment>Error message displayed when a failed attempt was made to login while being offline.</comment>
+  </data>
+  <data name="OfflineManagementPagePostButtonText" xml:space="preserve">
+    <value>Upload all</value>
+    <comment>Button text for post all on the Offline Management Page.</comment>
+  </data>
+  <data name="OfflineManagementPageErrorsInPostText" xml:space="preserve">
+    <value>Errors occured when uploading registrations!</value>
+    <comment>Message displayed if errors occured when uploading/posting all orders and registrations on the Offline Post Management Page.</comment>
+  </data>
+  <data name="UnplannedItemRegistrationsInformationLabel" xml:space="preserve">
+    <value>Registrations:</value>
+    <comment>The label text for number of registrations that is displayed in offline scenario on the unplanned item registration page </comment>
+  </data>
+  <data name="OfflineManagementPageSuccessfulPostText" xml:space="preserve">
+    <value>Upload successful.</value>
+    <comment>Message displayed if everything is good when posting all orders on the Offline Post Management Page.</comment>
+  </data>
+  <data name="OfflineManagementPageNothingToUploadText" xml:space="preserve">
+    <value>No registrations are ready to be uploaded.</value>
+    <comment>Information message displayed when the upload all button is pressed when no registration are ready to be send on the Offline Management Page</comment>
+  </data>
+  <data name="OfflineManagementPageNavigationButtonDefaultTitle" xml:space="preserve">
+    <value>Continue</value>
+    <comment>The button text of the goto button found on the Offline Management Page</comment>
+  </data>
+  <data name="OfflineManagementPageRegistrationsPresentText" xml:space="preserve">
+    <value>Registrations exists. Do you want to upload the registrations now?</value>
+    <comment>Message displayed when going to the Offline Post Management Page and registrations exists.</comment>
+  </data>
+  <data name="OfflineManagementPageRegistrationsCancelText" xml:space="preserve">
+    <value>No</value>
+    <comment>Button text for Cancel/No button displayed on the Offline Management Page when there are registrations and the user taps the back button.</comment>
+  </data>
+  <data name="OfflineManagementPageRegistrationsOKText" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Button text for OK/Yes button displayed when there are registrations and the user taps the back button</comment>
+  </data>
+  <data name="OfflineManagementPageRegistrationsPresentHeaderText" xml:space="preserve">
+    <value>Registrations</value>
+    <comment>Message displayed when going to the Offline Post Management Page and registrations exists.</comment>
+  </data>
+  <data name="OfflineManagementPageRegistrationsHeaderTextAfterUpdate" xml:space="preserve">
+    <value>Update complete. Navigating to main menu...</value>
+    <comment>The header text displayed after updating the orders saying that the page is navigating to the work page</comment>
+  </data>
+  <data name="OfflineManagementPageRegistrationsPresentLogoutText" xml:space="preserve">
+    <value>Are you sure you want to log out?</value>
+    <comment>Message text displayed on the Offline Management Page when there are registrations and the user taps the back button.</comment>
+  </data>
+  <data name="LoginPageEndpointNotFound" xml:space="preserve">
+    <value>The scanned endpoint was not found in the list of endpoints.</value>
+    <comment>Error message displayed when scanning an endpoint that has not been add to the list of endpoints</comment>
+  </data>
+  <data name="OrderListPageViewErrorMessageMenuItemTitle" xml:space="preserve">
+    <value>View Error Message</value>
+    <comment>The title of the menu item for showing the error message after posting in offline scenario</comment>
+  </data>
+  <data name="OrderListPageViewErrorMessageTitle" xml:space="preserve">
+    <value>Error Message</value>
+    <comment>The title of the dropdown containing the error message received in offline scenario after posting</comment>
+  </data>
+  <data name="OrderListPageViewErrorMessageEmptyMessage" xml:space="preserve">
+    <value>No error message available.</value>
+    <comment>Message text of the dropdown when showing error messages on a order list page where error messages ist not provided in the response from the server. Only available in the offline scenario.</comment>
+  </data>
+  <data name="ViewErrorMessageMenuItemTitle" xml:space="preserve">
+    <value>View Error Message</value>
+    <comment>Title of the menu item for showing error message. Used in offline scenario.</comment>
+  </data>
+  <data name="ValidationUnderDeliveryBlockMessage" xml:space="preserve">
+    <value>There are order lines ({0}) where the registered quantity is less than what is expected. This is not allowed.</value>
+    <comment>Error message displayed when trying to post an order with under delivered lines and the user is not allowed to do so.</comment>
+  </data>
+  <data name="ValidationUnderDeliveryBlockTitle" xml:space="preserve">
+    <value>Under delivery not allowed</value>
+    <comment>Title text for the error message displayed when trying to post an order with under delivered lines and the user is not allowed to do so.</comment>
+  </data>
+  <data name="ValidationUnderDeliveryWarningAcceptButton" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Button text for accepting to continue posting even though under delivered order lines exist.</comment>
+  </data>
+  <data name="ValidationUnderDeliveryWarningCancelButton" xml:space="preserve">
+    <value>No</value>
+    <comment>Button text for declining to continue posting when under delivered order lines exist.</comment>
+  </data>
+  <data name="ValidationUnderDeliveryWarningMessage" xml:space="preserve">
+    <value>There are order lines ({0}) with an unexpected quantity. Do you want to proceed anyway?</value>
+    <comment>Validation error message displayed when trying to post an order where under delivered order lines have been detected. The user is asked whether or not to proceed with the posting.</comment>
+  </data>
+  <data name="ValidationUnderDeliveryWarningTitle" xml:space="preserve">
+    <value>Unexpected Quantity</value>
+    <comment>Title text for the error message displayed when trying to post an order with under delivered order lines.</comment>
+  </data>
+  <data name="RegisterOrderFailedMessage" xml:space="preserve">
+    <value>Registering order {0} failed. Registrations performed until the order line {1} has been saved.</value>
+    <comment>Error message displayed when attempting to automatically register all order lines on an order.</comment>
+  </data>
+  <data name="RegisterOrderConfirmationAccept" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Button title for accepting to register the selected order.</comment>
+  </data>
+  <data name="RegisterOrderConfirmationDecline" xml:space="preserve">
+    <value>No</value>
+    <comment>Button title for declining to register the selected order.</comment>
+  </data>
+  <data name="RegisterOrderConfirmationMessage" xml:space="preserve">
+    <value>Do you want to register the order '{0}'?</value>
+    <comment>Message displayed in a dialog asking the user to confirm registering the selected order.</comment>
+  </data>
+  <data name="RegisterOrderSuccessMessage" xml:space="preserve">
+    <value>The order '{0}' is now registered.</value>
+    <comment>Message displayed after an order is registered from the order list.</comment>
+  </data>
+  <data name="CancelOrderConfirmationAccept" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Button title for accepting to register the selected order.</comment>
+  </data>
+  <data name="CancelOrderConfirmationDecline" xml:space="preserve">
+    <value>No</value>
+    <comment>Button title for declining to cancel the selected order.</comment>
+  </data>
+  <data name="CancelOrderConfirmationMessage" xml:space="preserve">
+    <value>Do you want to cancel the order '{0}'?</value>
+    <comment>Message displayed in a dialog asking the user to confirm cancelling the selected order.</comment>
+  </data>
+  <data name="CancelOrderSuccessMessage" xml:space="preserve">
+    <value>The order '{0}' is now cancelled.</value>
+    <comment>Message displayed after an order is cancelled from the order list.</comment>
+  </data>
+  <data name="TypeAndQtyTotalDeleteMenuItem" xml:space="preserve">
+    <value>Delete {TypeDisplay}</value>
+    <comment>Title of the menu item for deleting items from the Type And Quantity step type.</comment>
+  </data>
+  <data name="CancelOrderMenuItem" xml:space="preserve">
+    <value>Cancel Order</value>
+    <comment>Title of the menu item for cancel the remaining of an order. Used in offline scenario.</comment>
+  </data>
+  <data name="RegisterOrderMenuItem" xml:space="preserve">
+    <value>Register Order</value>
+    <comment>Title of the menu item for registering the remaining of an order. Used in offline scenario.</comment>
+  </data>
+  <data name="ReturnToPreviousPageWarningAcceptButtonText" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Text of the accept button displayed when the user navigates back to the previous page</comment>
+  </data>
+  <data name="ReturnToPreviousPageWarningCancelButtonText" xml:space="preserve">
+    <value>No</value>
+    <comment>Text of the cancel button displayed when the user navigates back to the previous page</comment>
+  </data>
+  <data name="ReturnToPreviousPageWarningMessage" xml:space="preserve">
+    <value>Are you sure you want to close this page?</value>
+    <comment>Message of the warning message displayed when the user navigates back to the previous page</comment>
+  </data>
+  <data name="ReturnToPreviousPageWarningTitle" xml:space="preserve">
+    <value>Close Page</value>
+    <comment>Title of the warning message displayed when the user navigates back to the previous page</comment>
+  </data>
+  <data name="OrderServiceConfigurationErrorMessage" xml:space="preserve">
+    <value>Configuration for page '{0}' is incorrect.
+The order service '{1}' does not exist in the service definitions.
+This is caused by a misconfiguration in application.cfg.</value>
+    <comment>Error message displayed when service ID for OrderList and OrderLines pages is misconfigured.</comment>
+  </data>
+  <data name="FormatValidationErrorMessage" xml:space="preserve">
+    <value>The input does not match the expected format.</value>
+    <comment>Error message displayed when a value does not match the regular expression defined for that input.</comment>
+  </data>
+  <data name="ClearOrderFlagMenuItem" xml:space="preserve">
+    <value>Clear Flag</value>
+    <comment>Title of menu item for clearing a flag on an order.</comment>
+  </data>
+  <data name="FlagOrderMenuItem" xml:space="preserve">
+    <value>Flag Order</value>
+    <comment>Title of the menu item for flagging an order.</comment>
+  </data>
+  <data name="OfflineManagementPageBlockedOrdersText" xml:space="preserve">
+    <value>One or more orders require attention before they can be posted.</value>
+    <comment>Message displayed to the user on the offline management page when order cannot be uploaded because some of them are flagged/blocked and require approval before proceeding.</comment>
+  </data>
+  <data name="LoginTimeout" xml:space="preserve">
+    <value>The request timed out.</value>
+    <comment>Message returned when the login request to the server timed out.</comment>
+  </data>
+  <data name="AdhocRequestTimeoutCancelButtonText" xml:space="preserve">
+    <value>Stop waiting</value>
+    <comment>Text on the cancel button displayed when a timeout is received while performing an adhoc request.</comment>
+  </data>
+  <data name="AdhocRequestTimeoutMessage" xml:space="preserve">
+    <value>The request is taking longer than expected. Please wait and retry later.
+{0}</value>
+    <comment>Message in the dialog displayed when a timeout is received while sending an adhoc request.</comment>
+  </data>
+  <data name="AdhocRequestTimeoutRetryButtonText" xml:space="preserve">
+    <value>Check status</value>
+    <comment>Text on the retry button displayed when a timeout is received while performing an adhoc request.</comment>
+  </data>
+  <data name="AdhocRequestTimeoutTitle" xml:space="preserve">
+    <value>Timeout</value>
+    <comment>Title on the dialog displayed when a timeout is received while sending an adhoc request.</comment>
+  </data>
+  <data name="OnlineQuantityValidationFailed" xml:space="preserve">
+    <value>Online quantity validation failed with quantity {0}. {1}</value>
+    <comment>Message displayed when online quantity validation fails.</comment>
+  </data>
+  <data name="AdhocPostAllRegistrationsMenuItemTitle" xml:space="preserve">
+    <value>Post All</value>
+    <comment>Title of the menu item on unplanned item registration pages for sending all (unposted) registrations to the ERP system. Only applicable in offline mode.</comment>
+  </data>
+  <data name="RegistrationCollectorOpenError" xml:space="preserve">
+    <value>Unable to open the registration collector. Error details:
+{0}</value>
+    <comment>Error message displayed when trying to open a registration collector which is misconfigured.</comment>
+  </data>
+  <data name="OfflineManagementPageNetworkNotConnected" xml:space="preserve">
+    <value>Not connected to the network. Please try again later.</value>
+    <comment>Message displayed when the device tries to post from the offline management page.</comment>
+  </data>
+  <data name="OfflineManagementPageNetworkNotConnectedTitle" xml:space="preserve">
+    <value>No Network</value>
+    <comment>Title of the error message displayed on Upload all button is tapped on the offline management page and no network is available.</comment>
+  </data>
+  <data name="OfflineManagementPageUpdateNetworkNotConnectedTitle" xml:space="preserve">
+    <value>No Network</value>
+    <comment>Title of the error message displayed when the device tries to update from the offline management page and no network is available.</comment>
+  </data>
+  <data name="OfflineManagementPageUpdateNetworkNotConnectedText" xml:space="preserve">
+    <value>The device must be online to update. Please try again later.</value>
+    <comment>Error message displayed when the device tries to update from the offline management page and no network is available.</comment>
+  </data>
+  <data name="OfflineManagementPageUpdateNetworkLostWhileUpdatingText" xml:space="preserve">
+    <value>The device lost connection while updating. Please try again later.</value>
+    <comment>Error message displayed when the device is updating from the offline management page and loses network connectivity</comment>
+  </data>
+  <data name="OfflineManagementPageUpdateUnknownErrorTitle" xml:space="preserve">
+    <value>Failed to update</value>
+    <comment>Error message displayed when the device tries to update from the offline management page and it fails to update for unknown reasons.</comment>
+  </data>
+  <data name="OfflineManagementPageUpdateUnknownErrorText" xml:space="preserve">
+    <value>Errors occured while updating.</value>
+    <comment>Title of the error message displayed when the device tries to update from the offline management page and it fails to update for unknown reasons.</comment>
+  </data>
+  <data name="MenuItemShowImageTitle" xml:space="preserve">
+    <value>Show Image</value>
+    <comment>Menu item title for opening the displayed image in full screen.</comment>
+  </data>
+  <data name="RegistrationCollectorNoVisibleSteps" xml:space="preserve">
+    <value>The workflow configuration did not result in any visible steps.</value>
+    <comment>Error message displayed when no steps are visible for the registration collector.</comment>
+  </data>
+  <data name="RegistrationsPageRegistrationsCannotBeChangedPrefix" xml:space="preserve">
+    <value>Registration values cannot be modified.</value>
+    <comment>A prefix added before the error after trying to start a registration process. E.g. if no steps are available.</comment>
+  </data>
+  <data name="ValidationDateMaxExceeded" xml:space="preserve">
+    <value>The date exceeds the allowed date {0}.</value>
+    <comment>Validation error message when a date is past the allowed maximum date.</comment>
+  </data>
+  <data name="ValidationDateMinPreceded" xml:space="preserve">
+    <value>The date precedes the allowed date {0}.</value>
+    <comment>Validation error message when a date precedes the allowed minimum date.</comment>
+  </data>
+  <data name="OrderLinesExitRegistrationsExistLeaveButtonText" xml:space="preserve">
+    <value>Leave</value>
+    <comment>Button text of the leave page displayed when leaving the order lines page, and unposted registrations on the order line exist.</comment>
+  </data>
+  <data name="OrderLinesExitRegistrationsExistStayButtonText" xml:space="preserve">
+    <value>Stay</value>
+    <comment>Button text of the stay on page displayed when leaving the order lines page, and unposted registrations on the order line exist.</comment>
+  </data>
+  <data name="OrderLinesExitRegistrationsExistTitle" xml:space="preserve">
+    <value>Stay on Page?</value>
+    <comment>Title of the dialog displayed when leaving the order lines page, and unposted registrations on the order line exist.</comment>
+  </data>
+  <data name="AdhocRequestFailedNoResponse" xml:space="preserve">
+    <value>Error sending the request.</value>
+    <comment>General error message if the adhoc registration failed and the server did not return a description.</comment>
+  </data>
+  <data name="RegistrationCollectorCancelDialogAcceptButton" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Accept button text when prompting the user whether to close the registration collector or not.</comment>
+  </data>
+  <data name="RegistrationCollectorCancelDialogCancelButton" xml:space="preserve">
+    <value>No</value>
+    <comment>Cancel button text when prompting the user whether to close the registration collector or not.</comment>
+  </data>
+  <data name="RegistrationCollectorCancelDialogMessage" xml:space="preserve">
+    <value>Are you sure you want to close the registration page?</value>
+    <comment>Dialog message text when prompting the user whether to close the registration collector or not.</comment>
+  </data>
+  <data name="RegistrationCollectorCancelDialogTitle" xml:space="preserve">
+    <value>Close?</value>
+    <comment>Title of the dialog when prompting the user whether to close the registration collector or not.</comment>
+  </data>
+  <data name="ValidationUniqueValues" xml:space="preserve">
+    <value>Values must be unique.</value>
+    <comment>Validation error message when using unique values in the TypeAndQuantity step.</comment>
+  </data>
+  <data name="PinpointItemMenuItem" xml:space="preserve">
+    <value>Pinpoint Item</value>
+    <comment>Title of the menu item for pinpointing an item using the camera.</comment>
+  </data>
+  <data name="CameraScannerBottomText" xml:space="preserve">
+    <value>Barcode will automatically be scanned</value>
+    <comment>Text in the bottom of the camera when using the camera as scanner</comment>
+  </data>
+  <data name="CameraScannerTopText" xml:space="preserve">
+    <value>Hold camera up to barcode to scan</value>
+    <comment>Text in the top of the camera when using the camera as scanner</comment>
+  </data>
+  <data name="MainMenuRegisterImage" xml:space="preserve">
+    <value>Register Image</value>
+    <comment>Title for main menu button - Register image.</comment>
+  </data>
+  <data name="MainMenuRegisterItemImage" xml:space="preserve">
+    <value>Register Item Image</value>
+    <comment>Title for main menu button - Register item image.</comment>
+  </data>
+  <data name="PageRegisterImageTitle" xml:space="preserve">
+    <value>Register Image</value>
+    <comment>Page title for Register image.</comment>
+  </data>
+  <data name="PageRegisterItemImageTitle" xml:space="preserve">
+    <value>Register Item Image</value>
+    <comment>Page title for Register item image.</comment>
+  </data>
+  <data name="AdhocRegistrationSaved" xml:space="preserve">
+    <value>The registration was saved.</value>
+    <comment>Message displayed when an adhoc registration was saved in offline mode.</comment>
+  </data>
+  <data name="TypeBarCodeErrorMessage" xml:space="preserve">
+    <value>Invalid barcode</value>
+  </data>
+  <data name="ScanMenuItemTitle" xml:space="preserve">
+    <value>Scan</value>
+    <comment>Title of the menu item for triggering the scanner.</comment>
+  </data>
+  <data name="HidePostedOrdersMenuItemTitle" xml:space="preserve">
+    <value>Hide Posted Orders</value>
+    <comment>Title of the menu item for hide/show posted orders when the posted orders are shown.</comment>
+  </data>
+  <data name="ShowPostedOrdersMenuItemTitle" xml:space="preserve">
+    <value>Show Posted Orders</value>
+    <comment>Title of the menu item for hide/show posted orders when the posted orders are hidden.</comment>
+  </data>
+  <data name="AddCrossReferenceMenuItem" xml:space="preserve">
+    <value>Add Cross Reference</value>
+    <comment>Title of the menu item for adding a cross reference.</comment>
+  </data>
+  <data name="ReleaseOrderMenuItem" xml:space="preserve">
+    <value>Release</value>
+    <comment>Menu item text for performing the unlock order action.</comment>
+  </data>
+  <data name="RegistrationManagerOverwriteValuesDialogMessage" xml:space="preserve">
+    <value>A previous set value has changed. Do you want to use the new or the existing value?
+Existing value: '{0}'. New value: '{1}'.</value>
+    <comment>Message displayed when draft values will be overwritten. This can occur when using scanning a bin first and when AutoSave has been enabled.</comment>
+  </data>
+  <data name="RegistrationManagerOverwriteValuesDialogButtonAccept" xml:space="preserve">
+    <value>New</value>
+    <comment>Accept button text displayed when draft values will be overwritten. This can occur when using scanning a bin first and when AutoSave has been enabled.</comment>
+  </data>
+  <data name="RegistrationManagerOverwriteValuesDialogButtonCancel" xml:space="preserve">
+    <value>Existing</value>
+    <comment>Cancel button text displayed when draft values will be overwritten. This can occur when using scanning a bin first and when AutoSave has been enabled.</comment>
+  </data>
+  <data name="AttachImages" xml:space="preserve">
+    <value>Attach Image</value>
+    <comment>Menu item title for attaching images.</comment>
+  </data>
+  <data name="Attachments" xml:space="preserve">
+    <value>Attachments</value>
+    <comment>Menu item title for viewing attached files.</comment>
+  </data>
+  <data name="OnlineSerialNumberValidationDocumentNameMissing" xml:space="preserve">
+    <value>The online serial number validation is enabled but no document name has been configured.</value>
+    <comment>Error message when online serial number information has been set up but no document name has been configured.</comment>
+  </data>
+  <data name="ValidationMessageQuantityByScanGS1ScanEventChangedStepValue" xml:space="preserve">
+    <value>The previously entered value was changed from {0} to {1}.</value>
+    <comment>Validation error message when a scan results in changed values in earlier accepected steps.</comment>
+  </data>
+  <data name="AddLine" xml:space="preserve">
+    <value>Add Line</value>
+    <comment>Generic label for adding a line</comment>
+  </data>
+  <data name="MainMenuPhysInvtRecording" xml:space="preserve">
+    <value>Phys. Inventory Recording</value>
+    <comment>Title for main menu button - Physical Inventory Recording.</comment>
+  </data>
+  <data name="PhysInvtRecordingLines" xml:space="preserve">
+    <value>Phys. Invt. Recording Lines</value>
+    <comment>Page title for physical inventory recording lines.</comment>
+  </data>
+  <data name="PhysInvtRecordings" xml:space="preserve">
+    <value>Phys. Invt. Recordings</value>
+    <comment>Page title for physical inventory recordings.</comment>
+  </data>
+  <data name="NoValuesAppliedFromTheScan" xml:space="preserve">
+    <value>The scan did not update any values: '{0}'</value>
+    <comment>Error message displayed when scanning a value that did not change any steps.</comment>
+  </data>
+  <data name="NoValuesAppliedFromTheScanAcceptButton" xml:space="preserve">
+    <value>OK</value>
+    <comment>Text of the accept button when a scanned value was not applied.</comment>
+  </data>
+  <data name="OrderListPageViewUnableToRetrieve" xml:space="preserve">
+    <value>Unable to retrieve orders, please try again.</value>
+    <comment>Message displayed when no orders could be retrieved due to an error on the order list page.</comment>
+  </data>
+  <data name="OrderLinesPageViewUnableToRetrieve" xml:space="preserve">
+    <value>Unable to retrieve order lines, please try again.</value>
+    <comment>Message displayed when no order lines could be retrieved due to an error on the order lines page.</comment>
+  </data>
+  <data name="TypeAndQuantityNoTypeProvided" xml:space="preserve">
+    <value>No match was found in the input.</value>
+    <comment>Validation error message displayed when no value has been provided that can be added as the type.</comment>
+  </data>
+  <data name="MainMenuProduction" xml:space="preserve">
+    <value>Production</value>
+  </data>
+  <data name="PageProdConsumptionLinesTitle" xml:space="preserve">
+    <value>Consume Items</value>
+  </data>
+  <data name="PageProdOrderLinesTitle" xml:space="preserve">
+    <value>Prod. Order Lines</value>
+  </data>
+  <data name="PageProdOutputLinesTitle" xml:space="preserve">
+    <value>Register Output</value>
+  </data>
+  <data name="ProdOutputQuantityTitle" xml:space="preserve">
+    <value>Register Output</value>
+  </data>
+  <data name="ProdOutputScrapTitle" xml:space="preserve">
+    <value>Register Scrap</value>
+  </data>
+  <data name="ProdOutputTimeTitle" xml:space="preserve">
+    <value>Register Time</value>
+  </data>
+  <data name="RegistrationCollectorScrapHeader" xml:space="preserve">
+    <value>Scrap</value>
+  </data>
+  <data name="RegistrationCollectorTimeHeader" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="AdjustQtyToAssembleTitle" xml:space="preserve">
+    <value>Adjust Qty. to Assemble</value>
+    <comment>Title of the action for adjusting qty. on Assembly Order</comment>
+  </data>
+  <data name="CreateAssemblyOrderTitle" xml:space="preserve">
+    <value>Create Assembly Order</value>
+    <comment>Title of the action for creating a new Assembly Order</comment>
+  </data>
+  <data name="MainMenuAssembly" xml:space="preserve">
+    <value>Assembly</value>
+    <comment>Title for main menu button - Assembly</comment>
+  </data>
+  <data name="PageAssemblyOrderLineTitle" xml:space="preserve">
+    <value>Assembly Order Lines</value>
+    <comment>Page title for Assembly Order Lines</comment>
+  </data>
+  <data name="PageAssemblyOrderListTitle" xml:space="preserve">
+    <value>Assembly Orders</value>
+    <comment>Page title for Assembly Order List</comment>
+  </data>
+  <data name="MenuItemOrderLineGroup" xml:space="preserve">
+    <value>Group order lines</value>
+    <comment>Menu item title for grouping similar order lines into one.</comment>
+  </data>
+  <data name="MenuItemOrderLineUngroup" xml:space="preserve">
+    <value>Ungroup order lines</value>
+    <comment>Menu item title for ungrouping similar order lines.</comment>
+  </data>
+  <data name="ValidationValueNotInListDisplayValues" xml:space="preserve">
+    <value>Value '{0}' is not in the list of valid values. Valid values are: {1}</value>
+    <comment>Validation error message displayed along with valid values when an entered value is not present in the list of valid values.</comment>
+  </data>
+  <data name="MultipleValuesNotAllRegistered" xml:space="preserve">
+    <value>Not all of the values in the barcode were registered. Barcodes not registered: {0}"</value>
+    <comment>Warning message displayed when applying multiple values in one barcode where only a part of the barcode values was being registered.</comment>
+  </data>
+  <data name="ControlValidationInputIncompleteMessage" xml:space="preserve">
+    <value>Input is incomplete.</value>
+    <comment>Text shown when the control reports that input is incomplete.</comment>
+  </data>
+  <data name="DatePickerAccept" xml:space="preserve">
+    <value>Done</value>
+    <comment>Button text for accepting the chosen date in the date picker.</comment>
+  </data>
+  <data name="DatePickerClear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button text for clearing the date in the date picker.</comment>
+  </data>
+  <data name="OrderlinesPrerequisiteOrderMissing" xml:space="preserve">
+    <value>Order lines page '{0}' has no order to work on. Navigation must come from an OrderList page.</value>
+    <comment>Error message shown when an OrderLines page is opened but no order has been selected prior to the navigation.</comment>
+  </data>
+  <data name="LoginPageEndpointWrongFormat" xml:space="preserve">
+    <value>Failed to login. The address for the endpoint has a wrong format.</value>
+    <comment>The error message displayed when the endpoint has a wrong formatted address.</comment>
+  </data>
+  <data name="DatePickerHintDay" xml:space="preserve">
+    <value>dd</value>
+    <comment>Day component of the localized date format (ie: dd-mm-yyyy) used as a hint</comment>
+  </data>
+  <data name="DatePickerHintMonth" xml:space="preserve">
+    <value>mm</value>
+    <comment>Month component of the localized date format (ie: dd-mm-yyyy) used as a hint</comment>
+  </data>
+  <data name="DatePickerHintYear" xml:space="preserve">
+    <value>yyyy</value>
+    <comment>Year component of the localized date format (ie: dd-mm-yyyy) used as a hint</comment>
+  </data>
+  <data name="ControlValidationInputHasErrorsMessage" xml:space="preserve">
+    <value>Input is not a valid date.</value>
+    <comment>Text shown when the control reports that input has errors.</comment>
+  </data>
+  <data name="ProductionOutputFinishOperationTitle" xml:space="preserve">
+    <value>Finish Operation</value>
+    <comment>Title of the action for Production Output - Finish Route Operation</comment>
+  </data>
+  <data name="ProductionOutputTimeTrackingTitle" xml:space="preserve">
+    <value>Time Tracking</value>
+    <comment>Title of the action for Production Output - Time Tracking</comment>
+  </data>
+  <data name="BarcodeQuantityUnitNamePlaceholder" xml:space="preserve">
+    <value>unit(s)</value>
+    <comment>Placeholder used in the registration collector error messages if a description is not set in a barcode quantity</comment>
+  </data>
+  <data name="MultiBarcodeViewCancelButtonText" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Text of the cancel button on the RFID Scan Activity Page</comment>
+  </data>
+  <data name="MultiBarcodeViewHeaderText" xml:space="preserve">
+    <value>Scanning</value>
+    <comment>Header Text of the RFID Scan Activity Page</comment>
+  </data>
+  <data name="ZebraRFIDScanEngineUnableToConnectReader" xml:space="preserve">
+    <value>Unable to connect to the scanner. Try unplugging the battery and plug it in again.</value>
+    <comment>Error message displayed when no connection could be established to the Zebra RFID Reader.</comment>
+  </data>
+  <data name="ZebraRFIDScanEngineUnableToSetupReader" xml:space="preserve">
+    <value>Unable to set up the scanner. Try unplugging the battery and plug it in again.</value>
+    <comment>Error message displayed when the Zebra RFID Reader cannot be set up.</comment>
+  </data>
+  <data name="ValidationMessageGS1ScanEventChangedStepValue" xml:space="preserve">
+    <value>The previously entered value was changed from {0} to {1}.</value>
+    <comment>Validation error message when a scan results in changed values in earlier accepted steps.</comment>
+  </data>
+  <data name="MainMenuPostShipment" xml:space="preserve">
+    <value>Post Shipment</value>
+    <comment>Text for main menu button - Post Shipment</comment>
+  </data>
+  <data name="PagePostShipmentTitle" xml:space="preserve">
+    <value>Post Shipment</value>
+    <comment>Page title for Post Shipment.</comment>
+  </data>
+  <data name="ReturnToPreviousPageBlockedMessage" xml:space="preserve">
+    <value>You are not allowed to exit this page.</value>
+    <comment>Message displayed when trying to exit a page which prevents this.</comment>
+  </data>
+  <data name="ReturnToPreviousPageBlockedButtonText" xml:space="preserve">
+    <value>OK</value>
+    <comment>Text displayed in the alert dialog when the user is prevented from exiting a page.</comment>
+  </data>
+  <data name="ReturnToPreviousPageBlockedTitle" xml:space="preserve">
+    <value>Exit not allowed</value>
+    <comment>Title displayed on the dialog when trying to exit a page that does not allow exiting.</comment>
+  </data>
+  <data name="SettingEnableDebuggingHeader" xml:space="preserve">
+    <value>Enable Debugging:</value>
+    <comment>Label for the enable debugging on the settings page</comment>
+  </data>
+  <data name="SettingLogGroupName" xml:space="preserve">
+    <value>Logging</value>
+    <comment>Setting header title for log on the settings page</comment>
+  </data>
+  <data name="SettingLogLevelHeader" xml:space="preserve">
+    <value>Log Level:</value>
+    <comment>Label for the log level setting on the settings page</comment>
+  </data>
+  <data name="SettingOff" xml:space="preserve">
+    <value>Off</value>
+    <comment>Value text for "Off"</comment>
+  </data>
+  <data name="SettingOn" xml:space="preserve">
+    <value>On</value>
+    <comment>Value text for "On"</comment>
+  </data>
+  <data name="LoginPageValidatingLicenseMessage" xml:space="preserve">
+    <value>Validating license...</value>
+    <comment>Message displayed on the login page, when the license is being validated.</comment>
+  </data>
+  <data name="BarcodeNotAcceptedInHeader" xml:space="preserve">
+    <value>The scanned barcode was not applied to the filter. Scanned barcode:
+    '{0}'</value>
+    <comment>Error message displayed when a scanned barcode did not change any values in the filter.</comment>
+  </data>
+  <data name="CameraNotSupported" xml:space="preserve">
+    <value>No camera was detected.</value>
+    <comment>Error message displayed when no camera is detected for the device.</comment>
+  </data>
+  <data name="ConfirmDeleteImageCapture" xml:space="preserve">
+    <value>You are about to delete the captured image. Do you want to continue?</value>
+    <comment>Pop up message for deleting the captured image.</comment>
+  </data>
+  <data name="UnableToOpenPageAcceptButton" xml:space="preserve">
+    <value>OK</value>
+    <comment>Button text for accepting when unable to open a page due to error.</comment>
+  </data>
+  <data name="UnableToOpenPageTitle" xml:space="preserve">
+    <value>Critical Error</value>
+    <comment>Title displayed when trying to open a page which it cannot due to an error.</comment>
+  </data>
+  <data name="LoginPersistConfigurationFailed" xml:space="preserve">
+    <value>Saving configuration failed. Error details:
+{0}</value>
+    <comment>Error message displayed if processing/persisting backend provided configuration failed.</comment>
+  </data>
+  <data name="WarnOnExpirationDateAcceptButtonText" xml:space="preserve">
+    <value>Accept</value>
+    <comment>Button text for the accept button displayed when warnOnScan is setup.</comment>
+  </data>
+  <data name="WarnOnExpirationDateDeclineButtonText" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button text for the cancel button displayed when warnOnScan is setup.</comment>
+  </data>
+  <data name="WarnOnExpirationDateExceededMessage" xml:space="preserve">
+    <value>The scanned date {0} has been exceeded by '{1}' day(s).</value>
+    <comment>Error message displayed when scanning a multi value barcode which contains an expired expiration date.</comment>
+  </data>
+  <data name="WarnOnExpirationDateEarlyWarningMessage" xml:space="preserve">
+    <value>The scanned date {0} will expire in '{1}' day(s).</value>
+    <comment>Error message displayed when scanning a multi value barcode which contains an expiration date that will expire within the early warning period.</comment>
+  </data>
+</root>

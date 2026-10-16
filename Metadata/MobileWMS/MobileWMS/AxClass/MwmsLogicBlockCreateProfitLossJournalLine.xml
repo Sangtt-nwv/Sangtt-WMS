@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockCreateProfitLossJournalLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic Block used to crete Profit/Loss Journal Lines
+/// </summary>
+class MwmsLogicBlockCreateProfitLossJournalLine extends MwmsLogicBlockJournalLinesCommon implements TFMLogicBlockDataCollectionInterface, TFMLogicBlockPrePostDataModifyInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicBlockCreateProfitLossJournalLine Construct()
+    {
+        return new MwmsLogicBlockCreateProfitLossJournalLine();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>autoCreatedProcesses</Name>
+				<Source><![CDATA[
+    public Set autoCreatedProcesses()
+    {
+        MwmsLogicBlockCreateProfitLossJournalLine blockCreate, blockUpdate;
+        Set ret = super();
+        TFMProcess process = TFMProcess::Construct(TFMConstants::CreateProfitLossJournalLine());
+        blockCreate = new MwmsLogicBlockCreateProfitLossJournalLine();
+        process.addBlock(blockCreate);
+        process.blockCollection().addBlockAddon(blockCreate, new TFMLogicBlockAddonDisableValueTransfers());
+        ret.add(process);
+
+        process = TFMProcess::Construct(TFMConstants::ProfitLossJournalLine());
+        blockUpdate = new MwmsLogicBlockCreateProfitLossJournalLine();
+        blockUpdate.parmCreateOrUpdate(AddUpdate::Update);
+        process.addBlock(blockUpdate);
+        ret.add(process);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        return "@TaskletMobileWMS:Createorupdateinventoryadjustmen";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method provides the header fields, that are needed to find out which data should be collected.
+    /// </summary>
+    /// <returns>A MobReferenceDataConfiguration object, containing registration collectors for the header.</returns>
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        return this.lockWarehouseInHeader(components.getHeaders());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method gives you the registration collectors for this data collection block.
+    /// </summary>
+    /// <returns>A collection of registration collectors.</returns>
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        TFMRegistrationCollectors collectors = components.getCollectors();
+
+        return collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method is called before the post method, and gives the option to add extra registration collectors for the user to be prompted for before the post method is executed.
+    /// </summary>
+    /// <returns>Returns a MobRegistrationCollectors object if the user must be further prompted, otherwise it returns null</returns>
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preparePost</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to set up tables to be used in the posting. Ensures that addons can be made, that can modify the data of the block before posting, when needed.
+    /// </summary>
+    public void preparePost()
+    {
+        this.getTables();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method executed when all data has been collected, and contains the posting logic.
+    /// </summary>
+    /// <returns>A MobPostResponseData object.</returns>
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData                 response = TFMPostResponseData::Construct();
+        
+        inventJournalTrans.write();
+        // Calculate the number of lines
+        inventJournalTable::initTotal(inventJournalTable);
+        inventJournalTable.update();
+        
+        response.parmResponseText("@SYS80122");
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMProfitLossJournalIcon);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

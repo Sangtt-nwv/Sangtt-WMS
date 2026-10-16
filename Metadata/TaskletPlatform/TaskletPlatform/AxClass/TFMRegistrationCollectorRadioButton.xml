@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectorRadioButton</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegistrationCollectorRadioButton extends TFMListValuesAndDataTable
+{
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dataTypeIcon</Name>
+				<Source><![CDATA[
+    public ResourceName dataTypeIcon()
+    {
+        return resourceStr(TFMDatatypeRadiobutton);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RadioButtonStep</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates a radio-button collector step
+    /// </summary>
+    /// <param name="_stepsElement"></param>
+    /// <param name="_id"></param>
+    /// <param name="_name"></param>
+    /// <param name="_header"></param>
+    /// <param name="_label"></param>
+    /// <param name="_helpLabel"></param>
+    /// <param name="_defaultValue">
+    /// default selected value - must be on the listValues list
+    /// </param>
+    /// <param name="_listValues">
+    /// Values that can be chosen
+    /// </param>
+    /// <param name="_listSeperator">
+    /// char that seperates values, ";" is default
+    /// </param>
+    
+    public server static TFMRegistrationCollectorRadioButton RadioButtonStep(
+                                            int _id,
+                                            str _name,
+                                            str _header,
+                                            str _label,
+                                            str _helpLabel,
+                                            str _defaultValue,
+                                            str _listValues,
+                                            str _listSeperator = ';')
+    {
+        TFMRegistrationCollectorRadioButton collector = new TFMRegistrationCollectorRadioButton(_id, _name,_header,_label,_helpLabel);
+        
+        collector.parmDefaultValue(_defaultValue);
+        collector.parmListValues(_listValues);
+        collector.parmListSeparator(_listSeperator);
+        return collector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RadioButtonStepMap</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates a radio-button collector step
+    /// </summary>
+    /// <param name="_stepsElement"></param>
+    /// <param name="_id"></param>
+    /// <param name="_name"></param>
+    /// <param name="_header"></param>
+    /// <param name="_label"></param>
+    /// <param name="_helpLabel"></param>
+    /// <param name="_defaultValue">
+    /// default selected value - must be on the listValues list
+    /// </param>
+    /// <param name="_listValues">
+    /// Values that can be chosen
+    /// </param>
+    /// <param name="_listSeperator">
+    /// char that seperates values, ";" is default
+    /// </param>
+    
+    public server static Map RadioButtonStepMap(
+                                            int _id,
+                                            str _name,
+                                            str _header,
+                                            str _label,
+                                            str _helpLabel,
+                                            str _defaultValue,
+                                            str _listValues,
+                                            str _listSeperator = ';')
+    {
+        return TFMRegistrationCollectorRadioButton::RadioButtonStep(_id, _name,_header,_label,_helpLabel,_defaultValue,_listValues,_listSeperator).getMap();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

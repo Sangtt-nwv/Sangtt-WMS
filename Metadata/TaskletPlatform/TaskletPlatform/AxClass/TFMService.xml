@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMService</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMService
+{
+    TFMPageOrderList orderlistPage;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    private void new(TFMPage _originatingPage)
+    {
+        orderlistPage = _originatingPage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMService Construct(TFMPage _originatingPage)
+    {
+        return new TFMService(_originatingPage);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getXML</Name>
+				<Source><![CDATA[
+	public Xml getXML()
+    {
+        return orderlistPage.getServiceXML();      
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getWorkflow</Name>
+				<Source><![CDATA[
+	public TFMWorkflowName getWorkflow()
+    {
+        TFMPageOrderListConfiguration orderListConf = orderlistPage.getConfiguration();
+        return orderListConf.parmWorkflowName();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

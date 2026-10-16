@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowLogicBlockContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+class TFMDrawFlowLogicBlockContract
+{
+    int                                 id;
+    Name                                name;
+    TFMDrawFlowLogicBlockDataContract   data;
+    str                                 html;
+    str                                 cssClass;
+    real                                posY;
+    real                                posX;
+    Map                                 inputs;
+    Map                                 outputs;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        inputs = new Map(Types::String, Types::Class);
+        outputs = new Map(Types::String, Types::Class);
+        cssClass = 'LogicBlock';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nextOutput</Name>
+				<Source><![CDATA[
+    public str nextOutput()
+    {
+        int counter = 1;
+        TFMDrawFlowLogicBlockInputsOutputs innerMap;
+
+        while (outputs.exists('output_' + int2Str(counter)))
+        {
+            innerMap = outputs.lookup('output_' + int2Str(counter));
+            
+            if (!innerMap.parmConnection().elements())
+            {
+                return 'output_' + int2Str(counter);
+            }
+
+            counter++;
+        }
+        return 'output_' + int2Str(counter);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmId</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('id')]
+    public int parmId(int _id = id)
+    {
+        id = _id;
+        return id;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPosX</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('pos_x')]
+    public real parmPosX(real _posX = posX)
+    {
+        posX = _posX;
+        return posX;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPosY</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('pos_y')]
+    public real parmPosY(real _posY = posY)
+    {
+        posY = _posY;
+        return posY;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmName</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('name')]
+    public Name parmName(Name _name = name)
+    {
+        name = _name;
+        return name ? name : 'LogicBlock';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmData</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('data')]
+    public TFMDrawFlowLogicBlockDataContract parmData(TFMDrawFlowLogicBlockDataContract _data = data)
+    {
+        data = _data;
+        return data;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInputs</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('inputs'), TFMContractClass(classStr(TFMDrawFlowLogicBlockInputsOutputs))]
+    public Map parmInputs(Map _inputs = inputs)
+    {
+        inputs = _inputs;
+        return inputs;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOutputs</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('outputs'), TFMContractClass(classStr(TFMDrawFlowLogicBlockInputsOutputs))]
+    public Map parmOutputs(Map _outputs = outputs)
+    {
+        outputs = _outputs;
+        return outputs;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClass</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('class')]
+    public Name parmClass(str _cssClass = cssClass)
+    {
+        cssClass = _cssClass;
+        return cssClass;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHtml</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('html')]
+    public str parmHtml(str _html = html)
+    {
+        html = _html;
+        return html;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTypeNode</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('typenode')]
+    public boolean parmTypeNode(boolean _dummy = false)
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

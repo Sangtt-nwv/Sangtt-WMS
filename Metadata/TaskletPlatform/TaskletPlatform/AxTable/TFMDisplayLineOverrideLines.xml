@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDisplayLineOverrideLines</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMDisplayLineOverrideLines extends common
+{
+   
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>FindValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public str FindValue(Common _buffer)
+    {
+        return TFMGenericDataHelper::findValue(_buffer,this.RefTableName,this.RefFieldName,this.DisplayMethodName,this.Expression,'','trut');
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lineOverride</Name>
+				<Source><![CDATA[
+    public edit TFMMethodname lineOverride(boolean _set, Methodname _methodName)
+    {
+        if (_set)
+        {
+            this.MethodName = subStr(_methodName,1,4) == 'parm' ? _methodName : ('parm'+_methodName);
+        }
+        return subStr(this.MethodName,5,strLen(this.MethodName));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>moveUp</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void moveUp()
+    {
+        TFMDisplayLineOverrideLines relatedline;
+        ttsbegin;
+        select forupdate firstonly relatedline order by LineNumber desc where relatedline.TFMPageDataSourcesRefRecID == this.TFMPageDataSourcesRefRecID && relatedline.LineNumber < this.LineNumber;
+        if (!relatedline)
+        {
+            ttsabort;
+            return;
+        }
+        relatedline.LineNumber = this.LineNumber;
+        this.selectForUpdate();
+        this.LineNumber = relatedline.orig().LineNumber;
+        relatedline.doUpdate();
+        this.doUpdate();
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>moveDown</Name>
+				<Source><![CDATA[
+    public void moveDown()
+    {
+        TFMDisplayLineOverrideLines relatedline;
+        ttsbegin;
+        select forupdate firstonly relatedline order by LineNumber asc where relatedline.TFMPageDataSourcesRefRecID == this.TFMPageDataSourcesRefRecID && relatedline.LineNumber > this.LineNumber;
+        if (!relatedline)
+        {
+            ttsabort;
+            return;
+        }
+        relatedline.LineNumber = this.LineNumber;
+        this.selectForUpdate();
+        this.LineNumber = relatedline.orig().LineNumber;
+        relatedline.doUpdate();
+        this.doUpdate();
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void insert()
+    {
+        TFMDisplayLineOverrideLines relatedline;
+        
+        select forupdate firstonly relatedline order by LineNumber desc where relatedline.TFMPageDataSourcesRefRecID == this.TFMPageDataSourcesRefRecID;
+        
+        this.LineNumber = relatedline.LineNumber + 1;
+        
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MigrateLinesToDatasource</Name>
+				<Source><![CDATA[
+	public static void MigrateLinesToDatasource()
+    {
+        TFMDisplayLineOverrideLines overrideLines;
+        SysDictClass				dictClass;
+        TFMTableNameAttribute		attributeCls = dictClass ? dictClass.getAttribute(classStr(TFMTableNameAttribute)) : null;
+        
+
+        ttsbegin;
+        while select forupdate overrideLines where !overrideLines.TFMPageDataSourcesRefRecID
+        {
+            dictClass   = new SysDictClass(overrideLines.ClassOverrideID);
+            attributeCls = dictClass ? dictClass.getAttribute(classStr(TFMTableNameAttribute)) : null;
+            if (attributeCls && attributeCls is TFMTableNameAttribute)
+            {
+                overrideLines.TFMPageDataSourcesRefRecID = TFMPageDatasources::FindOrCreate('',attributeCls.parmTableName(),attributeCls.parmOrderType()).RecId;
+                overrideLines.update();
+            }
+        }
+        
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateWrite</Name>
+				<Source><![CDATA[
+    public boolean validateWrite()
+    {
+        boolean ret;
+    
+        ret = super();
+
+		if (!tableName2Id(this.RefTableName))
+        {
+            warning(strFmt("@SYS75357",this.RefTableName));
+            ret = false;
+        }
+
+        if (this.RefFieldName && !fieldName2Id(tableName2Id(this.RefTableName),this.RefFieldName))
+        {
+            warning(strfmt("@SYS77716",this.RefFieldName+' ',this.RefTableName));
+            ret = false;
+        }
+
+        if (this.DisplayMethodName && !(new SysDictTable(tableName2Id(this.RefTableName)).doesMethodExist(this.DisplayMethodName)))
+        {
+            warning(strfmt(strReplace("@SYS90314","@SYS1129","@SYS8868"),this.DisplayMethodName,this.RefTableName));
+            ret = false;
+        }
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:DisplayOverrideLinesDevDesc</DeveloperDocumentation>
+	<Label>@TFM:DisplayOverrideLines</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>MethodName</TitleField1>
+	<TitleField2>RefTableName</TitleField2>
+	<ReplacementKey>overrideLineIdx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MethodName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisplayMethodName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RefFieldName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RefTableName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Expression</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReplaceAppend</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ClassOverrideID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MethodName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisplayMethodName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RefFieldName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RefTableName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Expression</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TFMPageDataSourcesRefRecID</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ReplaceAppend</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MethodName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RefTableName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RefFieldName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisplayMethodName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Expression</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>RefAndPlacement</Name>
+			<Label>@SYS6047</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ClassOverrideID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LineNumber</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>ClassOverrideID</Name>
+			<ExtendedDataType>ClassId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>MethodName</Name>
+			<ExtendedDataType>MethodName</ExtendedDataType>
+			<HelpText>Name of cell to modify</HelpText>
+			<Label>@SYS4007233</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DisplayMethodName</Name>
+			<ExtendedDataType>MethodName</ExtendedDataType>
+			<HelpText>@SYS330805</HelpText>
+			<Label>@SYS74330</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>RefFieldName</Name>
+			<ExtendedDataType>RefFieldName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>RefTableName</Name>
+			<ExtendedDataType>RefTableName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Expression</Name>
+			<ExtendedDataType>TFMExpression</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ReplaceAppend</Name>
+			<EnumType>TFMReplaceAppend</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>LineNumber</Name>
+			<ExtendedDataType>LineNumber</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>TFMPageDataSourcesRefRecID</Name>
+			<ExtendedDataType>TFMPageDataSourcesRefRecID</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>overrideLineIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ClassOverrideID</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>MethodName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>DisplayMethodName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>RefFieldName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>RefTableName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>Expression</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>TFMPageDataSourcesRefRecID</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>sortIndex</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ClassOverrideID</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>LineNumber</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>MethodName</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>TFMDisplayLineOverride</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>TFMDisplayLineOverride</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ClassOverrideID</Name>
+					<SourceEDT>ClassID</SourceEDT>
+					<Field>ClassOverrideID</Field>
+					<RelatedField>ClassOverrideID</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>TFMPageDatasources</Name>
+			<RelatedTable>TFMPageDatasources</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>TFMPageDataSourcesRefRecID</Name>
+					<Field>TFMPageDataSourcesRefRecID</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+			<Index>RecId</Index>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

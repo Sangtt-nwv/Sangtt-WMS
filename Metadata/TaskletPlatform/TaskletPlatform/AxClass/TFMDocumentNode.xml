@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentNode</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The TFMDocumentNode is a class matching a XML tag in an xml document.
+/// </summary>
+class TFMDocumentNode
+{
+    
+    Map                                 children;
+    int64                               parentID;
+    Map                                 attributes;
+    str                                 name;
+    str                                 value;
+    TFMDocumentNodes                    cData;
+    XML                                 cDataXML;
+    Map                                 childNameCount;
+    int64                               nodeID;
+    TFMDocumentNodes                    owner;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(int64 _nodeID, TFMDocumentNode _parent, TFMDocumentNodes _nodes)
+    {
+        parentID        = _parent == null ? 0 : _parent.getnodeID();        
+        children        = new Map(Types::String,Types::int64);
+        attributes      = new Map(Types::String,Types::String);
+        childNameCount  = new Map(Types::String,types::Integer);
+        nodeID          = _nodeID;
+        owner           = _nodes;
+        cData           = null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMDocumentNode Construct(int64 _nodeID, TFMDocumentNode _parent, TFMDocumentNodes _nodes)
+    {
+        return new TFMDocumentNode(_nodeID,  _parent, _nodes);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>owner</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the owner or parent.
+    /// </summary>
+    /// <returns>The TFMDocumentNodes instance, that this class belongs to.</returns>
+    public TFMDocumentNodes owner()
+    {
+        return owner;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addAttribute</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method used to add Attributes to the node.
+    /// </summary>
+    /// <param name = "_key">Attribute key.</param>
+    /// <param name = "_value">Attribute value.</param>
+    public void addAttribute(str _key, str _value)
+    {
+        attributes.insert(_key,_value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addChild</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method used to add children to the current node.
+    /// </summary>
+    /// <param name = "_child">The child node that should be added.</param>
+    public void addChild(TFMDocumentNode _child)
+    {
+        children.insert(strRFix(int2str(children.elements()+1),4,'0') ,_child.getNodeID());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addToMap</Name>
+				<Source><![CDATA[
+    private void addToMap(Map _map, str _key, int _value)
+    {
+        int content = 0;
+
+        if (_map.exists(_key))
+        {
+            content = _map.lookup(_key);
+            _map.remove(_key);
+        }
+
+        content += _value;
+        _map.insert(_key, content);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAttributes</Name>
+				<Source><![CDATA[
+    public Map parmAttributes(Map _attributes = attributes)
+    {
+        attributes = _attributes;
+        return attributes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getChildren</Name>
+				<Source><![CDATA[
+    public Map getChildren()
+    {        
+        return children;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmName</Name>
+				<Source><![CDATA[
+    public Str parmName(Str _name = name)
+    {
+        name = _name;
+        return name;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getNodeID</Name>
+				<Source><![CDATA[
+    public int64 getNodeID()
+    {
+        
+        return nodeID;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmParentID</Name>
+				<Source><![CDATA[
+    public int64 parmParentID(int64 _parentID = parentID)
+    {
+        parentID = _parentID;
+        return parentID;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setCData</Name>
+				<Source><![CDATA[
+    public void setCData(TFMDocumentNodes _cData)
+    {
+        cData = _cData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setCDataXML</Name>
+				<Source><![CDATA[
+    public void setCDataXML(XML _cData)
+    {
+        cDataXML = _cData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCDataAsXML</Name>
+				<Source><![CDATA[
+    public XML getCDataAsXML()
+    {
+        return cDataXML ?  cDataXML : (cData == null ? '' : cData.makeXml().xml());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmValue</Name>
+				<Source><![CDATA[
+    public Str parmValue(Str _value = value)
+    {
+        
+        value = _value;
+
+        return value;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

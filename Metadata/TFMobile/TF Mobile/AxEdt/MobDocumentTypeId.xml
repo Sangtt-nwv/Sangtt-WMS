@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>MobDocumentTypeId</Name>
+	<Extends>TFMDocumentTypeId</Extends>
+	<HelpText>@MobileWMS:MobileWMS5</HelpText>
+	<Label>@MobileWMS:MobileWMS58</Label>
+	<ArrayElements />
+	<Relations>
+		<AxEdtRelation>
+			<RelatedField>TypeId</RelatedField>
+			<Table>MobDocumentType</Table>
+		</AxEdtRelation>
+	</Relations>
+	<TableReferences />
+</AxEdt>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockJournalLinesCommon</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// A common Logic class for all inventory journal lines
+/// </summary>
+class MwmsLogicBlockJournalLinesCommon extends MwmsLogicBlock
+{
+    inventJournalTrans          inventJournalTrans;
+    InventJournalTrans_Tag      inventJournalTrans_tag;
+    InventJournalTable          inventJournalTable;
+    InventDim                   inventDim;
+    AddUpdate                   createOrUpdate;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getinventJournalTrans</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSetAttribute(tableStr(inventJournalTrans))]
+    public inventJournalTrans getinventJournalTrans()
+    {
+        return inventJournalTrans;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getinventJournalTrans_tag</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSetAttribute(tableStr(inventJournalTrans))]
+    public InventJournalTrans_tag getinventJournalTrans_tag()
+    {
+        return inventJournalTrans_tag;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSetAttribute(tableStr(InventJournalTable))]
+    public InventJournalTable getInventJournalTable()
+    {
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventDim</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSetAttribute(tableStr(InventDim))]
+    public InventDim getInventDim()
+    {
+        return inventDim;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCreateOrUpdate</Name>
+				<Source><![CDATA[
+    [TFMParameter(AddUpdate::Add,"@TaskletMobileWMS:Addorselectforupdate")]
+    public MwmsAddUpdate parmCreateOrUpdate(MwmsAddUpdate _createOrUpdate = createOrUpdate)
+    {
+        createOrUpdate = _createOrUpdate;
+        return createOrUpdate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new ()
+    {
+        super();
+        components.addComponent(MwmsLogicComponentInventoryJournalLines::Construct());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lockWarehouseInHeader</Name>
+				<Source><![CDATA[
+    protected TFMReferenceDataConfiguration lockWarehouseInHeader(TFMReferenceDataConfiguration _headers)
+    {
+        TFMRegistrationCollector warehouse = _headers.getCollector(extendedTypeStr(InventLocationId));
+
+        if (warehouse)
+        {
+            warehouse.parmLocked();
+        }
+        return _headers;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTables</Name>
+				<Source><![CDATA[
+    protected void getTables()
+    {
+        inventJournalId                     inventJournalId                 = request.getFieldValue(extendedTypeStr(JournalId));
+        InventJournalType                   jourType;
+        inventJournalTable  = inventJournalTable::find(inventjournalId, true);
+        jourType                        = inventJournalTable.JournalType;
+        
+        inventJournalTrans_tag = null;
+        inventJournalTrans = null;
+        if (createOrUpdate == AddUpdate::Update)
+        {
+            if (jourType == InventJournalType::TagCounting)
+            {
+                inventJournalTrans_tag = request.getReferredRecord();
+            }
+            else
+            {
+                inventJournalTrans  = request.getReferredRecord();
+            }
+        }
+        else
+        {
+            // Initialize the new journal line
+            inventJournalTrans.clear();
+            inventJournalTrans_tag.clear();
+        }
+
+        if (jourType == InventJournalType::TagCounting)
+        {
+            components.provideDataIfPossible(inventJournalTrans_tag);
+            inventJournalTrans_tag.write();
+        }
+        else
+        {
+            components.provideDataIfPossible(inventJournalTrans);
+            inventJournalTrans.write();
+        }
+
+        components.provideDataIfPossible(inventJournalTable);
+        inventJournalTable.write();
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

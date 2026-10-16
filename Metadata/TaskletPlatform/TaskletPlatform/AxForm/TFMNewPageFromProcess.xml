@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMNewPageFromProcess</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMNewPageFromProcess extends FormRun
+{
+    TFMPageUnplannedItemRegistration                page;
+    TFMPageUnplannedItemRegistrationConfiguration   config;
+    TFMProcessTable processTable;
+    boolean                                         makeNewProcess;
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createNewPage</Name>
+				<Source><![CDATA[
+    public void createNewPage()
+    {
+        page.parmId(PageName.text());
+        page.parmTitle(TFMPage_Title.text());
+        page.parmIcon(TFMPage_Icon.text());
+        if (TFMPagesProvider::getAllPages().getPage(page.parmId()))
+        {
+            throw Error ('Page name already exist');
+        }
+        if (makeNewProcess)
+        {
+            FormRun fr = element.args().caller();
+
+            fr.saveNewProcess(PageName.text(), page.parmTitle(TFMPage_Title.text()));
+            config.parmType(PageName.text());
+            
+        }
+        ttsbegin;
+        TFMDeltaPages::createFromPageClass(page);
+        TFMPageConfigParms::CreateOrUpdateParameter(page.parmId(),classId2Name(classIdGet(config)),methodStr(TFMPageUnplannedItemRegistrationConfiguration, parmType),config.parmType());
+        ttscommit;
+        TFMPagesProvider::instance().invalidateProvider();
+        if (makeNewProcess)
+        {
+            return;
+        }
+        page = TFMPagesProvider::getAllPages().getPage(page.parmId());
+        MenuFunction menuFunction = new MenuFunction(menuItemDisplayStr(TFMPageConfigurator), MenuItemType::Display);
+        
+        menuFunction.run(new Args(this));
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCurrentPage</Name>
+				<Source><![CDATA[
+    public TFMPage getCurrentPage()
+    {
+        return page;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>closeOk</Name>
+				<Source><![CDATA[
+    public void closeOk()
+    {
+        super();
+        element.createNewPage();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updatePageIconOnForm</Name>
+				<Source><![CDATA[
+    public void updatePageIconOnForm()
+    {
+        TFMGraphicsHelper::setImageHtmlWithWidth(page.parmIcon(), HtmlViewerIcon, 120); //TODO: Use the TFMMediaProvider getMediaForHtml
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        page    = new TFMPageUnplannedItemRegistration();
+        config  = page.getConfiguration();
+        processTable = element.args().record();        
+        config.parmType(processTable.ProcessID);
+        page.parmFilter(processTable.ProcessID + 'Header');
+        super();
+        FormStringControl fst = element.design().controlName(formControlStr(TFMNewPageFromProcess, PageName));
+        fst.text(processTable.ProcessID);
+        fst = element.design().controlName(formControlStr(TFMNewPageFromProcess, TFMPage_Title));
+        fst.text(TFMHelper::convertCamelCaseToNiceText(processTable.ProcessID));
+        fst = element.design().controlName(formControlStr(TFMNewPageFromProcess, TFMPage_Icon));
+        page.parmIcon(fst.text(resourceStr(TFMTaskletLogo)));
+        this.updatePageIconOnForm();
+        Set pages = TFMPagesProvider::getAllPages().getPagesUsingProcess(processTable.ProcessID);
+        if (pages.elements())
+        {
+            FormStaticTextControl fstt = ExistingPageGroup.addControl(FormControlType::StaticText, 'processisusedonpage');
+            str                     pagesWithProcess = "@TFM:TheProcessisalreadyusedonthesepa" + TFMConstants::lineBreak();
+            SetEnumerator sEnum = pages.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                TFMPage localpage = sEnum.current();
+                pagesWithProcess += TFMListVisualization::getMenuTitle(localpage.parmTitle())+ TFMConstants::lineBreak();
+            }
+            fstt.text(pagesWithProcess);
+            FormCheckBoxControl fcbc = ExistingPageGroup.addControl(FormControlType::CheckBox, 'createnewProcess');
+            fcbc.label("@TFM:Createnewprocessforthispage");
+            fcbc.value(1);
+            fcbc.registerOverrideMethod(methodStr(FormCheckBoxControl, modified), formmethodStr(TFMNewPageFromProcess,control_modified ), this);
+            makeNewProcess = true;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_modified</Name>
+				<Source><![CDATA[
+    public boolean control_modified(FormControl _control)
+    {
+        FormCheckBoxControl cbControl = _control;
+        makeNewProcess = cbControl.value();
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>PageName</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+    
+            ret = super();
+            page.parmId(this.text());
+    
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TFMPage_Title</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public boolean modified()
+        {
+            boolean ret;
+            
+            ret = super();
+            page.parmTitle(this.text());
+            TFMPage_TitleTranslated.text(TFMListVisualization::getMenuTitle(page.parmTitle()));
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TFMPage_Icon</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public boolean modified()
+        {
+            boolean ret;
+    
+            ret = super();
+            page.parmIcon(this.text());
+            
+            element.updatePageIconOnForm();
+            
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>AvailableOnMenus</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public boolean modified()
+        {
+            boolean ret;
+    
+            ret = super();
+            page.parmAvailableForMenuPages(this.value());
+    
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">@TFM:CreatePage</Caption>
+		<Pattern xmlns="">DropDialog</Pattern>
+		<PatternVersion xmlns="">1.2</PatternVersion>
+		<Style xmlns="">DropDialog</Style>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FormGroupControl1</Name>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>ExistingPageGroup</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>Group</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls />
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>PageName</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<ExtendedDataType>Name</ExtendedDataType>
+						<Mandatory>Yes</Mandatory>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>FormGroupControl1Copy1</Name>
+						<Type>Group</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>TFMPage_Title</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<ExtendedDataType>TFMPageTitleString</ExtendedDataType>
+								<Label>@SYS121139</Label>
+								<Mandatory>Yes</Mandatory>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>TFMPage_Icon</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<ExtendedDataType>TFMImageName</ExtendedDataType>
+								<Label>@SYS308379</Label>
+								<LookupOnly>Yes</LookupOnly>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>TFMPage_TitleTranslated</Name>
+								<AllowEdit>No</AllowEdit>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@TFM:Translatedtitle</Label>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormCheckBoxControl">
+								<Name>AvailableOnMenus</Name>
+								<Type>CheckBox</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@TFM:AvailableonMenupages</Label>
+								<Value>1</Value>
+							</AxFormControl>
+						</Controls>
+						<Columns>2</Columns>
+					</AxFormControl>
+					<AxFormControl>
+						<Name>HtmlViewerIcon</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<FormControlExtension>
+							<Name>TFMHtmlViewerCtrl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>htmlField</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>addCopyLinkField</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>formatAsXmlField</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+				</Controls>
+				<Style>DialogContent</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormButtonGroupControl">
+				<Name>FormButtonGroupControl1</Name>
+				<Type>ButtonGroup</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormCommandButtonControl">
+						<Name>OkButton</Name>
+						<Type>CommandButton</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Command>OK</Command>
+						<DefaultButton>Yes</DefaultButton>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalRight</ArrangeMethod>
+				<Style>DialogCommitContainer</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListRegistrations</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListIdAttribute('Registrations')]
+class TFMListRegistrations extends TFMList
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+    public TFMListConfiguration getList()
+    {
+        TFMListConfiguration				listConfig	= TFMListConfiguration::Construct(listName);
+        TFMListRow							row			= listConfig.addRow();
+        TFMListColumn						column;
+
+        column = row.makeColumn(30);
+        column.addElement(TFMListImageElement::ConstructImageElement('{imageId}','',33,18));
+        column		= row.makeColumn(70);
+        column.addElement(TFMListTextElement::ConstructTextElement("@SYS7407",TFMFonts::FindOrCreateFromProperties('smallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement('{ItemNumber} ({Quantity} {UnitOfMeasure})',TFMFonts::FindOrCreateFromProperties('MediumContent',TFMFontSizes::medium,false,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement("@SYS6303",TFMFonts::FindOrCreateFromProperties('smallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement('{Description}',TFMFonts::FindOrCreateFromProperties('MediumContent',TFMFontSizes::medium,false,false,'').id));
+        row			= listConfig.addRow();        
+        column		= row.makeColumn(100);
+        column.parmBackgroundColor('D3D3D3');
+        column.addElement(TFMListTextElement::ConstructTextElement("@SYS108783",TFMFonts::FindOrCreateFromProperties('smallHeaderFont',TFMFontSizes::small,true,false,'').id));
+
+        row			= listConfig.addRow();
+        column		= row.makeColumn(34);
+        column.addElement(TFMListTextElement::ConstructTextElement("@SYS6437",TFMFonts::FindOrCreateFromProperties('smallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement('{'+strLwr(fieldStr(InventDim,InventLocationId))+'}',TFMFonts::FindOrCreateFromProperties('MediumContent',TFMFontSizes::medium,false,false,'').id));
+
+        column		= row.makeColumn(33);
+        column.addElement(TFMListTextElement::ConstructTextElement("@SYS3794",TFMFonts::FindOrCreateFromProperties('smallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement('{FromBin}{ToBin}',TFMFonts::FindOrCreateFromProperties('MediumContent',TFMFontSizes::medium,false,false,'').id));
+
+        column		= row.makeColumn(33);
+        column.addElement(TFMListTextElement::ConstructTextElement("@WAX67",TFMFonts::FindOrCreateFromProperties('smallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement('{'+strLwr(fieldStr(InventDim,licenseplateid))+'}',TFMFonts::FindOrCreateFromProperties('MediumContent',TFMFontSizes::medium,false,false,'').id));
+
+        row			= listConfig.addRow();
+        column		= row.makeColumn(100);
+        column.parmBackgroundColor('D3D3D3');
+        column.addElement(TFMListTextElement::ConstructTextElement("@SYS317445",TFMFonts::FindOrCreateFromProperties('smallHeaderFont',TFMFontSizes::small,true,false,'').id));
+
+        row			= listConfig.addRow();
+        column		= row.makeColumn(34);
+        column.addElement(TFMListTextElement::ConstructTextElement("@SYS53635",TFMFonts::FindOrCreateFromProperties('smallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement('{'+TFMConstants::LotNumber()+'}',TFMFonts::FindOrCreateFromProperties('MediumContent',TFMFontSizes::medium,false,false,'').id));
+
+        column		= row.makeColumn(33);
+        column.addElement(TFMListTextElement::ConstructTextElement("@SYS477",TFMFonts::FindOrCreateFromProperties('smallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement('{'+TFMConstants::SerialNumber()+'}',TFMFonts::FindOrCreateFromProperties('MediumContent',TFMFontSizes::medium,false,false,'').id));
+
+        column		= row.makeColumn(33);
+        column.addElement(TFMListTextElement::ConstructTextElement("@SYS88794",TFMFonts::FindOrCreateFromProperties('smallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement('{ExpirationDate}',TFMFonts::FindOrCreateFromProperties('MediumContent',TFMFontSizes::medium,false,false,'').id));
+
+        row			= listConfig.addRow();
+        column		= row.makeColumn(100);
+        column.parmBackgroundColor('D3D3D3');
+        column.addElement(TFMListTextElement::ConstructTextElement("@SYS70071",TFMFonts::FindOrCreateFromProperties('smallHeaderFont',TFMFontSizes::small,true,false,'').id));
+
+        row			= listConfig.addRow();
+        column		= row.makeColumn(34);
+        column.addElement(TFMListTextElement::ConstructTextElement("@SYS73727",TFMFonts::FindOrCreateFromProperties('smallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement('{'+strLwr(fieldStr(InventDim,InventSizeId))+'}',TFMFonts::FindOrCreateFromProperties('MediumContent',TFMFontSizes::medium,false,false,'').id));
+
+        column		= row.makeColumn(33);
+        column.addElement(TFMListTextElement::ConstructTextElement("@SYS73726",TFMFonts::FindOrCreateFromProperties('smallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement('{'+strLwr(fieldStr(InventDim,InventcolorId))+'}',TFMFonts::FindOrCreateFromProperties('MediumContent',TFMFontSizes::medium,false,false,'').id));
+
+        column		= row.makeColumn(33);
+        column.addElement(TFMListTextElement::ConstructTextElement("@FPK270000",TFMFonts::FindOrCreateFromProperties('smallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement('{'+strLwr(fieldStr(InventDim,InventstyleId))+'}',TFMFonts::FindOrCreateFromProperties('MediumContent',TFMFontSizes::medium,false,false,'').id));
+
+        return listConfig;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

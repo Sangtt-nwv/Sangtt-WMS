@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicComponentQuantity</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicComponentQuantity extends TFMLogicComponent
+{
+    boolean addScrapQty;
+    str itemIdStringForConditions;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        // Item number text box
+        refCon.addCollector(TFMGetReferenceData::defaultItemIdCollector());
+        return refCon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAddScrapQty</Name>
+				<Source><![CDATA[
+    public boolean parmAddScrapQty(boolean _addScrapQty = addScrapQty)
+    {
+        addScrapQty = _addScrapQty;
+        return addScrapQty;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmItemIdStringForConditions</Name>
+				<Source><![CDATA[
+    public str parmItemIdStringForConditions(str _itemIdStringForConditions = itemIdStringForConditions)
+    {
+        itemIdStringForConditions = _itemIdStringForConditions;
+        return itemIdStringForConditions;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        TFMRegistrationCollectors   ret = TFMRegistrationCollectors::Construct();
+        TFMRegistrationCollector    coll = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(InventQty),TFMConstants::Quantity());
+        TFMConditions               conditions = TFMConditions::Construct();
+        TFMCondition                conditionParent, conditionChild;
+        
+        conditionParent = TFMCondition::ConstructOperator(classStr(TFMLogicContextInverterOperator));
+        conditions.addCondition(conditionParent,methodStr(TFMRegistrationCollector,parmActive));
+        conditionChild = TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldstr(InventDim, inventSerialId), itemIdStringForConditions ? itemIdStringForConditions : '{itemId}'],'active');
+        conditions.addCondition(conditionChild,methodStr(TFMRegistrationCollector,parmActive));
+        conditions.addLink(conditionChild,conditionParent, methodStr(TFMRegistrationCollector,parmActive));
+
+        coll.parmConditions(conditions);
+        ret.addCollector(coll);
+
+        if (addScrapQty)
+        {
+            coll = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(InventQty),TFMConstants::ScrapQuantity(),"@SYS39409","@SYS39409");
+            coll.parmConditions(conditions);
+            ret.addCollector(coll);
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>requestClassProvided</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method that tells which request Class it's data can be parsed into
+    /// </summary>
+    /// <returns>The name of the request class the components data can be parsed to</returns>
+    public ClassName requestClassProvided()
+    {
+        return classStr(TFMRequestItemAndDimensionElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>componentRequest</Name>
+				<Source><![CDATA[
+    public TFMRequestElement componentRequest(TFMRequestElement _request)
+    {
+        request = super(_request);
+        request.logicContext().addContextObject(TFMLogicContextDimensionSetup::Construct());
+
+        return request;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

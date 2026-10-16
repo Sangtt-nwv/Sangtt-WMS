@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMWorkflowValidationSerialNumber</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMWorkflowValidationSerialNumber extends TFMWorkflowValidation
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>validationType</Name>
+				<Source><![CDATA[
+    public TFMWorkflowValidationType validationType()
+    {
+        return 'serialNumberValidation';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>label</Name>
+				<Source><![CDATA[
+    public LabelString label()
+    {
+        return "@SYS52571";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isValidationLevelAllowed</Name>
+				<Source><![CDATA[
+    public boolean isValidationLevelAllowed()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isValidateEmptyValueAllowed</Name>
+				<Source><![CDATA[
+    public boolean isValidateEmptyValueAllowed()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

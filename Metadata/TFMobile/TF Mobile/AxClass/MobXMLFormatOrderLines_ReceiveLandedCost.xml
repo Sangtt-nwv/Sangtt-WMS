@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_ReceiveLandedCost</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for receive Landed Cost order lines.
+/// </summary>
+[TFMTableNameAttribute(tableStr(ITMLine))]
+class MobXMLFormatOrderLines_ReceiveLandedCost extends MobXMLFormatOrderLines_Receive
+{
+    ITMLine               itmLine;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>findInventTransId</Name>
+				<Source><![CDATA[
+    public static ITMGoodsInTransitOrder findInventTransId(InventTransId _inventTransId, boolean _forUpdate = false)
+    {
+        ITMGoodsInTransitOrder shipGITOrder;
+                
+        if (_inventTransId)
+        {
+            shipGITOrder.selectForUpdate(_forUpdate);
+
+            select firstonly shipGITOrder
+                where shipGITOrder.InventTransIdRef == _inventTransId && shipGITOrder.Status != ITMGoodsInTransitStatus::Received;
+        }
+    
+        return shipGITOrder;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        UnitOfMeasureSymbol inventUnit;
+        MobDocReceiveOrder recDoc = new MobDocReceiveOrder();
+        InventTable inventTableITM;
+        ITMGoodsInTransitOrder  firstUnReceivedGitOrder;
+        InventDim               gitOrderInventDim;
+        Qty qty;
+    
+        super();
+    
+        itmLine                 = common;
+        inventDim               = itmLine.inventDim();
+    
+        this.setInventDim(itmLine.ShipItemId);
+
+        inventTableITM = InventTable::find(itmLine.ShipItemId);
+
+        orderBackendId          = MobOrder::constructFromTableName(tableStr(ITMTable),orderType).getBackendID(ITMTable::find(itmLine.ShipId));//#ReceivePurchOrderPrefix + purchLine.PurchId;
+        lineNumber              = itmLine.InventTransId;
+        itemNumber              = itmLine.ShipItemId;
+        description             = inventTableITM.productName(new xInfo().language());
+        registeredQuantity      = MobConstants::NotUsed0();
+        inventUnit              = inventTableITM.inventUnitId();
+        unitOfMeasure           = inventUnit; /*purchLine.PurchUnit;*/
+
+        qty = MobReceiveOrderTypeLandedCostOrder::getQtyForLine(itmLine);
+
+        quantity                = MobHelper::formatItemQty(qty, inventUnit,true);
+        if (qty > 0)
+        {
+            recDoc = new MobDocReceiveOrder();
+            recDoc.fillInParms();
+            
+            //this.addBarcode(itmLine.BarCode);
+            status                  = MobConstants::NotUsed0();
+            displayLine1            = description;
+            displayLine2            = itmLine.ShipItemId;
+
+            if(recDoc.parmSuggestBatchNumber())
+            {
+                firstUnReceivedGitOrder = MobXMLFormatOrderLines_ReceiveLandedCost::findInventTransId(itmLine.InventTransId, false);
+                if(firstUnReceivedGitOrder)
+                {
+                    gitOrderInventDim = firstUnReceivedGitOrder.inventDim();
+                    lotNumber = '@type=batch;' + gitOrderInventDim.inventBatchId;
+                    displayLine2 +=  " : " + gitOrderInventDim.inventBatchId;
+                }
+            }
+
+            displayLine3            = strFmt("@SYS76498","@SYS3794" + ': ',inventDim.wMSLocationId);
+            displayLine4            = strFmt("@SYS76498","@SYS23107" + ': ',itmLine.ShipContainerId);
+            displayLine5            = strFmt("@SYS76498","@SYS25545" + ': ',itmLine.purchLine().PurchId);
+            
+            underDeliveryValidation = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),PurchParameters::find().SubDelivery ? TFMUnderDeliveryValidation::None : TFMUnderDeliveryValidation::Block); //Must be able to handle partial receipt
+            overDeliveryValidation  = MobHelper::enumName(enumnum(TFMOverDeliveryValidation),PurchParameters::find().OverDelivery ? TFMOverDeliveryValidation::None : TFMOverDeliveryValidation::Block); //Must be able to handle partial receipt
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

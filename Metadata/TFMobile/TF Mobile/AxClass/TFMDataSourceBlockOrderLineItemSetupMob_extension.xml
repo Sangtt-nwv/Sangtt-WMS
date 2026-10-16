@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDataSourceBlockOrderLineItemSetupMob_extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classStr(TFMDataSourceBlockOrderLineItemSetup))]
+final class TFMDataSourceBlockOrderLineItemSetupMob_extension
+{
+    public boolean					useFEFOParameter;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmuseFEFOParameter</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes,"@PRO2183")]
+    public TFMPromptForUnit parmuseFEFOParameter(TFMPromptForUnit _useFEFOParameter = useFEFOParameter)
+    {
+        useFEFOParameter = _useFEFOParameter;
+        return useFEFOParameter;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddFields</Name>
+				<Source><![CDATA[
+    public Map AddFields(Common _common)
+    {
+        Map ret = next AddFields(_common);
+        InventTable inventTable = InventTable::find(ret.lookup(extendedTypeStr(ItemId)));
+        Qty lineQty = _common.TableId == tableNum(PurchLine) ? _common.(fieldNum(PurchLine,PurchQty)) : (_common.TableId == tableNum(ITMLine) ? _common.(fieldNum(ITMLine,ShipQty)) : 1);
+        if (registerExpirationDate && useFEFOParameter)
+        {
+            boolean localRegisterExpirationDate = lineQty > 0 && InventNumGroup::find(inventTable.BatchNumGroupId).MobInclExpectedDate;
+            ret.insert(TFMConstants::RegisterExpirationDate(),  strFmt('%1',localRegisterExpirationDate)); //RegisterExpirationDate
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

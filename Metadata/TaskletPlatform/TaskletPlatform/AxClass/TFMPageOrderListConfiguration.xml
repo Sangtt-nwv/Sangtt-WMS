@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageOrderListConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('OrderList', "Order List")]
+class TFMPageOrderListConfiguration extends TFMListPageConfiguration
+{
+    boolean			automaticOrderSelectionAfterFilter;
+    boolean			automaticAcceptAfterLastScan;
+    boolean			automaticAcceptOnOpen;
+    boolean			filterEnabled;
+    TFMListId		listId;
+    TFMPageID		navigateTo;
+    TFMServiceID	serviceId;
+    TFMPageID		searchNavigateTo;
+
+    TFMOfflineModeTypes              operationMode;
+    TFMLineCompletedDefinitionTypes  lineCompletionDefinition;
+    TFMDocumentTypeId                lineSelectionDocument;
+
+    boolean				cancelOrderEnabled;
+    boolean				clearCompletedOrdersEnabled;
+    boolean				postAllOrdersEnabled;
+    boolean				registerOrderEnabled;
+    boolean				viewErrorMessageEnabled;
+    boolean				toggleShowPostedOrdersEnabled;
+    boolean				unlockOrderEnabled;
+
+    TFMWorkflowName		workflowName;
+    TFMPageTitleString	unlockOrderTitle;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmUnlockOrderEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'unlockOrder','enabled'), TFMPageAction(TFMPageMenuItemTypes::PageMenuItem, resourceStr(TFMUnlocked), false)]
+    public boolean parmUnlockOrderEnabled(boolean _unlockOrderEnabled = unlockOrderEnabled)
+    {
+        unlockOrderEnabled = _unlockOrderEnabled;
+        return unlockOrderEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUnlockOrderTitle</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('@{Release} {DisplayLine1}','unlockOrder','title',true), TFMPageAction]
+    public TFMPageTitleString parmUnlockOrderTitle(TFMPageTitleString _unlockOrderTitle = unlockOrderTitle)
+    {
+        unlockOrderTitle = _unlockOrderTitle;
+        return unlockOrderTitle;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmToggleShowPostedOrdersEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(false,'toggleShowPostedOrders','enabled'), TFMPageAction(TFMPageMenuItemTypes::OfflinePageMenuItem)]
+    public boolean parmToggleShowPostedOrdersEnabled(boolean _toggleShowPostedOrdersEnabled = toggleShowPostedOrdersEnabled)
+    {
+        toggleShowPostedOrdersEnabled = _toggleShowPostedOrdersEnabled;
+        return toggleShowPostedOrdersEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmViewErrorMessageEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(false,'viewErrorMessage','enabled'), TFMPageAction(TFMPageMenuItemTypes::OfflinePageMenuItem)]
+	public boolean parmViewErrorMessageEnabled(boolean _viewErrorMessageEnabled = viewErrorMessageEnabled)
+    {
+        viewErrorMessageEnabled = _viewErrorMessageEnabled;
+        return viewErrorMessageEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRegisterOrderEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(false,'registerOrder','enabled'),TFMPageAction(TFMPageMenuItemTypes::PageMenuItem, '', false, true)]
+    public boolean parmRegisterOrderEnabled(boolean _registerOrderEnabled = registerOrderEnabled)
+    {
+        registerOrderEnabled = _registerOrderEnabled;
+        return registerOrderEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPostAllOrdersEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(false,'postAllOrders','enabled'),TFMPageAction]
+    public boolean parmPostAllOrdersEnabled(boolean _postAllOrdersEnabled = postAllOrdersEnabled)
+    {
+        postAllOrdersEnabled = _postAllOrdersEnabled;
+        return postAllOrdersEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClearCompletedOrdersEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(false,'clearCompletedOrders','enabled'), TFMPageAction(TFMPageMenuItemTypes::OfflinePageMenuItem, '', false, true)]
+    public boolean parmClearCompletedOrdersEnabled(boolean _clearCompletedOrdersEnabled = clearCompletedOrdersEnabled)
+    {
+        clearCompletedOrdersEnabled = _clearCompletedOrdersEnabled;
+        return clearCompletedOrdersEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCancelOrderEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(false,'cancelOrder','enabled'), TFMPageAction(TFMPageMenuItemTypes::PageMenuItem, '', false, true)]
+    public boolean parmCancelOrderEnabled(boolean _cancelOrderEnabled = cancelOrderEnabled)
+    {
+        cancelOrderEnabled = _cancelOrderEnabled;
+        return cancelOrderEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAutomaticOrderSelectionAfterFilter</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'','',true)]
+    public boolean parmAutomaticOrderSelectionAfterFilter(boolean _automaticOrderSelectionAfterFilter = automaticOrderSelectionAfterFilter)
+    {
+        automaticOrderSelectionAfterFilter = _automaticOrderSelectionAfterFilter;
+        return automaticOrderSelectionAfterFilter;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAutomaticAcceptAfterLastScan</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'filter')]
+    public boolean parmAutomaticAcceptAfterLastScan(boolean _automaticAcceptAfterLastScan = automaticAcceptAfterLastScan)
+    {
+        automaticAcceptAfterLastScan = _automaticAcceptAfterLastScan;
+        return automaticAcceptAfterLastScan;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAutomaticAcceptOnOpen</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'filter')]
+    public boolean parmAutomaticAcceptOnOpen(boolean _automaticAcceptOnOpen = automaticAcceptOnOpen)
+    {
+        automaticAcceptOnOpen = _automaticAcceptOnOpen;
+        return automaticAcceptOnOpen;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFilterEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'filter', 'enabled',true)]
+    public boolean parmFilterEnabled(boolean _filterEnabled = filterEnabled)
+    {
+        filterEnabled = _filterEnabled;
+        return filterEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmListId</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(classStr(TFMListOrdersWithImage),'list','',true)]
+    public TFMListId parmListId(TFMListId _listId = listId)
+    {
+        TFMList			listCls;
+        listId = _listId;
+        if (className2Id(listId))
+        {
+            listCls = new SysDictClass(className2Id(listId)).makeObject();
+            listId = listCls.parmListName();
+        }
+        return listId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmsearchNavigateTo</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','search', 'navigateTo')]
+    public TFMPageID parmsearchNavigateTo(TFMPageID _searchNavigateTo = searchNavigateTo)
+    {
+        searchNavigateTo = _searchNavigateTo;
+        return searchNavigateTo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmNavigateTo</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','onOrderSelected', 'navigateTo', true)]
+    public TFMPageID parmNavigateTo(TFMPageID _navigateTo = navigateTo)
+    {
+        navigateTo = _navigateTo;
+        return navigateTo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmId</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','service', '', true, false, false )]
+    public TFMServiceID parmId(TFMServiceID _serviceId = serviceId)
+    {
+        serviceId = _serviceId;
+
+        if (!serviceId)
+        {
+            return pageName;
+        }
+
+        return serviceId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmWorkflowName</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('Standard','service','', false, true, true)]
+    public TFMWorkflowName parmWorkflowName(TFMWorkflowName _workflowName = workflowName)
+    {
+        workflowName = _workflowName;
+        return workflowName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOperationMode</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(TFMOfflineModeTypes::online,'service','', false, true, true)] //excluded from xml output
+    public TFMOperationMode parmOperationMode(TFMOperationMode _operationMode = operationMode)
+    {
+        operationMode = _operationMode;
+        
+        return operationMode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isOfflineEnabled</Name>
+				<Source><![CDATA[
+    public boolean isOfflineEnabled()
+    {
+        return this.parmOperationMode() == TFMOfflineModeTypes::offline;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLineCompletedDefinition</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(TFMLineCompletedDefinitionTypes::Expected,'service','', false, true, false)]
+    public TFMlineCompletedDefinition parmLineCompletedDefinition(TFMlineCompletedDefinition _lineCompletionDefinition = lineCompletionDefinition)
+    {
+        lineCompletionDefinition = _lineCompletionDefinition;
+        return lineCompletionDefinition;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLineSelectionDocument</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('', 'service','', false, true, true)]
+    public TFMDocumentTypeId parmLineSelectionDocument(TFMDocumentTypeId _lineSelectionDocument = lineSelectionDocument)
+    {
+        lineSelectionDocument = _lineSelectionDocument;
+        return lineSelectionDocument;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

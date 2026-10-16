@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMInfoContextContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContract]
+class TFMInfoContextContract
+{
+
+    str     itemInfo;
+    str     qOrderInformation;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmItemInfo</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('ItemInformation')]
+    public str parmItemInfo(str _itemInfo = itemInfo)
+    {
+        itemInfo = _itemInfo;
+        return itemInfo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmQOrderInformation</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('QOrderInformation')]
+    public str parmQOrderInformation(str _qOrderInformation = qOrderInformation)
+    {
+        qOrderInformation = _qOrderInformation;
+        return qOrderInformation;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

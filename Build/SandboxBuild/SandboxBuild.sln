@@ -1,0 +1,72 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34902.65
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FC65038C-1B2F-41E1-A629-BED71D161FFF}") = "Demo (USR) [Demo]", "Demo\Demo.rnrproj", "{792350DB-8614-4D3A-99EA-A09A56BFE9F5}"
+EndProject
+Project("{FC65038C-1B2F-41E1-A629-BED71D161FFF}") = "NWVCopilotAgentTest (USR) [NWV CopilotAgent Test]", "NWVCopilotAgentTest\NWVCopilotAgentTest.rnrproj", "{305889F6-F0F6-4CAA-B132-DCF2EC3F5820}"
+EndProject
+Project("{FC65038C-1B2F-41E1-A629-BED71D161FFF}") = "NWVCustomize (USR) [NaviWorld Customize]", "NWVCustomize\NWVCustomize.rnrproj", "{467841EB-F7C5-4910-AB1F-C10593BC3F55}"
+EndProject
+Project("{FC65038C-1B2F-41E1-A629-BED71D161FFF}") = "NWVD (ISV) [NWV Clean data]", "NWVD\NWVD.rnrproj", "{7F8A6C35-024B-4894-9845-E6714250BAC5}"
+EndProject
+Project("{FC65038C-1B2F-41E1-A629-BED71D161FFF}") = "NWVEI (ISV) [NaviWorld E-Invoice]", "NWVEI\NWVEI.rnrproj", "{5FBE284B-767B-4B9C-B6AB-A6E130C5AD8C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BAFD9399-0BBA-4625-8833-0A485FDAACE6} = {BAFD9399-0BBA-4625-8833-0A485FDAACE6}
+	EndProjectSection
+EndProject
+Project("{FC65038C-1B2F-41E1-A629-BED71D161FFF}") = "NWVEN (USR) [NWVEN]", "NWVEN\NWVEN.rnrproj", "{54B9546A-4D2B-4B55-99D7-E69322381018}"
+EndProject
+Project("{FC65038C-1B2F-41E1-A629-BED71D161FFF}") = "NWVM (ISV) [NaviWorld Vietnam Management]", "NWVM\NWVM.rnrproj", "{BAFD9399-0BBA-4625-8833-0A485FDAACE6}"
+EndProject
+Project("{FC65038C-1B2F-41E1-A629-BED71D161FFF}") = "NWVRSC (USR) [Naviworld RSC]", "NWVRSC\NWVRSC.rnrproj", "{AAD4ACB6-5D71-409D-8342-9846CE6230D5}"
+EndProject
+Project("{FC65038C-1B2F-41E1-A629-BED71D161FFF}") = "NWVSAQ (USR) [NaviWorld SAQ VN]", "NWVSAQ\NWVSAQ.rnrproj", "{9B383481-6E7B-4785-9538-B09327379816}"
+EndProject
+Project("{FC65038C-1B2F-41E1-A629-BED71D161FFF}") = "NWVVAS (ISV) [NaviWorld VAS]", "NWVVAS\NWVVAS.rnrproj", "{655FA7B1-09E3-40FF-B459-8144537D714A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BAFD9399-0BBA-4625-8833-0A485FDAACE6} = {BAFD9399-0BBA-4625-8833-0A485FDAACE6}
+	EndProjectSection
+EndProject
+Project("{FC65038C-1B2F-41E1-A629-BED71D161FFF}") = "AmicisLifestyle (ISV) [AmicisLifestyle]", "AmicisLifestyle\AmicisLifestyle.rnrproj", "{78965FD5-CA21-4F24-99AD-4E7CF6FB43E0}"
+EndProject
+Project("{FC65038C-1B2F-41E1-A629-BED71D161FFF}") = "NWVEB (USR) [NaviWorld E-Banking]", "NWVEB\NWVEB.rnrproj", "{6B61513F-2B39-4A91-A0CE-F607C82C9212}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{792350DB-8614-4D3A-99EA-A09A56BFE9F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{792350DB-8614-4D3A-99EA-A09A56BFE9F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{305889F6-F0F6-4CAA-B132-DCF2EC3F5820}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{305889F6-F0F6-4CAA-B132-DCF2EC3F5820}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{467841EB-F7C5-4910-AB1F-C10593BC3F55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{467841EB-F7C5-4910-AB1F-C10593BC3F55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F8A6C35-024B-4894-9845-E6714250BAC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F8A6C35-024B-4894-9845-E6714250BAC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FBE284B-767B-4B9C-B6AB-A6E130C5AD8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5FBE284B-767B-4B9C-B6AB-A6E130C5AD8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54B9546A-4D2B-4B55-99D7-E69322381018}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54B9546A-4D2B-4B55-99D7-E69322381018}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAFD9399-0BBA-4625-8833-0A485FDAACE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAFD9399-0BBA-4625-8833-0A485FDAACE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAD4ACB6-5D71-409D-8342-9846CE6230D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAD4ACB6-5D71-409D-8342-9846CE6230D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B383481-6E7B-4785-9538-B09327379816}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B383481-6E7B-4785-9538-B09327379816}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{655FA7B1-09E3-40FF-B459-8144537D714A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{655FA7B1-09E3-40FF-B459-8144537D714A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78965FD5-CA21-4F24-99AD-4E7CF6FB43E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78965FD5-CA21-4F24-99AD-4E7CF6FB43E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B61513F-2B39-4A91-A0CE-F607C82C9212}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B61513F-2B39-4A91-A0CE-F607C82C9212}.Debug|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3716E282-BEF1-46F9-AB9D-0B5D0F9B8123}
+	EndGlobalSection
+EndGlobal

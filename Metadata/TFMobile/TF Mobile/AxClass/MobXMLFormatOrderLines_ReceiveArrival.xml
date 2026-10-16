@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_ReceiveArrival</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for receive Item Arrival order lines.
+/// </summary>
+[TFMTableNameAttribute(tableStr(WMSJournalTrans))]
+class MobXMLFormatOrderLines_ReceiveArrival extends MobXMLFormatOrderLines_Receive
+{
+    #Mob
+    WMSJournalTrans               wMSJournalTrans;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        EcoResProduct		ecoResProduct;
+        Qty					qty;
+        ReturnDispositionCodeId returnDisposition;
+        
+        super();
+    
+        wMSJournalTrans               = common;
+        inventDim                     = wMSJournalTrans.inventDim();
+    
+        this.setInventDim(wMSJournalTrans.ItemId);
+    
+        orderBackendId          = MobOrder::constructFromTableName(tableStr(WMSJournalTable),orderType).getBackendID(WMSJournalTable::find(WMSJournalTrans.journalId));//#ReceiveArrivalOrderPrefix + wMSJournalTrans.journalId;
+        lineNumber              = wMSJournalTrans.inventTransId;//MobHelper::formatLineNum(wMSJournalTrans.lineNum);
+        itemNumber              = wMSJournalTrans.ItemId;
+        ecoResProduct = InventTable::find(wMSJournalTrans.ItemId).Product();
+    
+        description             = InventTable::find(wMSJournalTrans.itemId).productName(new xInfo().language());
+        registeredQuantity      = MobConstants::NotUsed0();
+    
+        status                  = MobConstants::NotUsed0();
+        displayLine1            = wMSJournalTrans.ItemId;
+        displayLine2            = InventTable::find(wMSJournalTrans.itemId).productName(new xInfo().language());
+        displayLine3            = inventDim.wMSLocationId;
+        underDeliveryValidation = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),TFMUnderDeliveryValidation::None); //Must be able to handle partial receipt
+    
+        // This function is used for both item arrival journals and production input journals
+        // For purchase orders the UoM is found on the purch line
+        // For production orders it is the inventory UoM defined on the item
+        switch (wMSJournalTrans.inventTransType)
+        {
+            case InventTransType::Purch:
+                unitOfMeasure = PurchLine::findInventTransId(wMSJournalTrans.inventTransId).PurchUnit;
+                break;
+    
+            case InventTransType::Production:
+                unitOfMeasure = InventTable::find(wMSJournalTrans.itemId).inventUnitId();
+                break;
+    
+            case InventTransType::Sales:
+                unitOfMeasure = SalesLine::findInventTransId(wMSJournalTrans.inventTransId).SalesUnit;
+                displayLine3  = (wmsJournalTrans.createQuarantineOrder ? MobConstants::RMA_QA() : wmsJournalTrans.ReturnDispositionCodeId);
+                if (registerSerialNumber && inventDim.inventSerialId)
+                {
+                    displayLine3 = (displayLine3 ? displayLine3 + ' ' : '') +
+                                    MobHelper::strFmt("@MobileWMS:MobileWMS156", [inventDim.inventSerialId]);
+                }
+                break;
+    
+            default:
+                // Use the inventory UoM as default
+                unitOfMeasure = InventTable::find(wMSJournalTrans.itemId).inventUnitId();
+                break;
+        }
+    
+        qty                = UnitOfMeasureConverter::convert(  wMSJournalTrans.qty,
+                                                            UnitOfMeasure::findBySymbol( wMSJournalTrans.inventTable().inventUnitId() ).RecId,
+                                                            UnitOfMeasure::findBySymbol( unitOfMeasure ).RecId,
+                                                            true,
+                                                            ecoResProduct.RecId);
+        quantity                = MobHelper::formatItemQty(qty,unitOfMeasure);
+    	
+        if (wMSJournalTrans.inventTransType == InventTransType::Sales)
+        {
+            // Uncomment this section if you would like to drop the RMA registration on
+            // a prefilled wmsJournalTrans
+    
+            returnDisposition = (wMSJournalTrans.createQuarantineOrder == NoYes::Yes ? MobConstants::RMA_QA() : wMSJournalTrans.ReturnDispositionCodeId);
+			fieldsToAdd.insert(MobConstants::RegisterExtraInfo(), strFmt(MobConstants::ExtraInfo_Value(), MobConstants::ReferenceDataTable_ReturnDisposition(), MobConstants::RMA_CauseId(), returnDisposition) );
+    
+            
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

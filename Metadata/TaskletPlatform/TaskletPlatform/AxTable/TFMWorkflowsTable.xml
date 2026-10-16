@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMWorkflowsTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMWorkflowsTable extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>appendToXml</Name>
+				<Source><![CDATA[
+    public void appendToXml(XmlElement _parentNode, Common _common = null)
+    {
+        XmlElement					workflowNode = _parentNode.ownerDocument().createElement('workflow');
+        XmlElement					configurationNode = _parentNode.ownerDocument().createElement(_common == null ? 'configuration' : TFMConstants::registrationCollectorConfiguration());
+        XmlElement					stepsNode = _parentNode.ownerDocument().createElement('steps');
+        XmlElement					additionalValuesNode = _parentNode.ownerDocument().createElement('additionalValues');
+        XmlElement					additionalValueNode;
+        XmlElement					cDataWFNode;
+        Set							collectors = new Set(Types::Class);
+        SetEnumerator				colEnum;
+        Set							dynCollectors = new Set(Types::Class);
+        TFMRegistrationCollector	collector;
+        Map							attrMap;
+        Map							additionalValues;
+        MapEnumerator				mEnum;
+        XmlCDataSection				cData;
+        TFMWorkflowSteps			steps;
+        TFMWorkflowBlock			block;
+
+        workflowNode.setAttribute('id', this.WorkflowName);
+        workflowNode.setAttribute('itemNumberAI',TFMGS1Table::AIsfromEDT(extendedTypeStr(ItemId)));
+
+        configurationNode.setAttribute('scanBehaviourWhenRegisteringQuantity',enum2Symbol(enumNum(TFMWorkflowScanBehaviourWhenRegisteringQuantity),this.ScanBehaviourWhenRegisteringQuantity));
+        configurationNode.setAttribute('fastForwardMode',enum2Symbol(enumNum(TFMWorkflowFastForwardMode),this.FastForwardMode));
+        configurationNode.setAttribute('autoSave',this.AutoSave ? 'true' : 'false');
+        configurationNode.setAttribute('includeHiddenStepsInSummary',this.IncludeHiddenStepsInSummary ? 'true' : 'false');
+        configurationNode.setAttribute('prefillExpectedValueOnLocationScan',this.PrefillExpectedValueOnLocationScan ? 'true' : 'false');
+        
+        configurationNode.setAttribute('cancelBehaviour',enum2Symbol(enumNum(TFMWorkflowCancelBehaviour),this.CancelBehaviour));
+
+        while select steps where steps.WorkflowName == this.WorkflowName
+        {
+            block = new sysDictClass(className2Id(steps.CallClass)).makeObject();
+            collectors = Set::union(block.steps(), collectors);
+            additionalValues = TFMHelper::mergeMaps(additionalValues, block.AdditionalValues());
+            if (_common != null)
+            {
+                dynCollectors = block.dynamicSteps(_common);
+                if(dynCollectors != null)
+                {
+                    collectors = Set::union(collectors, dynCollectors);
+                }
+            }
+        }
+        
+        colEnum = collectors.getEnumerator();//Set::union(collectors,dynCollectors).getEnumerator();
+        while ( colEnum.moveNext())
+        {
+            collector = colEnum.current();
+			
+            collector.updateParmsFromOverride(TFMWorkflowsTable::GetWorkflowDomainName(this.WorkflowName),collector.parmName());
+            attrMap = collector.getMap();
+            if ((!attrMap.exists(TFMConstants::AttributeDefaultValue()) || !attrMap.lookup(TFMConstants::AttributeDefaultValue())) && collector.parmName() != TFMConstants::Quantity())
+            {
+                attrMap.insert(TFMConstants::AttributeDefaultValue(),'{' + attrMap.lookup('name') + '}');
+            }
+            TFMRegistrationCollector::addGenericRegistrationStep(stepsNode, attrMap.exists(TFMConstants::AttributeElementName()) ? attrMap.lookup(TFMConstants::AttributeElementName()) : attrMap.lookup(TFMConstants::AttributeInputType()) ,attrMap);
+        }
+
+        workflowNode.appendChild(configurationNode);
+        configurationNode.appendChild(stepsNode);
+        if (additionalValues && additionalValues.elements())
+        {
+            mEnum = additionalValues.getEnumerator();
+            while (mEnum.moveNext())
+            {
+                additionalValueNode = _parentNode.ownerDocument().createElement('additionalValue');
+                additionalValueNode.setAttribute('name', mEnum.currentKey());
+                additionalValueNode.setAttribute('value', mEnum.currentValue());
+                additionalValuesNode.appendChild(additionalValueNode);
+            }
+            configurationNode.appendChild(additionalValuesNode);
+        }
+        if (_common == null)
+        {
+            _parentNode.appendChild(workflowNode);
+        }
+        else if (_common != null && dynCollectors && dynCollectors.elements())
+        {
+            cData = _parentNode.ownerDocument().createCDataSection('');
+            cData.appendData(configurationNode.xml());
+            cDataWFNode = _parentNode.ownerDocument().createElement('Workflow');
+            cDataWFNode.appendChild(cData);
+            _parentNode.appendChild(cDataWFNode);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCollectorsFromWorkflow</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectors getCollectorsFromWorkflow(TFMWorkflowName _wfName)
+    {
+        TFMRegistrationCollectors	collectors = TFMRegistrationCollectors::Construct();
+        Set                         collectorSet = new Set(Types::Class);
+        TFMWorkflowSteps			steps;
+        TFMWorkflowBlock			block;
+        Set							dynCollectors = new Set(Types::Class);
+        Map							additionalValues;
+        SetEnumerator               sEnum;
+
+        while select steps where steps.WorkflowName == _wfName
+        {
+            block = new sysDictClass(className2Id(steps.CallClass)).makeObject();
+            collectorSet = Set::union(block.steps(), collectorSet);
+            additionalValues = TFMHelper::mergeMaps(additionalValues, block.AdditionalValues());
+            
+            dynCollectors = block.dynamicSteps(null, true);
+            if(dynCollectors != null)
+            {
+                collectorSet = Set::union(collectorSet, dynCollectors);
+            }
+            
+        }
+        sEnum = collectorSet.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            collectors.addCollector(sEnum.current(), true);
+        }
+        
+        return collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Find</Name>
+				<Source><![CDATA[
+    public static TFMWorkflowsTable Find(TFMWorkflowName _wfName, boolean _selectForUpdate = true)
+    {
+        TFMWorkflowsTable	wfTable;
+
+        wfTable.selectForUpdate(_selectForUpdate);
+
+        select firstonly wfTable where wfTable.WorkflowName == _wfName;
+
+        return wfTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initValue</Name>
+				<Source><![CDATA[
+    public void initValue()
+    {
+        this.PrefillExpectedValueOnLocationScan = NoYes::Yes;
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>firstTimeSetup</Name>
+				<Source><![CDATA[
+	public static void firstTimeSetup()
+    {
+        TFMWorkflowsTable workflows;
+
+        select count(RecId) from workflows;
+
+		if (workflows.RecId)
+        {
+            return;
+        }
+        TFMWorkflowsTable::defaultSetup();
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>defaultSetup</Name>
+				<Source><![CDATA[
+    public static void defaultSetup()
+    {
+        ClassName               clsName = classId2Name(classnum(TFMWorkflowDefinition));
+        ListEnumerator          lEnum = new SysDictClass(classNum(TFMWorkflowDefinition)).extendedBy(true).getEnumerator();
+        TFMWorkflowDefinition   workFlowDefinition;
+        SysDictClass            sdc;
+        TFMGS1Table::defaultSetup(); // make sure the GS1 default has been setup as they are used by the workflows.
+
+        while (lEnum.moveNext())
+        {
+            sdc = new SysDictClass(lEnum.current());
+            if (!sdc || !sdc.allowMakeObject())
+            {
+                continue;
+            }
+            workFlowDefinition = sdc.makeObject();
+            workFlowDefinition.makeWorkflow();
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addStepBlock</Name>
+				<Source><![CDATA[
+    public TFMWorkflowSteps addStepBlock(ClassName _callClass)
+    {
+        TFMWorkflowSteps                 workflowStepsTable;
+
+        select firstonly workflowStepsTable where workflowStepsTable.CallClass == _callClass && workflowStepsTable.WorkflowName == this.WorkflowName;
+            
+        if (workflowStepsTable)
+        {
+            return workflowStepsTable;
+        }
+
+        select firstonly WorkflowStepId from workflowStepsTable order by WorkflowStepId desc where workflowStepsTable.WorkflowName == this.WorkflowName;
+
+        workflowStepsTable.CallClass = _callClass;
+        workflowStepsTable.WorkflowName = this.WorkflowName;
+        workflowStepsTable.WorkflowStepId += 10;
+        workflowStepsTable.insert();
+        return workflowStepsTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addOnlineValidation</Name>
+				<Source><![CDATA[
+    public TFMWorkflowStepsOnlineValidation addOnlineValidation(TFMDocumentTypeId _typeId, TFMPageID _pageId, TFMWorkflowValidationType _validationType)
+    {
+        TFMWorkflowStepsOnlineValidation stepsOnlineValidationTable;
+        stepsOnlineValidationTable.DocumentTypeId = _typeId;
+        stepsOnlineValidationTable.PageId = _pageId;
+        stepsOnlineValidationTable.ValidationType = _validationType;
+        stepsOnlineValidationTable.WorkflowName = this.WorkflowName;
+        stepsOnlineValidationTable.insert();
+
+        return stepsOnlineValidationTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetWorkflowDomainName</Name>
+				<Source><![CDATA[
+    public static str GetWorkflowDomainName(str _workflowName)
+    {
+        return 'Workflow:'+_workflowName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TFMWorkflowsTable_onDeleting</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    [DataEventHandler(tableStr(TFMWorkflowsTable), DataEventType::Deleting)]
+    public static void TFMWorkflowsTable_onDeleting(Common sender, DataEventArgs e)
+    {
+        TFMWorkflowsTable workflowTable = sender as TFMWorkflowsTable;
+        TFMGenericParms::delete(TFMWorkflowsTable::GetWorkflowDomainName(workflowTable.WorkflowName));
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:TFMWorkflowsTableDeveloperDocumentation</DeveloperDocumentation>
+	<FormRef>TFMWorkflows</FormRef>
+	<Label>@SYS105532</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>WorkflowName</TitleField1>
+	<TitleField2>Description</TitleField2>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS34991</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WorkflowName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>WorkflowType</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Setup</Name>
+			<Label>@SYS12687</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WorkflowName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>WorkflowType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ScanBehaviourWhenRegisteringQuantity</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>AutoSave</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CancelBehaviour</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PrefillExpectedValueOnLocationScan</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IncludeHiddenStepsInSummary</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FastForwardMode</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>WorkflowName</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMWorkflowName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Description</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>WorkflowType</Name>
+			<AllowEdit>No</AllowEdit>
+			<EnumType>TFMWorkflowType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>AutoSave</Name>
+			<Label>@TFM:Autosave</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>CancelBehaviour</Name>
+			<EnumType>TFMWorkflowCancelBehaviour</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PrefillExpectedValueOnLocationScan</Name>
+			<Label>@TFM:PrefillExpectedValueOnLocationSc</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IncludeHiddenStepsInSummary</Name>
+			<Label>@TFM:IncludeHiddenStepsInSummary</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>FastForwardMode</Name>
+			<EnumType>TFMWorkflowFastForwardMode</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ScanBehaviourWhenRegisteringQuantity</Name>
+			<EnumType>TFMWorkflowScanBehaviourWhenRegisteringQuantity</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>UpdateCounter</Name>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>WorkflowIdx</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>WorkflowName</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

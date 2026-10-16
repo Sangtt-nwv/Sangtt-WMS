@@ -1,0 +1,50 @@
+﻿AddBOMLine=Add BOM Line
+ ;created from MwmsLogicBlockAddBOMPickLine, //AxClass/SourceCode/Methods
+Addorselectforupdate=Add or select for update
+ ;created from MwmsLogicBlockJournalLinesCommon, //AxClass/SourceCode/Methods
+Cancelmovewhensimilar=Cancel move when similar
+ ;created from MwmsLogicBlockAddonCancelMoveWhenSimilar, //AxClass/SourceCode/Methods
+Couldnotclassifyfield1=Could not classify field {%1}
+ ;created from MwmsProcessCreateTagCountingJournalLine, //AxClass/SourceCode/Methods
+Count=Count
+ ;created from MwmsLogicBlockAddCountLine, //AxClass/SourceCode/Methods
+Createorupdateinventoryadjustmen=Create or update inventory adjustment lines
+ ;created from MwmsLogicBlockCreateProfitLossJournalLine, //AxClass/SourceCode/Methods
+CreateorupdateTagCountinglines=Create or update Tag Counting lines
+ ;created from MwmsLogicBlockCreateTagCountingJournalLine, //AxClass/SourceCode/Methods
+If123=If '%1' %2 '%3'
+Image=Image
+ ;created from MwmsLogicBlockRegisterItemImage, //AxClass/SourceCode/Methods
+InventoryUnitPrompt=Inventory Unit Prompt
+ ;created from MwmsLogicBlockAddonInventoryUnit, //AxClass/SourceCode/Methods
+ItemNumberField=Item Number Field
+Journal1postedsuccessfully=Journal %1 posted successfully
+ ;created from MwmsLogicBlockPostInventoryJournal, //AxClass/SourceCode/Methods
+Modifierforaddinginventoryunitas=Modifier for adding inventory unit as a step to a flow, and making sure the unit conversion is handled before posting
+ ;created from MwmsLogicBlockAddonInventoryUnit, //AxClass/SourceCode/Methods
+Modifierforchangingthequantitysi=Modifier for changing the quantity sign to negative.
+ ;created from MwmsLogicBlockAddonNegativeQuantity, //AxClass/SourceCode/Methods
+ModifierforUnplannedMoveenablest=Modifier for Unplanned Move, enables the possibility to transform the item dimensions on the item.
+ ;created from MwmsLogicBlockAddonTransformItemDimensions, //AxClass/SourceCode/Methods
+ModifierforUnplannedMovewhenadde=Modifier for Unplanned Move, when added, it supresses the thrown error, when the from and to dimensions are similar, and deletes the created journal.
+ ;created from MwmsLogicBlockAddonCancelMoveWhenSimilar, //AxClass/SourceCode/Methods
+Moved1of2from3to4=Moved %1 of %2 from %3 to %4
+ ;created from MwmsLogicBlockMoveInvent, //AxClass/SourceCode/Methods
+MovementJournalCreatedsuccessful=Movement Journal Created successfully
+ ;created from MwmsLogicBlockCreateMovementJournal, //AxClass/SourceCode/Methods
+NegativePrompt=Negative Prompt
+ ;created from MwmsLogicBlockAddonNegativeQuantity, //AxClass/SourceCode/Methods
+NewLabel0=Label files created on 12/01/2025 21:37:51 for label file Id TaskletMobileWMS and language en-US
+ ;Label file comment - see above label
+Nomovementmade=No movement made.
+ ;created from MwmsLogicBlockMoveInvent, //AxClass/SourceCode/Methods
+ProcessdefinitionforNegativeAdju=Process definition for Negative Adjustments
+ ;created from MwmsProcessNegativeAdjustment, //AxClass/SourceCode/Methods
+Processusedtomakeajournalwithcou=Process used to make a journal with counting of 1 item and immediate posting
+ ;created from MwmsProcessUnplannedCount, //AxClass/SourceCode/Methods
+ThisfunctiononlyworkswithInvento=This function only works with Inventory Journals
+ ;created from MwmsLogicBlockPostInventoryJournal, //AxClass/SourceCode/Methods
+Transformitemdimensions=Transform item dimensions
+ ;created from MwmsLogicBlockAddonTransformItemDimensions, //AxClass/SourceCode/Methods
+UnitofMeasureSetup=Unit of Measure Setup
+ ;created from MwmsLogicContextUnitOfMeasure, //AxClass/SourceCode/Methods

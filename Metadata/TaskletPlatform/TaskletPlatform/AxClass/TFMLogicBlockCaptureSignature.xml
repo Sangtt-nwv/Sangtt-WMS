@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicBlockCaptureSignature</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicBlockCaptureSignature extends TFMLogicBlock implements TFMLogicBlockDataCollectionInterface
+{
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors registrationCollectors(TFMRequestElement _request = null)
+    {
+        TFMRegistrationCollectors ret = TFMRegistrationCollectors::Construct();
+        TFMRegistrationCollectorSignature  coll = new TFMRegistrationCollectorSignature(1,extendedTypeStr(Sign),"@TFM:Sign","@TFM:Sign","@TFM:Sign");        
+        ret.addCollector(coll);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        return components.getHeaders();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        components.addComponent(new TFMLogicComponentDataContext());
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData             postElement     = TFMPostResponseData::Construct();
+        TFMLogicComponentDataContext    dataContext     = components.getComponent(classStr(TFMLogicComponentDataContext));
+        Common                          dataToAttachTo  = dataContext.getData(request);
+        str                             signBase64      = this.getFieldValue(extendedTypeStr(Sign));
+        
+        if (signBase64 && dataToAttachTo)
+        {
+            TFMHelper::attachBase64ToCommon(dataToAttachTo,signBase64,'.png');
+        }
+        postElement.parmResponseText(strFmt("@TFM:ImageAttachedto", TFMHelper::descriptionFromCommon(dataToAttachTo)));
+        
+        return postElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        TFMLogicComponentDataContext    dataContext     = components.getComponent(classStr(TFMLogicComponentDataContext));
+        //Common                          dataToAttachTo  = dataContext.getData(request);
+
+        //TODO: If no data is in variable, but there are tables in the context object, prompt the user for which table to attach to
+
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMSignatureIcon);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

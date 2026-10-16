@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobPageDatasources</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobPageDatasources extends common
+{
+
+}
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+	<Label>@MobileWMS:DataSources</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>PageID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TableName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>TableName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OrderType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>showImages</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>PageID</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>MobPageID</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>TableName</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TableName</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OrderType</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>MobOrderTypes</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>showImages</Name>
+			<HelpText>Determines if images should be requested by the device for this data source. If No then the line will not show the image.</HelpText>
+			<Label>@SYS31336</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SortingField</Name>
+			<ExtendedDataType>MobTableNameAndField</ExtendedDataType>
+			<Label>@SYS26477</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SortExpression</Name>
+			<ExtendedDataType>MobExpression</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldContainer">
+			<Name>PackedQuery</Name>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldContainer">
+			<Name>packedValueMap</Name>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>GroupingField</Name>
+			<ExtendedDataType>MobTableNameAndField</ExtendedDataType>
+			<Label>@MobileWMS:GroupField</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>PageTable</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>PageID</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>TableName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>OrderType</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

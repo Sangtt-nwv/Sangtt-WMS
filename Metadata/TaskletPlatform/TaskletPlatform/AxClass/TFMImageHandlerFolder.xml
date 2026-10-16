@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMImageHandlerFolder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMMenuGroupingIcon('Folder')]
+class TFMImageHandlerFolder extends TFMImageHandler
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Handling Whenever an image needs to have the folder icon
+    /// </summary>
+    /// <param name = "_imageId">ID of the image</param>
+    /// <returns>Base64 string with the image, if the right class, otherwise nothing</returns>
+    public str process(str _imageId)
+    {
+        str                 ret;
+        int                 folderPos = strScan(_imageId, '_folder',1,100);
+        str                 imageName = TFMDocGetMedia::doesClassHaveImage(folderPos ? subStr(_imageId,1,folderPos-1) : _imageId);
+        TFMImageAggregate   imgAggr;
+        str                 base64Img;
+        if(folderPos)
+        {
+            System.Drawing.Image folderImg		= TFMImageHelper::base64ToImage(TFMImageHelper::resource2Base64(resourceStr(TFMFolderIcon)));
+            System.Drawing.Image iconImage;
+            System.Drawing.Graphics graphics	= System.Drawing.Graphics::FromImage(folderImg);
+
+            if (!imageName)
+            {
+                imgAggr = TFMImageAggregate::Find(folderPos ? subStr(_imageId,1,folderPos-1) : _imageId); // Migrate to image handler class
+                if(imgAggr)
+                {
+                    base64Img = imgAggr.getImage();
+                }
+                else if (TFMImageTable::Find(folderPos ? subStr(_imageId,1,folderPos-1) : _imageId))
+                {
+
+                    base64Img = TFMImageHelper::Image2Base64(TFMImageHelper::ExifRotateImage(TFMHelper::getAttachmentAsImage(TFMHelper::findImageDocuRef(TFMImageTable::Find(folderPos ? subStr(_imageId,1,folderPos-1) : _imageId)))));
+                }
+                else
+                {
+                    base64Img = TFMImageHelper::resource2Base64(resourceStr(TFMTaskletLogo));
+                }
+            }
+            else
+            {
+                base64Img = TFMImageHelper::resource2Base64(imageName);
+            }
+
+    
+            iconImage			= TFMImageHelper::base64ToImage(base64Img);
+
+            //real ratio = iconImage.Height / iconImage.Width;
+            real widthW = folderImg.Width - 50;
+            real heightW= iconImage.Height * ((folderImg.Width - 50) / iconImage.Width);
+            real widthH = iconImage.Width * ((folderImg.Height - 100) / iconImage.Height);
+            real heightH= folderImg.Height - 100;
+
+            if (heightW > heightH)
+            {
+                graphics.DrawImage(iconImage,new System.Drawing.Rectangle(25 + 0.5* (widthW - widthH),75,widthH, heightH));
+            }
+            else
+            {
+                graphics.DrawImage(iconImage,new System.Drawing.Rectangle(25,75,widthW, heightW));
+            }
+            base64Img = TFMImageHelper::Image2Base64(folderImg);
+            TFMMediaProvider::instance().setMedia(_imageId, base64Img, null);
+            return base64Img;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

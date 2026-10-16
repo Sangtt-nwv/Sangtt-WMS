@@ -1,0 +1,2699 @@
+{
+  "cover": {
+    "client_name": "NaviWorld Project",
+    "project_name": "Phân hệ Hóa đơn điện tử (E-Invoice Integration)",
+    "version": "1.0",
+    "content_summary": "Core Setup & Metadata",
+    "prepared_by": "Khiem Cao"
+  },
+  "revisions": [
+    {
+      "version": "1.0",
+      "date": "18/06/2026",
+      "author": "Khiem Cao",
+      "description": "Khởi tạo thiết kế kỹ thuật (Technical Design Document)"
+    }
+  ],
+  "body": [
+    {
+      "type": "h1",
+      "text": "1. Yêu Cầu Nghiệp Vụ"
+    },
+    {
+      "type": "h2",
+      "text": "1.1. Mô tả bài toán"
+    },
+    {
+      "type": "p",
+      "text": "Chức năng này dùng để quản lý toàn bộ thiết lập tham số hệ thống Hóa đơn điện tử (E-Invoice). Nó cung cấp các Form cấu hình kết nối API, ánh xạ (mapping) thông tin thuế, đơn vị tính, từ điển dữ liệu đặc thù giữa hệ thống D365FO và hệ thống của nhà cung cấp HĐĐT (Viettel, VNPT, MISA...). Đồng thời nó đóng vai trò là kho lưu trữ tập trung cho các loại biên lai, hóa đơn trước và sau khi phát hành.",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "type": "h2",
+      "text": "1.2. Khoảng trống hệ thống (Gap Analysis)"
+    },
+    {
+      "type": "p",
+      "text": "Hệ thống chuẩn (Standard) của D365FO không có giải pháp hỗ trợ Hóa đơn điện tử phù hợp với thông tư, nghị định của Tổng cục Thuế Việt Nam. Đồng thời, không có cơ chế linh hoạt để mapping dữ liệu danh mục (Item, Unit, Tax) giữa ERP và các hệ thống hóa đơn ngoài.",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "type": "h2",
+      "text": "1.3. Quy tắc nghiệp vụ (Business Logic & Validation)"
+    },
+    {
+      "type": "p",
+      "text": "- Người dùng chỉ có thể thay đổi cấu hình hệ thống nếu được phân quyền thông qua NWVEIUserPermission.\n- Các giá trị mapping (UnitTranslation, ItemTranslation) phải đảm bảo duy nhất và không được trùng lặp cho cùng một loại nhà cung cấp.\n- Bắt buộc phải cấu hình NWVEIParameter trước khi có thể tiến hành phát hành hóa đơn.",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "type": "h1",
+      "text": "2. Thiết Kế Kỹ Thuật"
+    },
+    {
+      "type": "p",
+      "text": "Phần này trình bày cấu trúc dữ liệu và các thành phần xử lý kỹ thuật cho phân hệ.",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "type": "h2",
+      "text": "2.1. Cấu trúc Dữ liệu (Tables)"
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEIParameter",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "Key",
+          "",
+          "ParametersKey",
+          "No",
+          "No"
+        ],
+        [
+          "Provider",
+          "",
+          "NWVEIProvider",
+          "No",
+          "Yes"
+        ],
+        [
+          "InvoiceType",
+          "",
+          "NWVEIType",
+          "No",
+          "Yes"
+        ],
+        [
+          "NegativeInvoice",
+          "",
+          "NWVEINegativeInvoice",
+          "No",
+          "Yes"
+        ],
+        [
+          "CurrencyCode",
+          "@NWVEI:DefaultCurrency",
+          "CurrencyCode",
+          "No",
+          "Yes"
+        ],
+        [
+          "ForeignCurrency",
+          "@NWVEI:ForeignCurrency",
+          "NoYes",
+          "No",
+          "Yes"
+        ],
+        [
+          "EInvoiceDescription",
+          "",
+          "NWVEIDescription",
+          "No",
+          "Yes"
+        ],
+        [
+          "BuyerName",
+          "",
+          "NWVEIBuyerName",
+          "No",
+          "Yes"
+        ],
+        [
+          "CompanyName",
+          "",
+          "NWVEICompanyName",
+          "No",
+          "Yes"
+        ],
+        [
+          "CompanyAddress",
+          "",
+          "NWVEICompanyAddress",
+          "No",
+          "Yes"
+        ],
+        [
+          "TaxNumber",
+          "@NWVEI:TaxNumber",
+          "TaxRegistrationNumber",
+          "No",
+          "Yes"
+        ],
+        [
+          "DiscountDescription",
+          "",
+          "NWVEIDiscountDescription",
+          "No",
+          "Yes"
+        ],
+        [
+          "FOCDescription",
+          "",
+          "NWVEIFOCDescription",
+          "No",
+          "Yes"
+        ],
+        [
+          "CompanyRequirement",
+          "",
+          "NWVEICompanyRequirement",
+          "No",
+          "Yes"
+        ],
+        [
+          "ContractNumber",
+          "",
+          "NWVEIContractNumber",
+          "No",
+          "Yes"
+        ],
+        [
+          "Delivery",
+          "",
+          "NWVEIDelivery",
+          "No",
+          "Yes"
+        ],
+        [
+          "LocationFomat",
+          "",
+          "NWVEILocationFomat",
+          "No",
+          "Yes"
+        ],
+        [
+          "TransferOrderPrice",
+          "",
+          "NWVEITransferOrderPrice",
+          "No",
+          "Yes"
+        ],
+        [
+          "PaymId",
+          "@NWVEI:EInvoicePayment",
+          "NWVEIPaymId",
+          "No",
+          "Yes"
+        ],
+        [
+          "PaymName",
+          "@NWVEI:PaymentName",
+          "NWVEIPaymDescription",
+          "No",
+          "Yes"
+        ],
+        [
+          "NWVEITemplate",
+          "@NWVEI:EITemplate",
+          "RefRecId",
+          "No",
+          "Yes"
+        ],
+        [
+          "TemplatePayload",
+          "@NWVEI:TemplatePayload",
+          "NWVEIStringMemo",
+          "No",
+          "Yes"
+        ],
+        [
+          "IsDefaultToken",
+          "@NWVEI:IsDefaultToken",
+          "NoYes",
+          "No",
+          "Yes"
+        ],
+        [
+          "PriceGroups",
+          "",
+          "PriceGroupId",
+          "No",
+          "Yes"
+        ],
+        [
+          "Requirement",
+          "",
+          "NWVEIRequirement",
+          "No",
+          "Yes"
+        ],
+        [
+          "RequirementNumber",
+          "",
+          "NWVEIRequirementNumber",
+          "No",
+          "Yes"
+        ],
+        [
+          "Transportation",
+          "",
+          "NWVEITransportation",
+          "No",
+          "Yes"
+        ],
+        [
+          "InvoiceName",
+          "",
+          "NWVEIInvoiceName",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEISetup",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "TaxNumber",
+          "@NWVEI:TaxNumber",
+          "TaxRegistrationNumber",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "BrandCode",
+          "",
+          "NWVEIBrandCode",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "Address",
+          "",
+          "LogisticsAddressing",
+          "No",
+          "Yes"
+        ],
+        [
+          "AdminUserName",
+          "@NWVEI:AdminUserName",
+          "NWVEIUserName",
+          "No",
+          "Yes"
+        ],
+        [
+          "AdminPassword",
+          "@NWVEI:AdminPassword",
+          "NWVEIPassword",
+          "No",
+          "Yes"
+        ],
+        [
+          "UserName",
+          "",
+          "NWVEIUserName",
+          "No",
+          "Yes"
+        ],
+        [
+          "Password",
+          "",
+          "NWVEIPassword",
+          "No",
+          "Yes"
+        ],
+        [
+          "BankAccountNum",
+          "",
+          "NWVEIBankAccountNum",
+          "No",
+          "Yes"
+        ],
+        [
+          "BankAddress",
+          "",
+          "NWVEIBankAddress",
+          "No",
+          "Yes"
+        ],
+        [
+          "CompanyName",
+          "",
+          "NWVEICompanyName",
+          "No",
+          "Yes"
+        ],
+        [
+          "CompanyAddress",
+          "",
+          "NWVEICompanyAddress",
+          "No",
+          "Yes"
+        ],
+        [
+          "Phone",
+          "@NWVEI:Phone",
+          "Phone",
+          "No",
+          "Yes"
+        ],
+        [
+          "Provider",
+          "",
+          "NWVEIProvider",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "PartnerToken",
+          "@NWVEI:PartnerToken",
+          "NWVEI_StrMemo",
+          "No",
+          "Yes"
+        ],
+        [
+          "PartnerGUID",
+          "@NWVEI:PartnerGUID",
+          "NWVEI_StrMemo",
+          "No",
+          "Yes"
+        ],
+        [
+          "IsDefaultToken",
+          "@NWVEI:IsDefaultToken",
+          "NoYes",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEIAPISetup",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "APIType",
+          "",
+          "NWVEIAPIType",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "WebServicesUrl",
+          "",
+          "NWVEIWebServicesUrl",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "DescriptionString",
+          "",
+          "NWVEIDescriptionString",
+          "No",
+          "Yes"
+        ],
+        [
+          "NWVEISetup",
+          "@NWVEI:EInvoiceBrandCode",
+          "RefRecId",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "MethodCall",
+          "@NWVEI:MethodCall",
+          "String255",
+          "No",
+          "Yes"
+        ],
+        [
+          "FieldInt1",
+          "",
+          "",
+          "No",
+          "Yes"
+        ],
+        [
+          "CmdType",
+          "@NWVEI:CmdType",
+          "NWVEI_Int",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEIHeader",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "AuthId",
+          "",
+          "NWVEIAuthId",
+          "No",
+          "No"
+        ],
+        [
+          "InvoiceId",
+          "",
+          "NWVEIInvoiceId",
+          "No",
+          "No"
+        ],
+        [
+          "Voucher",
+          "",
+          "Voucher",
+          "No",
+          "No"
+        ],
+        [
+          "InvoiceDate",
+          "@NWVEI:InvoiceDate",
+          "TransDate",
+          "No",
+          "No"
+        ],
+        [
+          "SourceDocument",
+          "",
+          "NWVEISourceDocument",
+          "No",
+          "No"
+        ],
+        [
+          "SourceDocumentId",
+          "",
+          "NWVEISourceDocumentId",
+          "No",
+          "No"
+        ],
+        [
+          "InvoiceType",
+          "",
+          "NWVEIInvoiceType",
+          "No",
+          "No"
+        ],
+        [
+          "InvoiceAccount",
+          "@SYS25708",
+          "CustVendAC",
+          "No",
+          "No"
+        ],
+        [
+          "CurrencyCode",
+          "",
+          "CustCurrencyCode",
+          "No",
+          "No"
+        ],
+        [
+          "InvoiceAmount",
+          "@SYS9458",
+          "AmountCur",
+          "No",
+          "No"
+        ],
+        [
+          "SalesBalance",
+          "@NWVEI:InvoiceAmountExcludingVAT",
+          "AmountCur",
+          "No",
+          "No"
+        ],
+        [
+          "SumTax",
+          "@NWVEI:VATAmount",
+          "TaxAmountCur",
+          "No",
+          "No"
+        ],
+        [
+          "ExchRate",
+          "@NWVEI:ExchangeRate",
+          "CustExchRate",
+          "No",
+          "No"
+        ],
+        [
+          "InvoiceAmountMST",
+          "@NWVEI:InvoiceAmountInAccountingCurrency",
+          "AmountMST",
+          "No",
+          "No"
+        ],
+        [
+          "Status",
+          "",
+          "NWVEIStatus",
+          "No",
+          "No"
+        ],
+        [
+          "EInvoiceType",
+          "",
+          "NWVEIType",
+          "No",
+          "Yes"
+        ],
+        [
+          "EInvoiceNumber",
+          "",
+          "NWVEIEInvoiceNumber",
+          "No",
+          "No"
+        ],
+        [
+          "EIAuthId",
+          "",
+          "NWVEIEIAuthId",
+          "No",
+          "No"
+        ],
+        [
+          "EInvoiceDate",
+          "@NWVEI:EInvoiceDate",
+          "TransDate",
+          "No",
+          "Yes"
+        ],
+        [
+          "EIPattern",
+          "",
+          "NWVEIPattern",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "EInvoiceSerial",
+          "",
+          "NWVEISerial",
+          "No",
+          "Yes"
+        ],
+        [
+          "EICompanyAddress",
+          "@NWVEI:EICompanyAddress",
+          "LogisticsAddressStreet",
+          "No",
+          "Yes"
+        ],
+        [
+          "EIOriginalEInvoice",
+          "@NWVEI:OriginalEInvoice",
+          "NWVEIInvoiceId",
+          "No",
+          "No"
+        ],
+        [
+          "EIOriginalInvoice",
+          "@NWVEI:OriginalInvoice",
+          "NWVEIInvoiceId",
+          "No",
+          "Yes"
+        ],
+        [
+          "EIOriginalAuthId",
+          "@NWVEI:OriginalAuthId",
+          "NWVEIAuthId",
+          "No",
+          "Yes"
+        ],
+        [
+          "EIPaymId",
+          "@NWVEI:EInvoicePayment",
+          "NWVEIPaymId",
+          "No",
+          "Yes"
+        ],
+        [
+          "EInvoiceNote",
+          "",
+          "NWVEInvoiceNote",
+          "No",
+          "Yes"
+        ],
+        [
+          "EIBuyerName",
+          "@NWVEI:EInvoiceBuyerName",
+          "NWVEIBuyerName",
+          "No",
+          "Yes"
+        ],
+        [
+          "EIBuyerBankAccountNum",
+          "",
+          "NWVEIBankAccountNum",
+          "No",
+          "Yes"
+        ],
+        [
+          "EIBuyerBankName",
+          "",
+          "NWVEIBankAddress",
+          "No",
+          "Yes"
+        ],
+        [
+          "EIReason",
+          "",
+          "NWVEIReason",
+          "No",
+          "Yes"
+        ],
+        [
+          "EInvoice",
+          "@NWVEI:EInvoice",
+          "NoYes",
+          "No",
+          "Yes"
+        ],
+        [
+          "EIEmail",
+          "@NWVEI:EInvoiceEmail",
+          "Email",
+          "No",
+          "Yes"
+        ],
+        [
+          "EInvoiceDescription",
+          "@NWVEI:VietnameseItemName",
+          "NWVEIDescription",
+          "No",
+          "Yes"
+        ],
+        [
+          "EINegativeInvoice",
+          "",
+          "NWVEINegativeInvoice",
+          "No",
+          "Yes"
+        ],
+        [
+          "EICompanyName",
+          "@NWVEI:EICompanyName",
+          "Description",
+          "No",
+          "Yes"
+        ],
+        [
+          "EITaxCode",
+          "@NWVEI:EInvoiceTaxCode",
+          "TaxRegistrationNumber",
+          "No",
+          "Yes"
+        ],
+        [
+          "NWVEITemplate",
+          "@NWVEI:EITemplate",
+          "RefRecId",
+          "No",
+          "Yes"
+        ],
+        [
+          "Party",
+          "",
+          "DirPartyRecId",
+          "No",
+          "No"
+        ],
+        [
+          "RefRecId",
+          "",
+          "RefRecId",
+          "No",
+          "No"
+        ],
+        [
+          "DateRequirement",
+          "@NWVEI:DateRequirement",
+          "TransDate",
+          "No",
+          "Yes"
+        ],
+        [
+          "CompanyRequirement",
+          "",
+          "NWVEICompanyRequirement",
+          "No",
+          "Yes"
+        ],
+        [
+          "ContractNumber",
+          "",
+          "NWVEIContractNumber",
+          "No",
+          "Yes"
+        ],
+        [
+          "DeliverName",
+          "@NWVEI:DeliverName",
+          "NWVEIDelivery",
+          "No",
+          "Yes"
+        ],
+        [
+          "Transportation",
+          "@NWVEI:Transportation",
+          "String50",
+          "No",
+          "Yes"
+        ],
+        [
+          "WarehouseExport",
+          "@NWVEI:WarehouseExport",
+          "NWVEICompanyAddress",
+          "No",
+          "Yes"
+        ],
+        [
+          "ReceiverName",
+          "@NWVEI:ReceiverName",
+          "NWVEIBuyerName",
+          "No",
+          "Yes"
+        ],
+        [
+          "WarehouseImport",
+          "@NWVEI:WarehouseImport",
+          "NWVEICompanyAddress",
+          "No",
+          "Yes"
+        ],
+        [
+          "NumberRequirement",
+          "@NWVEI:NumberRequirement",
+          "NWVEIContractNumber",
+          "No",
+          "Yes"
+        ],
+        [
+          "EIVendorGUID",
+          "@NWVEI:VendorGUID",
+          "NWVEIAuthId",
+          "No",
+          "No"
+        ],
+        [
+          "EILookupCode",
+          "@NWVEI:VendorInvoiceGUID",
+          "NWVEIAuthId",
+          "No",
+          "No"
+        ],
+        [
+          "TransferOrderType",
+          "@NWVEI:TransferOrderType",
+          "NWVEITransferOrderType",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEILines",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "AuthId",
+          "",
+          "NWVEIAuthId",
+          "No",
+          "No"
+        ],
+        [
+          "LineNum",
+          "",
+          "LineNum",
+          "No",
+          "No"
+        ],
+        [
+          "InvoiceType",
+          "",
+          "NWVEIInvoiceType",
+          "No",
+          "No"
+        ],
+        [
+          "ItemId",
+          "@SYS7407",
+          "ItemId",
+          "No",
+          "No"
+        ],
+        [
+          "Description",
+          "@SYS6303",
+          "ItemFreeTxtBase",
+          "No",
+          "Yes"
+        ],
+        [
+          "Qty",
+          "",
+          "SalesInvoicedQty",
+          "No",
+          "No"
+        ],
+        [
+          "SalesUnit",
+          "",
+          "NWVEIUnit",
+          "No",
+          "Yes"
+        ],
+        [
+          "CurrencyCode",
+          "",
+          "CustCurrencyCode",
+          "No",
+          "No"
+        ],
+        [
+          "UnitPrice",
+          "@SYS11770",
+          "SalesPrice",
+          "No",
+          "No"
+        ],
+        [
+          "LineAmount",
+          "@SYS6928",
+          "AmountCur",
+          "No",
+          "No"
+        ],
+        [
+          "TaxAmount",
+          "",
+          "TaxAmountCur",
+          "No",
+          "No"
+        ],
+        [
+          "TaxItemGroup",
+          "",
+          "TaxItemGroup",
+          "No",
+          "No"
+        ],
+        [
+          "TaxGroup",
+          "",
+          "TaxGroup",
+          "No",
+          "No"
+        ],
+        [
+          "RefRecId",
+          "",
+          "RefRecId",
+          "No",
+          "No"
+        ],
+        [
+          "TaxCode",
+          "@NWVEI:TaxRate",
+          "NWVEITaxValueString",
+          "No",
+          "No"
+        ],
+        [
+          "GroupId",
+          "@NWVEI:GroupId",
+          "NWVEIAuthId",
+          "No",
+          "No"
+        ],
+        [
+          "Selection",
+          "@NWVEI:Selection",
+          "String10",
+          "No",
+          "Yes"
+        ],
+        [
+          "IsDecrease",
+          "@NWVEI:IsDecrease",
+          "NoYes",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEILog",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "AuthId",
+          "",
+          "NWVEIAuthId",
+          "No",
+          "No"
+        ],
+        [
+          "InvoiceId",
+          "",
+          "NWVEIInvoiceId",
+          "No",
+          "No"
+        ],
+        [
+          "Voucher",
+          "",
+          "Voucher",
+          "No",
+          "No"
+        ],
+        [
+          "ErrorId",
+          "@NWVEI:ErrorId",
+          "String20",
+          "No",
+          "No"
+        ],
+        [
+          "Request",
+          "@NWVEI:Request",
+          "Notes",
+          "No",
+          "Yes"
+        ],
+        [
+          "RequestBeforeEncrypt",
+          "@NWVEI:RequestBeforeEncrypt",
+          "Notes",
+          "No",
+          "Yes"
+        ],
+        [
+          "Response",
+          "@NWVEI:Response",
+          "Notes",
+          "No",
+          "Yes"
+        ],
+        [
+          "Status",
+          "",
+          "NWVEIStatus",
+          "No",
+          "No"
+        ],
+        [
+          "APIType",
+          "",
+          "NWVEIAPIType",
+          "No",
+          "Yes"
+        ],
+        [
+          "ResponeDescription",
+          "@NWVEI:Description",
+          "Str1260",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEIMappingTable",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "Provider",
+          "",
+          "NWVEIProvider",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "APIType",
+          "",
+          "NWVEIAPIType",
+          "No",
+          "Yes"
+        ],
+        [
+          "SourceDocument",
+          "",
+          "NWVEISourceDocument",
+          "No",
+          "Yes"
+        ],
+        [
+          "Name",
+          "",
+          "Name",
+          "Yes",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEITemplate",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "NWVEISetup",
+          "@NWVEI:EInvoiceBrandCode",
+          "RefRecId",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "TemplateCode",
+          "",
+          "NWVEITemplateCode",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "TemplateName",
+          "",
+          "NWVEITemplateName",
+          "No",
+          "Yes"
+        ],
+        [
+          "Pattern",
+          "",
+          "NWVEIPattern",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "SerialNo",
+          "",
+          "NWVEISerialNo",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "IsTranfer",
+          "@NWVEI:Transfer",
+          "NoYesId",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEITaxValue",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "TaxGroup",
+          "",
+          "TaxGroup",
+          "No",
+          "No"
+        ],
+        [
+          "TaxItemGroup",
+          "",
+          "TaxItemGroup",
+          "No",
+          "No"
+        ],
+        [
+          "TaxCode",
+          "@NWVEI:SalesTaxCode",
+          "TaxCode",
+          "No",
+          "Yes"
+        ],
+        [
+          "VendorTaxRateId",
+          "@NWVEI:VendorTaxRateIdStr",
+          "NWVEITaxValueString",
+          "No",
+          "Yes"
+        ],
+        [
+          "TaxValueString",
+          "@NWVEI:VendorTaxValueStr",
+          "NWVEITaxValueString",
+          "No",
+          "Yes"
+        ],
+        [
+          "Description",
+          "@SYS13887",
+          "Description1000",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEICurrency",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "CurrencyCode",
+          "",
+          "CurrencyCode",
+          "No",
+          "Yes"
+        ],
+        [
+          "Name",
+          "@NWVEI:Name",
+          "Description",
+          "No",
+          "Yes"
+        ],
+        [
+          "Description",
+          "@NWVEI:Decimalunit",
+          "Description",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEIItemTranslation",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "ItemId",
+          "",
+          "ItemId",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "ItemName",
+          "",
+          "NWVEIItemName",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "Color",
+          "",
+          "NWVEIColor",
+          "No",
+          "Yes"
+        ],
+        [
+          "Style",
+          "",
+          "NWVEIStyle",
+          "No",
+          "Yes"
+        ],
+        [
+          "Size",
+          "",
+          "NWVEISize",
+          "No",
+          "Yes"
+        ],
+        [
+          "Unit",
+          "",
+          "NWVEIUnit",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEILinesGroup",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "AuthId",
+          "",
+          "NWVEIAuthId",
+          "No",
+          "No"
+        ],
+        [
+          "LineNum",
+          "",
+          "LineNum",
+          "No",
+          "No"
+        ],
+        [
+          "Description",
+          "@SYS6303",
+          "ItemFreeTxtBase",
+          "No",
+          "Yes"
+        ],
+        [
+          "Qty",
+          "",
+          "SalesInvoicedQty",
+          "No",
+          "No"
+        ],
+        [
+          "SalesUnit",
+          "",
+          "NWVEIUnit",
+          "No",
+          "Yes"
+        ],
+        [
+          "CurrencyCode",
+          "",
+          "CustCurrencyCode",
+          "No",
+          "No"
+        ],
+        [
+          "UnitPrice",
+          "@SYS11770",
+          "SalesPrice",
+          "No",
+          "No"
+        ],
+        [
+          "LineAmount",
+          "@SYS6928",
+          "AmountCur",
+          "No",
+          "No"
+        ],
+        [
+          "TaxAmount",
+          "",
+          "TaxAmountCur",
+          "No",
+          "No"
+        ],
+        [
+          "TaxItemGroup",
+          "",
+          "TaxItemGroup",
+          "No",
+          "No"
+        ],
+        [
+          "TaxGroup",
+          "",
+          "TaxGroup",
+          "No",
+          "No"
+        ],
+        [
+          "TaxCode",
+          "@NWVEI:TaxRate",
+          "",
+          "No",
+          "No"
+        ],
+        [
+          "GroupId",
+          "@NWVEI:GroupId",
+          "NWVEIAuthId",
+          "No",
+          "No"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEIMappingDetail",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "EIMappingTableRecId",
+          "",
+          "RefRecId",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "RequestCategory",
+          "",
+          "NWVEIRequestCategory",
+          "No",
+          "Yes"
+        ],
+        [
+          "ElementName",
+          "@NWVEI:ProviderFieldName",
+          "String50",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "IsDefault",
+          "@NWVEI:IsDefault",
+          "NoYes",
+          "No",
+          "Yes"
+        ],
+        [
+          "FieldType",
+          "",
+          "NWVEICustomFieldType",
+          "No",
+          "Yes"
+        ],
+        [
+          "IsMethod",
+          "@NWVEI:IsMethod",
+          "NoYes",
+          "No",
+          "Yes"
+        ],
+        [
+          "FieldName",
+          "@NWVEI:FieldNameD365FO",
+          "FieldName",
+          "No",
+          "Yes"
+        ],
+        [
+          "TableName",
+          "@NWVEI:TableNameD365FO",
+          "TableName",
+          "No",
+          "Yes"
+        ],
+        [
+          "MappingArea",
+          "",
+          "NWVEIMappingArea",
+          "No",
+          "Yes"
+        ],
+        [
+          "DefaultValue",
+          "@NWVEI:DefaultValue",
+          "Str1260",
+          "No",
+          "Yes"
+        ],
+        [
+          "Note",
+          "@NWVEI:Note",
+          "NWVEInvoiceNote",
+          "No",
+          "Yes"
+        ],
+        [
+          "LineNum",
+          "",
+          "LineNum",
+          "No",
+          "Yes"
+        ],
+        [
+          "MetadataID",
+          "@NWVEI:MetadataID",
+          "String20",
+          "No",
+          "Yes"
+        ],
+        [
+          "ProviderCategory",
+          "",
+          "NWVEIProviderElement",
+          "No",
+          "Yes"
+        ],
+        [
+          "TransformType",
+          "@NWVEI:TransformType",
+          "NWVEITransformType",
+          "No",
+          "Yes"
+        ],
+        [
+          "TransformExpression",
+          "@NWVEI:TransformExpression",
+          "Str1260",
+          "No",
+          "Yes"
+        ],
+        [
+          "TransformParam",
+          "@NWVEI:TransformParam",
+          "Str1260",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEIMetadataSetup",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "Provider",
+          "",
+          "NWVEIProvider",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "TemplateCode",
+          "@NWVEI:TemplateCode",
+          "Str60",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "KeyTag",
+          "@NWVEI:KeyTag",
+          "Str60",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "KeyLabel",
+          "@NWVEI:KeyLabel",
+          "NWVEIDescriptionString",
+          "No",
+          "Yes"
+        ],
+        [
+          "ValueType",
+          "@NWVEI:ValueType",
+          "NWVEIDescriptionString",
+          "No",
+          "Yes"
+        ],
+        [
+          "IsRequired",
+          "",
+          "NoYesId",
+          "No",
+          "Yes"
+        ],
+        [
+          "TargetNode",
+          "",
+          "NWVEITargetNode",
+          "No",
+          "Yes"
+        ],
+        [
+          "ValueSource",
+          "",
+          "NWVEIValueSource",
+          "No",
+          "Yes"
+        ],
+        [
+          "FixedValueStr",
+          "@NWVEI:FixedValue",
+          "NWVEIString500",
+          "No",
+          "Yes"
+        ],
+        [
+          "MappingTable",
+          "@NWVEI:MappingTable",
+          "TableName",
+          "No",
+          "Yes"
+        ],
+        [
+          "MappingField",
+          "@NWVEI:MappingField",
+          "FieldName",
+          "No",
+          "Yes"
+        ],
+        [
+          "IsMethod",
+          "@NWVEI:IsMethod",
+          "NoYes",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEIPaymentMethod",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "PaymId",
+          "",
+          "NWVEIPaymId",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "Description",
+          "",
+          "NWVEIPaymDescription",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "Notes",
+          "@SYS13887",
+          "Description1000",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEIProviderCategory",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "Provider",
+          "",
+          "NWVEIProvider",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "CategoryName",
+          "@NWVEI:ProviderCategory",
+          "NWVEIProviderElement",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "CategoryDesc",
+          "@NWVEI:CategoryDesc",
+          "string50",
+          "No",
+          "Yes"
+        ],
+        [
+          "CategoryNameParent",
+          "@NWVEI:ProviderCategoryParent",
+          "NWVEIProviderElement",
+          "No",
+          "Yes"
+        ],
+        [
+          "RequestCategory",
+          "",
+          "NWVEIRequestCategory",
+          "No",
+          "Yes"
+        ],
+        [
+          "HasChild",
+          "@NWVEI:HasChild",
+          "NoYes",
+          "No",
+          "Yes"
+        ],
+        [
+          "APIType",
+          "",
+          "NWVEIAPIType",
+          "No",
+          "Yes"
+        ],
+        [
+          "No",
+          "@NWVEI:Number",
+          "NWVEIInt",
+          "No",
+          "Yes"
+        ],
+        [
+          "IsNumber",
+          "@NWVEI:IsNumber",
+          "NoYes",
+          "No",
+          "Yes"
+        ],
+        [
+          "SourceDocument",
+          "",
+          "NWVEISourceDocument",
+          "No",
+          "Yes"
+        ],
+        [
+          "TransferOrderType",
+          "@NWVEI:TransferOrderType",
+          "NWVEITransferOrderType",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEIRefTableName",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "RefTableName",
+          "Table name",
+          "RefTableName",
+          "No",
+          "Yes"
+        ],
+        [
+          "RefTableLabel",
+          "Label",
+          "RefTableName",
+          "No",
+          "Yes"
+        ],
+        [
+          "FieldName",
+          "Field name",
+          "FieldName",
+          "No",
+          "Yes"
+        ],
+        [
+          "FieldLabel",
+          "Label",
+          "FieldLabel",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEITaxBreakdowns",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "AuthId",
+          "",
+          "NWVEIAuthId",
+          "No",
+          "No"
+        ],
+        [
+          "TaxValueString",
+          "@NWVEI:TaxValueString",
+          "NWVEITaxValueString",
+          "No",
+          "Yes"
+        ],
+        [
+          "SumTax",
+          "@NWVEI:VATAmount",
+          "TaxAmountCur",
+          "No",
+          "No"
+        ],
+        [
+          "SalesBalance",
+          "@NWVEI:InvoiceAmountExcludingVAT",
+          "AmountCur",
+          "No",
+          "No"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEIUnitTranslation",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "ItemId",
+          "",
+          "ItemId",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "LanguageId",
+          "",
+          "LanguageIdAll",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "Unit",
+          "",
+          "UnitOfMeasureSymbol",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "UnitName",
+          "@NWVEI:UnitName",
+          "NWVEIUnit",
+          "Yes",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "table",
+      "title": [
+        "Table name",
+        "NWVEIUserPermission",
+        "New/Modify"
+      ],
+      "header": [
+        "Field name",
+        "Label",
+        "Extended Data Type/Base Enum",
+        "Mandatory (Y/N)",
+        "Allow edit (Y/N)"
+      ],
+      "widths": [
+        1.2,
+        1.2,
+        1.5,
+        0.8,
+        0.8
+      ],
+      "rows": [
+        [
+          "UserId",
+          "@NWVEI:UserID",
+          "UserId",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "Name",
+          "@NWVEI:UserName",
+          "UserIdStr",
+          "No",
+          "Yes"
+        ],
+        [
+          "TemplateCode",
+          "",
+          "NWVEITemplateCode",
+          "Yes",
+          "Yes"
+        ],
+        [
+          "InvoiceOrderType",
+          "",
+          "NWVEIInvoiceOrderType",
+          "No",
+          "Yes"
+        ]
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "2.2. Cấu trúc Lớp (Classes)"
+    },
+    {
+      "type": "class_info",
+      "c_name": "NWVEICleanupData",
+      "desc": "Xử lý nghiệp vụ logic cho đối tượng NWVEICleanupData.",
+      "rows": [
+        [
+          "dialog()",
+          "Dialog method",
+          "Modify"
+        ],
+        [
+          "getFromDialog()",
+          "get data from dialog",
+          "Modify"
+        ],
+        [
+          "pack()",
+          "Hàm chức năng phục vụ xử lý logic cho pack.",
+          "Modify"
+        ],
+        [
+          "unpack()",
+          "unpack",
+          "Modify"
+        ],
+        [
+          "description()",
+          "Description method",
+          "Modify"
+        ],
+        [
+          "canGoBatch()",
+          "Allow Run with batch",
+          "Modify"
+        ],
+        [
+          "canRunInNewSession()",
+          "Allow run on new method?",
+          "Modify"
+        ],
+        [
+          "run()",
+          "Processing data method",
+          "Modify"
+        ],
+        [
+          "main()",
+          "The main method of class",
+          "Modify"
+        ]
+      ]
+    },
+    {
+      "type": "class_info",
+      "c_name": "NWVEIEnableEI",
+      "desc": "Xử lý nghiệp vụ logic cho đối tượng NWVEIEnableEI.",
+      "rows": [
+        [
+          "main()",
+          "Điểm bắt đầu (entry point) để chạy lớp xử lý.",
+          "Modify"
+        ]
+      ]
+    },
+    {
+      "type": "class_info",
+      "c_name": "NWVEIEncryptFunction",
+      "desc": "Xử lý nghiệp vụ logic cho đối tượng NWVEIEncryptFunction.",
+      "rows": [
+        [
+          "encryptData()",
+          "Hàm chức năng phục vụ xử lý logic cho encryptData.",
+          "Modify"
+        ],
+        [
+          "CopyTo()",
+          "Hàm chức năng phục vụ xử lý logic cho CopyTo.",
+          "Modify"
+        ],
+        [
+          "decryptData()",
+          "Hàm chức năng phục vụ xử lý logic cho decryptData.",
+          "Modify"
+        ]
+      ]
+    },
+    {
+      "type": "class_info",
+      "c_name": "NWVEIUtility",
+      "desc": "Xử lý nghiệp vụ logic cho đối tượng NWVEIUtility.",
+      "rows": [
+        [
+          "AutoGroupProjectLine_TMF()",
+          "Hàm chức năng phục vụ xử lý logic cho AutoGroupProjectLine_TMF.",
+          "Modify"
+        ],
+        [
+          "RegistrationNumber_OnLookup()",
+          "Hàm chức năng phục vụ xử lý logic cho RegistrationNumber_OnLookup.",
+          "Modify"
+        ],
+        [
+          "OriginalInvoice_OnLookup()",
+          "Hàm chức năng phục vụ xử lý logic cho OriginalInvoice_OnLookup.",
+          "Modify"
+        ],
+        [
+          "DateToStdStr()",
+          "Hàm chức năng phục vụ xử lý logic cho DateToStdStr.",
+          "Modify"
+        ],
+        [
+          "GetMiliseconds()",
+          "Hàm chức năng phục vụ xử lý logic cho GetMiliseconds.",
+          "Modify"
+        ],
+        [
+          "GetResponse_XML()",
+          "Hàm chức năng phục vụ xử lý logic cho GetResponse_XML.",
+          "Modify"
+        ],
+        [
+          "GetResponse_BKAV()",
+          "Hàm chức năng phục vụ xử lý logic cho GetResponse_BKAV.",
+          "Modify"
+        ],
+        [
+          "GetResponse()",
+          "Hàm chức năng phục vụ xử lý logic cho GetResponse.",
+          "Modify"
+        ],
+        [
+          "GetJsonDataByName()",
+          "Hàm chức năng phục vụ xử lý logic cho GetJsonDataByName.",
+          "Modify"
+        ],
+        [
+          "GetValueByKeyFrmJson()",
+          "Hàm chức năng phục vụ xử lý logic cho GetValueByKeyFrmJson.",
+          "Modify"
+        ],
+        [
+          "lookupTableMethods()",
+          "Shows a lookup of display/get methods on a table for use in metadata field configuration.\n    Equivalent to <c>lookupRefFieldmethod</c> but accepts a plain table name string,\n    so it can be called from contexts where no <c>NWVEIMappingDetail</c> buffer is available.",
+          "Modify"
+        ],
+        [
+          "lookupRefFieldmethod()",
+          "Thực hiện xử lý trước khi bắt đầu tác vụ.",
+          "Modify"
+        ],
+        [
+          "GetTaxRegistration()",
+          "Hàm chức năng phục vụ xử lý logic cho GetTaxRegistration.",
+          "Modify"
+        ],
+        [
+          "GetTaxRegistrationByRole()",
+          "Hàm chức năng phục vụ xử lý logic cho GetTaxRegistrationByRole.",
+          "Modify"
+        ],
+        [
+          "GetAddressByPurpose()",
+          "Hàm chức năng phục vụ xử lý logic cho GetAddressByPurpose.",
+          "Modify"
+        ],
+        [
+          "DeleteEInvoiceJournal()",
+          "Xóa bản ghi khỏi CSDL.",
+          "Modify"
+        ],
+        [
+          "CreateEInvoiceJournal()",
+          "Hàm chức năng phục vụ xử lý logic cho CreateEInvoiceJournal.",
+          "Modify"
+        ],
+        [
+          "UpdateSourceDocument()",
+          "Cập nhật bản ghi trong CSDL.",
+          "Modify"
+        ],
+        [
+          "CreateTaxBreakdowns()",
+          "Hàm chức năng phục vụ xử lý logic cho CreateTaxBreakdowns.",
+          "Modify"
+        ],
+        [
+          "GetTaxCode()",
+          "Hàm chức năng phục vụ xử lý logic cho GetTaxCode.",
+          "Modify"
+        ],
+        [
+          "numeralsToTxt_VI()",
+          "class global",
+          "Modify"
+        ],
+        [
+          "DownloadFileFromBase64()",
+          "Hàm chức năng phục vụ xử lý logic cho DownloadFileFromBase64.",
+          "Modify"
+        ],
+        [
+          "GetValueByKeyFrmJsonString()",
+          "Hàm chức năng phục vụ xử lý logic cho GetValueByKeyFrmJsonString.",
+          "Modify"
+        ],
+        [
+          "formatDate_ISO8601()",
+          "Hàm chức năng phục vụ xử lý logic cho formatDate_ISO8601.",
+          "Modify"
+        ],
+        [
+          "utcDateTimeToUnixTimestamp()",
+          "Chuyển đổi utcDateTime sang Unix Timestamp (tính bằng giây)",
+          "Modify"
+        ],
+        [
+          "dateToUnixTimestamp()",
+          "Chuyển đổi kiểu date thuần túy sang Unix Timestamp\n    (Mặc định lấy 00:00:00 theo chuẩn UTC)",
+          "Modify"
+        ],
+        [
+          "currentUnixTimestamp()",
+          "Lấy Unix Timestamp của thời điểm hiện tại (ngay lúc chạy code)",
+          "Modify"
+        ]
+      ]
+    },
+    {
+      "type": "class_info",
+      "c_name": "NWVEIMapVisualizerControl",
+      "desc": "Xử lý nghiệp vụ logic cho đối tượng NWVEIMapVisualizerControl.",
+      "rows": [
+        [
+          "new()",
+          "Hàm chức năng phục vụ xử lý logic cho new.",
+          "Modify"
+        ],
+        [
+          "parmSourceFieldsJson()",
+          "Hàm Getter/Setter để truy xuất hoặc gán tham số.",
+          "Modify"
+        ],
+        [
+          "saveReactMapping()",
+          "Hàm chức năng phục vụ xử lý logic cho saveReactMapping.",
+          "Modify"
+        ]
+      ]
+    },
+    {
+      "type": "class_info",
+      "c_name": "NWVEIGenerateMapping",
+      "desc": "Xử lý nghiệp vụ logic cho đối tượng NWVEIGenerateMapping.",
+      "rows": [
+        [
+          "main()",
+          "Class entry point. The system will call this method when a designated menu \n    is selected or when execution starts and this class is set as the startup class.",
+          "Modify"
+        ]
+      ]
+    },
+    {
+      "type": "class_info",
+      "c_name": "NWVEIGenerateMappingToViettel",
+      "desc": "Xử lý nghiệp vụ logic cho đối tượng NWVEIGenerateMappingToViettel.",
+      "rows": [
+        [
+          "GenerateAPIType()",
+          "Hàm chức năng phục vụ xử lý logic cho GenerateAPIType.",
+          "Modify"
+        ],
+        [
+          "GetToken()",
+          "Hàm chức năng phục vụ xử lý logic cho GetToken.",
+          "Modify"
+        ],
+        [
+          "PrintEInvoice()",
+          "Hàm chức năng phục vụ xử lý logic cho PrintEInvoice.",
+          "Modify"
+        ],
+        [
+          "IssueInvoice()",
+          "Hàm chức năng phục vụ xử lý logic cho IssueInvoice.",
+          "Modify"
+        ],
+        [
+          "generalInvoiceInfo()",
+          "Hàm chức năng phục vụ xử lý logic cho generalInvoiceInfo.",
+          "Modify"
+        ],
+        [
+          "buyerInfo()",
+          "Hàm chức năng phục vụ xử lý logic cho buyerInfo.",
+          "Modify"
+        ],
+        [
+          "sellerInfo()",
+          "Hàm chức năng phục vụ xử lý logic cho sellerInfo.",
+          "Modify"
+        ],
+        [
+          "payments()",
+          "Hàm chức năng phục vụ xử lý logic cho payments.",
+          "Modify"
+        ],
+        [
+          "itemInfo()",
+          "Hàm chức năng phục vụ xử lý logic cho itemInfo.",
+          "Modify"
+        ],
+        [
+          "summarizeInfo()",
+          "Hàm chức năng phục vụ xử lý logic cho summarizeInfo.",
+          "Modify"
+        ],
+        [
+          "taxBreakdowns()",
+          "Hàm chức năng phục vụ xử lý logic cho taxBreakdowns.",
+          "Modify"
+        ],
+        [
+          "metadata()",
+          "Hàm chức năng phục vụ xử lý logic cho metadata.",
+          "Modify"
+        ],
+        [
+          "insertMetadata()",
+          "Thêm mới bản ghi vào CSDL.",
+          "Modify"
+        ]
+      ]
+    },
+    {
+      "type": "class_info",
+      "c_name": "NWVEIImportCategoryFromJson",
+      "desc": "Xử lý nghiệp vụ logic cho đối tượng NWVEIImportCategoryFromJson.",
+      "rows": [
+        [
+          "main()",
+          "Điểm bắt đầu (entry point) để chạy lớp xử lý.",
+          "Modify"
+        ],
+        [
+          "dialog()",
+          "Hiển thị giao diện người dùng để nhập tham số.",
+          "Modify"
+        ],
+        [
+          "dialogPostRun()",
+          "Thực thi luồng logic chính.",
+          "Modify"
+        ],
+        [
+          "getFromDialog()",
+          "Hiển thị giao diện người dùng để nhập tham số.",
+          "Modify"
+        ],
+        [
+          "run()",
+          "Thực thi luồng logic chính.",
+          "Modify"
+        ],
+        [
+          "traverseJsonNode()",
+          "Hàm chức năng phục vụ xử lý logic cho traverseJsonNode.",
+          "Modify"
+        ],
+        [
+          "createCategoryRecord()",
+          "Hàm chức năng phục vụ xử lý logic cho createCategoryRecord.",
+          "Modify"
+        ],
+        [
+          "generateMappingDetails()",
+          "Hàm chức năng phục vụ xử lý logic cho generateMappingDetails.",
+          "Modify"
+        ],
+        [
+          "determineMappingArea()",
+          "Hàm chức năng phục vụ xử lý logic cho determineMappingArea.",
+          "Modify"
+        ],
+        [
+          "promptRootCategories()",
+          "Step-2 dialog: shows one enum selector per root-level JSON key so the user\n    can confirm or correct the auto-guessed NWVEIRequestCategory before insert.\n    Populates <c>rootKeyToCategory</c> on OK.",
+          "Modify"
+        ],
+        [
+          "computeUniqueCatName()",
+          "Computes the prefixed unique category name for a JSON key, applying the same\n    prefix / truncation logic used in traverseJsonNode so the two stay in sync.",
+          "Modify"
+        ],
+        [
+          "collectSectionFields()",
+          "Recursively traverses the JSON tree and adds a dialog dropdown for every\n    root-level key AND every nested Array/Object key (section boundaries at any depth).\n    Leaf (scalar) nodes below root are skipped — they inherit their parent's category.",
+          "Modify"
+        ],
+        [
+          "guessRequestCategory()",
+          "Heuristically guesses the <c>NWVEIRequestCategory</c> for a root JSON key\n    based on its name and token type. Used as the pre-selected default in the\n    second dialog — the user can always override it.",
+          "Modify"
+        ],
+        [
+          "getUppercaseWithRegex()",
+          "Hàm chức năng phục vụ xử lý logic cho getUppercaseWithRegex.",
+          "Modify"
+        ]
+      ]
+    },
+    {
+      "type": "class_info",
+      "c_name": "NWVEIImportCategoryFromXml",
+      "desc": "Xử lý nghiệp vụ logic cho đối tượng NWVEIImportCategoryFromXml.",
+      "rows": [
+        [
+          "main()",
+          "Entry point — dialog 1 collects XML + settings, dialog 2 maps root elements to\n    <c>NWVEIRequestCategory</c>, then <c>run()</c> inserts records.",
+          "Modify"
+        ],
+        [
+          "dialog()",
+          "Step-1 dialog: paste XML sample payload and select API type, provider, source document.",
+          "Modify"
+        ],
+        [
+          "dialogPostRun()",
+          "Post-run hook: makes the XML text area tall enough for a typical SOAP payload.",
+          "Modify"
+        ],
+        [
+          "getFromDialog()",
+          "Captures dialog values before validation.",
+          "Modify"
+        ],
+        [
+          "run()",
+          "Parses the XML payload, traverses the element tree, and creates\n    <c>NWVEIProviderCategory</c> and optionally <c>NWVEIMappingDetail</c> records.",
+          "Modify"
+        ],
+        [
+          "findDescendant()",
+          "Searches descendants of <c>_element</c> for the first element whose local name\n    matches <c>_localName</c> (namespace-agnostic). Used to skip SOAP envelope wrappers.",
+          "Modify"
+        ],
+        [
+          "traverseXmlElement()",
+          "Recursively traverses XML elements and creates <c>NWVEIProviderCategory</c> records.\n    Child elements → hasChild = true. Leaf elements (text only) → hasChild = false.\n    Sibling elements with the same name → detected as repeating → marked as Array.",
+          "Modify"
+        ],
+        [
+          "findFirstChildByName()",
+          "Finds the first child element with a given local name.",
+          "Modify"
+        ],
+        [
+          "createCategoryRecord()",
+          "Creates or updates a <c>NWVEIProviderCategory</c> record for a single XML element.",
+          "Modify"
+        ],
+        [
+          "generateMappingDetails()",
+          "After category tree is built, generates <c>NWVEIMappingDetail</c> rows\n    for every category leaf — same logic as the JSON importer.",
+          "Modify"
+        ],
+        [
+          "determineMappingArea()",
+          "Walks up the category tree to determine MappingArea and RequestCategory\n    for a given category node — same logic as JSON importer.",
+          "Modify"
+        ],
+        [
+          "promptRootCategories()",
+          "Step-2 dialog: shows one enum selector per root-level / section XML element\n    so the user can confirm or correct the auto-guessed <c>NWVEIRequestCategory</c>.",
+          "Modify"
+        ],
+        [
+          "collectSectionElements()",
+          "Recursively traverses XML elements and adds a dialog dropdown for every\n    root-level element AND every nested element that has children or is repeating.\n    Mirrors <c>NWVEIImportCategoryFromJson::collectSectionFields</c>.",
+          "Modify"
+        ],
+        [
+          "computeUniqueCatName()",
+          "Computes the prefixed unique category name — same logic as the JSON importer.",
+          "Modify"
+        ]
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "2.3. Truy vấn dữ liệu (Queries / Views)"
+    },
+    {
+      "type": "p",
+      "text": "Chưa có view hay query phức tạp. Chủ yếu là các thao tác select trực tiếp (point queries) thông qua Index dựa trên RecId hoặc mã hóa đơn (InvoiceId).",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "type": "h2",
+      "text": "2.4. Giao diện người dùng (Forms / UX)"
+    },
+    {
+      "type": "p",
+      "text": "Bao gồm các form chính:\n1. NWVEIParameter (Form Parameter): Giao diện quản lý tham số kết nối API và setup hệ thống.\n2. NWVEIEInvoiceJournal (Form Details Master): Giao diện workspace chính để nhân viên kế toán theo dõi, lọc, và xử lý các hóa đơn điện tử (đang chờ cấp số, đã cấp số, có lỗi).",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "type": "h2",
+      "text": "2.5. Điều hướng (Menu & Security)"
+    },
+    {
+      "type": "p",
+      "text": "- Menus: Được thêm vào module menu Accounts Receivable > Setup > E-Invoice Parameters.\n- Security: Action Menu items được cấp phát thông qua các Privilege chuẩn (VD: NWVEIParameterMaintain).",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "type": "h1",
+      "text": "3. Vấn Đề Lưu Ý & Đề Xuất Cải Tiến"
+    },
+    {
+      "type": "h2",
+      "text": "3.1. Hiệu năng (Performance)"
+    },
+    {
+      "type": "p",
+      "text": "Đối với các bảng setup (NWVEIParameter, NWVEISetup), thuộc tính CacheLookup được thiết lập là 'EntireTable' hoặc 'Found' để hệ thống load trực tiếp vào bộ nhớ tạm (AOS cache), giúp các class nghiệp vụ không bị suy giảm hiệu năng khi liên tục kiểm tra trạng thái kích hoạt của phân hệ e-invoice.",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "type": "h2",
+      "text": "3.2. Tính toàn vẹn dữ liệu"
+    },
+    {
+      "type": "p",
+      "text": "Khi cập nhật trạng thái hóa đơn vào NWVEIHeader (ví dụ từ chờ ký sang đã ký), hệ thống sử dụng ttsbegin và ttscommit nghiêm ngặt cùng khối catch(Exception::Error) để đảm bảo tính toàn vẹn của giao dịch DB, ngăn ngừa deadlocks.",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "type": "h2",
+      "text": "3.3. Caching & Optimization"
+    },
+    {
+      "type": "p",
+      "text": "Áp dụng SysGlobalCache để lưu trữ thông tin authentication token của các nhà cung cấp, nhằm tránh việc gọi API đăng nhập (Login/Auth) liên tục cho mỗi lần xuất hóa đơn (chỉ request token mới khi token cũ hết hạn).",
+      "bold": false,
+      "italic": false
+    }
+  ]
+}

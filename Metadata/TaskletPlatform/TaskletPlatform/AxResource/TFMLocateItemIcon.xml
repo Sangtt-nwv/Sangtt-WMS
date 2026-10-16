@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxResource xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLocateItemIcon</Name>
+	<FileName>mainmenulocateitem.png</FileName>
+	<RelativeUriInModelStore>TaskletPlatform\TaskletPlatform\AxResource\ResourceContent\Images\mainmenulocateitem.png</RelativeUriInModelStore>
+</AxResource>

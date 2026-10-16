@@ -1,0 +1,729 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>MobPostOrderPromptOverrideForm</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class MobPostOrderPromptOverrideForm extends FormRun
+{
+
+}
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>MobPostOrderPromptOverride</Name>
+				<Methods>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public int active()
+        {
+            int ret;
+        
+            ret = super();
+            LineGrid_HeadingLine.visible('' != TFMDisplayLineOverride::classId2Attribute(MobPostOrderPromptOverride.ClassOverrideID));
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>CallClassName</DataField>
+						<Methods>
+							<Method>
+								<Name>lookup</Name>
+								<Source><![CDATA[
+            /// <summary>
+            ///
+            /// </summary>
+            /// <param name = "_formControl"></param>
+            /// <param name = "_filterStr"></param>
+            public void lookup(FormControl _formControl, str _filterStr)
+            {
+                MobFormLookupHelper::lookupAllClassNames(_formControl);
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+					<Field>
+						<DataField>CallMethodName</DataField>
+						<Methods>
+							<Method>
+								<Name>lookup</Name>
+								<Source><![CDATA[
+            /// <summary>
+            ///
+            /// </summary>
+            /// <param name = "_formControl"></param>
+            /// <param name = "_filterStr"></param>
+            public void lookup(FormControl _formControl, str _filterStr)
+            {
+                MobFormLookupHelper::lookupClassStaticMethodNames(MobPostOrderPromptOverride.CallClassName,_formControl);
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+			<DataSource>
+				<Name>MobPostOrderPromptOverrideLines</Name>
+				<Methods>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void initValue()
+        {
+            MobPostOrderPromptOverrideLines.MobPostOrderPromptOverrideRecID = MobPostOrderPromptOverride.RecId;
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>MobPostOrderPromptOverrideLineFields</Name>
+				<Methods>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void initValue()
+        {
+            MobPostOrderPromptOverrideLineFields.LinesRecId =  MobPostOrderPromptOverrideLines.RecId;
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>MobPostOrderMethodParms</Name>
+				<Methods />
+				<Fields>
+					<Field>
+						<DataField>Expression</DataField>
+						<Methods>
+							<Method>
+								<Name>lookup</Name>
+								<Source><![CDATA[
+            /// <summary>
+            ///
+            /// </summary>
+            /// <param name = "_formControl"></param>
+            /// <param name = "_filterStr"></param>
+            public void lookup(FormControl _formControl, str _filterStr)
+            {
+				
+                Args args = new Args();
+                FormRun		formRun;
+                
+                super(_formControl, _filterStr);
+                args.record(MobPostOrderMethodParms);
+                args.name(formStr(TFMExpressionEditor));
+                formRun = classfactory.formRunClass(args);
+                formRun.init();
+                formRun.run();
+
+                formRun.wait();
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+					<Field>
+						<DataField>ReturnTableName</DataField>
+						<Methods>
+							<Method>
+								<Name>lookup</Name>
+								<Source><![CDATA[
+            /// <summary>
+            ///
+            /// </summary>
+            /// <param name = "_formControl"></param>
+            /// <param name = "_filterStr"></param>
+            public void lookup(FormControl _formControl, str _filterStr)
+            {
+                if (MobPostOrderPromptOverride.ClassOverrideMethod)
+                {
+                    MobFormLookupHelper::lookupDataSetsForPostMethod(MobPostOrderPromptOverride.ClassOverrideID, MobPostOrderPromptOverride.ClassOverrideMethod,_formControl);
+                }
+                else
+                {
+                    MobFormLookupHelper::lookupDataSetMethods(MobPostOrderPromptOverride.ClassOverrideID,_formControl);
+                }
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>SetupGroup_tableOverride</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void lookup()
+        {
+            
+            MobFormLookupHelper::lookupOrderClasses(this);
+            
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>MethodGrid_nameOverride</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void lookup()
+        {
+            MobPostOrderMethodParms.lookupLineNames(this);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>MobPostOrderPromptOverride</Name>
+			<Table>MobPostOrderPromptOverride</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>CallClassName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CallMethodName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ClassOverrideID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>MobPostOrderPromptOverrideLines</Name>
+			<Table>MobPostOrderPromptOverrideLines</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InputType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LineID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MobPostOrderPromptOverrideRecID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Name</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>MobPostOrderPromptOverride</JoinSource>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>MobPostOrderPromptOverrideLineFields</Name>
+			<Table>MobPostOrderPromptOverrideLineFields</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FieldName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LinesRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Value</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>MobPostOrderPromptOverrideLines</JoinSource>
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>MobPostOrderMethodParms</Name>
+			<Table>MobPostOrderMethodParms</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>baseType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EDTName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Expression</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ParmName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PostOrderPromptOverrideLinesRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PostOrderPromptOverrideRecID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReturnTableName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>MobPostOrderPromptOverride</JoinSource>
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<InsertAtEnd>No</InsertAtEnd>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@MobileWMS:PostOrderPromptOverride</Caption>
+		<UseCaptionFromMenuItem xmlns="">Yes</UseCaptionFromMenuItem>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>FormActionPaneControl1</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Overview</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>GridGroup1</Name>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>Grid</Name>
+										<Type>Grid</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>SetupGroup</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>SetupGroup_tableOverride</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataMethod>tableOverride</DataMethod>
+														<DataSource>MobPostOrderPromptOverride</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>SetupGroup_getClassName</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<CacheDataMethod>Yes</CacheDataMethod>
+														<DataMethod>getClassName</DataMethod>
+														<DataSource>MobPostOrderPromptOverride</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>SetupGroup_ClassOverrideMethod</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>ClassOverrideMethod</DataField>
+														<DataSource>MobPostOrderPromptOverride</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>SetupGroup_Active</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>Active</DataField>
+														<DataSource>MobPostOrderPromptOverride</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>Overview</DataGroup>
+												<DataSource>MobPostOrderPromptOverride</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataSource>MobPostOrderPromptOverride</DataSource>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+						</Controls>
+						<Columns>3</Columns>
+						<Caption>@SYS9039</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Lines</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>FormActionPaneControl2</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>FormButtonGroupControl1</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>FormCommandButtonControl1</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>New</Command>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>DeleteRecordButton</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>DeleteRecord</Command>
+											</AxFormControl>
+										</Controls>
+										<DataSource>MobPostOrderPromptOverrideLines</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataSource>MobPostOrderPromptOverrideLines</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Grids</Name>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>LineGrid</Name>
+										<Type>Grid</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormIntegerControl">
+												<Name>LineGrid_LineID</Name>
+												<Type>Integer</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>LineID</DataField>
+												<DataSource>MobPostOrderPromptOverrideLines</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>LineGrid_Name</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>Name</DataField>
+												<DataSource>MobPostOrderPromptOverrideLines</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>LineGrid_InputType</Name>
+												<Type>ComboBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>InputType</DataField>
+												<DataSource>MobPostOrderPromptOverrideLines</DataSource>
+												<Items />
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>LineGrid_HeadingLine</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>ComboBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>HeadingLine</DataField>
+												<DataSource>MobPostOrderPromptOverrideLines</DataSource>
+												<Items />
+											</AxFormControl>
+										</Controls>
+										<DataGroup>Overview</DataGroup>
+										<DataSource>MobPostOrderPromptOverrideLines</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>FieldsGrid</Name>
+										<Type>Grid</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>FieldsGrid_FieldName</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>FieldName</DataField>
+												<DataSource>MobPostOrderPromptOverrideLineFields</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>FieldsGrid_Value</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>Value</DataField>
+												<DataSource>MobPostOrderPromptOverrideLineFields</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataGroup>Overview</DataGroup>
+										<DataSource>MobPostOrderPromptOverrideLineFields</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Columns>2</Columns>
+							</AxFormControl>
+						</Controls>
+						<Caption>@MobileWMS:CollectionSteps</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>MethodParmsTab</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>ClassToCallGrp</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>ClassToCallGrp_CallClassName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>CallClassName</DataField>
+										<DataSource>MobPostOrderPromptOverride</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>ClassToCallGrp_CallMethodName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>CallMethodName</DataField>
+										<DataSource>MobPostOrderPromptOverride</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Columns>2</Columns>
+								<DataGroup>ClassToCall</DataGroup>
+								<DataSource>MobPostOrderPromptOverride</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>MethodGrid</Name>
+								<Type>Grid</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>MethodGrid_ParmName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ParmName</DataField>
+										<DataSource>MobPostOrderMethodParms</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>MethodGrid_baseType</Name>
+										<Type>ComboBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>baseType</DataField>
+										<DataSource>MobPostOrderMethodParms</DataSource>
+										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>MethodGrid_EDTName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>EDTName</DataField>
+										<DataSource>MobPostOrderMethodParms</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>MethodGrid_nameOverride</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>nameOverride</DataMethod>
+										<DataSource>MobPostOrderMethodParms</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>MethodGrid_ReturnTableName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ReturnTableName</DataField>
+										<DataSource>MobPostOrderMethodParms</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>MethodGrid_Expression</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Expression</DataField>
+										<DataSource>MobPostOrderMethodParms</DataSource>
+										<LookupButton>Always</LookupButton>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>Overview</DataGroup>
+								<DataSource>MobPostOrderMethodParms</DataSource>
+							</AxFormControl>
+						</Controls>
+						<Caption>@MobileWMS:MethodParameters</Caption>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

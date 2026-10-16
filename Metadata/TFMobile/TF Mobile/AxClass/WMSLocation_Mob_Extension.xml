@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>WMSLocation_Mob_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(tableStr(WMSLocation))]
+final class WMSLocation_Mob_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>whsLocationIsLPControlled</Name>
+				<Source><![CDATA[
+    public boolean whsLocationIsLPControlled()
+    {
+        boolean ret = next whsLocationIsLPControlled();
+        if ( this.LocProfileId )
+        {
+            ret = WHSLocationProfile::find(this.LocProfileId).lpControlled;
+        }
+        else if (!this.inventLocation().WHSEnabled)
+        {
+            ret = new MobDocLicensePlateOverview().parmEnableLicensePlating();
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

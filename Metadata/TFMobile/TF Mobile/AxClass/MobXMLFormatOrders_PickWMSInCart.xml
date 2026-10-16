@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_PickWMSInCart</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableNameAttribute(tableStr(WMSOrderTrans),'CartContent')]
+class MobXMLFormatOrders_PickWMSInCart extends TFMXMLFormatOrders
+{
+    WMSOrderTrans			orderTrans;
+    WMSPickingRoute          wMSPickingRoute;
+    MobCartID				cartID;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        MobCarts		cart;
+        Map				prodDims;
+        Map				tracDims;        
+        MapEnumerator	mEnum;
+        //inventSum		inventSum;
+        real			qtyPicked;
+        super();
+    
+        orderTrans			= common;
+    
+        backendId			= tableStr(WMSOrderTrans) + '/' + fieldStr(WMSOrderTrans, RecId) + '/' + int642Str(ordertrans.recid) + '/CartContent';
+        cart				= MobCarts::FindByReference(MobConsolidatedPickingRouteOrders::belongsTo(orderTrans.routeId) ? MobConsolidatedPickingRouteOrders::belongsTo(orderTrans.routeId) : orderTrans.routeId);
+        cartID				= cart.CartID;
+        fieldsToAdd.insert(extendedTypeStr(ItemId),orderTrans.ItemId);
+
+        imageId = MobHelper::imageIDFromDocuref(MobHelper::FindItemDocuref(orderTrans.itemId,orderTrans.InventDimId));
+        prodDims = MobInventDimHelper::getProductDimensions(orderTrans.itemId,orderTrans.InventDim());
+        tracDims = MobInventDimHelper::getTrackingDimensions(orderTrans.itemId,orderTrans.InventDim());
+        displayLine1 = orderTrans.ItemId + ' ' + orderTrans.inventTable().productName(new xInfo().language());
+        mEnum = tracDims.getEnumerator();
+        displayLine2 = "@SYS6303";
+        displayLine3 = orderTrans.inventTable().defaultProductDescription();
+        displayLine4 = '';
+		if ( orderTrans.isReserved)
+        {
+            displayLine3 += "@MobileWMS:lineBreak" + "@SYS7623";
+        }
+        if (!MobCartPicklistLink::exists(orderTrans.recid, cart.CartID))
+        {
+            displayLine4 = "@MobileWMS:PickFrom";
+			displayLine5 = ordertrans.inventDim().wMSLocationId;
+        }
+        while (mEnum.moveNext())
+        {
+            if (!mEnum.currentValue())
+            {
+                continue;
+            }            
+            displayLine4 += (displayLine4 ? "@MobileWMS:lineBreak" : '') + mEnum.currentKey() + ':';
+            displayLine5 += (displayLine5 ? "@MobileWMS:lineBreak" : '') + mEnum.currentValue();
+        }
+        mEnum = prodDims.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            if (!mEnum.currentValue())
+            {
+                continue;
+            }
+            //displayLine4 = 'Size';
+            //displayLine5 = inventSum.inventDim().InventSizeId;
+            displayLine4 += (displayLine4 ? "@MobileWMS:lineBreak" : '') + mEnum.currentKey() + ':';
+            displayLine5 += (displayLine5 ? "@MobileWMS:lineBreak" : '') + mEnum.currentValue();
+        }
+        fieldsToAdd.insert(fieldStr(InventDim,InventLocationId),orderTrans.inventDim().inventLocationId);
+        fieldsToAdd.insert(MobConstants::Warehouse(),orderTrans.inventDim().inventLocationId);
+        fieldsToAdd.insert('QuantityToPick', '/'+ MobHelper::formatItemQty(orderTrans.qty,orderTrans.inventTable().inventUnitId()));
+        fieldsToAdd.insert('Quantity2Pick', MobHelper::formatItemQty(orderTrans.qty,orderTrans.inventTable().inventUnitId()));
+        fieldsToAdd.insert(MobConstants::UnitOfMeasure(), orderTrans.inventTable().inventUnitId());
+        fieldsToAdd.insert(fieldStr(MobCarts,PickMode),orderTrans.isReserved ? "@MobileWMS:RemoveReservation" : "@MobileWMS:NotReserved");
+        fieldsToAdd.insert(MobConstants::ItemNumber(),orderTrans.itemId);
+        fieldsToAdd.insert(MobConstants::Warehouse(),cart.InventLocationId);
+        //mEnum = MobDocUnplannedCartMove::locationContent(WMSLocation::find(cart.WMSLocationId, cart.InventLocationId),orderTrans.itemId).getEnumerator();
+        fieldsToAdd.insert('AddToCart','true');
+		
+
+        qtyPicked = MobCartPicklistLink::exists(orderTrans.recid, cart.CartID) ? orderTrans.qty : 0;
+        fieldsToAdd.insert(MobConstants::Quantity(), MobHelper::formatItemQty(MobCartPicklistLink::totalQty(orderTrans.recid, cart.CartID),orderTrans.inventTable().inventUnitId()));
+        fieldsToAdd.insert('QuantityRemaining',MobHelper::formatItemQty(orderTrans.qty - MobCartPicklistLink::totalQty(orderTrans.recid, cart.CartID),orderTrans.inventTable().inventUnitId()));
+        fieldsToAdd.insert(extendedTypeStr(MobCartID),cart.CartID);
+        //sorting                 = strKeep(date2Str(DateTimeUtil::date(WMSPickingRoute.ActivationDateTime),321,2,0,2,0,2),'1234567890');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

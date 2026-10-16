@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobBatchOrderTypeProcess</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableNameAttribute(tableStr(ProdTable),'BatchOrder')]
+class MobBatchOrderTypeProcess extends MobBatchOrderType
+{
+    ProdTable prodTable;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getBackendID</Name>
+				<Source><![CDATA[
+    public str getBackendID(Common _common)
+    {
+        ProdTable = _common;
+        return tableStr(ProdTable) + '/' + fieldStr(ProdTable,ProdId) + '/' + ProdTable.ProdId +'/' + 'BatchOrder';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBatchOrders</Name>
+				<Source><![CDATA[
+    protected Map getBatchOrders(InventLocationId inventLocationId, Date deliveryDate, str _scannedValue)
+    {
+        InventDim               dim1;
+        Query                   q = new Query();
+        QueryRun                qr;
+        QueryBuildDataSource    qbdsProdTable;
+        QueryBuildDataSource    qbdsCoBy;
+        PmfProdCoBy             CoBy;
+        boolean                 thereareLines;
+        QueryBuildDataSource    qbdsInventDim1;
+        //QueryBuildDataSource    qbdsInventDim2;
+        Map                     returnMap = new Map (Types::String, Types::Record);
+
+        qbdsProdTable = q.addDataSource( tableNum( ProdTable ) );
+        qbdsProdTable.addSortField(fieldNum(ProdTable, ProdId), SortOrder::Descending);
+        qbdsProdTable.addRange(fieldNum(ProdTable, ProdType)).value( queryValue(ProdType::Process) );
+        qbdsProdTable.addRange(fieldNum(ProdTable, ProdStatus)).value( queryValue(ProdStatus::StartedUp ) );
+        qbdsCoBy = qbdsProdTable.addDataSource(tableNum(PmfProdCoBy), 'coBy');
+        qbdsCoBy.joinMode(JoinMode::ExistsJoin);
+        qbdsCoBy.addLink(fieldNum(prodTable,ProdId),fieldNum(PmfProdCoBy,ProdId));
+        qbdsInventDim1 = qbdsCoBy.addDataSource(tableNum(InventDim), 'dim1');
+        qbdsInventDim1.joinMode(JoinMode::ExistsJoin);
+        qbdsInventDim1.addLink(fieldNum(PmfProdCoBy,InventDimId), fieldNum(InventDim,InventDimId));
+        if (inventLocationId)
+        {
+            qbdsInventDim1.addRange(fieldNum(InventDim, InventSiteId)).value( queryValue(InventLocation::find(inventLocationId).InventSiteId) );
+            qbdsInventDim1.addRange(fieldNum(InventDim, InventLocationId)).value(queryValue(inventLocationId));
+        }
+
+        if (deliveryDate)
+        {
+            qbdsProdTable.addRange(fieldNum(ProdTable,DlvDate)).value( strFmt('.. %1', queryValue(deliveryDate)) );
+        }
+
+        if (_scannedValue)
+        {
+            qbdsProdTable.addRange(fieldNum(ProdTable,ProdId)).value( _scannedValue );
+        }
+
+        qr = new QueryRun( q );
+        while(qr.next())
+        {
+            ProdTable = qr.get(tableNum(ProdTable));
+            dim1 = ProdTable.inventDim();
+            /*if (orderSet.in(JournalTable.journalId))
+        {
+            continue;
+        }*/
+            thereareLines = false;
+            while select CoBy
+                where CoBy.ProdId == ProdTable.prodId &&
+                        ((CoBy.StUpDate && CoBy.StUpDate <= deliveryDate)) && CoBy.RemainCoByPhysical && CoBy.BackorderStatus != ProdBackStatus::Completed
+            {
+                if((inventLocationId == MobConstants::All() || inventLocationId == CoBy.inventDim().InventLocationId))
+                {
+                    thereareLines = true;
+                }
+            }
+            if (thereareLines || (prodTable && (prodTable.QtyStUp -prodTable.reportedFinishedGood()) > 0))
+            {
+                if (inventLocationId || MobHelper::isInventLocationAllowed(curUserId(), dim1.InventLocationId))
+                {
+                    returnMap.insert(this.getBackendID(ProdTable) ,ProdTable);
+                    /*MobXMLFormat = TFMXMLFormat::constructFromCommon(resultXml, wMSJournalTable, sorting);
+                MobXMLFormat.run();*/
+                }
+            }
+            //orderSet.add(JournalTable.journalId);
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaderRecords</Name>
+				<Source><![CDATA[
+    public Map getHeaderRecords(TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+        InventLocation  inventLocation;
+        Map             returnMap = new Map(Types::string, Types::Record);
+
+        inventLocation = MobHelper::getAllowedInventLocations(curUserId());
+        while select inventLocation where (inventLocation.InventLocationId == _filters.parmWarehouse() || _filters.parmWarehouse() == MobConstants::all())
+        {
+
+            // Use the warehouse from the current iteration
+            returnMap = MobHelper::mergeMaps(returnMap,this.getBatchOrders(inventLocation.InventLocationId,_filters.parmDeliveryDate(),_scannedValue));
+
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLatestDeliveryDate</Name>
+				<Source><![CDATA[
+    private date getLatestDeliveryDate(TFMRequestGetOrderLinesElement _request)
+    {
+        TFMDocumentQueue    dQueue;
+        Date                retDate = MobHelper::today();
+        select firstonly RequestXML, DeviceId, DocumentType, RecID from dQueue order by CreatedDateTime desc
+            where dQueue.DeviceId == _request.parmRoot().parmdeviceID() && dQueue.DocumentType == methodStr(MobDocBatchOrder, GetBatchOrders);
+        if (dQueue.RecId)
+        {
+            retDate = str2Date(MobHelper::FilterXml2String(dQueue.RequestXML(),MobConstants::DeliveryDate()),123);
+        }
+        return retDate == dateNull() ? MobHelper::today() : retDate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLatestLocation</Name>
+				<Source><![CDATA[
+    private str getLatestLocation(TFMRequestGetOrderLinesElement _request)
+    {
+        TFMDocumentQueue dQueue;
+        InventLocationId location = MobConstants::All();
+        select firstonly RequestXML, DeviceId, DocumentType, RecID from dQueue order by CreatedDateTime desc
+        where dQueue.DeviceId == _request.parmRoot().parmdeviceID() && dQueue.DocumentType == methodStr(MobDocBatchOrder, getBatchOrders);
+        
+        if (dQueue.RecId)
+        {
+            Location = MobHelper::FilterXml2String(dQueue.RequestXML(),MobConstants::Warehouse());
+        }
+        return location ? location : MobConstants::All();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLineRecords</Name>
+				<Source><![CDATA[
+    public Map getLineRecords(TFMRequestGetOrderLinesElement _request)
+    {
+        Map                 returnMap = new Map(Types::string, Types::Record);
+        ProdId              prodId = this.getProdId(_request.parmBackendID());//,2,strlen(backendId)); // Remove the prefix
+        PmfProdCoBy         CoBy;
+        InventLocationId    locationID;
+        Date                latestFilterDate;
+
+        prodTable = prodTable::find(prodId);
+
+        if (! prodId || !prodTable)
+        {
+            throw error(strfmt(ProdTable::txtNotExist(),prodId));
+        }
+        //returnMap.insert(tableStr(ProdTable) + ';' + int642Str(prodTable.RecId), prodTable);
+        locationID = this.getLatestLocation(_request);//ClassFactory.globalCache().get(TFMDocumentConnector::getDeviceID(requestXml.xml()) , 'GetReceiveOrders', #All);
+        latestFilterDate = this.getLatestDeliveryDate(_request);
+        while select CoBy
+            where CoBy.ProdId == prodId && prodTable.ProdStatus != ProdStatus::ReportedFinished &&
+                        ((CoBy.StUpDate && CoBy.StUpDate <= latestFilterDate)) && CoBy.RemainCoByPhysical && CoBy.BackorderStatus != ProdBackStatus::Completed
+        {
+            if(/*.isStocked()*/true && (locationID == MobConstants::All() || locationID == CoBy.inventDim().InventLocationId))
+            {
+                //sorting ++;
+                returnMap.insert(tableStr(PmfProdCoBy) + ';' + int642Str(CoBy.RecId), CoBy);
+            }
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPostPromptCollectors</Name>
+				<Source><![CDATA[
+    public Map getPostPromptCollectors(str _backendID)
+    {
+        Map             ret;
+        ret = super(_backendID);
+        ret.insert('EndProd',TFMRegistrationCollectorList::ListStepMap(false, 1,'EndProd',"@SYS12772", "@SYS12772","@SYS12772","@SYS2048"+';'+"@SYS323111"));
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProdId</Name>
+				<Source><![CDATA[
+    private ProdId getProdId(str _backendID)
+    {
+        return conPeek(MobHelper::strSplit(_backendID,'/').pack(),6);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProdTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSetAttribute(tableStr(ProdTable))]
+    public ProdTable getProdTable()
+    {
+        return ProdTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postRequest</Name>
+				<Source><![CDATA[
+    public str postRequest(TFMRequestOrdersElement _orderElement)
+    {
+
+        ProdId                      prodId  = this.getProdId(_orderElement.parmBackendID());//,2,strlen(backendId)); // Remove the prefix
+        //inventQty                   goodQty;
+        //InventBatch                 InventBatch;
+        ProdJournalTableData        prodTableData;
+        //InventDim                   inventDim;
+        ProdJournalProd             prodJournalProd;
+        ProdJournalName             prodJournalName;
+        ProdJournalCheckPost        journalCheckPost;
+        //ProdErrorCause              prodErrorCause;
+        NoYes                       noYes;
+        int                         startLine;
+        int                         i;
+        int                         lineNum;
+        str                         errorMessage;
+        prodJournalTable            prodJournalTable;
+        MobRegistrations            mobRegistrations;
+        CreatedTransactionId        transID;
+        str                         endJob = _orderElement.getFieldValue('EndProd');
+        Set							handledLines = new Set(Types::String);
+
+        prodTable = ProdTable::find(prodId);
+
+        if (! prodId || !ProdTable::exist(prodId))
+        {
+            throw error(strfmt(PurchTable::txtNotExist(),prodId));
+        }
+        // Get the journal name from the Mobile WMS parameters
+        prodJournalName = ProdJournalName::find(MobParameters::find().ProdJournalNameFinish);
+        prodJournalTable.initValue();
+        prodJournalTable.JournalType        = prodJournalType::ReportFinished;
+        prodTableData = JournalTableData::newTable(ProdJournalTable);
+        prodTableData.initFromJournalName(prodJournalName);
+        prodJournalTable.NumOfLines         = 1;
+        prodJournalTable.Description        = "@MobileWMS:MEL36";
+        prodJournalTable.ProdId             = prodId;
+        //prodJournalTable.AutoReportFinished = str2enum(noYes,endJob);
+        prodJournaltable.insert();
+
+        transID = MobRegistrations::SaveRequest(_orderElement.Lines(), MobInventRefType::Production, prodId).CreatedTransactionId; // Moved iteration/registration of xml here
+        messageId = _orderElement.parmmessageId();//TFMDocumentConnector::getMessageID(_orderElement.ownerDocument().xml());
+
+        select firstOnly prodJournalProd order by LineNum desc where prodJournalProd.ProdId == prodId;
+        lineNum = real2int(prodJournalProd.LineNum) + 1;
+        while select forupdate mobRegistrations
+                index OrderLineNumIdx
+                where mobRegistrations.InventRefType == MobInventRefType::Production &&
+                        mobRegistrations.InventRefId  == prodId &&
+                        mobRegistrations.MessageId      == messageID &&
+                        mobRegistrations.CreatedTransactionId == transID &&
+                        mobRegistrations.handled == NoYes::No
+        {
+            // Get the registration values from the XML
+            /*goodQty     = MobRegistrations.Qty;
+
+            prodJournalProd.clear();
+            prodJournalProd.initValue();
+            prodJournalProd.initFromProdJournalTable(prodJournalTable);
+            prodJournalProd.initFromProdTable(prodTable);
+            
+            if (PmfProdCoBy::findTransId(MobRegistrations.InventTransId))
+            {
+                prodJournalProd.pmfInitFromProdCoBy(PmfProdCoBy::findTransId(MobRegistrations.InventTransId));
+            }
+            prodJournalProd.ItemId = MobRegistrations.ItemNumber();
+            prodJournalProd.QtyGood = MobRegistrations.Qty;
+            prodJournalProd.InventTransId = MobRegistrations.InventTransId;
+
+            prodJournalProd.ProdFinished = str2enum(noYes,endJob);
+            
+            inventDim = prodJournalProd.inventDim();
+            inventDim.inventBatchId = InventDim::find(MobRegistrations.InventDimId).inventBatchId;
+            inventDim.wMSLocationId = InventDim::find(MobRegistrations.InventDimId).wMSLocationId;
+            if (inventDim.inventBatchId && !InventBatch::exist(inventDim.inventBatchId, prodJournalProd.ItemId))
+            {
+                InventBatch.itemId = prodJournalProd.ItemId;
+                InventBatch.inventBatchId = inventDim.inventBatchId;
+                InventBatch.expDate = MobRegistrations.expDate;
+                InventBatch.insert();
+            }
+            prodJournalProd.InventDimId = inventDim::findOrCreate(inventDim).inventDimId;
+            prodJournalProd.validateWrite();
+            prodJournalProd.LineNum = lineNum;
+            prodJournalProd.insert();*/
+            handledLines.add(mobRegistrations.InventTransId);
+            MobBatchOrderTypeProcess::addJournalLine(prodJournalTable,mobRegistrations,lineNum,str2enum(noYes,endJob));
+            mobRegistrations.handled = NoYes::Yes;
+            mobRegistrations.Update();
+            lineNum++;
+        }
+        if (str2enum(noYes,endJob))
+        {
+            MobBatchOrderTypeProcess::endAllLines(prodJournaltable,handledLines,_orderElement);
+        }
+        startLine        = Global::infologLine();
+        journalCheckPost = ProdJournalCheckPostProd::newJournalCheckPost(true,true,JournalCheckPostType::Post,prodJournalTable.TableId,prodJournalTable.JournalId);
+        #ifnot.isAX6
+        JournalCheckPost.runOperation();
+        #endif
+        #if.isAX6
+        JournalCheckPost.run();
+        #endif
+        if (ProdJournalTable::exist (prodJournalTable.JournalId) && ! ProdJournalTable::find(prodJournalTable.JournalId).Posted)
+        {
+            /*ttsbegin;
+        prodJournaltable.delete();
+        ttscommit;*/
+        if(Global::infologLine() > startLine)
+            {
+                for (i = startLine+1; i<=infolog.num();i++)
+                {
+                    errorMessage += infolog.text(i);
+                }
+            }
+            throw error(strfmt("@SYS74581","@SYS26712"));
+        }
+        prodTable.reread();
+        if (str2enum(noYes,endJob) && prodTable.ProdStatus != ProdStatus::ReportedFinished)
+        {
+            MobBatchOrderTypeProcess::ProdReportAsFinish_Ended(prodTable);
+        }
+        return "@SYS9576";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>endAllLines</Name>
+				<Source><![CDATA[
+    public static void endAllLines(prodJournalTable _prodJournalTable, Set	_handledLines, TFMRequestOrdersElement _orderElement)
+    {
+        MobRegistrations				regs;
+        TFMRequestGetOrderLinesElement	request		= new TFMRequestGetOrderLinesElement();
+        MobBatchOrderTypeProcess		batchOrder	= new MobBatchOrderTypeProcess();
+        Map								linesActive;
+        MapEnumerator					mEnum;
+        PmfProdCoBy						CoBy;
+        LineNum							lineNum		= 100;
+
+        request.parmBackendID(_orderElement.parmBackendID());
+        request.parmRoot(_orderElement);
+        linesActive = batchOrder.getLineRecords(request);
+        mEnum = linesActive.getEnumerator();
+		while ( mEnum.moveNext())
+        {
+            CoBy = mEnum.currentValue();
+			if (_handledLines.in(CoBy.InventTransId))
+            {
+                continue;
+            }
+            regs.Qty = 0;
+            regs.InventTransId	= CoBy.InventTransId;
+            regs.InventDimId	= CoBy.InventDimId;
+            regs.expDate		= MobHelper::today();
+            MobBatchOrderTypeProcess::addJournalLine(_prodJournalTable,regs,lineNum,NoYes::Yes);
+            lineNum++;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addJournalLine</Name>
+				<Source><![CDATA[
+    public static void addJournalLine(prodJournalTable _prodJournalTable, MobRegistrations _mobRegistrations, LineNum _linenum, NoYes _endProd)
+    {
+        ProdJournalProd             prodJournalProd;
+        InventDim					inventDim;
+        //InventQty					goodQty     = _MobRegistrations.Qty;
+        InventDimId					usedInventDimId = _MobRegistrations.InventDimId ? _MobRegistrations.InventDimId : _MobRegistrations.ToInventDimId;
+        InventBatch					InventBatch;
+
+        prodJournalProd.clear();
+        prodJournalProd.initValue();
+        prodJournalProd.initFromProdJournalTable(_prodJournalTable);
+        prodJournalProd.initFromProdTable(ProdTable::find(_prodJournalTable.ProdId));
+            
+        if (PmfProdCoBy::findTransId(_MobRegistrations.InventTransId))
+        {
+            prodJournalProd.pmfInitFromProdCoBy(PmfProdCoBy::findTransId(_MobRegistrations.InventTransId));
+        }
+        prodJournalProd.ItemId = _mobRegistrations.ItemNumber();
+        prodJournalProd.QtyGood = _mobRegistrations.Qty;
+        prodJournalProd.InventTransId = _mobRegistrations.InventTransId;
+
+        prodJournalProd.ProdFinished = _endProd;
+            
+        inventDim = prodJournalProd.inventDim();
+        inventDim.inventBatchId = InventDim::find(usedInventDimId).inventBatchId;
+        inventDim.wMSLocationId = InventDim::find(usedInventDimId).wMSLocationId;
+        if (inventDim.inventBatchId && !InventBatch::exist(inventDim.inventBatchId, prodJournalProd.ItemId))
+        {
+            InventBatch.itemId = prodJournalProd.ItemId;
+            InventBatch.inventBatchId = inventDim.inventBatchId;
+            InventBatch.expDate = _mobRegistrations.expDate;
+            InventBatch.insert();
+        }
+        prodJournalProd.InventDimId = inventDim::findOrCreate(inventDim).inventDimId;
+        prodJournalProd.validateWrite();
+        prodJournalProd.LineNum = _linenum;
+        prodJournalProd.insert();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ProdReportAsFinish_Ended</Name>
+				<Source><![CDATA[
+    public static void ProdReportAsFinish_Ended(ProdTable _prodTable)
+    {
+        ProdMultiReportFinished ProdMultiReportFinished;
+        prodParmreportFinished prodParmreportFinished,prodParmreportFinishedUPD;
+        //Boolean RAF;//,Ended;        
+        Args Args = new Args();
+
+        Args.parmEnum(0);
+        Args.record(_prodTable);
+        ProdMultiReportFinished = ProdMultiReportFinished::construct(Args);
+        RunBaseMultiParm::initParm(ProdMultiReportFinished);
+        prodParmreportFinished = ProdMultiReportFinished.defaultParmBuffer();
+        ProdMultiReportFinished.insert(_prodTable,prodParmreportFinished);
+        prodParmreportFinishedUPD = prodParmreportFinished::find(prodParmreportFinished.ParmId,prodParmreportFinished.ProdId,True);
+        if(prodParmreportFinishedUPD)
+        {
+            prodParmreportFinishedUPD.QtyGood = _prodTable.QtySched;
+            prodParmreportFinishedUPD.EndRouteCard = NoYes::Yes;
+            prodParmreportFinishedUPD.RouteAutoConsump = RouteAutoConsump::Always;
+            prodParmreportFinishedUPD.BOMAutoConsump =          BomAutoConsump::FlushingPrincip;
+            prodParmreportFinishedUPD.EndPicklist = NoYes::Yes;
+            prodParmreportFinishedUPD.EndJob = NoYes::Yes;
+            prodParmreportFinishedUPD.AcceptError = Noyes::Yes;
+            prodParmreportFinishedUPD.update();
+        }
+        ProdMultiReportFinished.run();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

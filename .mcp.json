@@ -1,0 +1,21 @@
+{
+    "mcpServers": {
+        "d365fo-mcp-server": {
+            "type": "stdio",
+            "command": "d365fo-mcp",
+            "args": [],
+            "env": {
+                "D365FO_ENV_URL": "https://usnconeboxax1aos.cloud.onebox.dynamics.com",
+                "D365FO_BRIDGE_ENABLED": "1"
+            }
+        },
+        "mslearn": {
+            "type": "http",
+            "url": "https://learn.microsoft.com/api/mcp"
+        },
+        "fabric": {
+            "type": "http",
+            "url": "https://api.fabric.microsoft.com/v1/mcp/core"
+        }
+    }
+}

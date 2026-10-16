@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMImageCombiner</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMImageCombiner
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>combineImages</Name>
+				<Source><![CDATA[
+	public static str combineImages(ResourceName _resName)
+    {
+        TFMImageAggregate		imgAggr = TFMImageAggregate::Find(_resName);
+        TFMImageAggregateLines	imgAggrLines;
+        str						base64;
+
+        while select imgAggrLines order by linenum where imgAggrLines.IconID == imgAggr.IconID
+        {
+            base64 = TFMImageCombiner::combineImage(base64,imgAggrLines.IconToUse,imgAggrLines.xCenterPct,imgAggrLines.yCenterPct,imgAggrLines.Width,imgAggrLines.Height,imgAggrLines.scaleRelativeToCanvas);
+        }
+        return base64;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>combineImage</Name>
+				<Source><![CDATA[
+	public static str combineImage(str _base64Base, str _resourceName, real _centerX, real _centerY, real _w, real _h, boolean _scaleRelativeTocanvas = false) //X and Y are center placement of the image. outline for all is the incoming base64 image
+    {
+        
+        System.Drawing.Image		iconImage	= TFMImageHelper::base64ToImage(TFMDocGetMedia::getBase64FromName(_resourceName)); //TFMImageHelper::base64ToImage(TFMImageHelper::resource2Base64(base64Img));
+        System.Drawing.Image		folderImg	= _base64Base ? TFMImageHelper::base64ToImage( _base64Base ) : new System.Drawing.Bitmap(iconImage.Width,iconImage.Height);
+        System.Drawing.Graphics		graphics	= System.Drawing.Graphics::FromImage(folderImg);
+        System.Drawing.Rectangle	drawRect;
+        real						ratio		= iconImage.Height / iconImage.Width;
+        real						widthW		= folderImg.Width * (_w * 0.01);
+        real						heightW		= widthW * ratio;
+        real						heightH		= folderImg.Height * (_h * 0.01);
+        real						widthH		= heightH / ratio;
+        real						usedW		= heightW < heightH ? widthH : widthW;
+        real						usedH		= heightW < heightH ? heightH : heightW;
+        if (!_scaleRelativeTocanvas)
+        {
+			//Use scalar directly
+            usedW		= iconImage.Width * (_w * 0.01);
+            usedH		= iconImage.Height * (_h * 0.01);
+        }
+        drawRect = new System.Drawing.Rectangle(folderImg.Width * (_centerX*0.01) - (usedW*0.5),folderImg.Height * (_centerY * 0.01) - (usedH * 0.5), usedW, usedH);
+
+        /*if (!_base64Base)
+        {
+            return TFMDocGetMedia::getBase64FromName(_resourceName);
+        }*/
+
+        
+        graphics.DrawImage(iconImage,drawRect);
+        
+        return TFMImageHelper::Image2Base64(folderImg);
+	}
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageConfigurationHeader</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPageConfigurationHeader extends TFMPageConfigurationNode
+{
+    str         configurationKey;
+    boolean     automaticAcceptOnOpen;
+    boolean     automaticAcceptAfterLastScan;
+    boolean     clearAfterPost;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmconfigurationKey</Name>
+				<Source><![CDATA[
+    public str parmconfigurationKey(str _configurationKey = configurationKey)
+    {
+        configurationKey = _configurationKey;
+        return configurationKey;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmautomaticAcceptOnOpen</Name>
+				<Source><![CDATA[
+    public boolean parmautomaticAcceptOnOpen(boolean _automaticAcceptOnOpen = automaticAcceptOnOpen)
+    {
+        automaticAcceptOnOpen = _automaticAcceptOnOpen;
+        return automaticAcceptOnOpen;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmautomaticAcceptAfterLastScan</Name>
+				<Source><![CDATA[
+    public boolean parmautomaticAcceptAfterLastScan(boolean _automaticAcceptAfterLastScan = automaticAcceptAfterLastScan)
+    {
+        automaticAcceptAfterLastScan = _automaticAcceptAfterLastScan;
+        return automaticAcceptAfterLastScan;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmclearAfterPost</Name>
+				<Source><![CDATA[
+    public boolean parmclearAfterPost(boolean _clearAfterPost = clearAfterPost)
+    {
+        clearAfterPost = _clearAfterPost;
+        return clearAfterPost;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

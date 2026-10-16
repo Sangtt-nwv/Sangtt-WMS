@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMRequestElement
+{
+    TFMDocumentTypeId           documentType;
+    TFMDocumentContentSubject   contentType;
+    Map                         fields;
+    Map                         subNodes;
+    TFMDocumentDeviceId         deviceId;
+    TFMDocumentMessageId        messageId;
+    InventDim                   inventDim;
+    InventTable                 inventTable;
+    ItemId                      itemId;
+    str                         rawItemID;
+    TFMRequestElement           root;
+    str                         refRecord;
+    Name                        name;
+    TFMRequestElement			contextValues;
+    str                         fieldPrefix;
+    TFMLogicContext             logicContext;
+    XmlDocument                 origXML;
+    str                         blocksToPost;
+    Map     	                handledSubRequests;
+    str                         stepRemovalState;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>replaceWithValue</Name>
+				<Source><![CDATA[
+    public str replaceWithValue(str _value)
+    {
+        return logicContext.replaceWithValue(_value, fields);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHandledSubRequests</Name>
+				<Source><![CDATA[
+    public Map getHandledSubRequests()
+    {
+        if (!handledSubRequests)
+        {
+            handledSubRequests = new Map(Types::String, Types::String);
+        }
+        return handledSubRequests;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSubRequest</Name>
+				<Source><![CDATA[
+    public TFMRequestElement getSubRequest(str _key)
+    {
+        if (handledSubRequests && handledSubRequests.exists(_key))
+        {
+            return new SysDictClass(className2Id(handledSubRequests.lookup(_key))).makeObject();
+        }
+        return TFMXMLDeserializer::findClass(_key,'');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertToOtherRequestType</Name>
+				<Source><![CDATA[
+    public TFMRequestElement convertToOtherRequestType(ClassName _className)
+    {
+        return TFMXMLDeserializer::convertRequestClass(this, _className);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeLogEntry</Name>
+				<Source><![CDATA[
+    public void makeLogEntry(Description1000 _logText)
+    {
+        TFMMessageLog::AddLogEntry(messageId, _logText);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        fields = new Map(Types::String, Types::String);
+        subNodes = new Map(Types::String, Types::Class);
+        logicContext = TFMLogicContext::Construct();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInventDim</Name>
+				<Source><![CDATA[
+    public InventDim parmInventDim(InventDim _inventDim = inventDim)
+    {
+        inventDim = _inventDim;
+
+        return inventDim;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOrigXML</Name>
+				<Source><![CDATA[
+    public XmlDocument parmOrigXML(XmlDocument _xmlDoc = origXML)
+    {
+        origXML = _xmlDoc;
+        return origXML;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmName</Name>
+				<Source><![CDATA[
+    public  name parmName(name _name = name)
+    {
+        name = _name;
+        return name;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRoot</Name>
+				<Source><![CDATA[
+    public  TFMRequestElement parmRoot(TFMRequestElement _root = root)
+    {
+        root = _root;
+        return root;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addField</Name>
+				<Source><![CDATA[
+    public void addField(str _key, str _value, boolean _tryFillParmMethod = false)
+    {
+        anytype result;
+        str key = _key;
+
+        fields.insert(key,_value);
+        if (_tryFillParmMethod)
+        {
+            result = TFMHelper::addValueToParmMethod(key,this,_value);
+            if (result)
+            {
+                fields.insert(key,strFmt('%1',result));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFieldValue</Name>
+				<Source><![CDATA[
+    public str getFieldValue(str _key)
+    {
+        return fields.exists(_key) ? fields.lookup(_key) : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFieldMap</Name>
+				<Source><![CDATA[
+    public Map getFieldMap()
+    {
+        return fields;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBlocksToPost</Name>
+				<Source><![CDATA[
+    public List getBlocksToPost()
+    {
+        int onlineStepCounter = 1;
+        str stepBlocks = this.getFieldValue(TFMConstants::blocksToPost());
+        while (fields.exists(TFMConstants::onlineStepBlocksToPost() + int2Str(onlineStepCounter)))
+        {
+            stepBlocks += (stepBlocks ? ';' : '')+fields.lookup(TFMConstants::onlineStepBlocksToPost() + int2Str(onlineStepCounter));
+            onlineStepCounter++;
+        }
+
+        if(stepBlocks)
+        {
+            return strSplit(stepBlocks, ';');
+        }
+        return new List(Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDocumentType</Name>
+				<Source><![CDATA[
+    public TFMDocumentTypeId parmDocumentType(TFMDocumentTypeId _documentType = documentType)
+    {
+        documentType = _documentType;
+        return documentType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ContentType</Name>
+				<Source><![CDATA[
+    public TFMDocumentContentSubject ContentType()
+    {
+        return contentType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmContentType</Name>
+				<Source><![CDATA[
+    public TFMDocumentContentSubject parmContentType( TFMDocumentContentSubject _contentType = contentType)
+    {
+        contentType = _contentType;
+        return contentType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addSubNodes</Name>
+				<Source><![CDATA[
+    public void addSubNodes(str _key, TFMRequestElement _subNode)
+    {
+        subNodes.insert(_key, _subNode);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSubNodes</Name>
+				<Source><![CDATA[
+    public TFMRequestElement getSubNodes(str _key)
+    {
+        return subNodes.exists(_key) ? subNodes.lookup(_key) : null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>hasSubnodes</Name>
+				<Source><![CDATA[
+    public boolean hasSubnodes()
+    {
+        return subNodes.elements() > 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSubNodeMap</Name>
+				<Source><![CDATA[
+    public Map getSubNodeMap()
+    {
+        return subNodes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmContextValues</Name>
+				<Source><![CDATA[
+    public TFMRequestElement parmContextValues(TFMRequestElement _contextValues = contextValues)
+    {
+        contextValues = _contextValues;
+        return contextValues;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmdeviceID</Name>
+				<Source><![CDATA[
+    public TFMDocumentDeviceId parmdeviceID(TFMDocumentDeviceId _deviceId = deviceId)
+    {
+        deviceId = _deviceId;
+        return deviceId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmmessageId</Name>
+				<Source><![CDATA[
+    public TFMDocumentMessageId parmmessageId(TFMDocumentMessageId _messageId = messageId)
+    {
+        messageId = _messageId;
+        logicContext.parmExecutedFromDevice(true);
+        return messageId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmReferenceIdentity</Name>
+				<Source><![CDATA[
+    public str parmReferenceIdentity(str _refRecord = refRecord)
+    {
+        refRecord = _refRecord;
+        return refRecord;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getReferredRecord</Name>
+				<Source><![CDATA[
+    public Common getReferredRecord()
+    {
+        Common      record = null;
+        container   refCon;
+        int64       refId;
+        if (refRecord)
+        {
+            refCon      = strSplit(refRecord,';').pack();
+            if (conLen(refCon) != 5 || !tableName2Id(conPeek(refCon ,4)))
+            {
+                return record;
+            }
+            record          = new DictTable(tableName2Id(conPeek(refCon ,4))).makeRecord();
+            refId = str2Int64(conPeek(refCon ,5));
+            select firstonly record where record.RecId == refid;
+        }
+        return record;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInventTable</Name>
+				<Source><![CDATA[
+    public InventTable parmInventTable(InventTable _inventTable = inventTable)
+    {
+        inventTable = _inventTable;
+
+        // To make sure the inventTable is available if the itemId is already provided. 
+        if(itemId && !inventTable && prmIsDefault(_inventTable))
+        {
+            inventTable = inventTable::find(itemId);
+        }
+        return inventTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmItemId</Name>
+				<Source><![CDATA[
+    public ItemId parmItemId(ItemId _itemId = itemId)
+    {
+        if (_itemId != itemId)
+        {
+            this.updateItemId(_itemId);
+        }
+        return itemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmItemIdBase</Name>
+				<Source><![CDATA[
+    public ItemId parmItemIdBase(ItemId _itemId = itemId)
+    {
+        if (_itemId != itemId)
+        {
+            this.updateItemId(_itemId);
+        }
+
+        return itemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmItemNumber</Name>
+				<Source><![CDATA[
+    public ItemId parmItemNumber(ItemId _itemId = itemId)
+    {
+        if (_itemId != itemId)
+        {
+            this.updateItemId(_itemId);
+        }
+        return itemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateItemId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Updates the ItemId. Handling barcodes etc. This method is overridden by the TFMRequestInventDimElement class to set the inventdim
+    /// </summary>
+    protected void updateItemId(str _inputStr)
+    {
+        this.parmRawItemID(_inputStr);         
+        str tmpItemId = TFMHelper::string2ItemID(_inputStr, inventDim);
+        itemId = tmpItemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRawItemId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The raw item ID is e.g. the value of a barcode scan so it not directly an itemID.
+    /// </summary>
+    /// <returns></returns>
+    public str parmRawItemId(str _itemId = rawItemID)
+    {
+        rawItemID = _itemId;
+        return rawItemID;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>logicContext</Name>
+				<Source><![CDATA[
+    public TFMLogicContext logicContext()
+    {
+        return logicContext;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFieldPrefix</Name>
+				<Source><![CDATA[
+    public str parmFieldPrefix(str _fieldPrefix = fieldPrefix)
+    {
+        fieldPrefix = _fieldPrefix;
+        
+        return fieldPrefix;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmStepRemovalState</Name>
+				<Source><![CDATA[
+    public str parmStepRemovalState(str _stepRemovalState = stepRemovalState)
+    {
+        stepRemovalState = _stepRemovalState;
+        return stepRemovalState;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

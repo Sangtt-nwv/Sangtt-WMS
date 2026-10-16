@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobAIResultMessageContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContract]
+class MobAIResultMessageContract
+{
+    MobRegularExpression content;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmContent</Name>
+				<Source><![CDATA[
+    [DataMember('content')]
+    public MobRegularExpression parmContent(MobRegularExpression _content = content)
+    {
+        content = _content;
+        return content;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

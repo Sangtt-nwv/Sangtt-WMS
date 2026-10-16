@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMenuGroups</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMMenuGroups extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>initValue</Name>
+				<Source><![CDATA[
+    public void initValue()
+    {
+        this.GroupingTypeIcon = 'Folder';
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Find</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Standard Find method for the menu groups.
+    /// </summary>
+    /// <param name = "_id">Id of the group.</param>
+    /// <param name = "_selectForUpdate">Should the record be selected for update?</param>
+    /// <returns>A TFMMenuGroups record</returns>
+	public static TFMMenuGroups Find (TFMMenuGroupId _id, boolean _selectForUpdate = false)
+    {
+        TFMMenuGroups menuGroup;
+
+        menuGroup.selectForUpdate(_selectForUpdate);
+
+        select firstonly menuGroup where menuGroup.MenuGroupId == _id;
+
+        return menuGroup;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Exist</Name>
+				<Source><![CDATA[
+    public static boolean Exist (TFMMenuGroupId _id)
+    {
+        TFMMenuGroups menuGroup;
+
+        select firstonly MenuGroupId from menuGroup where menuGroup.MenuGroupId == _id;
+
+        return menuGroup.MenuGroupId != '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addItem</Name>
+				<Source><![CDATA[
+    public static boolean addItem(TFMMenuGroupId _menuGroupId, boolean _unattachableInMenus, boolean _showFolder = true)
+    {
+        TFMMenuGroups menuGroup;
+        
+        TFMMenuGroups foundGroup = TFMMenuGroups::Find(_menuGroupId);
+
+        if(!foundGroup)
+        {
+            menuGroup.MenuGroupId = _menuGroupId;
+            menuGroup.GroupingTypeIcon = 'Folder';
+            menuGroup.Icon =  _menuGroupId;
+            menuGroup.Description =  _menuGroupId;
+            menuGroup.UnattachableInMenus = _unattachableInMenus;
+            menuGroup.insert();
+               
+            return true;
+        }
+
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createMenuGroups</Name>
+				<Source><![CDATA[
+    public static void createMenuGroups(TFMPages _pages)
+    {
+        TFMPage             currentTFMPage;
+        MapEnumerator       pagesEnum = _pages.getPages().getEnumerator();
+
+        // make sure the main menu has been created.
+        TFMMenuGroups::addItem('MainMenu', true, false);
+
+        // create all controls for the pages.
+        while (pagesEnum.moveNext())
+        {
+            currentTFMPage = pagesEnum.currentValue() as TFMPage;
+          
+            // Add the Menu Groups that has not been created yet.
+            SetEnumerator categoriesEnum = currentTFMPage.getPageBelongsToMenuGroups().getEnumerator();
+            while(categoriesEnum.moveNext())
+            {
+                TFMMenuGroups::addItem(categoriesEnum.current(), TFMMenuGroups::isUnAttachableInMenus(categoriesEnum.current()));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isUnAttachableInMenus</Name>
+				<Source><![CDATA[
+    public static boolean isUnAttachableInMenus(str _groupName)
+    {
+        return _groupName == TFMConstants::MenuGroupMainMenu() || _groupName == 'ManufacturingExecution';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>write</Name>
+				<Source><![CDATA[
+    public void write()
+    {
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>delete</Name>
+				<Source><![CDATA[
+    public void delete()
+    {
+        str id = this.MenuGroupId;
+        super();
+        TFMPagesProvider::getAllPages().removePage(id);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void insert()
+    {
+        this.MenuGroupId = strKeep(this.MenuGroupId, 'qwertyuioplkjhgfdsazxcvbnm1234567890');
+        super();
+        //this.updatePageProvider(this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void update()
+    {
+        TFMMenuGroupId orgMenuGroupId;		
+        this.MenuGroupId = strKeep(this.MenuGroupId, 'qwertyuioplkjhgfdsazxcvbnm1234567890');
+        orgMenuGroupId = this.orig().MenuGroupId;
+        super();
+        if(orgMenuGroupId != this.MenuGroupId)
+        {
+            TFMPagesProvider::getAllPages().removePage(orgMenuGroupId);
+        }
+        //this.updatePageProvider(this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updatePageProvider</Name>
+				<Source><![CDATA[
+    public void updatePageProvider()
+    {
+        TFMPageMenuPage page;
+        page = TFMPagesProvider::createMenuPage(this);
+        TFMPagesProvider::getAllPages().addPage(page);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MenuGroupId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Icon</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MenuGroupId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MenuGroupId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Icon</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>MenuGroupId</Name>
+			<ExtendedDataType>TFMMenuGroupId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Description</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Icon</Name>
+			<ExtendedDataType>ResourceName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>UnattachableInMenus</Name>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>GroupingTypeIcon</Name>
+			<ExtendedDataType>TFMGroupingTypeIcon</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

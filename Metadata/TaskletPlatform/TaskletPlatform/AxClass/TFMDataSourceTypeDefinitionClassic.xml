@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDataSourceTypeDefinitionClassic</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDataSourceTypeDefinitionClassic extends TFMDataSourceTypeDefinition
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>typeName</Name>
+				<Source><![CDATA[
+    public Name typeName()
+    {
+        return 'Classic';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobRealtimeRegistredQuantity</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobRealtimeRegistredQuantity extends common
+{
+}
+
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+	<DeveloperDocumentation>@MobileWMS:RealtimeRegistrationsDevDesc</DeveloperDocumentation>
+	<Label>@MobileWMS:MobileWMS141</Label>
+	<Tags>NoExport</Tags>
+	<TitleField1>OrderNumber</TitleField1>
+	<TitleField2>ItemId</TitleField2>
+	<ReplacementKey>Pk</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>UnitOfMeasure</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ActionType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DeviceId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FromInventLocationID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ItemId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LineNumber</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>BatchID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MobileUserID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OrderNumber</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Quantity</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RegistrationNumber</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SerialNumber</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Timestamp</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ToInventLocationID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Type</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DeviceId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Type</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OrderNumber</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LineNumber</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RegistrationNumber</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ActionType</Name>
+			<Label>@MobileWMS:ActionType</Label>
+			<StringSize>20</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DeviceId</Name>
+			<ExtendedDataType>MobDocumentDeviceId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FromInventLocationID</Name>
+			<ExtendedDataType>InventLocationId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@LeanProductionFlowVisualization:Tooltip_FromLocation</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ItemId</Name>
+			<ExtendedDataType>ItemId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LineNumber</Name>
+			<ExtendedDataType>Num</ExtendedDataType>
+			<Label>@SYS27207</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>BatchID</Name>
+			<ExtendedDataType>InventBatchId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>MobileUserID</Name>
+			<ExtendedDataType>UserID</ExtendedDataType>
+			<Label>@MobileWMS:MobileWMS134</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OrderNumber</Name>
+			<ExtendedDataType>Num</ExtendedDataType>
+			<Label>@SYS15098</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>Quantity</Name>
+			<ExtendedDataType>InventQty</ExtendedDataType>
+			<Label>@SpedFiscalBlockK:InventoryQuantity</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>RegistrationNumber</Name>
+			<ExtendedDataType>MobRegistrationNumber</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SerialNumber</Name>
+			<ExtendedDataType>InventSerialId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>Timestamp</Name>
+			<ExtendedDataType>MobTimeStamp</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ToInventLocationID</Name>
+			<ExtendedDataType>InventLocationId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SYS50351</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Type</Name>
+			<Label>@SYS17041</Label>
+			<StringSize>20</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>UnitOfMeasure</Name>
+			<ExtendedDataType>UnitOfMeasureSymbol</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>Pk</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>DeviceId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>Type</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>OrderNumber</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>LineNumber</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>RegistrationNumber</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

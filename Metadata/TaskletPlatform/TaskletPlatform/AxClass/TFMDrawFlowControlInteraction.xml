@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowControlInteraction</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMDrawFlowControlInteraction
+{
+    TFMDrawFlowJsonCreator  jsonMediator;
+    str                     keyId;
+    Object                  keyObject; // the object that can give information about how to store the data.
+    FormGroupControl        fgc;
+    TFMDrawFlowControl      flowControl;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>blockList</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns list of blocks to add in the flow control. Must be a List of TFMLogicBlocksContract instances (Or equivalent contract class)
+    /// </summary>
+    /// <returns>List of blocks to add to view</returns>
+    public abstract List blockList()
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveData</Name>
+				<Source><![CDATA[
+    public abstract void saveData(str _json)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeCreated</Name>
+				<Source><![CDATA[
+    public abstract void nodeCreated(TFMDrawFlowLogicBlockContract _createdNode)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeDeleted</Name>
+				<Source><![CDATA[
+    public abstract void nodeDeleted(int _id)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>allowConnection</Name>
+				<Source><![CDATA[
+    public boolean allowConnection(TFMDrawFlowConnectionContract _connection)
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>connectionDeleted</Name>
+				<Source><![CDATA[
+    public void connectionDeleted(TFMDrawFlowConnectionContract _connection)
+    {
+     
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getData</Name>
+				<Source><![CDATA[
+    public abstract str getData()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setFlowControl</Name>
+				<Source><![CDATA[
+    public void setFlowControl(TFMDrawFlowControl _flowControl)
+    {
+        flowControl = _flowControl;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmKeyObject</Name>
+				<Source><![CDATA[
+    public Object parmKeyObject(Object _keyObject = keyObject)
+    {
+        keyObject = _keyObject;
+        return keyObject;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeSelected</Name>
+				<Source><![CDATA[
+    public abstract void nodeSelected(int _id)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateHtmlForCurrentNode</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Expect the html for the current node to be updated. 
+    /// </summary>
+    public abstract void updateHtmlForCurrentNode()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setContextGroup</Name>
+				<Source><![CDATA[
+    public void setContextGroup(FormGroupControl _fgc)
+    {
+        fgc = _fgc;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>allowEdit</Name>
+				<Source><![CDATA[
+    public boolean allowEdit()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

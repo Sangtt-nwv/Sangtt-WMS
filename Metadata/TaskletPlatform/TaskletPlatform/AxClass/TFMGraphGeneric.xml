@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMGraphGeneric</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMGraphGeneric
+{
+
+    TFMHtmlViewerCtrl       htmlViewer;
+    Map                     ancestors;
+    Map                     treeNodes;
+    System.Drawing.Bitmap   bmpBase;
+    container               colors;
+    int                     maxDepth;
+    int                     maxBreadth;
+    int                     height;
+    int                     width;
+    int                     forcedWidth;
+    int						forcedHeight;
+    Map                     breadthPerDepth;
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>calcNodePlacements</Name>
+				<Source><![CDATA[
+    protected void calcNodePlacements()
+    {
+        MapEnumerator       mEnum;
+        int                 key, startKey;
+        str                 ancestorName = 'zzzzzzzz';
+        TFMGraphTreeNode    treeNode;
+        boolean             noNewAdded = false;
+        Map                 nodesPerDepth = new Map(Types::Integer, Types::Integer);
+
+        //Start with first ancestor in first depth, sorted Alphabetically.
+
+        mEnum = ancestors.getEnumerator();
+        while(mEnum.moveNext())
+        {
+            key         = mEnum.currentKey();
+            if (!treeNodes.exists(key))
+            {
+                continue;
+            }
+            treeNode    = treeNodes.lookup(key);
+            if (treeNode.parmDepthPos() == 0)
+            {
+                if (ancestorName > treeNode.parmLabel())
+                {
+                    startKey = key;
+                    ancestorName = treeNode.parmLabel();
+                }
+            }
+        }
+        key = startKey;
+        //Traverse tree and place nodes
+        while (!noNewAdded && treeNodes.exists(key))
+        {
+            noNewAdded = this.placeNode(key,nodesPerDepth);
+
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>draw</Name>
+				<Source><![CDATA[
+    public void draw()
+    {
+        MapEnumerator           mEnum;
+        System.Drawing.Graphics bmpDC;
+        TFMGraphTreeNode        treeNode;
+        System.Drawing.Bitmap   bmp;
+        ;
+
+        bmp =  bmpBase.Clone();
+
+        bmpDC = System.Drawing.Graphics::FromImage(bmp);
+
+        mEnum = treeNodes.getEnumerator();
+        while(mEnum.moveNext())
+        {
+            treeNode = mEnum.currentValue();
+            treeNode.draw(bmpDC,treeNodes);
+        }
+        
+        TFMGraphGeneric::setImageHtml(bmp,htmlViewer);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    protected void init(str _headline = '')
+    {
+        height = (forcedHeight != -5 ? forcedHeight : 700);//fwC.heightValue();
+        width  =  max((forcedWidth != -5 ? forcedWidth : 1400),200);//fwC.widthValue();
+        
+        this.initColors();
+        this.initGraphVars();
+        this.calcNodePlacements();
+        this.initBaseBmp(_headline);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initBaseBmp</Name>
+				<Source><![CDATA[
+    protected void initBaseBmp(str _headline = '')
+    {
+        InteropPermission       perm = new InteropPermission(InteropKind::ClrInterop);
+        System.Drawing.Pen      pen;
+        System.Drawing.Brush    brush;
+        System.Drawing.Color    color;
+        System.Drawing.Graphics bmpDC;
+        int                     i;
+        perm.assert();
+        //BP deviation documented
+        bmpBase = new System.Drawing.Bitmap(width,height);
+        bmpDC = System.Drawing.Graphics::FromImage(bmpBase);
+        color = System.Drawing.Color::FromArgb(255 +255<<8 +255 <<16 + 255<<24);
+
+        //BP deviation documented
+        brush = new System.Drawing.SolidBrush(color);
+
+        bmpDC.FillRectangle(brush,0,0,width,height);
+        brush.Dispose();
+        //bmpDC.set_SmoothingMode(System.Drawing.Drawing2D.SmoothingMode::AntiAlias);
+        color = System.Drawing.Color::FromArgb(255 +164<<8 +164 <<16 + 64<<24);
+        //BP deviation documented
+        Pen = new System.Drawing.Pen(color,1);
+        for (i = 1; i < height/20;i++)
+        {
+            bmpDC.DrawLine(pen,0,i*20,width,i*20);
+        }
+        for (i = 1; i < width/20;i++)
+        {
+            bmpDC.DrawLine(pen,i*20,0,i*20,height);
+        }
+        TFMGraphicsHelper::drawBmpEdges(bmpDC,0,0,width,height,196<<24,true,false);
+        TFMGraphicsHelper::drawText(bmpDC,4,4,128<<24,_headline,20,SysChartHorizontalAlignment::Left, SysChartVerticalAlignment::Top);
+        pen.Dispose();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initColors</Name>
+				<Source><![CDATA[
+    protected void initColors()
+    {
+        int i;
+        int                     subB = 0;
+        int                     b = 190;
+        int                     g = 150;
+        int                     subG = 0;
+        int                     r = 120;
+        int                     subR = 0;
+
+        colors = conNull();
+
+        for( i = 0; i < treeNodes.elements(); i++)
+        {
+            b -= subB;
+            b = b < 0 ? b + 255 : b;
+            subB = subB < 2 ? 60 : subB/2;
+            g += subG;
+            g = g < 0 ? g + 255 : g > 255 ? g - 255 : g;
+            subG = (i & 0x01) ? 60 : -30;
+            r += subR;
+            r = r < 0 ? r + 255 : r > 255 ? r - 255 : r;
+            subR = (i & 0x01) ? 60 : 150;
+            colors += (r + g<<8 + b<<16);
+        }
+        /*RandomGenerate  rand = RandomGenerate::construct();
+        int             i;
+        colors = conNull();
+
+        for( i = 0; i < treeNodes.elements(); i++)
+        {
+        colors += (rand.randomInt(0,255) + rand.randomInt(0,255)<<8 + rand.randomInt(0,255)<<16);
+        }*/
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initGraphVars</Name>
+				<Source><![CDATA[
+    protected void initGraphVars()
+    {
+
+        MapEnumerator       mEnum;
+        TFMGraphTreeNode    treeNode;
+        int                 breadth;
+
+        breadthPerDepth = new Map(Types::Integer, Types::Integer);
+        mEnum = treeNodes.getEnumerator();
+
+        while(mEnum.moveNext())
+        {
+            treeNode = mEnum.currentValue();
+            maxDepth = max(maxDepth, treeNode.parmDepthPos());
+            if (breadthPerDepth.exists(treeNode.parmDepthPos()))
+            {
+                breadth = breadthPerDepth.lookup(treeNode.parmDepthPos());
+                breadthPerDepth.remove(treeNode.parmDepthPos());
+            }
+            else
+            {
+                breadth = 0;
+            }
+            breadth++;
+            breadthPerDepth.insert(treeNode.parmDepthPos(),breadth);
+            maxBreadth = max(maxBreadth,breadth);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mouseClick</Name>
+				<Source><![CDATA[
+    public str mouseClick(int _x, int _y)
+    {
+        MapEnumerator       mEnum = treeNodes.getEnumerator();
+        TFMGraphTreeNode    tNode;
+        str                 ret = '';
+
+        while(mEnum.moveNext())
+        {
+            tNode = mEnum.currentValue();
+            if (tNode.parmRect().testIntersection(_x,_y))
+            {
+                ret = mEnum.currentKey();
+            }
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initializes a new instance of the Graph class.
+    /// </summary>
+    /// <param name="_fwC">
+    /// A reference to the <c>FormWindowControl</c> object, where the graph is drawn.
+    /// </param>
+    /// <param name="_ancestors">
+    /// A map containing ancestors.
+    /// </param>
+    /// <param name="_treeNodes">
+    /// A map of treenodes.
+    /// </param>
+    protected void new(TFMHtmlViewerCtrl _htmlViewer, Map _ancestors, Map _treeNodes, str _headline = '', int _forcedWidth = -5, int _forcedHeight = -5)
+    {
+        htmlViewer = _htmlViewer;
+        ancestors = _ancestors;
+        treeNodes = _treeNodes;
+        forcedWidth = _forcedWidth;
+        forcedHeight = _forcedHeight;
+        this.init(_headline);
+        //this.draw();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAncestors</Name>
+				<Source><![CDATA[
+    public Map parmAncestors(Map _ancestors = ancestors)
+    {
+        //Ancestors Map must have the following definition: ancestors = new Map(Types::Int64, Types::String);
+        //Keys must match treeNodes map keys.
+        ancestors = _ancestors;
+        return ancestors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTreeNodes</Name>
+				<Source><![CDATA[
+    public Map parmTreeNodes(Map _treeNodes = treeNodes)
+    {
+        //TreeNodes map must have the following definition: treeNodes = new Map(Types::Int64,Types::Class), where the class is an MROGraphTreeNode.
+        treeNodes = _treeNodes;
+        return treeNodes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>placeNode</Name>
+				<Source><![CDATA[
+    protected boolean placeNode(int _key, Map _nodesPerDepth)
+    {
+        TFMGraphRectInteraction rect;
+        TFMGraphTreeNode        treeNode = treeNodes.lookup(_key);
+        TFMGraphTreeNode        tmpNode;
+        int                     nodesThisDepth = 0;
+        int                     i, nodeNumPlaced = 0;
+        real                    x, y;
+        boolean                 ret = false;
+        Map                     nextPrevNodes;
+        MapEnumerator           mEnum;
+
+        if (treeNode.parmRect() != null)
+        {
+            //info('ended: '+treeNode.parmLabel()+' '+_key);
+            return true; //No new Nodes were added, maybe outer loop can be stopped.
+        }
+
+        if (_nodesPerDepth.exists(treeNode.parmDepthPos()))
+        {
+            nodesThisDepth = _nodesPerDepth.lookup(treeNode.parmDepthPos());
+            _nodesPerDepth.remove(treeNode.parmDepthPos());
+        }
+        nodesThisDepth++;
+        _nodesPerDepth.insert(treeNode.parmDepthPos(),nodesThisDepth);
+        x = (width/((maxDepth+1)*2))*(treeNode.parmDepthPos()*2+1);
+        y = (height/((breadthPerDepth.lookup(treeNode.parmDepthPos()))*2))*(2*(nodesThisDepth)-1);
+
+        rect = TFMGraphRectInteraction::ConstructCenter(x,y,width/((maxDepth+1)*2),max(treeNode.parmforcedRectHeight(),height/((maxBreadth)*2)),treeNode.parmLabel(),treeNode.parmSubText(),treeNode.parmreturnVariable(),treeNode.parmRectClassName());
+        mEnum = _nodesPerDepth.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            nodeNumPlaced += mEnum.currentValue();
+        }
+        rect.parmUpperColor(treeNode.parmforcedUpColor() != -5 ? treeNode.parmforcedUpColor() : conPeek(colors,nodeNumPlaced));
+        rect.parmLowerColor(treeNode.parmforcedLowerColor() != -5 ? treeNode.parmforcedLowerColor() : 255+255<<8+255<<16+255<<24);
+        rect.parmTextColor(128<<24);
+        //rect.(treeNode.parmforcedLowerColor() != -5 ? treeNode.parmforcedLowerColor() : 255+255<<8+255<<16+255<<24);
+
+        //info(treeNode.parmLabel()+ int2str(nodeNumPlaced));
+        //Update treeNode and replace in map
+        treeNode.parmRect(rect);
+        treeNode.parmBreadthPos(nodesThisDepth);
+        treeNode.parmMaxBreadth(breadthPerDepth.lookup(treeNode.parmDepthPos()));
+        treeNodes.remove(_key);
+        treeNodes.insert(_key,treeNode);
+        //info('added: '+treeNode.parmLabel()+' '+_key);
+
+        nextPrevNodes = treeNode.parmNextNodes();
+        for (i = treeNode.parmDepthPos()+1; i <= maxDepth; i++)
+        {
+            mEnum = nextPrevNodes.getEnumerator();
+            while(mEnum.moveNext())
+            {
+                tmpNode = treeNodes.lookup(mEnum.currentKey());
+                if (tmpNode.parmDepthPos() == i)
+                {
+                    this.placeNode(mEnum.currentKey(),_nodesPerDepth);
+                }
+            }
+        }
+
+        nextPrevNodes = treeNode.parmPrevNodes();
+        for (i = treeNode.parmDepthPos()+1; i >= 0; i--)
+        {
+            mEnum = nextPrevNodes.getEnumerator();
+            while(mEnum.moveNext())
+            {
+                tmpNode = treeNodes.lookup(mEnum.currentKey());
+                if (tmpNode.parmDepthPos() == i)
+                {
+                    this.placeNode(mEnum.currentKey(),_nodesPerDepth);
+                }
+            }
+        }
+        return false; //New node was added, can't stop outer loop.
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static TFMGraphGeneric construct(TFMHtmlViewerCtrl _htmlViewer, Map _ancestors, Map _treeNodes, str _headline = '', int _forcedWidth = -5, int _forcedHeight = -5)
+    {
+        return new TFMGraphGeneric(_htmlViewer, _ancestors, _treeNodes,_headline, _forcedWidth, _forcedHeight);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>htmlViewer</Name>
+				<Source><![CDATA[
+    public void htmlViewer(TFMHtmlViewerCtrl _htmlViewer)
+    {
+        htmlViewer = _htmlViewer;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setImageHtml</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Updates a screen with the supplied bitmap.
+    /// </summary>
+    /// <param name="_bmp">
+    /// The bitmap that should be shown on screen.
+    /// </param>
+    /// <param name="_fwc">
+    /// The <c>FormWindowControl</c> class on which to display the bitmap.
+    /// </param>
+    public static void  setImageHtml(System.Drawing.Bitmap _bmp, TFMHtmlViewerCtrl _htmlViewer)
+    {
+            
+        System.IO.MemoryStream ms = new System.IO.MemoryStream();
+        System.Drawing.Imaging.ImageFormat imgFormat = System.Drawing.Imaging.ImageFormat::Png;
+                
+        _bmp.Save(ms, imgFormat);
+        //var SigBase64= Convert.ToBase64String(ms.GetBuffer()); //Get Base64
+            
+        FileUploadTemporaryStorageStrategy fileUploadStrategy = new FileUploadTemporaryStorageStrategy();
+        FileUploadTemporaryStorageResult fileUploadResult = fileUploadStrategy.uploadFile(ms, 'sdasdas');
+        //System.Drawing.Image    image = System.Drawing.Image::FromStream(Stream);
+        
+        _htmlViewer.parmHtml( '<img src="'+fileUploadResult.getDownloadUrl()+'" alt="trut" height="'+int2Str(_bmp.Height)+'" width="'+int2Str(_bmp.Width)+'">');
+            
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

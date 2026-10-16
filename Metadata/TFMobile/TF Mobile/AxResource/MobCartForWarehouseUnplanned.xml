@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxResource xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobCartForWarehouseUnplanned</Name>
+	<FileName>warehouse-cart_unplanned.png</FileName>
+	<RelativeUriInModelStore>TFMobile\TF Mobile\AxResource\ResourceContent\Images\warehouse-cart_unplanned.png</RelativeUriInModelStore>
+</AxResource>

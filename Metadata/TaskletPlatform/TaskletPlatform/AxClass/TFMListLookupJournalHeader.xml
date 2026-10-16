@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListLookupJournalHeader</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListIdAttribute('LookupJournalHeader')]
+class TFMListLookupJournalHeader extends TFMListOrdersWithImage
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+    public TFMListConfiguration getList()
+    {
+        TFMListConfiguration listConfig = super();
+        listConfig.parmDisplayStatus(false);
+        return listConfig;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

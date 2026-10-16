@@ -1,0 +1,1306 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// General helper class, with common functions used in the Mobile WMS module.
+/// </summary>
+class MobHelper
+{
+  
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>attachBase64ToCommon</Name>
+				<Source><![CDATA[
+    public static str attachBase64ToCommon(Common _common, str _base64, str _fileExtension, str _note = "@MobileWMS:CreatedfromMobileWMS")
+    {
+        return TFMHelper::attachBase64ToCommon(_common, _base64, _fileExtension, _note);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>matchRegex</Name>
+				<Source><![CDATA[
+    public static str matchRegex(str _text, str _pattern)
+    {
+        return TFMHelper::matchRegex(_text, _pattern);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>matchRegexSet</Name>
+				<Source><![CDATA[
+    public static Set matchRegexSet(str _text, str _pattern)
+    {
+        return TFMHelper::matchRegexSet(_text, _pattern);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getParametersFromClassAndMethod</Name>
+				<Source><![CDATA[
+    public static Map getParametersFromClassAndMethod(ClassName _clsName, MethodName _methodName)
+    {
+        return TFMHelper::getParametersFromClassAndMethod(_clsName, _methodName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>backendId2Record</Name>
+				<Source><![CDATA[
+    public static Common backendId2Record(str _backendId)
+    {
+        return TFMHelper::backendId2Record(_backendId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>splitTextToMultilines</Name>
+				<Source><![CDATA[
+    public static str splitTextToMultilines(str _line)
+    {
+        return TFMHelper::splitTextToMultilines(_line);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findIndexOfFirstCapitalLetterFromMiddle</Name>
+				<Source><![CDATA[
+    public static int findIndexOfFirstCapitalLetterFromMiddle(str _text)
+    {
+        return TFMHelper::findIndexOfFirstCapitalLetterFromMiddle(_text);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateBackendId</Name>
+				<Source><![CDATA[
+    public static MobBackendId generateBackendId(Common _common, MobOrderTypes _orderType = '')
+    {
+        return TFMHelper::generateBackendId(_common, _orderType);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>BackendId2Buffer</Name>
+				<Source><![CDATA[
+    public static Common BackendId2Buffer(MobBackendId _backendId)
+    {
+        return TFMHelper::BackendId2Buffer(_backendId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>BackendId2UniqueID</Name>
+				<Source><![CDATA[
+    public static str BackendId2UniqueID(MobBackendId _backendId)
+    {
+        return TFMHelper::BackendId2UniqueID(_backendId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addValueMapToParmMethod</Name>
+				<Source><![CDATA[
+    public static void addValueMapToParmMethod(Map _values, Object _class)
+    {
+        TFMHelper::addValueMapToParmMethod(_values, _class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addValueToParmMethod</Name>
+				<Source><![CDATA[
+    public static void addValueToParmMethod(str _key, Object _class, str _value, SysDictClass _dC = null, Set _parmMethods = null ) 
+    {
+        TFMHelper::addValueToParmMethod(_key, _class, _value, _dC, _parmMethods);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertCamelCaseToNiceText</Name>
+				<Source><![CDATA[
+    public static str convertCamelCaseToNiceText(str _missingSpaces)
+    {
+        return TFMHelper::convertCamelCaseToNiceText(_missingSpaces);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>capitalLetterSentence</Name>
+				<Source><![CDATA[
+    public static str capitalLetterSentence(str _sentence)
+    {
+        return TFMHelper::capitalLetterSentence(_sentence);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeParmFromStr</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Removes the parm form the string if it starts with parm. 
+    /// </summary>
+    /// <param name = "_input"></param>
+    /// <returns></returns>
+    public static str removeParmFromStr(str _input)
+    {
+        return TFMHelper::removeParmFromStr(_input);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>attachNoteToCommon</Name>
+				<Source><![CDATA[
+    public static str attachNoteToCommon(Common _common, str _note)
+    {
+        return TFMHelper::attachNoteToCommon(_common, _note);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>descriptionFromCommon</Name>
+				<Source><![CDATA[
+    public static str descriptionFromCommon(Common _common)
+    {
+        return TFMHelper::descriptionFromCommon(_common);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBuffer</Name>
+				<Source><![CDATA[
+    public static Common getBuffer(TableName _tableName, Object _class)
+    {
+        return TFMHelper::getBuffer(_tableName, _class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertStr2Num</Name>
+				<Source><![CDATA[
+    public static real convertStr2Num(str _textNumber)
+    {        
+        return TFMHelper::convertStr2Num(_textNumber);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>today</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// wrapper for today function that has been deprecated in D365, made for backwards compatibility.
+    /// </summary>
+    /// <returns>Todays date.</returns>
+    public static date today()
+    {
+        return TFMHelper::today();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindItemDocuref</Name>
+				<Source><![CDATA[
+    public static DocuRef FindItemDocuref(ItemId _itemID, InventDimId _inventDimID)
+    {
+        return TFMHelper::FindItemDocuref(_itemID, _inventDimID);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>imageIDFromDocuRef</Name>
+				<Source><![CDATA[
+    public static str imageIDFromDocuRef(DocuRef _docuref)
+    {
+        return TFMHelper::imageIDFromDocuRef(_docuref);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>imageID</Name>
+				<Source><![CDATA[
+    public static str imageID(Common _common)
+    {
+        return TFMHelper::imageID(_common);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>xmlLines2Set</Name>
+				<Source><![CDATA[
+    public static Set xmlLines2Set(XmlElement _orderElement)
+    {
+        return TFMHelper::xmlLines2Set(_orderElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>floatParse</Name>
+				<Source><![CDATA[
+    public static real floatParse(str _numberString)
+    {
+        return TFMHelper::floatParse(_numberString);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindRelation</Name>
+				<Source><![CDATA[
+    public static DictRelation FindRelation(RefTableName _primaryTableName, RefTableName _refTableName)
+    {
+        return TFMGenericDataHelper::FindRelation(_primaryTableName, _refTableName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getClassFromSysAttribute</Name>
+				<Source><![CDATA[
+    public static Object getClassFromSysAttribute(ClassName _baseClassName, SysAttribute _sysAttribute)
+    {
+        return TFMGetRegistrationConfiguration::getClassFromSysAttribute(_baseClassName, _sysAttribute);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRelatedTable</Name>
+				<Source><![CDATA[
+    public static QueryRun getRelatedTable(common _table, RefTableName _refTableName)
+    {
+        return TFMGenericDataHelper::getRelatedTable(_table, _refTableName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPrimaryKeysFromTableName</Name>
+				<Source><![CDATA[
+    public static Map getPrimaryKeysFromTableName(TableName _tableName)
+    {
+        return TFMHelper::getPrimaryKeysFromTableName(_tableName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldsOnTable</Name>
+				<Source><![CDATA[
+    public static Map fieldsOnTable(TableName _tableName)
+    {
+        return TFMHelper::fieldsOnTable(_tableName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FilterXml2String</Name>
+				<Source><![CDATA[
+    public static str FilterXml2String(str _xml, str _key) //TODO: Remove and use request Class instead
+    {
+        XmlDocument requestXml = XmlDocument::newXml(_xml);
+        XmlElement filtersElement,filtersChildElement;
+        XmlNamedNodeMap addAttributes;
+        int i;
+        str ret = '';
+        if (requestXml.root().getNamedElement(TFMConstants::requestData()) && requestXml.root().getNamedElement(TFMConstants::requestData()).getNamedElement(TFMConstants::filters()))
+        {
+            filtersElement = requestXml.root().getNamedElement(TFMConstants::requestData()).getNamedElement(TFMConstants::filters());
+    
+            // Loop over the add notes in the XML
+            for (i = 0; i < filtersElement.childNodes().length(); i++)
+            {
+                filtersChildElement = filtersElement.childNodes().item(i);
+                addAttributes = filtersChildElement.attributes();
+                if (addAttributes.getNamedItem(TFMConstants::AttributeName()).value() == _key)
+                {
+                    ret = addAttributes.getNamedItem(TFMConstants::AttributeValue()).value();
+                }
+            }
+        
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBuffers</Name>
+				<Source><![CDATA[
+    public static Set getBuffers(Map _values, str _tableName, Map _replacementMap = new Map(Types::String, Types::Class))
+    {
+        return TFMHelper::getBuffers(_values, _tableName, _replacementMap);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mergeMaps</Name>
+				<Source><![CDATA[
+    public static Map mergeMaps(Map _map1, Map _map2, boolean _appendValue = false, str _appendStr = MobConstants::lineBreak())
+    {
+        return TFMHelper::mergeMaps(_map1, _map2, _appendValue, _appendStr);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findBuffersFromMap</Name>
+				<Source><![CDATA[
+    public static QueryRun findBuffersFromMap(Map _values, str _tableName, Map _replacementMap = new Map(Types::String, Types::Class))
+    {        
+        return TFMHelper::findBuffersFromMap(_values, _tableName, _replacementMap);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBufferFromStr</Name>
+				<Source><![CDATA[
+    public static Common getBufferFromStr(str _refRecordStr)
+    {
+        return TFMHelper::getBufferFromStr(_refRecordStr);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>baseType2InputType</Name>
+				<Source><![CDATA[
+    public static TFMInputTypes baseType2InputType(Types _type)
+    {
+        return TFMHelper::baseType2InputType(_type);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>strFmt</Name>
+				<Source><![CDATA[
+    public static str strFmt(str _inStr, container _values)
+    {
+        return TFMHelper::strFmt(_inStr, _values);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>strSplit</Name>
+				<Source><![CDATA[
+    static List strSplit(str _stringToSplit, str _delimiter)
+    {
+        return TFMHelper::strSplit(_stringToSplit, _delimiter);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertStr2utcDateTime</Name>
+				<Source><![CDATA[
+    public static utcDateTime convertStr2utcDateTime(str 100 datetimestr)
+    {
+        return TFMHelper::convertStr2utcDateTime(datetimestr);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>date2Str</Name>
+				<Source><![CDATA[
+    public static str date2Str(Date _date)
+    {
+        return TFMHelper::date2Str(_date);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EnsureInventDim</Name>
+				<Source><![CDATA[
+    /// <param name="inventDim">InventDim to correct</param>
+    /// <summary>
+    /// Will ensure the inventDim WMSLocationId, InventLocationId and InventSiteId is set
+    /// </summary>
+    /// <param name = "inventDim">InventDim to correct</param>
+    /// <param name = "_inventTransID"></param>
+    /// <returns>Returns true if changed</returns>
+    public static boolean EnsureInventDim(InventDim inventDim, InventTransId _inventTransID = '')
+    {
+        return TFMHelper::EnsureInventDim(inventDim, _inventTransID);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEnumValues</Name>
+				<Source><![CDATA[
+    public static str getEnumValues(int _enumId)
+    {
+        return TFMHelper::getEnumValues(_enumId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>enumName</Name>
+				<Source><![CDATA[
+    //Shows name instead of label
+    public static str enumName(EnumId _enumId, anyType _enumValue)
+    {
+        return TFMHelper::enumName(_enumId, _enumValue);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EnumSymbol2Value</Name>
+				<Source><![CDATA[
+    //Shows name instead of label
+    public static int EnumSymbol2Value(EnumId _enumId, str _enumSymbol)
+    {  
+        return TFMHelper::EnumSymbol2Value(_enumId, _enumSymbol);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>string2ItemID</Name>
+				<Source><![CDATA[
+    public static ItemId string2ItemID(str _value, InventDim _iDimLookup)
+    {
+        return TFMHelper::string2ItemID(_value, _iDimLookup);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExtractItemId</Name>
+				<Source><![CDATA[
+    public static ItemId ExtractItemId( InventDim   _iDim,
+                                        XMLNode     _requestDataNode,
+                                        Str         _itemElement = MobConstants::ItemNumber() )
+    {
+        return TFMHelper::ExtractItemId(_iDim, _requestDataNode, _itemElement);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExtractItemId_Raw</Name>
+				<Source><![CDATA[
+    public static str ExtractItemId_Raw( XMLNode _requestDataNode, str _itemElement = MobConstants::ItemNumber() )
+    {
+        return TFMHelper::ExtractItemId_Raw(_requestDataNode, _itemElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldGroupToSet</Name>
+				<Source><![CDATA[
+    public static Set fieldGroupToSet(TableId _tableId, FieldGroupName _fieldGroupName)
+    {
+        return TFMHelper::fieldGroupToSet(_tableId, _fieldGroupName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formatItemQty</Name>
+				<Source><![CDATA[
+    #mob
+    #if.isAX5
+    public static str formatItemQty(InventQty _quantity,  UnitID _unit = '~', boolean _absoluteValue = false)
+    {
+        return TFMHelper::formatItemQty(_quantity, UnitID _unit , _absoluteValue);
+    }
+    #endif
+
+    #ifnot.isAX5
+    public static str formatItemQty(InventQty _quantity, UnitOfMeasureSymbol _unit = '~', boolean _absoluteValue = false)
+
+    {
+        return TFMHelper::formatItemQty(_quantity, _unit , _absoluteValue);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formatLineNum</Name>
+				<Source><![CDATA[
+    #endif
+
+
+    public static str formatLineNum(LineNum _lineNum)
+    {
+        return TFMHelper::formatLineNum(_lineNum);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllowedInventLocations</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds and returns all InventLocations that _user may access based on TFMInventLocationGroupRights
+    /// </summary>
+    /// <param name="_user">
+    /// UserId
+    /// </param>
+    
+    public static InventLocation getAllowedInventLocations(userId _user)
+    {
+        MobInventLocationsGroupRights   inventLocationRights;
+        InventLocation                  inventLocations;
+        UserGroupList                   userGroupList;
+        Set                             usedLocs = new Set (Types::String);
+
+        select count(RecId) from inventLocationRights;
+
+        if (!inventLocationRights.RecId)
+        {
+            //If nothing har been setup, return all InventLocations
+            select * from inventLocations;
+            
+            return inventLocations;
+        }
+
+        inventLocations.setTmp();
+    
+
+        while select inventLocationRights order by inventLocationRights.defaultLocation desc, inventLocationRights.InventLocationId asc
+                    join GroupId from userGroupList
+                        where userGrouplist.userId == _user
+                        && inventLocationRights.UserGroupId == userGroupList.GroupId
+        {
+            // Make sure that the warehouse exists before adding it
+            // If a warehouse is deleted after it has been assigned
+            
+            if (!usedLocs.in(inventLocationRights.InventLocationId) && InventLocation::find(inventLocationRights.InventLocationId))
+            {
+                inventLocations.data(InventLocation::find(inventLocationRights.InventLocationId));
+                inventLocations.doInsert(); // Do not call insert() - since it tries to insert in WHS tables
+                usedLocs.add(inventLocationRights.InventLocationId);
+            }
+            
+        }
+        return inventLocations;
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isInventLocationAllowed</Name>
+				<Source><![CDATA[
+    public static boolean isInventLocationAllowed(userId _user,InventLocationId _inventLocationId)
+    {
+        return MobInventLocationsGroupRights::existsUser(_user, _inventLocationId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllowedInventLocationsList</Name>
+				<Source><![CDATA[
+    public static str getAllowedInventLocationsList(userId _user)
+    {
+        InventLocation                  inventLocations = MobHelper::getAllowedInventLocations(_user);
+        str                             retList;
+        while select inventLocations order by RecId
+        {
+            retList += (retList ? ';' : '') + inventLocations.InventLocationId;
+        }
+        return retList;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConvertibleUnitList</Name>
+				<Source><![CDATA[
+    public static str getConvertibleUnitList(InventTable _inventTable)
+    {
+        return TFMHelper::getConvertibleUnitList(_inventTable);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getItemBarcodes</Name>
+				<Source><![CDATA[
+    public static str getItemBarcodes(ItemId _itemId, InventDim _inventDimCriteria)
+    {
+        InventItemBarcode   inventItemBarcode;
+        InventDimParm       inventDimParm;
+        InventDim           inventDim;
+        InventItemGTIN      inventItemGTIN;
+        str                 result = '';
+        //TODO: Not referenced. check if should be used instead
+        // Get all the regular barcodes defined for this item
+        // Only barcodes for marked for "scanning" are transferred
+        inventDimParm = EcoResProductDimGroupSetup::newItemId(_itemId).inventDimParmActiveDimensions();
+    
+        while select inventItemBarcode
+            where inventItemBarcode.ItemId         == _itemId
+              && inventItemBarcode.UseForInput     == NoYes::Yes
+            #InventDimExistsJoin(inventItemBarcode.inventDimId, inventDim, _inventDimCriteria, inventDimParm)
+        {
+            result += inventItemBarcode.itemBarCode + ';';
+        }
+    
+        // Now get all the GTIN codes
+        while select inventItemGTIN
+            where inventItemGTIN.ItemId         == _itemId
+              #InventDimExistsJoin(inventItemGTIN.inventDimId, inventDim, _inventDimCriteria, inventDimParm)
+        {
+            result += inventItemGTIN.GlobalTradeItemNumber + ';';
+        }
+    
+        // Remove the trailing ";"
+        if (result)
+        {
+            result = strDel(result,strLen(result),1);
+        }
+    
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IsArrivalJournalEnabled</Name>
+				<Source><![CDATA[
+    public static boolean IsArrivalJournalEnabled(InventLocationId _inventLocationId)
+    {
+        MobInventLocationsPickReceiveTypes pickReceiveInfo;
+        MobParameters                       parameters;
+    
+        pickReceiveInfo = MobInventLocationsPickReceiveTypes::find(_inventLocationId);
+        if (pickReceiveInfo.OverwriteDefault)
+        {
+            return pickReceiveInfo.ReceiveArrival;
+        }
+        else
+        {
+            parameters = MobParameters::find();
+            return parameters.ReceiveArrival;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IsPickingRouteEnabled</Name>
+				<Source><![CDATA[
+    public static boolean IsPickingRouteEnabled(InventLocationId _inventLocationId)
+    {
+        MobInventLocationsPickReceiveTypes pickReceiveInfo;
+        MobParameters                       parameters;
+    
+        pickReceiveInfo = MobInventLocationsPickReceiveTypes::find(_inventLocationId);
+        if (pickReceiveInfo.OverwriteDefault)
+        {
+            return pickReceiveInfo.PickPickingRoute;
+        }
+        else
+        {
+            parameters = MobParameters::find();
+            return parameters.PickPickingRoute;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IsPickTransferOrderEnabled</Name>
+				<Source><![CDATA[
+    public static boolean IsPickTransferOrderEnabled(InventLocationId _inventLocationId)
+    {
+        MobInventLocationsPickReceiveTypes pickReceiveInfo;
+        MobParameters                       parameters;
+    
+        pickReceiveInfo = MobInventLocationsPickReceiveTypes::find(_inventLocationId);
+        if (pickReceiveInfo.OverwriteDefault)
+        {
+            return pickReceiveInfo.PickTransfer;
+        }
+        else
+        {
+            parameters = MobParameters::find();
+            return parameters.PickTransfer;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IsProdPickJournalEnabled</Name>
+				<Source><![CDATA[
+    public static boolean IsProdPickJournalEnabled(InventLocationId _inventLocationId)
+    {
+        MobInventLocationsPickReceiveTypes pickReceiveInfo;
+        MobParameters                       parameters;
+    
+        pickReceiveInfo = MobInventLocationsPickReceiveTypes::find(_inventLocationId);
+        if (pickReceiveInfo.OverwriteDefault)
+        {
+            return pickReceiveInfo.PickProd;
+        }
+        else
+        {
+            parameters = MobParameters::find();
+            return parameters.PickProd;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IsProductionInputEnabled</Name>
+				<Source><![CDATA[
+    public static boolean IsProductionInputEnabled(InventLocationId _inventLocationId)
+    {
+        MobInventLocationsPickReceiveTypes pickReceiveInfo;
+        MobParameters                       parameters;
+    
+        pickReceiveInfo = MobInventLocationsPickReceiveTypes::find(_inventLocationId);
+        if (pickReceiveInfo.OverwriteDefault)
+        {
+            return pickReceiveInfo.ReceiveProductionInput;
+        }
+        else
+        {
+            parameters = MobParameters::find();
+            return parameters.ReceiveProductionInput;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IsPurchaseOrderEnabled</Name>
+				<Source><![CDATA[
+    public static boolean IsPurchaseOrderEnabled(InventLocationId _inventLocationId)
+    {
+        MobInventLocationsPickReceiveTypes pickReceiveInfo;
+        MobParameters                       parameters;
+    
+        pickReceiveInfo = MobInventLocationsPickReceiveTypes::find(_inventLocationId);
+        if (pickReceiveInfo.OverwriteDefault)
+        {
+            return pickReceiveInfo.ReceivePurch;
+        }
+        else
+        {
+            parameters = MobParameters::find();
+            return parameters.ReceivePurch;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IsReturnOrderEnabled</Name>
+				<Source><![CDATA[
+    public static boolean IsReturnOrderEnabled(InventLocationId _inventLocationId)
+    {
+        MobInventLocationsPickReceiveTypes pickReceiveInfo;
+        MobParameters                       parameters;
+    
+        pickReceiveInfo = MobInventLocationsPickReceiveTypes::find(_inventLocationId);
+        if (pickReceiveInfo.OverwriteDefault)
+        {
+            return pickReceiveInfo.ReceiveRMA;
+        }
+        else
+        {
+            parameters = MobParameters::find();
+            return parameters.ReceiveRMA;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IsPurchReturnEnabled</Name>
+				<Source><![CDATA[
+    public static boolean IsPurchReturnEnabled(InventLocationId _inventLocationId)
+    {
+        MobParameters                       parameters;
+        
+        parameters = MobParameters::find();
+        return parameters.PickRMA;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IsSalesOrderEnabled</Name>
+				<Source><![CDATA[
+    public static boolean IsSalesOrderEnabled(InventLocationId _inventLocationId)
+    {
+        MobInventLocationsPickReceiveTypes pickReceiveInfo;
+        MobParameters                       parameters;
+    
+        pickReceiveInfo = MobInventLocationsPickReceiveTypes::find(_inventLocationId);
+        if (pickReceiveInfo.OverwriteDefault)
+        {
+            return pickReceiveInfo.PickSale;
+        }
+        else
+        {
+            parameters = MobParameters::find();
+            return parameters.PickSale;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IsTransferOrderEnabled</Name>
+				<Source><![CDATA[
+    public static boolean IsTransferOrderEnabled(InventLocationId _inventLocationId)
+    {
+        MobInventLocationsPickReceiveTypes pickReceiveInfo;
+        MobParameters                       parameters;
+    
+        pickReceiveInfo = MobInventLocationsPickReceiveTypes::find(_inventLocationId);
+        if (pickReceiveInfo.OverwriteDefault)
+        {
+            return pickReceiveInfo.ReceiveTransfer;
+        }
+        else
+        {
+            parameters = MobParameters::find();
+            return parameters.ReceiveTransfer;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lotNumber_ExpirationDate</Name>
+				<Source><![CDATA[
+    public static date lotNumber_ExpirationDate(str _lotNumber)
+    {
+        return MobHelper::lotNumber_ExpirationDate(_lotNumber);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>List2Set</Name>
+				<Source><![CDATA[
+    public static Set List2Set(List _list)
+    {
+        return TFMHelper::List2Set(_list);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lotNumber_LotNumber</Name>
+				<Source><![CDATA[
+    public static str lotNumber_LotNumber(str _lotNumber)
+    {
+        return TFMHelper::lotNumber_LotNumber(_lotNumber);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>utcDateTime2Str</Name>
+				<Source><![CDATA[
+    public static str utcDateTime2Str(utcDateTime _datetime)
+    {
+        return TFMHelper::utcDateTime2Str(_datetime);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findImageDocuRef</Name>
+				<Source><![CDATA[
+    public static DocuRef findImageDocuRef(Common _record, DocuTypeId _typeID = '')
+    {
+        return TFMHelper::findImageDocuRef(_record, _typeID);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeDocurefHTML</Name>
+				<Source><![CDATA[
+    public static str makeDocurefHTML(Common _buffer)
+    {
+        return TFMHelper::makeDocurefHTML(_buffer);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findDefaultImageDocuRef</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds the DocuRef record which carries the default image for the given record.
+    /// </summary>
+    /// <param name = "_record">Record with associated images.</param>
+    /// <returns>DocuRef record with default image</returns>
+    public static DocuRef findDefaultImageDocuRef(Common _record)
+    {
+        return TFMHelper::findDefaultImageDocuRef(_record);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAttachmentAsImage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Retrieves a document attachment packed into container.
+    /// </summary>
+    /// <param name="_docuRef">A document reference that has an attached file.</param>
+    /// <returns>Container with the file contents.</returns>
+    /// <remarks>This method should not be used with File::sendFileToUser.  Instead use DocumentManagement::getAttachmentPublicUrl() and the Browser class.</remarks>
+    public static System.Drawing.Image getAttachmentAsImage(DocuRef _docuRef)
+    {
+        return TFMHelper::getAttachmentAsImage(_docuRef);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeItemHTML</Name>
+				<Source><![CDATA[
+    public static str makeItemHTML(InventTable _inventTable)
+    {
+        return TFMHelper::makeItemHTML(_inventTable);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeHtmlFromCommon</Name>
+				<Source><![CDATA[
+    public static str makeHtmlFromCommon(Common _common)
+    {
+        return TFMHelper::makeHtmlFromCommon(_common);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeRelationsHtmlFromCommon</Name>
+				<Source><![CDATA[
+    public static str makeRelationsHtmlFromCommon(Common _common)
+    {
+        return TFMHelper::makeRelationsHtmlFromCommon(_common);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>stripLastCharIfSlash</Name>
+				<Source><![CDATA[
+    public static str stripLastCharIfSlash(str _input)
+    {
+        return TFMHelper::stripLastCharIfSlash(_input);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resource2BinData</Name>
+				<Source><![CDATA[
+    public static BinData resource2BinData(str _resStr)
+    {
+        return TFMHelper::resource2BinData(_resStr);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resource2str</Name>
+				<Source><![CDATA[
+    public static str resource2str(str _resStr)
+    {
+        return TFMHelper::resource2str(_resStr);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createHeaderConfigurationElement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Configures the input types for header elements.
+    /// </summary>
+    /// <param name = "_addToThisElement">The XML Element to addd to.</param>
+    /// <param name = "_id">ID Attribute, Integer.</param>
+    /// <param name = "_name">Attribute name, string.</param>
+    /// <param name = "_label">Label attribute, string.</param>
+    /// <param name = "_labelWidth">Label width attribute, Integer.</param>
+    /// <param name = "_inputType">Input type attribute, string.</param>
+    /// <param name = "_dataTable">Data Table attribute, string.</param>
+    /// <param name = "_dataKeyColumn">Data key attribute, string.</param>
+    /// <param name = "_dataDisplayColumn">Data display column, string.</param>
+    /// <param name = "_clearOnClear">Clear on clear attribute, boolean.</param>
+    /// <param name = "_acceptBarcode">Accepts barcodes attribute, boolean.</param>
+    /// <param name = "_minValue">Minimum value attribute, Integer.</param>
+    /// <param name = "_maxValue">MAximum value attributem Integer.</param>
+    /// <param name = "_minDate">Minimum date attribute, UTC Datetime.</param>
+    /// <param name = "_maximumDate">Maximum date attribute, UTC Datetime.</param>
+    /// <param name = "_length">Length attribute, Integer.</param>
+    /// <param name = "_optional">Is the field Optional attribute, boolean.</param>
+    /// <param name = "_searchType">Search Type Attribute, String.</param>
+    /// <param name = "_linkedElement">Linked Element attribute, String. Optional.</param>
+    /// <param name = "_linkColumn">Link Column attribute, String. Optional.</param>
+    /// <param name = "_eanAi">Ean AI attribute, string. Optional.</param>
+    /// <param name = "_locked">Locked attribute, boolean. Optional.</param>
+    public static void createHeaderConfigurationElement(XmlElement _addToThisElement,
+                                       int _id,
+                                       str _name,
+                                       str _headerLabel,
+                                       str _label,
+                                       int _labelWidth,
+                                       TFMInputTypes _inputType,
+                                       str _dataTable,
+                                       str _dataKeyColumn,
+                                       str _dataDisplayColumn,
+                                       boolean _clearOnClear,
+                                       boolean _acceptBarcode,
+                                       int _minValue,
+                                       int _maxValue,
+                                       utcDateTime _minDate,
+                                       utcDateTime _maximumDate,
+                                       int _length,
+                                       boolean _optional,
+                                       str _searchType,
+                                       str _linkedElement = '',
+                                       str _linkColumn = '',
+                                       str _eanAi = '',
+                                       boolean _locked = false,
+                                        str _defaultValue = '',
+                                        boolean _visible = true)
+    {
+        // Configures the input types for header elements
+        XmlElement      addElement;
+        XmlAttribute    attribute;
+        XmlDocument     resultXML = _addToThisElement.ownerDocument();
+        // Create the <add> element
+        addElement      = resultXml.createElement(MobConstants::add());
+    
+        // Add the id attribute
+        attribute       = resultXml.createAttribute(MobConstants::AttributeId());
+        attribute.value(int2str(_id));
+        addElement.attributes().setNamedItem(attribute);
+    
+        // Add the name attribute
+        attribute       = resultXml.createAttribute(MobConstants::AttributeName());
+        attribute.value(_name);
+        addElement.attributes().setNamedItem(attribute);
+
+        // Add the header attribute
+        attribute       = resultXml.createAttribute('header');
+        attribute.value(_headerLabel);
+        addElement.attributes().setNamedItem(attribute);
+    
+        // Add the label attribute
+        attribute       = resultXml.createAttribute(MobConstants::AttributeLabel());
+        attribute.value(_label);
+        addElement.attributes().setNamedItem(attribute);
+    
+        // Add the labelWidth attribute
+        attribute       = resultXml.createAttribute(MobConstants::AttributeLabelWidth());
+        attribute.value(int2str(_labelWidth));
+        addElement.attributes().setNamedItem(attribute);
+    
+        // Add the inputType attribute
+        attribute       = resultXml.createAttribute(MobConstants::AttributeInputType());
+        attribute.value(enum2Symbol(enumNum(TFMInputTypes),_inputType));
+        addElement.attributes().setNamedItem(attribute);
+    
+        // Add the dataTable attribute
+        if (_dataTable != '')
+        {
+            attribute       = resultXml.createAttribute(MobConstants::AttributeDataTable());
+            attribute.value(_datatable);
+            addElement.attributes().setNamedItem(attribute);
+        }
+    
+        // Add the dataKeyColumn attribute
+        if (_dataKeyColumn != '')
+        {
+            attribute       = resultXml.createAttribute(MobConstants::AttributDataKeyColumne());
+            attribute.value(_dataKeyColumn);
+            addElement.attributes().setNamedItem(attribute);
+        }
+    
+        // Add the dataDisplayColumn attribute
+        if (_dataDisplayColumn != '')
+        {
+            attribute       = resultXml.createAttribute(MobConstants::AttributeDataDisplayColumn());
+            attribute.value(_dataDisplayColumn);
+            addElement.attributes().setNamedItem(attribute);
+        }
+    
+        // Add the linkedElement attribute
+        if (_linkedElement != '')
+        {
+            attribute       = resultXml.createAttribute(MobConstants::LinkedElement());
+            attribute.value(_linkedElement);
+            addElement.attributes().setNamedItem(attribute);
+        }
+    
+        // Add the linkedElement attribute
+        if (_linkColumn != '')
+        {
+            attribute       = resultXml.createAttribute(MobConstants::LinkColumn());
+            attribute.value(_linkColumn);
+            addElement.attributes().setNamedItem(attribute);
+        }
+    
+        // Add the clearOnClear attribute
+        attribute       = resultXml.createAttribute(MobConstants::AttributeClearOnClear());
+        if (!_clearOnClear)
+        {
+            attribute.value(MobConstants::False());
+        }
+        else
+        {
+            attribute.value(MobConstants::True());
+        }
+        addElement.attributes().setNamedItem(attribute);
+    
+        // Add the acceptBarcode attribute
+        attribute       = resultXml.createAttribute(MobConstants::AttributeAcceptBarcode());
+        if (!_acceptBarcode)
+        {
+            attribute.value(MobConstants::False());
+        }
+        else
+        {
+            attribute.value(MobConstants::True());
+        }
+        addElement.attributes().setNamedItem(attribute);
+    
+        if (_visible == false)
+        {
+            attribute       = resultXml.createAttribute('visible');
+            attribute.value(MobConstants::False());
+            addElement.attributes().setNamedItem(attribute);
+        }
+
+        // Add the minValue attribute
+        attribute       = resultXml.createAttribute(MobConstants::AttributeMinValue());
+        attribute.value(int2str(_minValue));
+        addElement.attributes().setNamedItem(attribute);
+    
+        // Add the maxValue attribute
+        attribute       = resultXml.createAttribute(MobConstants::AttributeMaxValue());
+        attribute.value(int2str(_maxValue));
+        addElement.attributes().setNamedItem(attribute);
+    
+        // Add the minDate attribute
+        if (_minDate != dateTimeUtil::minValue())
+        {
+            attribute       = resultXml.createAttribute(MobConstants::AttributeMinDate());
+            attribute.value( MobHelper::utcDateTime2Str(_minDate) );
+            addElement.attributes().setNamedItem(attribute);
+        }
+    
+        // Add the maxDate attribute
+        if (_maximumDate != dateTimeUtil::maxValue())
+        {
+            attribute       = resultXml.createAttribute(MobConstants::AttributeMaxDate());
+            attribute.value( MobHelper::utcDateTime2Str(_maximumDate) );
+            addElement.attributes().setNamedItem(attribute);
+        }
+    
+        // Add the length attribute
+        attribute       = resultXml.createAttribute(MobConstants::AttributeLength());
+        attribute.value(int2str(_length));
+        addElement.attributes().setNamedItem(attribute);
+    
+        // Add the EAN attribute
+        if (_eanAi)
+        {
+            attribute       = resultXml.createAttribute(MobConstants::AttributeEanAi());
+            attribute.value(_eanAi);
+            addElement.attributes().setNamedItem(attribute);
+        }
+    
+        // Add the optional attribute
+        attribute       = resultXml.createAttribute(MobConstants::AttributeOptional());
+        if (!_optional)
+        {
+            attribute.value(MobConstants::False());
+        }
+        else
+        {
+            attribute.value(MobConstants::True());
+        }
+        addElement.attributes().setNamedItem(attribute);
+    
+        // Add the searchType attribute
+        if (_searchType != '')
+        {
+            attribute       = resultXml.createAttribute(MobConstants::AttributeSearchType());
+            attribute.value(_searchType);
+            addElement.attributes().setNamedItem(attribute);
+        }
+    
+        if (_locked)
+        {
+            attribute       = resultXml.createAttribute('locked');
+            attribute.value(MobConstants::True());
+            addElement.attributes().setNamedItem(attribute);
+        }
+
+        if (_defaultValue)
+        {
+            attribute       = resultXml.createAttribute('defaultValue');
+            attribute.value(_defaultValue);
+            addElement.attributes().setNamedItem(attribute);
+        }
+    
+        // Add the created <add> element to the parent element
+        _addToThisElement.appendChild(addElement);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

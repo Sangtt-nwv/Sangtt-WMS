@@ -1,0 +1,689 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMReferenceDataConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMReferenceDataConfiguration extends TFMReferenceData
+{
+    
+    Map                 collectors;  
+    Map                 id2Collector;
+    Map                 mapSimpleValues;
+    Map                 mapCDataValues;
+    boolean             useDynafilter;
+    boolean             isHeader;
+    boolean             alwaysIncludeInOutput;
+    Set                 aliases;
+    QueryName           queryName;
+    Map                 tableNames;
+    Map                 embeddedDataLists;
+    Map                 inlinedHeaders;
+    TFMLogicBlockName   originBlockName;
+    Set                 parentBlocks;
+    Map                 collectorParent;
+    Map                 blockAncestors;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmQueryName</Name>
+				<Source><![CDATA[
+    public QueryName parmQueryName(QueryName _queryName = queryName)
+    {
+        
+
+        if (queryName != _queryName)
+        {
+            this.initVariables();//Reset all variables
+            tableNames.add(_queryName, this.makeFieldsFromQuery());
+        }
+        queryName = _queryName;
+        return queryName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dataOrigin</Name>
+				<Source><![CDATA[
+    public Map dataOrigin()
+    {
+        if (!tableNames.elements())
+        {
+            //Find possible TableName from fields
+            this.findTableNamesFromCollectors();
+        }
+
+        return tableNames;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findTableNamesFromCollectors</Name>
+				<Source><![CDATA[
+    protected void findTableNamesFromCollectors()
+    {
+        MapEnumerator                   mEnum= collectors.getEnumerator();
+        TFMRegistrationCollector        collector;
+        TFMRegistrationCollectorText    colText;
+        TFMReferenceDataConfiguration   refCon;
+        while (mEnum.moveNext())
+        {
+            collector = mEnum.currentValue();
+            if (collector is TFMRegistrationCollectorText)
+            {
+                colText = collector as TFMRegistrationCollectorText;
+                refCon = colText.collectorSearchHeader();
+                if (refCon)
+                {
+                    //Key field. Can be used to find single record in related Table
+                    tableNames.insert(colText.parmName(), strReplace(refCon.parmKey(),'_' + TFMConstants::Search(),''));
+                }
+            }
+            if (collector.getEDT())
+            {
+                tableName tblName =new SysDictType(extendedTypeName2Id(collector.getEDT())).lookupTable(true);
+                if (tblName)
+                {
+                    tableNames.insert(collector.getEDT(), tblName);
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeFieldsFromQuery</Name>
+				<Source><![CDATA[
+    protected TableName makeFieldsFromQuery()
+    {
+        TFMRegistrationCollector        collector;        
+        MapEnumerator                   fieldMap = TFMLookupQueries::fields(queryName).getEnumerator();
+        SysDictField                    dictField;
+        int                             i = 1;
+        TableId                         tID;
+        Set                             tableIds = new Set(Types::Integer);
+        key = queryName;
+        while (fieldMap.moveNext())
+        {
+            dictField = fieldMap.currentValue();
+            collector = TFMRegistrationCollector::collectorFromField(dictField.tableid() ,dictField.id() );
+            tableIds.add(dictField.tableid());
+            tID = dictField.tableid();
+            collector.isHeader(true);
+            collector.parmId(i*10);
+            collector.parmName(fieldMap.currentKey());
+            this.addCollector(collector);
+            i++;
+        }
+        return tableIds.elements() == 1 ? tableId2Name(tID) : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        this.initVariables();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setOriginBlockName</Name>
+				<Source><![CDATA[
+    public void setOriginBlockName(TFMLogicBlockName _originBlockName)
+    {
+        originBlockName = _originBlockName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setParentBlocks</Name>
+				<Source><![CDATA[
+    public void setParentBlocks(Set _parentBlocks)
+    {
+        parentBlocks = _parentBlocks;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getOriginBlockName</Name>
+				<Source><![CDATA[
+    public TFMLogicBlockName getOriginBlockName()
+    {
+        return originBlockName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getParentBlocks</Name>
+				<Source><![CDATA[
+    public Set getParentBlocks()
+    {
+        return parentBlocks;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initVariables</Name>
+				<Source><![CDATA[
+    protected void initVariables()
+    {
+        collectors = new Map(Types::String, Types::Class);        
+        mapSimpleValues = new Map (Types::String ,Types::String);
+        mapCDataValues = new Map (Types::String ,Types::String);
+        aliases = new Set (Types::String);
+        isHeader = true;
+        tableNames = new Map (Types::String, Types::String);
+        embeddedDataLists = new Map(Types::String, Types::Class);
+        id2Collector = new Map(Types::String, Types::String);
+        inlinedHeaders = new Map(Types::String, Types::Class);
+        collectorParent = new Map(Types::Integer, Types::String);
+        blockAncestors = new Map(Types::String, Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addInlinedHeader</Name>
+				<Source><![CDATA[
+    public void addInlinedHeader(TFMReferenceDataConfiguration _inlinedConf)
+    {
+        inlinedHeaders.insert(_inlinedConf.parmKey(), _inlinedConf);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInlinedHeaders</Name>
+				<Source><![CDATA[
+    public Map getInlinedHeaders()
+    {
+        return inlinedHeaders;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addEmbeddedDataList</Name>
+				<Source><![CDATA[
+    public void addEmbeddedDataList(str _key, TFMReferenceDataFilterList _filterList)
+    {
+        embeddedDataLists.insert(_key, _filterList);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>embeddedDataListEnumerator</Name>
+				<Source><![CDATA[
+    public MapEnumerator embeddedDataListEnumerator()
+    {
+        return embeddedDataLists.getEnumerator();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ConstructFromQueryName</Name>
+				<Source><![CDATA[
+    public static TFMReferenceDataConfiguration ConstructFromQueryName(QueryName _queryName)
+    {
+        TFMReferenceDataConfiguration refConf = new TFMReferenceDataConfiguration();
+        refConf.parmQueryName(_queryName);
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateParmsFromOverride</Name>
+				<Source><![CDATA[
+    public void updateParmsFromOverride(ClassName _domain)
+    {
+        
+        MapEnumerator               mEnum = collectors.getEnumerator();
+        TFMRegistrationCollector    collector;
+        while (mEnum.moveNext())
+        {
+            collector = mEnum.currentValue();
+            collector.updateParmsFromOverride(_domain, collector.parmName());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAlwaysIncludeInOutput</Name>
+				<Source><![CDATA[
+    public boolean parmAlwaysIncludeInOutput(boolean _alwaysIncludeInOutput = alwaysIncludeInOutput)
+    {
+        alwaysIncludeInOutput = _alwaysIncludeInOutput;
+        return alwaysIncludeInOutput;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUseDynaFilter</Name>
+				<Source><![CDATA[
+    public boolean parmUseDynaFilter(boolean _useDynafilter = useDynafilter)
+    {
+        useDynafilter = _useDynafilter;
+        return useDynafilter;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsHeader</Name>
+				<Source><![CDATA[
+    public boolean parmIsHeader(boolean _isHeader = isHeader)
+    {
+        isHeader = _isHeader;
+        return isHeader;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addCollector</Name>
+				<Source><![CDATA[
+    public void addCollector(TFMRegistrationCollector _collector, boolean _forceReplace = false)
+    {
+        TFMRegistrationCollector    collectorToAdd = _collector;
+        boolean                     mergedCollectors;
+        if (collectors.exists(collectorToAdd.parmName()) && (!_forceReplace || aliases.in(collectorToAdd.parmName()) || this.findCommonKeys(collectors, collectorToAdd.getAliases()).elements()))
+        {
+            if (this.checkIfWrongInheritance(_collector, collectors.lookup(collectorToAdd.parmName())))
+            {
+                return;
+            }
+            //Similarly named collector exists, merge them
+            collectorToAdd = TFMProcessCombineFields::combineCollectorsToOne(_collector, collectors.lookup(collectorToAdd.parmName()));
+            mergedCollectors = true;
+        }
+        if (!collectorToAdd.parmId() || this.checkIfIdExists(collectorToAdd.parmId()))
+        {
+            // assign parmID so they are sent to the device in the right order
+            collectorToAdd.parmId(this.highestParmId() + 5);
+        }
+
+        collectors.insert(collectorToAdd.parmName(), collectorToAdd);
+
+        if (!mergedCollectors)
+        {
+            id2Collector.insert(this.id2idStr(collectorToAdd.parmId()), collectorToAdd.parmName());
+        }
+        if (collectorToAdd.getAliases().elements())
+        {
+            aliases = Set::union(aliases, collectorToAdd.getAliases());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkIfIdExists</Name>
+				<Source><![CDATA[
+    protected  boolean checkIfIdExists(int _id)
+    {
+        MapEnumerator mEnum = collectors.getEnumerator();
+
+        while (mEnum.moveNext())
+        {
+            if (mEnum.currentValue().parmId() == _id)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>highestParmId</Name>
+				<Source><![CDATA[
+    protected int highestParmId()
+    {
+        TFMRegistrationCollector collector;
+        MapEnumerator mEnum = collectors.getEnumerator();
+        int             highestKey;
+        while (mEnum.moveNext())
+        {
+            collector = mEnum.currentValue();
+            highestKey = max(highestKey, collector.parmId());
+        }
+        return highestKey;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkIfWrongInheritance</Name>
+				<Source><![CDATA[
+    protected boolean checkIfWrongInheritance(TFMRegistrationCollector _collectorAdd, TFMRegistrationCollector _collectorExisting)
+    {
+        Set collectorParentBlocks;
+        if (collectorParent.exists(_collectorAdd.GetHashCode()) && collectorParent.exists(_collectorExisting.GetHashCode()) && _collectorAdd.parmLogicBlockConnected() && blockAncestors.exists(collectorParent.lookup(_collectorAdd.GetHashCode())))
+        {
+            collectorParentBlocks = blockAncestors.lookup(collectorParent.lookup(_collectorAdd.GetHashCode()));
+            if (collectorParentBlocks && collectorParentBlocks.in(_collectorAdd.parmLogicBlockConnected()))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>id2idStr</Name>
+				<Source><![CDATA[
+    protected str id2idStr(int _id)
+    {
+        int extraNumber = 0;
+        str result = strRFix(int2Str(_id),7,'0')+strLFix(int2Str(extraNumber),4,'0');
+        
+        while (id2Collector.exists(result))
+        {
+            extraNumber++;
+            result = strRFix(int2Str(_id),7,'0')+strLFix(int2Str(extraNumber),4,'0');
+        }
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findCommonKeys</Name>
+				<Source><![CDATA[
+    protected Set findCommonKeys(Map _map, Set _set)
+    {
+        str             mapKey;
+        Set             commonKeysSet = new Set(Types::String);
+        MapEnumerator   mapEnum = _map.getEnumerator();
+        while (mapEnum.moveNext())
+        {
+            mapKey = mapEnum.currentKey();
+            if (_set.in(mapKey))
+            {
+                // Add the common key to the commonKeysSet
+                commonKeysSet.add(mapKey);
+            }
+        }
+        return commonKeysSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCollectors</Name>
+				<Source><![CDATA[
+    public Set getCollectors()
+    {
+        Set             colSet = new Set (Types::Class);
+        TFMFilterAdditions::addToFilter(key,this); // must be called before the collectors.getEnumerator().
+        MapEnumerator   mEnum = collectors.getEnumerator();
+
+        while (mEnum.moveNext())
+        {
+            colSet.add(mEnum.currentValue());
+        }
+
+        return colSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addSimpleStringConfiguration</Name>
+				<Source><![CDATA[
+    public void addSimpleStringConfiguration(str _key, str _value)
+    {
+        mapSimpleValues.insert(_key, _value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addCDataConfiguration</Name>
+				<Source><![CDATA[
+    public void addCDataConfiguration(str _key, str _value)
+    {
+        mapCDataValues.insert(_key, _value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createCDataConfiguration</Name>
+				<Source><![CDATA[
+    private void createCDataConfiguration(XmlElement _referenceDataElement, str _key, str _value)
+    {
+        // It adds the following XML to the reference data
+        // <Configuration>
+        //   <Key>key</Key>
+        //   <Value>
+        //      The CData here.
+        //   </Value>
+        // </Configuration>
+        this.createConfiguration(_referenceDataElement, key, _value, XmlNodeType::CDATA);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createSimpleConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// A method to create a simple configuration.
+    /// </summary>
+    /// <param name = "_referenceDataElement">The XML element to append the new configuration under.</param>
+    /// <param name = "_key">Configuration key.</param>
+    /// <param name = "_value">Configuration value.</param>
+    private void createSimpleConfiguration(XmlElement _referenceDataElement, str _key, str _value)
+    {
+        // It adds the following XML to the reference data
+        // <Configuration>
+        //   <Key>key</Key>
+        //   <Value>
+        //      The text value here
+        //   </Value>
+        // </Configuration>
+        this.createConfiguration(_referenceDataElement, _key, _value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createConfiguration</Name>
+				<Source><![CDATA[
+    private void createConfiguration(XmlElement _referenceDataElement, str _key, str _value, XmlNodeType _type = XmlNodeType::Text)
+    {
+        // This is a helper function that formats all the header configurations
+        // It adds the following XML to the reference data
+        // <Configuration>
+        //   <Key>key</Key>
+        //   <Value>
+        //      Enter value here
+        //   </Value>
+        // </Configuration>
+        //
+        XmlDocument      ownerDoc;
+        XmlElement      valueElement;
+        XmlElement      keyElement;
+        XmlElement      configurationElement;
+
+        ownerDoc = _referenceDataElement.ownerDocument();
+
+
+        // Create the <Configuration> element
+        configurationElement = ownerDoc.createElement(TFMConstants::Configuration());
+    
+        // Create the key column / element in the configuration table
+        keyElement = ownerDoc.createElement(TFMConstants::Key());
+        keyElement.text(_key);
+        configurationElement.appendChild(keyElement);
+    
+        // Create the value column / element in the configuration table
+        valueElement = ownerDoc.createElement(TFMConstants::Value());
+
+        if(_type == XmlNodeType::CDATA)
+        {
+            //// Set the value
+            valueElement.appendChild(ownerDoc.createCDataSection(_value));
+        }
+        else
+        {
+            // Set the value
+            valueElement.text(_value);
+        }
+    
+        // Add the <Value> element to the <Configuration> element
+        configurationElement.appendChild(valueElement);
+    
+        // Add the <Configuration> element to the reference data
+        _referenceDataElement.appendChild(configurationElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _referenceDataElement)
+    {
+        XmlElement                  linesHeader = TFMGetReferenceData::createHeaderAndLine(); 
+        str                         cDataXML = linesHeader.parentNode().xml();
+        MapEnumerator               simpleValuesEnum = mapSimpleValues.getEnumerator();
+        MapEnumerator               cDataValuesEnum = mapCDataValues.getEnumerator();
+        while (simpleValuesEnum.moveNext())
+        {
+            if(simpleValuesEnum.currentKey())
+            {
+                this.createSimpleConfiguration(_referenceDataElement, simpleValuesEnum.currentKey(), simpleValuesEnum.currentValue());
+            }
+        }
+
+        while (cDataValuesEnum.moveNext())
+        {
+            if(cDataValuesEnum.currentKey())
+            {
+                this.createCDataConfiguration(_referenceDataElement, cDataValuesEnum.currentKey(), cDataValuesEnum.currentValue());
+            }
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXMLConfig</Name>
+				<Source><![CDATA[
+    public void appendToXMLConfig(XmlElement _referenceDataElement)
+    {
+        XmlElement                  linesHeader = TFMGetReferenceData::createHeaderAndLine(false,_referenceDataElement.ownerDocument());
+        XmlElement                  headerElement = linesHeader.parentNode();
+        TFMRegistrationCollector    collector;
+        MapEnumerator               mEnum;
+        if (!this.getCollectors().elements())
+        {
+            return;
+        }
+        mEnum = id2Collector.getEnumerator();// Ensuring headers are sent to device in id-order
+        while (mEnum.moveNext())
+        {
+            collector = collectors.lookup(mEnum.currentValue());
+            collector.isHeader(true);
+            if(collector.parmActive() && (!collector.origins().matchedSource() || (collector.origins().matchedSource() && collector.parmDisableMatchedSource()) ))
+            {
+                collector.appendToXml(linesHeader);
+            }
+        }
+        headerElement.setAttribute(TFMConstants::AttributeId(),key);
+        _referenceDataElement.appendChild(headerElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mergeCollectors</Name>
+				<Source><![CDATA[
+    public void mergeCollectors(TFMReferenceDataConfiguration _collectors)
+    {
+        SetEnumerator               sEnum = _collectors.getCollectors().getEnumerator();
+        TFMRegistrationCollector    collector;
+        MapEnumerator               mEnum = _collectors.embeddedDataListEnumerator();
+        //Info ((_collectors.getParentBlocks() ? con2Str(_collectors.getParentBlocks().pack()) : '') +  ' ' + _collectors.getOriginBlockName());
+        blockAncestors.insert(_collectors.getOriginBlockName(), _collectors.getParentBlocks());
+        while (sEnum.moveNext())
+        {
+            collector = sEnum.current();
+            collectorParent.insert(collector.GetHashCode(), _collectors.getOriginBlockName());
+            this.addCollector(collector);
+        }
+        while (mEnum.moveNext())
+        {
+            this.addEmbeddedDataList(mEnum.currentKey(), mEnum.currentValue());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>collectorNameExists</Name>
+				<Source><![CDATA[
+    public boolean collectorNameExists(str _key)
+    {
+        return collectors.exists(_key);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>disableCollector</Name>
+				<Source><![CDATA[
+    public void disableCollector(str _key)
+    {
+        TFMRegistrationCollector    collector;
+        if (!collectors.exists(_key))
+        {
+            return;
+        }
+        collector = collectors.lookup(_key);
+        collector.parmActive(false);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCollector</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollector getCollector(str _key)
+    {
+        if (!collectors.exists(_key))
+        {
+            return null;
+        }
+        return collectors.lookup(_key);        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

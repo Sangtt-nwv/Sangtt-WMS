@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobExpressionsInventDimStr</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDescription("An expression used to create an inventDim string with the dimensions on the buffer. Takes either an inventDim buffer, or inventDimId")]
+class MobExpressionsInventDimStr extends TFMExpressions
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processExpressionCommon</Name>
+				<Source><![CDATA[
+    public str processExpressionCommon(Common _common)
+    {
+        SysDictTable    DT = new SysDictTable(_common.TableId);
+        SysDictField       DF;
+        str dimStr;
+        str tempStr;
+        int i;
+        if (_common.TableID != tableNum(InventDim))
+        {
+            return 'Not Valid Table';
+        }
+        for (i = 1; i <= DT.fieldCnt();i++)
+        {
+            DF = new SysDictField(DT.id(),DT.fieldCnt2Id(i));
+            if (DF.name() == fieldStr(InventDim,InventDimId) || DF.name() == fieldStr(InventDim,Sha1HashHex))
+            {
+                continue;
+            }
+            tempStr = InventDim::dimReportStr(_common,DT.fieldCnt2Id(i),new xInfo().language());
+            dimStr += (tempStr && !DF.isSystem() && !strScan(DF.name(),'hash',1,20) ? (dimStr && tempStr ? ', ' + tempStr :tempStr) : '');
+        }
+        return dimStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processExpressionValue</Name>
+				<Source><![CDATA[
+    public str processExpressionValue(str _value)
+    {
+        
+        return this.processExpressionCommon(InventDim::find(_value));
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

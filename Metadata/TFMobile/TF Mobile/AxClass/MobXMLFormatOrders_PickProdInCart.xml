@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_PickProdInCart</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableNameAttribute(tableStr(ProdJournalBOM),'CartContent')]
+class MobXMLFormatOrders_PickProdInCart extends TFMXMLFormatOrders
+{
+
+    ProdJournalBOM			line;
+    ProdJournalTable        journal;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        MobCarts		cart;
+        Map				prodDims;
+        Map				tracDims;
+        MapEnumerator	mEnum;
+        //inventSum		inventSum;
+        real			qtyPicked;
+        super();
+    
+        line			= common;
+    
+        backendId		= tableStr(ProdJournalBOM) + '/' + fieldStr(ProdJournalBOM, RecId) + '/' + int642Str(line.recid) + '/CartContent';
+        cart			= MobCarts::FindByReference(line.JournalId);
+
+        fieldsToAdd.insert(extendedTypeStr(ItemId),line.ItemId);
+
+        //imageId = MobHelper::imageIDFromDocuref(MobHelper::FindItemDocuref(line.itemId,line.InventDimId));
+        prodDims = MobInventDimHelper::getProductDimensions(line.itemId,line.InventDim());
+        tracDims = MobInventDimHelper::getTrackingDimensions(line.itemId,line.InventDim());
+        displayLine1 = line.ItemId + ' ' + line.inventTable().productName(new xInfo().language());
+        mEnum = tracDims.getEnumerator();
+        displayLine2 = "@SYS6303";
+        displayLine3 = line.inventTable().defaultProductDescription();
+        displayLine4 = '';
+
+        /*if ( orderTrans.isReserved)
+        {
+            displayLine3 += "@MobileWMS:lineBreak" + "@MobileWMS:Reservedline";
+        }*/
+
+        if (!MobCartPicklistLink::exists(line.recid, cart.CartID))
+        {
+            displayLine4 = "@MobileWMS:PickFrom";
+            displayLine5 = line.inventDim().wMSLocationId;
+        }
+        while (mEnum.moveNext())
+        {
+            if (!mEnum.currentValue())
+            {
+                continue;
+            }
+            displayLine4 += (displayLine4 ? "@MobileWMS:lineBreak" : '') + mEnum.currentKey() + ':';
+            displayLine5 += (displayLine5 ? "@MobileWMS:lineBreak" : '') + mEnum.currentValue();
+        }
+        mEnum = prodDims.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            if (!mEnum.currentValue())
+            {
+                continue;
+            }
+            //displayLine4 = 'Size';
+            //displayLine5 = inventSum.inventDim().InventSizeId;
+            displayLine4 += (displayLine4 ? "@MobileWMS:lineBreak" : '') + mEnum.currentKey() + ':';
+            displayLine5 += (displayLine5 ? "@MobileWMS:lineBreak" : '') + mEnum.currentValue();
+        }
+        fieldsToAdd.insert(fieldStr(InventDim,InventLocationId),line.inventDim().inventLocationId);
+        fieldsToAdd.insert(MobConstants::Warehouse(),line.inventDim().inventLocationId);
+        fieldsToAdd.insert('QuantityToPick', '/'+ MobHelper::formatItemQty(line.BOMConsump,line.inventTable().inventUnitId()));
+        fieldsToAdd.insert('Quantity2Pick', MobHelper::formatItemQty(line.BOMConsump,line.inventTable().inventUnitId()));
+        fieldsToAdd.insert(MobConstants::UnitOfMeasure(), line.inventTable().inventUnitId());
+        //fieldsToAdd.insert(fieldStr(MobCarts,PickMode),orderTrans.isReserved ? "Remove Reservation" : "Not reserved");
+        //mEnum = MobDocUnplannedCartMove::locationContent(WMSLocation::find(cart.WMSLocationId, cart.InventLocationId),orderTrans.itemId).getEnumerator();
+        fieldsToAdd.insert('AddToCart','true');
+        /*while (mEnum.moveNext())
+        {
+        inventSum	= mEnum.currentValue();
+        qtyPicked	+= inventSum.PhysicalInvent;
+        }*/
+
+        qtyPicked = MobCartPicklistLink::exists(line.recid, cart.CartID) ? MobCartPicklistLink::totalQtyBOM(line.RecId,cart.CartID) : 0;
+        fieldsToAdd.insert(MobConstants::Quantity(), MobHelper::formatItemQty(MobCartPicklistLink::totalQtyBOM(line.recid, cart.CartID),line.inventTable().inventUnitId()));
+        fieldsToAdd.insert('QuantityRemaining',MobHelper::formatItemQty(line.BOMConsump - MobCartPicklistLink::totalQtyBOM(line.recid, cart.CartID),line.inventTable().inventUnitId()));
+        fieldsToAdd.insert(extendedTypeStr(MobCartID),cart.CartID);
+        //sorting                 = strKeep(date2Str(DateTimeUtil::date(WMSPickingRoute.ActivationDateTime),321,2,0,2,0,2),'1234567890');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

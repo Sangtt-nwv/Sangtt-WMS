@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatLookupProdOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableNameAttribute(tableStr(ProdTable))]
+class MobXMLFormatLookupProdOrder extends TFMXMLFormatLookup
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        prodTable prodTable = common;
+        InventTable itemTable = InventTable::find(prodTable.ItemId);
+        super();
+        inventDim = prodTable.inventDim();
+        displayLine1 = new DictType(extendedTypeName2Id(extendedTypeStr(ProdID))).label() + ': ' + prodTable.prodID;
+        displayLine2 = "@SYS319915" + ': ' + itemTable.productName(new xInfo().language());
+        displayLine3 = "@SYS330532" + ': ' + prodTable.ItemId;
+        //displayLine4 = this.getSQLStatement();
+        //docuRef = MobHelper::findDefaultImageDocuRef(itemTable);
+        imageId = MobHelper::imageIDFromDocuref(MobHelper::FindItemDocuref(prodTable.itemId,prodTable.InventDimId));
+
+        fieldsToAdd.insert(MobConstants::Quantity(), MobHelper::formatItemQty(prodTable.RemainInventPhysical, InventTable::find(prodTable.ItemId).inventUnitId()));
+        fieldsToAdd.insert(strLwr(extendedTypeStr(ProdId)),   ProdTable.ProdId);
+        fieldsToAdd.insert(MobConstants::ScrapQuantity(), '0');
+        fieldsToAdd.insert(tableStr(UnitOfMeasure), itemTable.inventUnitId());
+        fieldsToAdd.insert(MobConstants::Barcode(), InventItemBarcode::findByProductDimensions(itemTable.ItemId, prodTable.inventDim(), false, true).itemBarCode);
+
+        displayLine5 = "@SYS106860" + ': ' + fieldsToAdd.lookup(MobConstants::Quantity()) + ' ' + itemTable.inventUnitId();
+    }
+
+    /*public str getSQLStatement()
+    {
+        Connection      connection;
+        Statement       statement;
+        str             query;
+        Resultset       resultSet;
+        str             result;
+        int             i;
+        ;
+
+        // create connection object
+        connection = new Connection();
+
+        // create statement
+        statement = connection.createStatement();
+
+        // Set the SQL statement
+        query = 'select AccountNum from CustTable';
+
+        // assert SQL statement execute permission
+        new SqlStatementExecutePermission(query).assert();
+
+        // when the query returns result,
+        // loop all results for processing
+        //BP Deviation documented
+        resultSet = statement.executeQuery(query);
+
+        while(resultSet.next() && i < 5)
+        {
+            // do something with the result
+            result = resultSet.getString(1);
+            i++;
+        }
+
+        // limit the scope of the assert call
+        CodeAccessPermission::revertAssert();
+        return result;
+    }*/
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

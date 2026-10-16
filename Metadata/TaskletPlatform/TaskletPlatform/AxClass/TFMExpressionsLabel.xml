@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMExpressionsLabel</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// An Expression Class used to translate a given label to the current language.
+/// </summary>
+[TFMDescription("An Expression Class used to translate a given label to the current language. Takes Label Id as input.")]
+class TFMExpressionsLabel extends TFMExpressions
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processExpressionCommon</Name>
+				<Source><![CDATA[
+    [SysObsolete]
+    public str processExpressionCommon(Common _common)
+    {
+        str ret;
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processExpressionValue</Name>
+				<Source><![CDATA[
+    public str processExpressionValue(str _value, TFMLocalizedStringEDT _localizedString = '')
+    {
+        TFMTranslations translations;
+        LabelString     lblString = _value;
+        str             ret;
+
+        if(_localizedString)
+        {
+            return TFMTranslations::GetTranslatedValue(_localizedString, currentUserLanguage());
+        }
+        else if(_value)
+        {
+            ret = SysLabel::isLabelId(_value) ? SysLabel::labelId2String(_value,new xInfo().language()) : _value;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

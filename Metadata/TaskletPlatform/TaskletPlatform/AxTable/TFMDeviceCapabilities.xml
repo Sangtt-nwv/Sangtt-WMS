@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDeviceCapabilities</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Table containing device capabilities
+/// </summary>
+public class TFMDeviceCapabilities extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>existDevice</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Does the device ID have any capabilities recorded in the system
+    /// </summary>
+    /// <param name = "_deviceId">Device ID</param>
+    /// <returns></returns>
+    public static boolean existDevice(str _deviceId)
+    {
+        TFMDeviceCapabilities deviceCapabilities;
+        select firstonly RecId from deviceCapabilities
+            where deviceCapabilities.DeviceId == _deviceId;
+        
+        return deviceCapabilities.RecId != 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the value of the capability for the given device, domain, and attribute combination.
+    /// </summary>
+    /// <param name = "_deviceId">Device ID</param>
+    /// <param name = "_domain">Domain in request structure</param>
+    /// <param name = "_attribute">Attribute name</param>
+    /// <returns></returns>
+    public static str getValue(str _deviceId, str _domain, str _attribute)
+    {
+        TFMDeviceCapabilities deviceCapabilities;
+        select firstonly Value from deviceCapabilities
+            where deviceCapabilities.DeviceId == _deviceId
+            && deviceCapabilities.DomainName == _domain
+            && deviceCapabilities.Key == _attribute;
+        
+        return deviceCapabilities.Value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createOrUpdateCapabilities</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates or updates a record in the TFMDeviceCapabilities table for the given device, domain, and attribute combination.
+    /// </summary>
+    /// <param name = "_deviceId">Device ID</param>
+    /// <param name = "_domain">Domain in request structure</param>
+    /// <param name = "_attribute">Attribute name</param>
+    /// <param name = "_value">Attribute value</param>
+    public static void createOrUpdateCapabilities(str _deviceId, str _domain, str _attribute, str _value)
+    {
+        TFMDeviceCapabilities deviceCapabilities;
+        select firstonly forupdate deviceCapabilities
+            where deviceCapabilities.DeviceId == _deviceId
+            && deviceCapabilities.DomainName == _domain
+            && deviceCapabilities.Key == _attribute;
+        
+        ttsbegin;
+        if(!deviceCapabilities)
+        {
+            deviceCapabilities.DeviceId = _deviceId;
+            deviceCapabilities.DomainName = _domain;
+            deviceCapabilities.Key = _attribute;
+        }
+        deviceCapabilities.Value = _value;
+        deviceCapabilities.write();
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@SYS133077</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<CacheLookup>Found</CacheLookup>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DomainName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Key</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Value</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DeviceId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentDeviceId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Key</Name>
+			<ExtendedDataType>KeyValueLong</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@MobileWMS:Key</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Value</Name>
+			<ExtendedDataType>description</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@MobileWMS:Value</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DomainName</Name>
+			<ExtendedDataType>DomainName</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>DeviceKeyDomainIdx</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>DeviceId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>Key</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>DomainName</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>TFMDeviceTable</Name>
+			<Cardinality>OneMore</Cardinality>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>tfmdevicetable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>DeviceId</Name>
+					<Field>DeviceId</Field>
+					<RelatedField>DeviceId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

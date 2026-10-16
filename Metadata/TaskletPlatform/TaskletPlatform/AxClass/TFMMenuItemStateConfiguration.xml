@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMenuItemStateConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMMenuItemStateConfiguration
+{
+    str										menuItemName;
+    str										icon;
+    real									promoted;
+    str										title;
+    boolean									enabled;
+    boolean									titleChanged;
+    TFMPage									pageMenuItemPointsTo;
+    TFMPageActionAttribute					pageActionAttribute;
+    TFMPageMenuItemsAdditionalProperties	additionalProperties;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmMenuItemName</Name>
+				<Source><![CDATA[
+    public str parmMenuItemName(str _menuItemName = menuItemName)
+    {
+        menuItemName = _menuItemName;
+        return menuItemName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPromoted</Name>
+				<Source><![CDATA[
+    public real parmPromoted(real _promoted = promoted)
+    {
+        promoted = _promoted;
+        return promoted;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmEnabled</Name>
+				<Source><![CDATA[
+    public boolean parmEnabled(boolean _enabled = enabled)
+    {
+        enabled = _enabled;
+        return enabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAdditionalProperties</Name>
+				<Source><![CDATA[
+    public TFMPageMenuItemsAdditionalProperties parmAdditionalProperties(TFMPageMenuItemsAdditionalProperties _additionalProperties = additionalProperties)
+    {
+        additionalProperties = _additionalProperties;
+        return additionalProperties;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPageMenuItemPointsTo</Name>
+				<Source><![CDATA[
+    public TFMPage parmPageMenuItemPointsTo(TFMPage _page = pageMenuItemPointsTo)
+    {
+        pageMenuItemPointsTo = _page;
+        if(!pageMenuItemPointsTo && menuItemName)
+        {
+            pageMenuItemPointsTo = TFMPagesProvider::getAllPages().getPage(menuItemName); // since the page pointed to is not necessarily created at the time there is a check here and not in the constructor of the class.
+        }
+        return pageMenuItemPointsTo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>titleChanged</Name>
+				<Source><![CDATA[
+	public  boolean titleChanged()
+    {
+        return titleChanged;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTitle</Name>
+				<Source><![CDATA[
+	public str parmTitle(str _title = title)
+    {
+        if (title != _title && _title)
+        {
+            titleChanged = true;
+        }
+        title = _title;
+        if(!title)
+        {
+            // if the title was not set then use the page if any.
+            if(this.parmPageMenuItemPointsTo() && pageMenuItemPointsTo.parmTitle())
+            {
+                title = pageMenuItemPointsTo.parmTitle();
+            }
+        }
+
+        return title;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIcon</Name>
+				<Source><![CDATA[
+    public str parmIcon(str _icon = icon)
+    {
+        icon = _icon;
+        if(!icon)
+        {
+            // if the icon was not set then use the page if any.
+            if(this.parmPageMenuItemPointsTo() && pageMenuItemPointsTo.parmIcon())
+            {
+                icon = pageMenuItemPointsTo.parmIcon();
+            }
+        }
+        return icon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPageActionSetup</Name>
+				<Source><![CDATA[
+    public TFMPageActionAttribute getPageActionSetup()
+    {
+        return pageActionAttribute;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(str _menuItemName, real _promoted = -1, TFMPageActionAttribute _pageActionAttribute = null)
+    {
+        menuItemName = _menuItemName;
+        promoted = _promoted;
+        enabled = true;
+        pageActionAttribute = _pageActionAttribute;
+        if(!pageActionAttribute)
+        {
+            // Create default _pageAction we default to an open action.
+            pageActionAttribute = new TFMPageActionAttribute(TFMPageMenuItemTypes::OpenAction, '', _promoted > -1, false);
+            
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMMenuItemStateConfiguration Construct(str _menuItemName, real _promoted = -1, TFMPageActionAttribute _pageActionAttribute = null)
+    {
+        return new TFMMenuItemStateConfiguration(_menuItemName,_promoted, _pageActionAttribute);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Appends the menuItems to the response data for the data elements e.g. in orderlines.
+    /// </summary>
+	public void appendToXML(XmlElement _element)
+    {
+        XmlElement menuItemElement = _element.ownerDocument().createElement(TFMMenuItemStateConfiguration::GetDataMemberNameAcceptableForXml(menuItemName));
+		if (promoted >-1 )
+        {
+            menuItemElement.setAttribute('promoted', int2Str(promoted));
+        }
+        menuItemElement.setAttribute('enabled', enabled ? 'true' : 'false');
+
+        _element.appendChild(menuItemElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetDataMemberNameAcceptableForXml</Name>
+				<Source><![CDATA[
+    public static str GetDataMemberNameAcceptableForXml(str _menuItemName)
+    {
+        return strReplace(_menuItemName, "/", "_");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeAdhocAction</Name>
+				<Source><![CDATA[
+    public static TFMMenuItemStateConfiguration makeAdhocAction(str _menuitemName, TFMDocumentTypeId _documentTypeId, TFMDocumentContentSubject _contentType, str _icon, str _title, boolean _refreshOnSuccess, TFMPageID _navigateToOnSuccesfulPost = '')
+    {
+        TFMMenuItemStateConfiguration				conf;
+        TFMPageActionAttribute						pageAction;
+        TFMPageAdhocMenuItemsAdditionalProperties	additionalProps;
+        
+        pageAction = new TFMPageActionAttribute(TFMPageMenuItemTypes::AdhocAction,_icon,-1,false);
+                
+        additionalProps = new TFMPageAdhocMenuItemsAdditionalProperties();
+        additionalProps.parmDocumentType(_documentTypeId);
+        additionalProps.parmContentType(_contentType);
+        additionalProps.parmRefreshOnSuccess(_refreshOnSuccess);
+        additionalProps.parmNavigateTo(_navigateToOnSuccesfulPost);
+                
+        conf = TFMMenuItemStateConfiguration::Construct(_menuitemName, -1, pageAction);
+        conf.parmAdditionalProperties(additionalProps);
+        conf.parmTitle(_title);
+          
+        
+  
+        
+        return conf;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

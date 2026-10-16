@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicStepOperatorThrowError</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicStepOperatorThrowError extends TFMLogicBlock implements TFMLogicStepOperatorInterface
+{
+    LabelString textToThrow;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        
+        super();
+        outputs = TFMLogicInputOutputContainer::Construct();        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmErrorText</Name>
+				<Source><![CDATA[
+    [TFMParameter('')]
+    public LabelString parmErrorText(LabelString _textToThrow = textToThrow)
+    {
+        textToThrow = _textToThrow;
+        if (!textToThrow)
+        {
+            textToThrow = "@TFM:Anerrorhasoccured";
+        }
+        return textToThrow;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMBlockError);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        return "@TFM:ThrowError";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runLogic</Name>
+				<Source><![CDATA[
+    public str runLogic ( TFMRequestElement _request )
+    {
+        throw Error ( textToThrow);
+        return '';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

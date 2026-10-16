@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocPallet</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMMenu(staticMethodStr(MobConstants, UnplannedPalletMove), '@{MainMenuUnplannedPalletMove}', '@{MainMenuUnplannedPalletMove}', resourceStr(MobPalletMoveIcon), true, true, ['Warehouse']),
+//TFMMenu('UnplannedPalletMoveLookup', 'MainMenuUnplannedPalletMove', 'MainMenuUnplannedPalletMove', resourceStr(MobPalletMoveIcon), true, true, ['Warehouse']),
+    TFMMenu(staticMethodStr(MobConstants,UnplannedCreatePallet), "@MobileWMS:MobileWMS167", "@MobileWMS:MobileWMS167", resourceStr(MobCreatePalletIcon), true, true, ['Warehouse']),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(MobConstants,UnplannedCreatePallet), methodStr(MobDocPallet,postCreatePallet)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(MobConstants, UnplannedPalletMove), methodStr(MobDocPallet,postUnplannedPalletMove))
+]
+class MobDocPallet extends TFMDocumentHandler
+{
+    inventJournalTable      inventJournalTable;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return "@SYS50308";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret;
+
+        ret = super();
+        ret.insert('PageUnplannedPalletMoveTitle',"@MobileWMS:MoveLicensePlate");
+        ret.insert('MainMenuUnplannedPalletMove',MobHelper::capitalLetterSentence("@MobileWMS:MoveLicensePlate"));
+        ret.insert('PageCreatePalletTitle',"@WAX3180");
+        ret.insert('MainMenuCreatePallet',MobHelper::capitalLetterSentence("@WAX3180"));
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CreatePalletHeader</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod(staticMethodStr(MobConstants, UnplannedCreatePallet))]
+    public TFMReferenceDataConfiguration CreatePalletHeader()
+    {
+        TFMReferenceDataConfiguration refCon = new TFMReferenceDataConfiguration();  
+        TFMRegistrationCollectorText  lpCol = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(WHSLicensePlateId));
+        lpCol.parmOptional(false);
+        refCon.addCollector(lpCol);
+        return refCon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UnplannedPalletMoveHeader</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod(staticMethodStr(MobConstants, UnplannedPalletMove))]
+    public TFMReferenceDataConfiguration UnplannedPalletMoveHeader()
+    {
+        TFMReferenceDataConfiguration refCon = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorText  lpCol = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(WHSLicensePlateId));
+        lpCol.parmOptional(false);
+        refCon.addCollector(lpCol);
+        refCon.addCollector(TFMGetReferenceData::defaultLocationCollector(20,'MoveTo'));
+
+        return refCon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postCreatePallet</Name>
+				<Source><![CDATA[
+    [TFMPostMethod(tableStr(inventJournalTable))]
+    public void postCreatePallet()
+    {
+        
+        WHSLicensePlateId   licensePlate = request.getFieldValue(extendedTypeStr(WHSLicensePlateId));
+        WHSLicensePlate     lp = WHSLicensePlate::createLicensePlate(licensePlate);
+        resultStr = lp ? "@MobileWMS:MEL71" : "@MobileWMS:MEL65";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postUnplannedPalletMove</Name>
+				<Source><![CDATA[
+    public void postUnplannedPalletMove()
+    {        
+        wmsLocationid       WMSLocId= request.getFieldValue('MoveTo');
+        WHSLicensePlateId   lp = request.getFieldValue(extendedTypeStr(WHSLicensePlateId));
+        InventDim           inventDimIssue;
+        InventSum           isum;
+
+        select firstonly isum
+            join inventDimIssue where inventDimIssue.inventDimId == isum.InventDimId
+            &&   inventDimIssue.LicensePlateId == lp;
+
+        MobPostHelper::MoveLicensePlate(lp,inventDimIssue.InventLocationId,wmslocid);
+
+        resultStr = SysLabel::labelId2String2("@MobileWMS:MEL47");
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

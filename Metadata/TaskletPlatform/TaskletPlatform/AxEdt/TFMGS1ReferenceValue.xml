@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>TFMGS1ReferenceValue</Name>
+	<Extends>Name</Extends>
+	<PresenceIndicatorAllowed>No</PresenceIndicatorAllowed>
+	<ArrayElements />
+	<Relations />
+	<TableReferences />
+</AxEdt>

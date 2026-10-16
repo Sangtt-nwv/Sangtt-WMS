@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestPostOrderElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRequestPostOrderElement extends TFMRequestElement
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parseXML</Name>
+				<Source><![CDATA[
+    protected void parseXML()
+    {
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

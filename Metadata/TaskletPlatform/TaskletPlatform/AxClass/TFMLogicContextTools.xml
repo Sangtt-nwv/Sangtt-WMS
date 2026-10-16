@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContextTools</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Abstract class for static tool classes used in the logic context/Conditions
+/// </summary>
+abstract class TFMLogicContextTools extends TFMLogicContextObject
+{
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        noOfInput = 1;
+        inputTypes = new Set(Types::Enum);
+        categories.add("@TFM:Operator");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Name</Name>
+				<Source><![CDATA[
+	abstract public Name Name()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>icon</Name>
+				<Source><![CDATA[
+    public ResourceName icon()
+    {
+        return resourceStr(TFMBlockSettings);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>evaluate</Name>
+				<Source><![CDATA[
+    public anytype evaluate(TFMLogicContext _context)
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestInventDimElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRequestInventDimElement extends TFMRequestElement
+{
+    
+    WMSLocationId               fromWmsLocation;
+    WMSLocationId               toWMSLocation;
+    WMSLocationId               wmsLocation;
+    InventLocationId            location;
+    InventLocationId            Fromlocation;
+    InventLocationId            Tolocation;
+    InventBatchId               batchId;
+    InventSerialId              serialId;
+    TransDate                   expirationDate;
+    EcoResItemConfigurationName conFigId;
+    EcoResItemColorName         color;
+    EcoResItemSizeName          size;
+    EcoResItemStyleName         style;
+    WHSLicensePlateId           licensePlate;
+    WHSLicensePlateId           toLicensePlate;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>createInventDim</Name>
+				<Source><![CDATA[
+    public InventDim createInventDim(InventDim _inventDim)
+    {        
+        return InventDim::findOrCreate(TFMInventDimHelper::getInventDim(_inventDim,itemId,this));        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createFromInventDim</Name>
+				<Source><![CDATA[
+    public InventDim createFromInventDim(InventDim _inventDim)
+    {
+        return TFMInventDimHelper::getInventDim(_inventDim,itemId,this,'From');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createToInventDim</Name>
+				<Source><![CDATA[
+    public InventDim createToInventDim(InventDim _inventDim)
+    {
+        return TFMInventDimHelper::getInventDim(_inventDim,itemId,this,'To');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFromWMSLocationId</Name>
+				<Source><![CDATA[
+    public WMSLocationId parmFromWMSLocationId(WMSLocationId _fromLocation = fromWmsLocation)
+    {
+        fromWmsLocation = _fromLocation;
+        return fromWmsLocation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmToWMSLocationId</Name>
+				<Source><![CDATA[
+    public WMSLocationId parmToWMSLocationId(WMSLocationId _toLocation = toWMSLocation)
+    {
+        toWMSLocation = _toLocation;
+        return toWMSLocation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmWMSLocationId</Name>
+				<Source><![CDATA[
+    public WMSLocationId parmWMSLocationId(WMSLocationId _wmsLocation = wmsLocation)
+    {
+        wmsLocation = _wmsLocation;
+        return wmsLocation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInventLocationId</Name>
+				<Source><![CDATA[
+    public InventLocationId parmInventLocationId(InventLocationId _location = location)
+    {
+        location = _location;
+        return location;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFromInventLocationId</Name>
+				<Source><![CDATA[
+    public InventLocationId parmFromInventLocationId(InventLocationId _location = Fromlocation)
+    {
+        Fromlocation = _location;
+        return Fromlocation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmToInventLocationId</Name>
+				<Source><![CDATA[
+    public InventLocationId parmToInventLocationId(InventLocationId _location = Tolocation)
+    {
+        Tolocation = _location;
+        return Tolocation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmWarehouse</Name>
+				<Source><![CDATA[
+    public InventLocationId parmWarehouse(InventLocationId _location = location)
+    {
+        location = _location;
+        return location;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInventBatchId</Name>
+				<Source><![CDATA[
+    public InventBatchId parmInventBatchId(InventBatchId _batchId = batchId)
+    {
+        batchId = _batchId;
+        return batchId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmEcoResItemConfigurationName</Name>
+				<Source><![CDATA[
+    public EcoResItemConfigurationName parmEcoResItemConfigurationName(EcoResItemConfigurationName _configId = conFigId)
+    {
+        conFigId = _conFigId;
+        return conFigId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmConfigId</Name>
+				<Source><![CDATA[
+    public     EcoResItemConfigurationName parmConfigId(EcoResItemConfigurationName _configId = conFigId)
+    {
+        conFigId = _conFigId;
+        return conFigId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmEcoResItemColorName</Name>
+				<Source><![CDATA[
+    public EcoResItemColorName parmEcoResItemColorName(EcoResItemColorName _color = color)
+    {
+        color = _color;
+        return color;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInventColorId</Name>
+				<Source><![CDATA[
+    public     EcoResItemColorName parmInventColorId(EcoResItemColorName _color = color)
+    {
+        color = _color;
+        return color;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInventSizeId</Name>
+				<Source><![CDATA[
+    public EcoResItemSizeName parmInventSizeId(EcoResItemSizeName _size = size)
+    {
+        size = _size;
+        return size;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmEcoResItemSizeName</Name>
+				<Source><![CDATA[
+    public EcoResItemSizeName parmEcoResItemSizeName(EcoResItemSizeName _size = size)
+    {
+        size = _size;
+        return size;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmEcoResItemStyleName</Name>
+				<Source><![CDATA[
+    public EcoResItemStyleName parmEcoResItemStyleName(EcoResItemStyleName _style = style)
+    {
+        style = _style;
+        return style;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInventStyleId</Name>
+				<Source><![CDATA[
+    public EcoResItemStyleName parmInventStyleId(EcoResItemStyleName _style = style)
+    {
+        style = _style;
+        return style;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmWHSLicensePlateId</Name>
+				<Source><![CDATA[
+    public WHSLicensePlateId parmWHSLicensePlateId(WHSLicensePlateId _licensePlate = licensePlate)
+    {
+        licensePlate = _licensePlate;
+        return licensePlate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLicensePlateId</Name>
+				<Source><![CDATA[
+    public WHSLicensePlateId parmLicensePlateId(WHSLicensePlateId _licensePlate = licensePlate)
+    {
+        licensePlate = _licensePlate;
+        return licensePlate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmToLicensePlateId</Name>
+				<Source><![CDATA[
+    public WHSLicensePlateId parmToLicensePlateId(WHSLicensePlateId _ToLicensePlate = toLicensePlate)
+    {
+        toLicensePlate = _ToLicensePlate;
+        return toLicensePlate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmExpirationDate</Name>
+				<Source><![CDATA[
+    public TransDate parmExpirationDate(TransDate _expirationDate = expirationDate)
+    {
+        expirationDate = _expirationDate;
+
+        return expirationDate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInventSerialId</Name>
+				<Source><![CDATA[
+    public InventSerialId parmInventSerialId(InventSerialId _serialId = serialId)
+    {
+        serialId = _serialId;
+        return serialId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateItemId</Name>
+				<Source><![CDATA[
+    protected void updateItemId(str _inputStr)
+    {
+        super(_inputStr);
+        if(itemId)
+        {
+            // When the item id is set we make sure the InventDim is set.
+            TFMHelper::EnsureInventDim(inventDim);
+            inventDim = this.createInventDim(inventDim);
+            this.parmInventDim(inventDim);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

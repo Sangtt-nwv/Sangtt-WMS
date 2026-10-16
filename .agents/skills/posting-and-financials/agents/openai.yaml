@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Posting & Financials"
+  short_description: "Work with dimensions, posting, currency, and pricing"
+  default_prompt: "Use $posting-and-financials to work with dimensions, posting, or currency for this D365FO change."

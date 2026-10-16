@@ -1,0 +1,648 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <BuildTasksDirectory Condition=" '$(BuildTasksDirectory)' == ''">$(MSBuildProgramFiles32)\MSBuild\Microsoft\Dynamics\AX</BuildTasksDirectory>
+    <Model>MobileWMS</Model>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <OutputPath>bin</OutputPath>
+    <SchemaVersion>2.0</SchemaVersion>
+    <GenerateCrossReferences>True</GenerateCrossReferences>
+    <RunAppCheckerRules>False</RunAppCheckerRules>
+    <LogAppcheckerDiagsAsErrors>False</LogAppcheckerDiagsAsErrors>
+    <DeployOnline>False</DeployOnline>
+    <ProjectGuid>{e5643a98-87c5-4096-946d-774447b518f7}</ProjectGuid>
+    <Name>MobileWMS</Name>
+    <RootNamespace>MobileWMS</RootNamespace>
+    <StartupType>Class</StartupType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <Configuration>Debug</Configuration>
+    <DBSyncInBuild>False</DBSyncInBuild>
+    <GenerateFormAdaptors>False</GenerateFormAdaptors>
+    <Company>
+    </Company>
+    <Partition>initial</Partition>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DataEntityExpandParentChildRelations>False</DataEntityExpandParentChildRelations>
+    <DataEntityUseLabelTextAsFieldName>False</DataEntityUseLabelTextAsFieldName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Classes\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="AxClass\MwmsImageHandlerCombinedImages">
+      <SubType>Content</SubType>
+      <Name>MwmsImageHandlerCombinedImages</Name>
+      <Link>Classes\MwmsImageHandlerCombinedImages</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlock">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlock</Name>
+      <Link>Classes\MwmsLogicBlock</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockAddBOMPickLine">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockAddBOMPickLine</Name>
+      <Link>Classes\MwmsLogicBlockAddBOMPickLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockAddCountLine">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockAddCountLine</Name>
+      <Link>Classes\MwmsLogicBlockAddCountLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockAddonCancelMoveWhenSimilar">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockAddonCancelMoveWhenSimilar</Name>
+      <Link>Classes\MwmsLogicBlockAddonCancelMoveWhenSimilar</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockAddonClassifyInput">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockAddonClassifyInput</Name>
+      <Link>Classes\MwmsLogicBlockAddonClassifyInput</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockAddonInventoryUnit">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockAddonInventoryUnit</Name>
+      <Link>Classes\MwmsLogicBlockAddonInventoryUnit</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockAddonNegativeQuantity">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockAddonNegativeQuantity</Name>
+      <Link>Classes\MwmsLogicBlockAddonNegativeQuantity</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockAddonTransformItemDimensions">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockAddonTransformItemDimensions</Name>
+      <Link>Classes\MwmsLogicBlockAddonTransformItemDimensions</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockCancelPickLine">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockCancelPickLine</Name>
+      <Link>Classes\MwmsLogicBlockCancelPickLine</Link>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.Common.targets" />
+  <Import Project="$(BuildTasksDirectory)\Microsoft.Dynamics.Framework.Tools.BuildTasks.17.0.targets" />
+  <ItemGroup>
+    <Folder Include="Resources\" />
+    <Folder Include="Label Files\" />
+    <Folder Include="Extended Data Types\" />
+    <Content Include="AxClass\MwmsLogicBlockCreateCountingJournal">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockCreateCountingJournal</Name>
+      <Link>Classes\MwmsLogicBlockCreateCountingJournal</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockCreateCountingJournalLine">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockCreateCountingJournalLine</Name>
+      <Link>Classes\MwmsLogicBlockCreateCountingJournalLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockCreateMovementJournal">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockCreateMovementJournal</Name>
+      <Link>Classes\MwmsLogicBlockCreateMovementJournal</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockCreateMovementJournalLine">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockCreateMovementJournalLine</Name>
+      <Link>Classes\MwmsLogicBlockCreateMovementJournalLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockCreateProfitLossJournal">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockCreateProfitLossJournal</Name>
+      <Link>Classes\MwmsLogicBlockCreateProfitLossJournal</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockCreateProfitLossJournalLine">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockCreateProfitLossJournalLine</Name>
+      <Link>Classes\MwmsLogicBlockCreateProfitLossJournalLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockCreateQuarantineOrder">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockCreateQuarantineOrder</Name>
+      <Link>Classes\MwmsLogicBlockCreateQuarantineOrder</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockCreateTagCountingJournal">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockCreateTagCountingJournal</Name>
+      <Link>Classes\MwmsLogicBlockCreateTagCountingJournal</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockCreateTagCountingJournalLicensePlateLine">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockCreateTagCountingJournalLicensePlateLine</Name>
+      <Link>Classes\MwmsLogicBlockCreateTagCountingJournalLicensePlateLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockCreateTagCountingJournalLine">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockCreateTagCountingJournalLine</Name>
+      <Link>Classes\MwmsLogicBlockCreateTagCountingJournalLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockCreateTransferJournal">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockCreateTransferJournal</Name>
+      <Link>Classes\MwmsLogicBlockCreateTransferJournal</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockCreateTransferJournalLicensePlateLine">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockCreateTransferJournalLicensePlateLine</Name>
+      <Link>Classes\MwmsLogicBlockCreateTransferJournalLicensePlateLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockCreateTransferJournalLine">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockCreateTransferJournalLine</Name>
+      <Link>Classes\MwmsLogicBlockCreateTransferJournalLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockDeleteJournalLine">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockDeleteJournalLine</Name>
+      <Link>Classes\MwmsLogicBlockDeleteJournalLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockFinishQuarantineOrder">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockFinishQuarantineOrder</Name>
+      <Link>Classes\MwmsLogicBlockFinishQuarantineOrder</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockJournalLinesCommon">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockJournalLinesCommon</Name>
+      <Link>Classes\MwmsLogicBlockJournalLinesCommon</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockjournalsCommon">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockjournalsCommon</Name>
+      <Link>Classes\MwmsLogicBlockjournalsCommon</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockMoveInvent">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockMoveInvent</Name>
+      <Link>Classes\MwmsLogicBlockMoveInvent</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockMoveLicensePlate">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockMoveLicensePlate</Name>
+      <Link>Classes\MwmsLogicBlockMoveLicensePlate</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockMoveMultipleLicensePlates">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockMoveMultipleLicensePlates</Name>
+      <Link>Classes\MwmsLogicBlockMoveMultipleLicensePlates</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockPostInventoryJournal">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockPostInventoryJournal</Name>
+      <Link>Classes\MwmsLogicBlockPostInventoryJournal</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockProdErrorQty">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockProdErrorQty</Name>
+      <Link>Classes\MwmsLogicBlockProdErrorQty</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockRegisterBarcode">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockRegisterBarcode</Name>
+      <Link>Classes\MwmsLogicBlockRegisterBarcode</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockRegisterItemImage">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockRegisterItemImage</Name>
+      <Link>Classes\MwmsLogicBlockRegisterItemImage</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockReportProductionAsFinished">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockReportProductionAsFinished</Name>
+      <Link>Classes\MwmsLogicBlockReportProductionAsFinished</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicBlockStartProductionOrder">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicBlockStartProductionOrder</Name>
+      <Link>Classes\MwmsLogicBlockStartProductionOrder</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicComponentInventoryJournalId">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicComponentInventoryJournalId</Name>
+      <Link>Classes\MwmsLogicComponentInventoryJournalId</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicComponentInventoryJournalLicensePlates">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicComponentInventoryJournalLicensePlates</Name>
+      <Link>Classes\MwmsLogicComponentInventoryJournalLicensePlates</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicComponentInventoryJournalLines">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicComponentInventoryJournalLines</Name>
+      <Link>Classes\MwmsLogicComponentInventoryJournalLines</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicComponentInventoryJournalsCommonHeader">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicComponentInventoryJournalsCommonHeader</Name>
+      <Link>Classes\MwmsLogicComponentInventoryJournalsCommonHeader</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicComponentInventoryMovement">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicComponentInventoryMovement</Name>
+      <Link>Classes\MwmsLogicComponentInventoryMovement</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicContextUnitOfMeasure">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicContextUnitOfMeasure</Name>
+      <Link>Classes\MwmsLogicContextUnitOfMeasure</Link>
+    </Content>
+    <Content Include="AxClass\MwmsLogicStepOperatorOnHand">
+      <SubType>Content</SubType>
+      <Name>MwmsLogicStepOperatorOnHand</Name>
+      <Link>Classes\MwmsLogicStepOperatorOnHand</Link>
+    </Content>
+    <Content Include="AxClass\MwmsProcessAddCountLine">
+      <SubType>Content</SubType>
+      <Name>MwmsProcessAddCountLine</Name>
+      <Link>Classes\MwmsProcessAddCountLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsProcessCancelPickLine">
+      <SubType>Content</SubType>
+      <Name>MwmsProcessCancelPickLine</Name>
+      <Link>Classes\MwmsProcessCancelPickLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsProcessCreateQuarantineOrder">
+      <SubType>Content</SubType>
+      <Name>MwmsProcessCreateQuarantineOrder</Name>
+      <Link>Classes\MwmsProcessCreateQuarantineOrder</Link>
+    </Content>
+    <Content Include="AxClass\MwmsProcessCreateTagCountingJournalLine">
+      <SubType>Content</SubType>
+      <Name>MwmsProcessCreateTagCountingJournalLine</Name>
+      <Link>Classes\MwmsProcessCreateTagCountingJournalLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsProcessCreateTransferJournalLine">
+      <SubType>Content</SubType>
+      <Name>MwmsProcessCreateTransferJournalLine</Name>
+      <Link>Classes\MwmsProcessCreateTransferJournalLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsProcessFinishQuarantineOrders">
+      <SubType>Content</SubType>
+      <Name>MwmsProcessFinishQuarantineOrders</Name>
+      <Link>Classes\MwmsProcessFinishQuarantineOrders</Link>
+    </Content>
+    <Content Include="AxClass\MwmsProcessMoveInventory">
+      <SubType>Content</SubType>
+      <Name>MwmsProcessMoveInventory</Name>
+      <Link>Classes\MwmsProcessMoveInventory</Link>
+    </Content>
+    <Content Include="AxClass\MwmsProcessNegativeAdjustment">
+      <SubType>Content</SubType>
+      <Name>MwmsProcessNegativeAdjustment</Name>
+      <Link>Classes\MwmsProcessNegativeAdjustment</Link>
+    </Content>
+    <Content Include="AxClass\MwmsProcessRegisterBarcode">
+      <SubType>Content</SubType>
+      <Name>MwmsProcessRegisterBarcode</Name>
+      <Link>Classes\MwmsProcessRegisterBarcode</Link>
+    </Content>
+    <Content Include="AxClass\MwmsProcessRegisterItemImage">
+      <SubType>Content</SubType>
+      <Name>MwmsProcessRegisterItemImage</Name>
+      <Link>Classes\MwmsProcessRegisterItemImage</Link>
+    </Content>
+    <Content Include="AxClass\MwmsProcessTagCountingJournalLine">
+      <SubType>Content</SubType>
+      <Name>MwmsProcessTagCountingJournalLine</Name>
+      <Link>Classes\MwmsProcessTagCountingJournalLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsProcessTransferJournalLine">
+      <SubType>Content</SubType>
+      <Name>MwmsProcessTransferJournalLine</Name>
+      <Link>Classes\MwmsProcessTransferJournalLine</Link>
+    </Content>
+    <Content Include="AxClass\MwmsProcessUnplannedCount">
+      <SubType>Content</SubType>
+      <Name>MwmsProcessUnplannedCount</Name>
+      <Link>Classes\MwmsProcessUnplannedCount</Link>
+    </Content>
+    <Content Include="AxClass\MwmsProcessUnplannedMove">
+      <SubType>Content</SubType>
+      <Name>MwmsProcessUnplannedMove</Name>
+      <Link>Classes\MwmsProcessUnplannedMove</Link>
+    </Content>
+    <Content Include="AxClass\MwmsRequestCartContentElement">
+      <SubType>Content</SubType>
+      <Name>MwmsRequestCartContentElement</Name>
+      <Link>Classes\MwmsRequestCartContentElement</Link>
+    </Content>
+    <Content Include="AxClass\MwmsRequestItemAndDimensionsElement">
+      <SubType>Content</SubType>
+      <Name>MwmsRequestItemAndDimensionsElement</Name>
+      <Link>Classes\MwmsRequestItemAndDimensionsElement</Link>
+    </Content>
+    <Content Include="AxClass\TFMExpressionsDefaultIssueLocation">
+      <SubType>Content</SubType>
+      <Name>TFMExpressionsDefaultIssueLocation</Name>
+      <Link>Classes\TFMExpressionsDefaultIssueLocation</Link>
+    </Content>
+    <Content Include="AxClass\TFMExpressionsDefaultPickingLocation">
+      <SubType>Content</SubType>
+      <Name>TFMExpressionsDefaultPickingLocation</Name>
+      <Link>Classes\TFMExpressionsDefaultPickingLocation</Link>
+    </Content>
+    <Content Include="AxClass\TFMInventDimensionSetupContract_Extension">
+      <SubType>Content</SubType>
+      <Name>TFMInventDimensionSetupContract_Extension</Name>
+      <Link>Classes\TFMInventDimensionSetupContract_Extension</Link>
+    </Content>
+    <Content Include="AxClass\TFMLogicContextDimensionSetup_Extension">
+      <SubType>Content</SubType>
+      <Name>TFMLogicContextDimensionSetup_Extension</Name>
+      <Link>Classes\TFMLogicContextDimensionSetup_Extension</Link>
+    </Content>
+    <Content Include="AxClass\TFMUnitOfMeasureContextContract">
+      <SubType>Content</SubType>
+      <Name>TFMUnitOfMeasureContextContract</Name>
+      <Link>Classes\TFMUnitOfMeasureContextContract</Link>
+    </Content>
+    <Content Include="AxEdt\MwmsAddUpdate">
+      <SubType>Content</SubType>
+      <Name>MwmsAddUpdate</Name>
+      <Link>Extended Data Types\MwmsAddUpdate</Link>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_bg">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_bg</Name>
+      <Link>Label Files\TaskletMobileWMS_bg</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.bg.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.bg.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.bg.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_bg</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_da">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_da</Name>
+      <Link>Label Files\TaskletMobileWMS_da</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.da.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.da.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.da.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_da</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_de">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_de</Name>
+      <Link>Label Files\TaskletMobileWMS_de</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.de.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.de.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.de.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_de</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_en-US">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_en-US</Name>
+      <Link>Label Files\TaskletMobileWMS_en-US</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.en-US.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.en-US.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.en-US.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_en-US</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_es">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_es</Name>
+      <Link>Label Files\TaskletMobileWMS_es</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.es.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.es.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.es.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_es</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_et">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_et</Name>
+      <Link>Label Files\TaskletMobileWMS_et</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.et.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.et.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.et.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_et</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_fi">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_fi</Name>
+      <Link>Label Files\TaskletMobileWMS_fi</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.fi.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.fi.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.fi.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_fi</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_fr">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_fr</Name>
+      <Link>Label Files\TaskletMobileWMS_fr</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.fr.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.fr.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.fr.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_fr</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_hr">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_hr</Name>
+      <Link>Label Files\TaskletMobileWMS_hr</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.hr.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.hr.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.hr.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_hr</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_it">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_it</Name>
+      <Link>Label Files\TaskletMobileWMS_it</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.it.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.it.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.it.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_it</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_ja">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_ja</Name>
+      <Link>Label Files\TaskletMobileWMS_ja</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.ja.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.ja.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.ja.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_ja</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_lt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_lt</Name>
+      <Link>Label Files\TaskletMobileWMS_lt</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.lt.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.lt.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.lt.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_lt</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_lv">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_lv</Name>
+      <Link>Label Files\TaskletMobileWMS_lv</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.lv.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.lv.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.lv.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_lv</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_nl">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_nl</Name>
+      <Link>Label Files\TaskletMobileWMS_nl</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.nl.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.nl.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.nl.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_nl</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_no">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_no</Name>
+      <Link>Label Files\TaskletMobileWMS_no</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.no.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.no.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.no.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_no</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_pl">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_pl</Name>
+      <Link>Label Files\TaskletMobileWMS_pl</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.pl.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.pl.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.pl.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_pl</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_pt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_pt</Name>
+      <Link>Label Files\TaskletMobileWMS_pt</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.pt.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.pt.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.pt.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_pt</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_ro">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_ro</Name>
+      <Link>Label Files\TaskletMobileWMS_ro</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.ro.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.ro.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.ro.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_ro</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_ru">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_ru</Name>
+      <Link>Label Files\TaskletMobileWMS_ru</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.ru.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.ru.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.ru.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_ru</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_sk">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_sk</Name>
+      <Link>Label Files\TaskletMobileWMS_sk</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.sk.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.sk.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.sk.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_sk</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_sl">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_sl</Name>
+      <Link>Label Files\TaskletMobileWMS_sl</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.sl.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.sl.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.sl.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_sl</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_sr">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_sr</Name>
+      <Link>Label Files\TaskletMobileWMS_sr</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.sr.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.sr.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.sr.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_sr</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_sv">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_sv</Name>
+      <Link>Label Files\TaskletMobileWMS_sv</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.sv.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.sv.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.sv.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_sv</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\TaskletMobileWMS_th">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS_th</Name>
+      <Link>Label Files\TaskletMobileWMS_th</Link>
+    </Content>
+    <Content Include="TaskletMobileWMS.th.label.txt">
+      <SubType>Content</SubType>
+      <Name>TaskletMobileWMS.th.label.txt</Name>
+      <Link>Label Files\TaskletMobileWMS.th.label.txt</Link>
+      <DependentUpon>AxLabelFile\TaskletMobileWMS_th</DependentUpon>
+    </Content>
+    <Content Include="AxResource\TFMOnhandBlob">
+      <SubType>Content</SubType>
+      <Name>TFMOnhandBlob</Name>
+      <Link>Resources\TFMOnhandBlob</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\Blob-On-hand.png">
+      <SubType>Content</SubType>
+      <Name>Blob-On-hand.png</Name>
+      <Link>Resources\Blob-On-hand.png</Link>
+      <DependentUpon>AxResource\TFMOnhandBlob</DependentUpon>
+    </Content>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContextObject</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMLogicContextObject
+{
+    Set children;
+    TFMLogicContextDataContract dataContract;
+    Set                         inputTypes;
+    TFMLogicContextTypes        outputType;
+    int                         noOfInput;
+    TFMLogicContext             context;
+    Set                         categories;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        categories = new Set(Types::String);
+        inputTypes = new Set(Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>noOfInputs</Name>
+				<Source><![CDATA[
+    public int noOfInputs()
+    {
+        return noOfInput;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validate</Name>
+				<Source><![CDATA[
+    public container validate()
+    {
+        return [true,''];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>inputTypes</Name>
+				<Source><![CDATA[
+    public Set inputTypes()
+    {
+        return inputTypes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>categories</Name>
+				<Source><![CDATA[
+    public Set categories()
+    {
+        return categories;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>outputType</Name>
+				<Source><![CDATA[
+    public TFMLogicContextTypes outputType()
+    {
+        return outputType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Processing method of the context object. If parameters are needed, add them as optional.
+    /// </summary>
+    /// <returns>An instance containing the options to compare against. Must be either a map, or a data contract class.</returns>
+    abstract public Object process()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Name</Name>
+				<Source><![CDATA[
+    abstract public Name Name()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>alternateName</Name>
+				<Source><![CDATA[
+    public Name alternateName(container _parms, str _key)
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>icon</Name>
+				<Source><![CDATA[
+    public ResourceName icon()
+    {
+        return resourceStr(TFMBlockSettings);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>evaluate</Name>
+				<Source><![CDATA[
+    public anytype evaluate(TFMLogicContext _context)
+    {
+        anytype         ret;
+        SetEnumerator   sEnum;
+        TFMCondition    condition;
+        Map             childCondiResult = new Map(Types::Integer, Types::AnyType);
+        Map             returnMap;
+        Object          returnObject;
+        container       parameters;
+        TFMLogicContextFunctionsDataContract dc;
+        
+        if (children == null)
+        {
+            return ret;
+        }
+
+        if (!context)
+        {
+            context = _context;
+        }
+
+        sEnum = children.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            condition = sEnum.current();
+            childCondiResult.insert(condition.GetHashCode(), condition.evaluate(_context));
+            
+        }
+
+        if (dataContract is TFMLogicContextFunctionsDataContract)
+        {
+            dc = dataContract;
+
+            //Replace fields (e.g. {itemId}) with context values, if possible
+            parameters = this.modifyParameters(dc.parmParameters(), _context);
+            
+            returnObject = TFMDocCustomFunctionFlow::callMethodConInstanceAnytype(this,methodStr(TFMLogicContextObject,process ),parameters);
+        }
+        else
+        {
+            returnObject = TFMDocCustomFunctionFlow::callMethodConInstanceAnytype(this,methodStr(TFMLogicContextObject,process ),conNull());
+        }
+        //Evaluate if map or class
+        if (typeOf(returnObject) == Types::Class && classIdGet(returnObject) == classNum(Map))
+        {
+            returnMap = returnObject;
+            return returnMap.exists(dc.parmKeyName()) ? returnMap.lookup(dc.parmKeyName()) : null;
+        }
+        else if (dc && typeOf(returnObject) == Types::Class)
+        {
+            
+            return this.getValueFromObject(returnObject,dc.parmKeyName());
+        }
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyParameters</Name>
+				<Source><![CDATA[
+    protected container modifyParameters(container _parms, TFMLogicContext _context)
+    {
+        container   resultCon = conNull();
+        Types       dataType;
+        str         value;
+        anytype     tableValue;
+        boolean     foundTableValue;
+        
+        for (int i = 1; i <= conLen(_parms); i++)
+        {
+            dataType = typeOf(conPeek(_parms, i));
+            if (dataType == Types::String || dataType == Types::RString || dataType == Types::VarString)
+            {
+                value = conPeek(_parms, i);
+                //Find if variable or field is present in value, marked with {}
+                value = this.FindandReplaceTextBetweenBraces(value,_context);
+                [tableValue, foundTableValue] = _context.extractTableData(value);
+                
+                if (foundTableValue)
+                {
+                    value = strFmt('%1',tableValue);
+                }
+
+                resultCon += value;
+            }
+            else
+            {
+                resultCon += conPeek(_parms, i);
+            }
+        }
+
+        return resultCon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindandReplaceTextBetweenBraces</Name>
+				<Source><![CDATA[
+    protected str FindandReplaceTextBetweenBraces(str _text, TFMLogicContext _context)
+    {
+        str pattern = @'\{([^}]+)\}';
+        System.Text.RegularExpressions.Regex regex;
+        System.Text.RegularExpressions.MatchCollection matches;
+        System.Text.RegularExpressions.Match match;        
+        str retText = _text;
+        str foundStr;
+
+        regex = new System.Text.RegularExpressions.Regex(pattern);
+        matches = regex.Matches(_text);
+
+        for (int i = 0; i < matches.get_Count(); i++)
+        {
+            match = matches.get_Item(i);
+            foundStr = match.get_Groups().get_Item(1).get_Value();
+            if (_context.getFieldContent(foundStr))
+            {
+                retText = strReplace(retText,'{' + foundStr + '}', _context.getFieldContent(foundStr));
+            }
+            
+        }
+        return retText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDataContract</Name>
+				<Source><![CDATA[
+    public TFMLogicContextDataContract parmDataContract(TFMLogicContextDataContract _dataContract = dataContract)
+    {
+        dataContract = _dataContract;
+        return dataContract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setChildren</Name>
+				<Source><![CDATA[
+    public void setChildren(Set _children)
+    {
+        children = _children;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getValueFromObject</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns the value of the specified method or attribute from the provided object.
+    /// </summary>
+    /// <param name="_objectToUse">The object to get the value from.</param>
+    /// <param name="_methodOrAttributeName">The name of the method or attribute to get the value from.</param>
+    /// <returns>The value of the specified method or attribute from the provided object.</returns>
+    protected anytype getValueFromObject(Object _objectToUse, str _methodOrAttributeName)
+    {
+        SysDictClass        sdc = new SysDictClass(classIdGet(_objectToUse));
+        SysDictMethod       sdm;
+        Set                 methods;
+        SetEnumerator       se;
+        
+        DataMemberAttribute dataMemberAttribute;
+        anytype             result;
+        if (sdc.hasObjectMethod(_methodOrAttributeName))
+        {
+            sdm = new SysDictMethod(UtilElementType::ClassInstanceMethod,sdc.id(),_methodOrAttributeName);
+        }
+        else
+        {
+            methods = sdc.methods(true, false, true);
+            se = methods.getEnumerator();
+            while (se.moveNext())
+            {
+                sdm = se.current();
+                dataMemberAttribute = sdm.getAttribute(classStr(DataMemberAttribute));
+                if (dataMemberAttribute != null && dataMemberAttribute.Name() == _methodOrAttributeName)
+                {
+                    break;
+                }
+            }
+        }
+        
+        if (sdm.returnType() == Types::void)
+        {
+            return null;
+        }
+
+        result = sdc.callObject(sdm.name(),_objectToUse);
+        
+        return result;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

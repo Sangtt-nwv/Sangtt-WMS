@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMTranslationLookup</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMTranslationLookup extends FormRun
+{
+    boolean                 okButtonClicked;
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>closeSelect</Name>
+				<Source><![CDATA[
+    public void closeSelect(str _selectString)
+    {
+        if(okButtonClicked)
+        {
+            super(_selectString);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>closeSelectRecord</Name>
+				<Source><![CDATA[
+    public void closeSelectRecord(Common _selectedRecord)
+    {
+        if (okButtonClicked)
+        {
+            if (element.args().caller().name() == formStr(SysTableBrowser))
+            {
+                element.closeSelect(int642str(_selectedRecord.RecId));
+            }
+            else
+            {
+                super(_selectedRecord);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+		okButtonClicked = false;
+
+        super();
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>openTFMTranslations</Name>
+				<Source><![CDATA[
+    public void openTFMTranslations(Common _selectedRecord, FormStringControl _labelCtrl = element.args().callerFormControl())
+    {
+        FormRun formRun;
+        Args    args;
+        args = new args(formStr(TFMTranslations));
+        formRun = new FormRun(args);
+        args.caller(element.caller_RU());
+        if(_selectedRecord && _selectedRecord.RecId)
+        {
+            args.record(_selectedRecord);
+        } else
+        {
+            args.callerFormControl(_labelCtrl);
+            args.parmEnum(2);
+        }
+
+        formRun.init();
+        formRun.run();
+        formRun.reload();
+        formRun.wait();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>TFMTranslations</Name>
+				<Methods>
+					<Method>
+						<Name>executeQuery</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void executeQuery()
+        {
+            QueryBuildDataSource  queryBuildDataSource;
+ 
+            queryBuildDataSource = this.query().dataSourceTable(tablenum(TFMTranslations));
+            queryBuildDataSource.clearRanges();
+            super();
+
+            if (element.selectTarget() is FormStringControl)
+            {
+                FormStringControl c = element.selectTarget();
+                TFMTranslations_ds.positionToRecordByValue(fieldNum(TFMTranslations, LabelId), c.text());
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>FormButtonControlCreateNew</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+
+            super();
+            element.close();
+            
+            element.openTFMTranslations(null, element.args().callerFormControl());
+
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>OK_Change</Name>
+				<Type>CommandButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            okButtonClicked = true;
+    
+            if (element.selectTarget() is FormStringControl)
+            {
+                element.closeSelect(TFMTranslations.LabelId);
+            }
+            else
+            {
+                element.closeSelectRecord(TFMTranslations);
+            }
+    
+            element.openTFMTranslations(TFMTranslations_ds.cursor());
+
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>OK</Name>
+				<Type>CommandButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            okButtonClicked = true;
+
+            if (element.selectTarget() is FormStringControl)
+            {
+                element.closeSelect(TFMTranslations.LabelId);
+            }
+            else
+            {
+                element.closeSelectRecord(TFMTranslations);
+            }
+
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>TFMTranslations</Name>
+			<Table>TFMTranslations</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>LabelId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LabelString</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Version</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<AllowUserSetup xmlns="">No</AllowUserSetup>
+		<HeightMode xmlns="">SizeToContent</HeightMode>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
+		<Style xmlns="">Lookup</Style>
+		<WidthMode xmlns="">SizeToAvailable</WidthMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>RightGroup</Name>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<Type>Group</Type>
+				<Width>550</Width>
+				<WidthMode>Manual</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>ContentFromTree</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>Group</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls />
+						<Columns>2</Columns>
+						<HideIfEmpty>No</HideIfEmpty>
+						<Caption>@TFM:Properties</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>DataBinding</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>Group</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>FormActionPaneControl2</Name>
+								<Type>ActionPane</Type>
+								<Width>500</Width>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>FormButtonGroupControl2</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls />
+									</AxFormControl>
+								</Controls>
+								<DataSource>TFMTranslations</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>DataBindingGrid</Name>
+								<AllowEdit>No</AllowEdit>
+								<Type>Grid</Type>
+								<Width>500</Width>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>TFMFilterAdditionsDataBinding_TableName</Name>
+										<Type>String</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>LabelId</DataField>
+										<DataSource>TFMTranslations</DataSource>
+										<PresenceDataField>LabelId</PresenceDataField>
+										<PresenceDataSource>TFMTranslations</PresenceDataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>TFMTranslatedLabel</Name>
+										<Type>String</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<CacheDataMethod>Yes</CacheDataMethod>
+										<DataMethod>LabelTranslated</DataMethod>
+										<DataSource>TFMTranslations</DataSource>
+										<Label>@TFM:Translation</Label>
+									</AxFormControl>
+								</Controls>
+								<DataSource>TFMTranslations</DataSource>
+								<MultiSelect>No</MultiSelect>
+							</AxFormControl>
+						</Controls>
+						<HideIfEmpty>No</HideIfEmpty>
+						<DataSource>TFMTranslations</DataSource>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>SelectArea</Name>
+				<ElementPosition>1431655764</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Group</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>FormButtonGroupControl1</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>FormButtonControlCreateNew</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@TFM:Createnewlabel</Text>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>ButtonGroup</Name>
+						<ElementPosition>1879048190</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<Left>0</Left>
+						<Type>ButtonGroup</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormCommandButtonControl">
+								<Name>OK_Change</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>CommandButton</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<ButtonDisplay>TextOnly</ButtonDisplay>
+								<Command>Enter</Command>
+								<MultiSelect>No</MultiSelect>
+								<SaveRecord>No</SaveRecord>
+								<Text>@TFM:Selectandedit</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormCommandButtonControl">
+								<Name>OK</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>CommandButton</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<ButtonDisplay>TextOnly</ButtonDisplay>
+								<Command>Enter</Command>
+								<DefaultButton>Yes</DefaultButton>
+								<MultiSelect>No</MultiSelect>
+								<SaveRecord>No</SaveRecord>
+								<Text>@SYS11584</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormCommandButtonControl">
+								<Name>Cancel</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1610612734</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>CommandButton</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<ButtonDisplay>TextOnly</ButtonDisplay>
+								<Command>Cancel</Command>
+								<Text>@SYS301993</Text>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>HorizontalRight</ArrangeMethod>
+						<Columnspace>5</Columnspace>
+						<ColumnspaceMode>Fixed</ColumnspaceMode>
+						<Style>DialogCommitContainer</Style>
+					</AxFormControl>
+				</Controls>
+				<Columns>2</Columns>
+				<BackStyle>Opaque</BackStyle>
+				<FrameType>None</FrameType>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

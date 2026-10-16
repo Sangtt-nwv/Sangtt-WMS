@@ -1,0 +1,4 @@
+interface:
+  display_name: "X++ Class Rules"
+  short_description: "Apply X++ class, method, and constructor rules"
+  default_prompt: "Use $xpp-class-and-method-rules to validate this X++ class design."

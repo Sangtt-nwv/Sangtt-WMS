@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawPage</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMDrawPage
+{
+    public static int contentWidth = 372;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>DrawPage</Name>
+				<Source><![CDATA[
+    abstract public void DrawPage(TFMPage _page, TFMHtmlViewerCtrl _htmlViewer)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMenuItemButtons</Name>
+				<Source><![CDATA[
+    public Map getMenuItemButtons(TFMPageID _pageId, TFMPages _pages)
+    {
+        MapEnumerator					mEnum;
+        TFMMenuItemStateConfiguration	menuItemConf;
+        Map								menuItemsMap;
+        menuItemsMap	=  TFMPageMenuItemsFormHelper::getPageMenuItemStateConfigurations(_pageId, _pages);
+        mEnum = menuItemsMap.getEnumerator();
+
+        while(mEnum.moveNext())
+        {
+            MenuItemConf = mEnum.currentValue();
+            MenuItemConf.parmPageMenuItemPointsTo(_pages.getPage(MenuItemConf.parmMenuItemName()));
+        }
+        return menuItemsMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawWithDevice</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns html with a device including the pageContent and Menu items.
+    /// </summary>
+    public static str drawWithDevice(str _pageContent, Map _buttonIcons, str _title, str _icon)
+    {
+        TFMListRow						rowElement;
+        TFMMenuItemStateConfiguration	menuItemConf;
+        MapEnumerator					mEnum;
+        TFMPage							page;
+        Map								iconMap = new Map(Types::Integer,Types::Class);
+        int								i;
+        str                             menuTitle;
+
+        str htmlOutput;
+
+        // Find promoted items
+        mEnum = _buttonIcons.getEnumerator();
+        while(mEnum.moveNext())
+        {
+            menuItemConf = mEnum.currentValue();
+            page = menuItemConf.parmPageMenuItemPointsTo();
+            if (MenuItemConf.parmPromoted() >= 0)
+            {
+                iconMap.insert(menuItemConf.parmPromoted(),menuItemConf);
+            }
+        }
+        mEnum = iconMap.getEnumerator();
+
+        
+        str iconPath;
+        str menuItemsStr = '<div style="position: relative; left: 68px; top: 591px; display: flex; justify-content: right; max-width: 255px;width: 255px; min-height: 68px; max-height: 68px;">';
+        menuItemsStr += '<div style="display: flex; justify-content: center; max-width: 372px;border: 1px solid #eae9e98e; background-color: #dddddd59; border-top-left-radius: 15px; border-top-right-radius: 10px;">';
+
+        i = 4 - min(iconMap.elements(),4);
+        while(mEnum.moveNext() && i < 4)
+        {
+            menuItemConf = mEnum.currentValue();
+            iconPath = TFMDocGetMedia::getURLFromIconName(menuItemConf.parmIcon() ? menuItemConf.parmIcon() : menuItemConf.parmMenuItemName());
+            menuTitle = TFMListVisualization::getMenuTitle(menuItemConf.parmTitle());
+            
+            menuItemsStr += strFmt('<div style="max-width: 51px; margin: 4px; display: flex; flex-direction: column; align-items: center;"><img style="height: 30px;" src="%1"> <span style="font-size: x-small; word-break: break-word; max-width: 51px;text-align: center;max-height: 30px;overflow: hidden;">%2</span></div>', iconPath, menuTitle);
+            i++;
+        }
+        menuItemsStr += strFmt('<div style="max-width: 51px; margin: 4px; display: flex; flex-direction: column; align-items: center;"><img style="height: 30px;" src="%1"> <span style="font-size: x-small; word-break: break-word; max-width: 51px;text-align: center;">%2</span></div>', TFMDocGetMedia::getURLFromIconName(resourceStr(TFMDeviceContextMenuIcon), true), "@SYS28214");
+
+        menuItemsStr += '</div></div>';
+        htmlOutput += menuItemsStr;
+
+        // title and icon in the top
+        str titleArea = '<div style="display: flex; min-height: 75px; max-height: 75px; max-width: 373px; overflow: hidden;">';
+        if(_icon)
+        {
+            titleArea += '<div style="width: 75px;margin: 10px;">';
+            titleArea += '<img style="height: 100%;" src="' + TFMDocGetMedia::getURLFromIconName(_icon, true) + '" />';
+            titleArea += '</div>';
+        }
+        if(_title)
+        {
+            titleArea += '<div style="flex: 1;align-content: end; margin: 2px;font-size: 20pt;color: #FFFFFF;">';
+            titleArea += TFMListVisualization::getMenuTitle(_title);
+            titleArea += '</div>';
+        }
+        titleArea += '</div>';
+
+        str deviceImageUrl = TFMDocGetMedia::getURLFromIconName(resourceStr(TFMSketchListEditor), false);
+
+        str deviceDiv= '<div style="min-width: 400px; max-width: 400px; min-height: 700px;background-size: contain;background-repeat: no-repeat; background-position: left top;background-image: url(\''+ deviceImageUrl +'\')">'
+                + '<div style="height: 610px; max-width: 373px; transform: scale(0.69);padding-left: 2px; position: relative; top: 22px;left: 7px;overflow: hidden;">'
+                + titleArea;
+                
+        // Add the list design
+        htmlOutput += deviceDiv + _pageContent + '</div></div>';
+        return htmlOutput;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMediaProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMMediaProvider extends TFMCachedProvider
+{
+    private TFMMediaStore mediaStore;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>instance</Name>
+				<Source><![CDATA[
+    public static TFMMediaProvider instance()
+    {
+        TFMMediaProvider provider;
+        provider = TFMCachedProvider::getProviderInstance(classStr(TFMMediaProvider));
+        return provider;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEntity</Name>
+				<Source><![CDATA[
+    public anytype getEntity()
+    {
+        return mediaStore;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setEntity</Name>
+				<Source><![CDATA[
+    public void setEntity(anytype _entity)
+    {
+        this.mediaStore = _entity;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructEntityImpl</Name>
+				<Source><![CDATA[
+    public anytype constructEntityImpl()
+    {
+        mediaStore = new TFMMediaStore();
+        return mediaStore;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBase64ForMedia</Name>
+				<Source><![CDATA[
+    public str getBase64ForMedia(str _mediaId)
+    {
+        TFMMediaItem item = TFMMediaProvider::instance().getMedia(_mediaId);
+        if(item && item.parmBase64())
+        {
+            return item.parmBase64();
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMedia</Name>
+				<Source><![CDATA[
+    public TFMMediaItem getMedia(str _mediaId)
+    {
+        return this.getEntityImpl().getMedia(_mediaId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setMedia</Name>
+				<Source><![CDATA[
+    public void setMedia(str _mediaId, str _base64, str _url)
+    {
+        TFMMediaItem item = this.getEntityImpl().getMedia(_mediaId);
+        if(!item)
+        {
+            item = new TFMMediaItem(_mediaId);
+        }
+        if(_base64)
+        {
+            item.parmBase64(_base64);
+        }
+        if(_url)
+        {
+            item.parmURL(_url);
+        }
+       //print strFmt('id: %1 base64: %2',_mediaId, _base64);
+        this.getEntityImpl().addMedia(item);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeMedia</Name>
+				<Source><![CDATA[
+    public void removeMedia(str _mediaId)
+    {
+        this.getEntityImpl().removeMedia(_mediaId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>version</Name>
+				<Source><![CDATA[
+    public str version()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

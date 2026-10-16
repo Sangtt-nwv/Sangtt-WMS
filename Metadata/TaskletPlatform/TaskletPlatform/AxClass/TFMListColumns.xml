@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListColumns</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListElementAttribute('columns')]
+class TFMListColumns extends TFMListBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMListColumns Construct()
+    {
+        return new TFMListColumns();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>render</Name>
+				<Source><![CDATA[
+    public void render(TFMListVisualizationInterface _visualizer)
+    {
+        _visualizer.renderColumns(this);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

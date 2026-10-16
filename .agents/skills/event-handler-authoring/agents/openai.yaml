@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Event Handlers"
+  short_description: "Author D365FO table, form, and delegate handlers"
+  default_prompt: "Use $event-handler-authoring to create a D365FO event handler."

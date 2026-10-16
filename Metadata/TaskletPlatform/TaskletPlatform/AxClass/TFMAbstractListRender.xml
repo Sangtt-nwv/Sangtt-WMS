@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMAbstractListRender</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMAbstractListRender implements TFMListVisualizationInterface
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>render</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Traverses the list and by calling all nodes in the tree.
+    /// </summary>
+    /// <param name = "_listElement">The list element to traverse</param>
+    public void render(TFMListBase _listElement)
+    {
+        MapEnumerator	mEnum = _listElement.getChildren().getEnumerator();
+        while(mEnum.moveNext())
+        {
+            TFMListBase listElement = mEnum.currentValue();
+            listElement.render(this);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderList</Name>
+				<Source><![CDATA[
+    public void renderList(TFMListConfiguration _listConfiguration)
+    {
+        this.render(_listConfiguration);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderRows</Name>
+				<Source><![CDATA[
+    public void renderRows(TFMListRows _rows)
+    {
+        this.render(_rows);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderRow</Name>
+				<Source><![CDATA[
+    public void renderRow(TFMListRow _row)
+    {
+        this.render(_row);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderColumns</Name>
+				<Source><![CDATA[
+    public void renderColumns(TFMListColumns _columns)
+    {
+        this.render(_columns);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderColumn</Name>
+				<Source><![CDATA[
+    public void renderColumn(TFMListColumn _column)
+    {
+        this.render(_column);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderElements</Name>
+				<Source><![CDATA[
+    public void renderElements(TFMListElements _elements)
+    {
+        this.render(_elements);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderText</Name>
+				<Source><![CDATA[
+    public void renderText(TFMListTextElement _textElement)
+    {
+        this.render(_textElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderImage</Name>
+				<Source><![CDATA[
+    public void renderImage(TFMListImageElement _imageElement)
+    {
+        this.render(_imageElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderValue</Name>
+				<Source><![CDATA[
+    public void renderValue(TFMListValueElement _valueElement)
+    {
+        this.render(_valueElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderValues</Name>
+				<Source><![CDATA[
+    public void renderValues(TFMListValuesElement _valuesElement)
+    {
+        this.render(_valuesElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderCustomComponent</Name>
+				<Source><![CDATA[
+    public void renderCustomComponent(TFMListCustomComponent _customComponentElement)
+    {
+        MapEnumerator cmEnum = _customComponentElement.SubComponents().getEnumerator();
+        while(cmEnum.moveNext())
+        {
+            TFMListBase customSub = cmEnum.currentValue();
+            customSub.render(this);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

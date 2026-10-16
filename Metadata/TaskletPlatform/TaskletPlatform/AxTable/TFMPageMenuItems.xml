@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageMenuItems</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMPageMenuItems extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void insert()
+    {
+        TFMPageMenuItems relatedline;
+        
+        select forupdate firstonly relatedline order by LineNumber desc where relatedline.PageID == this.PageID;
+        this.LineNumber = relatedline.LineNumber + 1;
+        super();
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Find the menu items for the page and the page and the menu item id.
+    /// </summary>
+    public static TFMPageMenuItems find(str _pageId, str _menuItemId)
+    {
+        TFMPageMenuItems line;
+        select forupdate firstonly line where line.PageID == _pageId && line.MenuPageID == _menuItemId;
+        return line;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteMenuItemsForPage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Deletes the menu items for the page
+    /// </summary>
+    /// <param name = "_pageId">The id of the page to delete</param>
+    public static void deleteMenuItemsForPage(TFMPageID _pageId)
+    {
+        TFMPageMenuItems mobPageMenuItems;
+        ttsbegin;
+        delete_from mobPageMenuItems where mobPageMenuItems.PageID == _pageId;
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createStandardOverride</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public static void createStandardOverride(TFMPageID _pageId)
+    {
+        TFMPageMenuItems    existingline;
+        TFMPageMenuItems	menuItemsTable;
+        TFMPage				page;
+        TFMPages			pages;
+        Map					actions;
+        MapEnumerator		mEnum;
+        TFMMenuItemStateConfiguration menuItem;
+
+        pages = TFMPagesProvider::getAllPages();
+        page = pages.getPage(_pageId);
+        if (page)
+        {
+            actions = page.getPageActions();
+            mEnum = actions.getEnumerator();
+            while (mEnum.moveNext())
+            {
+                menuItem = mEnum.currentValue();
+
+                select forupdate firstonly existingline where existingline.PageID == _pageId && existingline.MenuPageID == menuItem.parmMenuItemName();
+                if(!existingline)
+                {
+                    menuItemsTable.PageID       = page.parmId();
+                    menuItemsTable.MenuPageID   = menuItem.parmMenuItemName();
+                    menuItemsTable.Enabled		= menuItem.parmEnabled();
+                    menuItemsTable.PromotedItem		= menuItem.parmPromoted() > -1;
+                    menuItemsTable.insert();
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createMenuItems</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates non existing menu items.
+    /// </summary>
+    /// <param name = "_sortedMenuItems">The menu items that should be added in a sorted map</param>
+    /// <param name = "_page">The page to add the menu items to</param>
+    public static void createMenuItems(Map _sortedMenuItems, TFMPage _page)
+    {
+        TFMPageMenuItems				existingline;
+        TFMPageMenuItems				menuItemsTable;
+        MapEnumerator					sortedMenuItemsEnum;
+        TFMPageActionAttribute			pageActionType;
+        TFMPageID						pageId;
+        TFMMenuItemStateConfiguration	menuItem;
+        MapEnumerator					mEnum;
+        
+        if(!_page)
+        {
+            return;
+        }
+        pageId = _page.parmId();
+
+        sortedMenuItemsEnum = _sortedMenuItems.getEnumerator();
+
+        ttsbegin;
+        while (sortedMenuItemsEnum.moveNext())
+        {
+            menuItem = sortedMenuItemsEnum.currentValue();
+
+            select forupdate firstonly existingline where existingline.PageID == pageId && existingline.MenuPageID == menuItem.parmMenuItemName();
+            if(!existingline)
+            {
+                menuItemsTable.PageID       = pageId;
+                menuItemsTable.MenuPageID   = menuItem.parmMenuItemName();
+                menuItemsTable.Enabled		= menuItem.parmEnabled();
+
+                pageActionType              = menuItem.getPageActionSetup();
+                if(pageActionType)
+                {
+                    menuItemsTable.Hide              = pageActionType.parmHide();
+                    menuItemsTable.PromotedItem	     = pageActionType.parmPromoted();
+                    menuItemsTable.Icon              = pageActionType.parmIcon();
+                    menuItemsTable.MenuItemType      = pageActionType.parmMenuItemType();
+                    menuItemsTable.Mandatory         = pageActionType.parmMandatory();
+                    menuItemsTable.Title		     = (pageActionType.parmMenuItemType() == TFMPageMenuItemTypes::AdhocAction || menuItem.titleChanged()) ? menuItem.parmTitle() : ''; //Adhoc action has no page to inherit from
+                    menuItemsTable.VisibleWhenNoData = _page.getListId() != '' ? pageActionType.parmVisibleWhenNoData() : true;
+                } 
+                else
+                {
+                    menuItemsTable.PromotedItem = menuItem.parmPromoted() > -1;
+                }
+                
+                menuItemsTable.insert(); // the insert method handles the lineNumber
+				if (menuItem.parmAdditionalProperties())
+                {
+                    mEnum = menuItem.parmAdditionalProperties().getparameters().getEnumerator();
+					while(mEnum.moveNext())
+                    {
+                        TFMPageConfigParms::CreateOrUpdateParameter(pageId , classId2Name(classIdGet(_page.getConfiguration())), menuItem.parmMenuItemName() + mEnum.currentKey(), conPeek(mEnum.currentValue(),1));
+                    }
+                }
+            }
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMandatoryMenuItems</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the mandatory menu items for the page.
+    /// </summary>
+    /// <param name = "_page">The page to get the mandatory menu items for.</param>
+    /// <returns>A map of the xpath of the parm method as key and a TFMMenuItemStateConfiguration as value</returns>
+    public static Map getMandatoryMenuItems(TFMPage _page)
+    {
+        TFMPageConfigurationAttributeAttribute  configAttr;
+        SysDictMethod		                    DM;
+        TFMPageActionAttribute                  pageActionType;
+        TFMPage                                 page      = _page;
+        TFMMenuItemStateConfiguration           menuItem;
+        SetEnumerator                           methodSet;
+        Map					                    menuItems = new Map(Types::String, Types::Class);
+        
+        if(!page)
+        {
+            return menuItems;
+        }
+
+        methodSet = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(page.getConfiguration())).getEnumerator();
+        while (methodSet.moveNext())
+        {
+            DM = new SysDictMethod(UtilElementType::ClassInstanceMethod,classIdGet(page.getConfiguration()), methodSet.current());
+            configAttr = DM.getAttribute(classStr(TFMPageConfigurationAttributeAttribute));
+            
+            if(configAttr)
+            {
+                pageActionType = TFMFormLookupHelper::IsDefinedAsPageActionAttribute(configAttr.parmXPath(), page.getConfiguration());
+                if(pageActionType)
+                {
+                    menuItem = TFMMenuItemStateConfiguration::Construct(configAttr.parmXPath(), -1, pageActionType);
+                    menuItem.parmEnabled(true);
+                    pageActionType.parmMandatory(true); // the menu item will be mandatory because it is a page defined menu item.
+                    pageActionType.parmVisibleWhenNoData(configAttr.parmVisibleWhenNoData());
+                    menuItem.parmIcon(pageActionType.parmIcon());
+
+                    if(DM.returnId() ==  extendedTypeNum(TFMPageTitleString))
+                    {
+                        menuItem.parmTitle(configAttr.parmDefaultValue());
+                    }
+                    
+                    menuItem.parmPromoted(pageActionType.parmPromoted() ? 1 : -1);
+                    menuItems.add(configAttr.parmXPath(), menuItem);
+                }
+            }
+        }
+        return menuItems;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertPromotedAndAddLineNumbers</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Making sure that all menu items has a line number taking the Promoted column into account.
+    /// </summary>
+    public static void convertPromotedAndAddLineNumbers()
+    {
+        TFMPageMenuItems	countLine;
+        TFMPageMenuItems	menuItemsTable;
+        ttsbegin;
+        while select forupdate menuItemsTable order by menuItemsTable.Promoted where menuItemsTable.LineNumber < 1.0
+        {
+            select forupdate firstonly countLine order by LineNumber desc where countLine.PageId == menuItemsTable.PageId;
+            if(countLine)
+            {
+                menuItemsTable.LineNumber = countLine.LineNumber + 1;
+            } else
+            {
+                menuItemsTable.LineNumber = 1;
+            }
+            menuItemsTable.update();
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>switchMenuItemPlacement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void switchMenuItemPlacement(RecId _toItemRecId)
+    {
+        TFMPageMenuItems relatedline;
+        ttsbegin;
+        select forupdate firstonly relatedline where relatedline.RecId == _toItemRecId;
+        if (!relatedline)
+        {
+            ttsabort;
+            return;
+        }
+        relatedline.LineNumber = this.LineNumber;
+        this.selectForUpdate();
+        this.LineNumber = relatedline.orig().LineNumber;
+        relatedline.doUpdate();
+        this.doUpdate();
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@SYS28739</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>PageID</TitleField1>
+	<TitleField2>MenuPageID</TitleField2>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>PageID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MenuPageID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Enabled</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MenuPageID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Enabled</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>PageID</Name>
+			<ExtendedDataType>TFMPageID</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>MenuPageID</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMMenuItemActionID</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Title</Name>
+			<ExtendedDataType>TFMLocalizedStringEDT</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Enabled</Name>
+			<Label>@SYS58636</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Icon</Name>
+			<ExtendedDataType>ResourceName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>TableName</Name>
+			<ExtendedDataType>TableName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OrderType</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMOrderTypes</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>VisibleWhenNoData</Name>
+			<HelpText>If true, then the menu item will be visible even if no data is available.</HelpText>
+			<Label>@TFM:VisbleWhenNoData</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>LineNumber</Name>
+			<ExtendedDataType>LineNumber</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>MenuItemType</Name>
+			<ExtendedDataType>TFMPageMenuItemType</ExtendedDataType>
+			<EnumType>TFMPageMenuItemTypes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PromotedItem</Name>
+			<HelpText>When marked as promoted the menu item will be promoted on the device depending on the available space.</HelpText>
+			<Label>@TFM:Promoted</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Hide</Name>
+			<Label>@SYS25491</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Promoted</Name>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Mandatory</Name>
+			<Label>@FeatureManagement:FeatureManagementLifecycleStageMandatory</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>MenuItemIdx</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>PageID</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>MenuPageID</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>TableName</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>LineNumberIndex</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>LineNumber</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>PageIDIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>PageID</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>TFMPageDataSources</Name>
+			<RelatedTable>TFMPageDataSources</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>PageID</Name>
+					<Field>PageID</Field>
+					<RelatedField>PageID</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>TableName</Name>
+					<Field>TableName</Field>
+					<RelatedField>TableName</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>OrderType</Name>
+					<Field>OrderType</Field>
+					<RelatedField>OrderType</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDataSourceBlockValuesOverride_pickLines</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDataSourceBlockValuesOverride_pickLines extends TFMDataSourceBlockValuesOverride
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>hasModifications</Name>
+				<Source><![CDATA[
+    public boolean hasModifications(TFMDataSourceBlock _blockToModify)
+    {
+        TableName tn = _blockToModify.getDataSource().TableName;        
+        TFMOrderTypes orderType = _blockToModify.getDataSource().OrderType;
+
+        return tn == tableStr(WMSOrderTrans) && !orderType;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getClassName</Name>
+				<Source><![CDATA[
+    public ClassName getClassName()
+    {
+        return classStr(TFMDataSourceBlockOrderLineItemSetup);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyValuesBeforeDelta</Name>
+				<Source><![CDATA[
+    public void modifyValuesBeforeDelta(TFMDataSourceBlock _blockToModify, Common _common = null)
+    {
+        TFMDataSourceBlockOrderLineItemSetup itemSetup = _blockToModify as TFMDataSourceBlockOrderLineItemSetup;
+        
+        WMSOrderTrans   orderTrans      = _common;
+        InventDim       inventDim       = orderTrans ? orderTrans.inventDim() : null;
+
+        if (inventDim && MobPackingStation::FindByLocation(inventDim.InventLocationId, inventDim.wMSLocationId))
+        {
+            _blockToModify.getOverrideFieldsMap().insert(TFMConstants::ValidateFromBin(), TFMConstants::False()); //Don't prompt for location if on packing station
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

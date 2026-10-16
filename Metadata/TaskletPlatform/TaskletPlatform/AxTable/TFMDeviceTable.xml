@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDeviceTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMDeviceTable extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>FindOrCreateDevice</Name>
+				<Source><![CDATA[
+    public static TFMDeviceTable FindOrCreateDevice(TFMDocumentDeviceId _deviceID)
+    {
+        TFMDeviceTable devTable;
+
+        select firstonly devTable where devTable.DeviceId == _deviceID;
+
+        if (devTable)
+        {
+            return devTable;
+        }
+        devTable.DeviceId   = _deviceID;
+        devTable.Name       = _deviceID;
+        devTable.insert();
+
+        return devTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastCapabilitiesUpdate</Name>
+				<Source><![CDATA[
+    public display utcdatetime lastCapabilitiesUpdate()
+    {
+        TFMDeviceCapabilities deviceCapabilities;
+        select firstonly ModifiedDateTime from deviceCapabilities
+            order by deviceCapabilities.ModifiedDateTime desc
+            where deviceCapabilities.DeviceId == this.DeviceId;
+        return deviceCapabilities.ModifiedDateTime;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:DeviceTableDevDesc</DeveloperDocumentation>
+	<Label>@SYS82059</Label>
+	<SingularLabel>@SYS90307</SingularLabel>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>DeviceId</TitleField1>
+	<TitleField2>Name</TitleField2>
+	<ReplacementKey>TFMDeviceIDx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DeviceId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TFMDeviceType</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DeviceId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS81042</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DeviceId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TFMDeviceType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventLocationId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>lastCapabilitiesUpdate</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DeviceId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentDeviceId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>TFMDeviceType</Name>
+			<EnumType>TFMDeviceType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Name</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<Label>@SYS80505</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>WrkCtrId</Name>
+			<AssetClassification>Customer Content </AssetClassification>
+			<ExtendedDataType>WrkCtrIdBase</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>InventLocationId</Name>
+			<ExtendedDataType>InventLocationId</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>TFMDeviceIDx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>DeviceId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsProcessCreateQuarantineOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Process definition for creating Quarantine Orders
+/// </summary>
+class MwmsProcessCreateQuarantineOrder extends TFMProcess
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        MwmsLogicBlockCreateQuarantineOrder qBlock = MwmsLogicBlockCreateQuarantineOrder::Construct();
+        TFMLogicBlockTakeImage              imgBlock = new TFMLogicBlockTakeImage();      
+        TFMLogicComponentDataContext        dataCon = imgBlock.components().getComponent(classStr(TFMLogicComponentDataContext));
+        dataCon.parmInputData(tableStr(InventQuarantineOrder));
+        dataCon.parmBlockName(classStr(MwmsLogicBlockCreateQuarantineOrder));
+        processName = TFMConstants::CreateQuarantineOrders();
+        super();
+        this.addBlock(qBlock);
+        //mBlock.parmInheritAndSuppress(true);
+        
+        this.addBlock(imgBlock);
+        this.linkBlocks(qBlock,imgBlock,'1','1');
+        //Activate Origin inheritance of values from InventDim
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsProcessCreateQuarantineOrder Construct()
+    {
+        return new MwmsProcessCreateQuarantineOrder();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

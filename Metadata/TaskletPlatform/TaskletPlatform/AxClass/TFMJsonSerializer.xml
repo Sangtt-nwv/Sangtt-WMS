@@ -1,0 +1,973 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMJsonSerializer</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.Globalization;
+
+class TFMJsonSerializer
+{
+    System.IO.StringWriter stringWriter;
+    Newtonsoft.Json.JsonTextWriter jsonWriter;
+    str nullPlaceholder;
+    utcDateTime dateTimeBase;
+    static Map theDataContractClass;
+    static MapEnumerator theDataContractClassEnumerator;
+    private static int dateTimeIso8601Type = extendedTypeName2Id(ExtendedTypeStr(DateTimeIso8601));
+    private static int dateTimeIso8601WithMillisecondsType = extendedTypeName2Id(ExtendedTypeStr(DateTimeIso8601WithMilliseconds));
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>extendsDateTimeIso8601Type</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Determines whether the incoming type id is an extension of the DateTimeIso8601 type, or
+    /// it is that type itself.
+    /// </summary>
+    /// <param name = "_typeId">The type to check.</param>
+    /// <returns>true if the type is DateTimeIso8601 or is derived from DateTimeIso8601, and false otherwise.</returns>
+    protected static boolean extendsDateTimeIso8601Type(int _typeId)
+    {
+        if (_typeId == 0)
+        {
+            return false;
+        }
+
+        if (_typeId == dateTimeIso8601Type)
+        {
+            return true;
+        }
+
+        DictType dp = new DictType(_typeId);
+        return dp.isExtendedFrom(ExtendedTypeStr(DateTimeIso8601));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>extendsDateTimeIso8601WithMillisecondsType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Determines whether the incoming type id is an extension of the DateTimeIso8601WithMilliseconds type, or
+    /// it is that type itself.
+    /// </summary>
+    /// <param name = "_typeId">The type to check.</param>
+    /// <returns>true if the type is DateTimeIso8601WithMilliseconds or is derived from DateTimeIso8601WithMilliseconds, and false otherwise.</returns>
+    protected static boolean extendsDateTimeIso8601WithMillisecondsType(int _typeId)
+    {
+        if (_typeId == 0)
+        {
+            return false;
+        }
+
+        if (_typeId == dateTimeIso8601WithMillisecondsType)
+        {
+            return true;
+        }
+
+        DictType dp = new DictType(_typeId);
+        return dp.isExtendedFrom(ExtendedTypeStr(DateTimeIso8601WithMilliseconds));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>json</Name>
+				<Source><![CDATA[
+    protected str json()
+    {
+        str json;
+
+        json = stringWriter.ToString();
+        json = strReplace(json, strFmt('"%1"', nullPlaceholder), 'null');
+
+        return json;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        stringWriter = new System.IO.StringWriter();
+        jsonWriter = new Newtonsoft.Json.JsonTextWriter(stringWriter);
+        nullPlaceholder = guid2str(newGuid());
+        dateTimeBase = TFMJsonSerializer::dateTimeBase();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dateTimeBase</Name>
+				<Source><![CDATA[
+    protected static utcdatetime dateTimeBase()
+    {
+        return DateTimeUtil::newDateTime(1\1\1970, 0);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>serializeDataContract</Name>
+				<Source><![CDATA[
+    protected void serializeDataContract(Object _dataContract)
+    {
+        SysDictClass dictClass;
+        DataContractAttribute dataContractAttribute;
+        DataMemberAttribute dataMemberAttribute;
+        Set methods;
+        SetEnumerator se;
+        SysDictMethod dictMethod;
+        str dataMemberName;
+        Object dataMemberValueObject;
+        container dataMemberValuePrimitive;
+
+        Map theDataContractClassMember;
+        MapEnumerator theDataContractClassMemberEnumerator;
+        theDataContractClassMember = new Map(Types::String, Types::AnyType);
+
+        container memberValues;
+
+        if (theDataContractClass == null)
+        {
+            theDataContractClass = new Map(Types::string, Types::AnyType);
+        }
+
+        jsonWriter.WriteStartObject();
+
+        dictClass = new SysDictClass(classIdGet(_dataContract));
+            
+        dataContractAttribute = dictClass.getAttribute(classStr(DataContractAttribute));
+        if (dataContractAttribute == null)
+        {
+            throw error(strFmt("@SYS134831", dictClass.name(), dictClass.id()));
+        }
+
+        // check if it exists if not create it
+        if (!theDataContractClass.exists(dictClass.name()))
+        {
+            methods = dictClass.methods(true, false, true);
+            se = methods.getEnumerator();
+            while (se.moveNext())
+            {
+                dictMethod = se.current();
+                dataMemberAttribute = dictMethod.getAttribute(classStr(DataMemberAttribute));
+                if (dataMemberAttribute != null)
+                {
+                    dataMemberName = dataMemberAttribute.Name();
+                    if (!dataMemberName)
+                    {
+                        dataMemberName = dictMethod.name();
+                    }
+                    memberValues = [dataMemberName, dictMethod.name(), dictMethod.returnType(), dictMethod.returnId()];
+                    theDataContractClassMember.insert(dataMemberName,memberValues);
+                }
+                theDataContractClass.insert(dictClass.name(),theDataContractClassMember);
+            }
+        }
+
+        theDataContractClassMember = theDataContractClass.lookup(dictClass.name());
+        theDataContractClassMemberEnumerator = new MapEnumerator(theDataContractClassMember);
+        while (theDataContractClassMemberEnumerator.moveNext())
+        {
+            anytype memberMethodReturn;
+            int memberMethodReturnId;
+            str memberName;
+            str memberMethodName;
+
+            [ memberName, memberMethodName, memberMethodReturn, memberMethodReturnId] = theDataContractClassMemberEnumerator.currentValue();
+            jsonWriter.WritePropertyName(memberName);
+
+            if (memberMethodReturn == Types::Class)
+            {
+                this.serializeObject(dictClass.callObject(memberMethodName, _dataContract));
+            }
+            else
+            {
+                this.writePrimitiveValue(memberMethodReturn, dictClass.callObject(memberMethodName, _dataContract), memberMethodReturnId);
+            }
+        }
+        jsonWriter.WriteEndObject();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>serializeList</Name>
+				<Source><![CDATA[
+    protected void serializeList(List _list, int typeId)
+    {
+        Types listItemType;
+        ListEnumerator le;
+
+
+        if (_list == null)
+        {
+            jsonWriter.WriteValue(nullPlaceholder);
+            return;
+        }
+
+        jsonWriter.WriteStartArray();
+
+        listItemType = _list.typeId();
+        le = _list.getEnumerator();
+        while (le.moveNext())
+        {
+            if (listItemType == Types::Class)
+            {
+                this.serializeObject(le.current());
+            }
+            else
+            {
+                this.writePrimitiveValue(listItemType, le.current(), typeId);
+            }
+        }
+
+        jsonWriter.WriteEndArray();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>serializeMap</Name>
+				<Source><![CDATA[
+    protected void serializeMap(Map _map, int _typeId)
+    {
+        Types listItemType;
+        MapEnumerator me;
+
+
+        if (_map == null)
+        {
+            jsonWriter.WriteValue(nullPlaceholder);
+            return;
+        }
+
+        jsonWriter.WriteStartObject();
+
+        listItemType = _map.valueType();
+        me = _map.getEnumerator();
+        while (me.moveNext())
+        {
+            if (listItemType == Types::Class)
+            {
+                jsonWriter.WritePropertyName(strFmt('%1', me.currentKey()));
+                this.serializeObject(me.currentValue());
+            }
+            else
+            {
+                this.writePrimitiveValue(listItemType, me.currentValue(), _typeId);
+            }
+        }
+
+        jsonWriter.WriteEndObject();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>serializeArray</Name>
+				<Source><![CDATA[
+    protected void serializeArray(Array _array, int typeId)
+    {
+        Types arrayItemType;
+        int arrayIndex;
+
+        if (_array == null)
+        {
+            jsonWriter.WriteValue(nullPlaceholder);
+            return;
+        }
+
+        jsonWriter.WriteStartArray();
+
+        arrayItemType = _array.typeId();
+        for(arrayIndex = 1; arrayIndex <= _array.lastIndex(); arrayIndex++)
+        {
+            if (arrayItemType == Types::Class)
+            {
+                this.serializeObject(_array.value(arrayIndex));
+            }
+            else
+            {
+                this.writePrimitiveValue(arrayItemType, _array.value(arrayIndex), typeId);
+            }
+        }
+
+        jsonWriter.WriteEndArray();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>serializeObject</Name>
+				<Source><![CDATA[
+    protected void serializeObject(Object _object)
+    {
+        ClassId classId;
+
+
+        if (_object == null)
+        {
+            jsonWriter.WriteValue(nullPlaceholder);
+            return;
+        }
+
+        classId = classIdGet(_object);
+        //TODO: No switch/case, methods with attributes
+        switch (classId)
+        {
+            case classNum(List):
+                this.serializeList(_object, 0);
+                break;
+
+            case classNum(Array):
+                this.serializeArray(_object, 0);
+                break;
+
+            case classNum(Map):
+                this.serializeMap(_object, 0);
+                break;
+
+            default:
+                this.serializeDataContract(_object);
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeDateTimeValue</Name>
+				<Source><![CDATA[
+    protected void writeDateTimeValue(utcDateTime _value, int typeId)
+    {
+        utcDateTime dateTimeValue = _value;
+
+        if (TFMJsonSerializer::extendsDateTimeIso8601WithMillisecondsType(typeId))
+        {
+            var dt = Global::utcDateTime2SystemDateTime(dateTimeValue);
+            jsonWriter.WriteValue(dt);
+        }
+        else if (TFMJsonSerializer::extendsDateTimeIso8601Type(typeId))
+        {
+            // If the incoming type is derived from the special DateTimeIso8601Type EDT then assume
+            // that the user wants the ISO formating.
+            var dt = new System.DateTime(
+                        DateTimeUtil::year(_value), DateTimeUtil::month(_value), DateTimeUtil::day(_value),
+                        DateTimeUtil::hour(_value), DateTimeUtil::minute(_value), DateTimeUtil::second(_value),
+                        System.DateTimeKind::Utc);
+            jsonWriter.WriteValue(dt);
+        }
+        else
+        {
+            int64 jsDateTimeStamp = DateTimeUtil::getDifference(dateTimeValue, dateTimeBase) * 1000;
+            str jsonDateTime = strFmt('\/Date(%1)\/', jsDateTimeStamp);
+            jsonWriter.WriteValue(jsonDateTime);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writePrimitiveValue</Name>
+				<Source><![CDATA[
+    protected void writePrimitiveValue(Types valueType, anytype _value, int typeId)
+    {
+        str strValue;
+        int intValue;
+        int64 int64Value;
+        real realValue;
+        enumId enumId;
+        boolean boolValue;
+        str guidValue;
+        SysDictEnum dictEnum;
+
+        if (_value != null)
+        {
+            valueType = typeOf(_value);
+        }
+
+        switch (valueType)
+        {
+            case Types::String:
+                strValue = _value;
+                jsonWriter.WriteValue(strValue);
+                break;
+
+            case Types::Integer:
+                intValue = _value;
+                jsonWriter.WriteValue(intValue);
+                break;
+
+            case Types::Int64:
+                int64Value = _value;
+                jsonWriter.WriteValue(int64Value);
+                break;
+
+            case Types::Real:
+                realValue = _value;
+                jsonWriter.WriteValue(realValue);
+                break;
+
+            case Types::UtcDateTime:
+                this.writeDateTimeValue(_value, typeId);
+                break;
+
+            case Types::Date:
+                this.writeDateTimeValue(DateTimeUtil::newDateTime(_value, 0), typeId);
+                break;
+
+            case Types::Enum:
+                enumId = DictEnum::value2id(_value);
+
+                if (enumId == enumNum(boolean))
+                {
+                    boolValue = _value;
+                    jsonWriter.WriteValue(boolValue);
+                }
+                else
+                {
+                    dictEnum = new SysDictEnum(enumId);
+                    if (dictEnum != null)
+                    {
+                        strValue = dictEnum.value2Symbol(_value);
+                        jsonWriter.WriteValue(strValue);
+                    }
+                    else
+                    {
+                        throw error(strFmt("@SYS57821", enumId));
+                    }
+                }
+
+                break;
+            
+            case Types::Guid:
+                guidValue = guid2str(_value);
+                jsonWriter.WriteValue(guidValue);
+                break;
+
+            default:
+                throw error(strFmt("@SYS73815", valueType));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>serializeClass</Name>
+				<Source><![CDATA[
+    public static str serializeClass(Object _object)
+    {
+        TFMJsonSerializer serializer;
+
+        if (_object == null)
+        {
+            return 'null';
+        }
+
+        serializer = new TFMJsonSerializer();
+        serializer.serializeObject(_object);
+
+        return serializer.json();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tryDeserializeJsonDateTime</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Deserializes an JSON DateTime string.
+    /// </summary>
+    /// <param name = "_value">The string value to deserialize.</param>
+    /// <returns>
+    /// Container:
+    /// element with index 1 - boolean flag (true if success)
+    /// element with index 2 - utcdatetime result
+    /// If deserialization failed container will contain only flag
+    /// </returns>
+    [Hookable(false)]
+    protected static container tryDeserializeJsonDateTime(str _value)
+    {
+        const str dateMatchStr = '/Date(';
+        if (strScan(_value, dateMatchStr, 1, strLen(_value)) == 1)
+        {
+            // It was a string starting with /Date(
+            int dateValueStartPos = strLen(dateMatchStr) + 1;
+            int dateExpressionEndPos = strScan(_value, ')', 0, strLen(_value));
+            if (dateExpressionEndPos > dateValueStartPos)
+            {
+                int64 dateValueMS = str2Int64(subStr(_value, dateValueStartPos, dateExpressionEndPos - dateValueStartPos));
+                return [true, DateTimeUtil::addSeconds(TFMJsonSerializer::dateTimeBase(), dateValueMS div 1000)];
+            }
+        }
+
+        return [false];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deserializeDate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Deserializes an DateTime string.
+    /// </summary>
+    /// <param name = "_value">The string value to deserialize.</param>
+    /// <returns>The deserialized date</returns>
+    [Hookable(false)]
+    protected static date deserializeDate(str _value)
+    {
+        container parsedValue = TFMJsonSerializer::tryDeserializeJsonDateTime(_value);
+        //iso date format to x++ date format
+        return conPeek(parsedValue, 1) ? DatetimeUtil::Date(conPeek(parsedValue, 2)) : str2Date(_value, 321);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deserializeObject</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Deserializes an object of a given type. Data-member attributed properties are deserialized even if the json string contains
+    /// multiple start object/collection tokens before the known properties of the given class.
+    /// </summary>
+    /// <remarks>
+    /// In case an end-object token is met for an unknown property the deserialization will stop and any remainder of the
+    /// json string will not be considered.
+    /// </remarks>
+    public static Object deserializeObject(ClassId _objectTypeId, str _serializedValue)
+    {
+        return TFMJsonSerializer::parseAndDeserializeObjectInternal(_objectTypeId, _serializedValue, false);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deserializeObjectStrict</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Deserializes an object of a given type. It is enforced that only member properties that are associated correctly in the
+    /// class (hierarchy) are deserialized.
+    /// </summary>
+    /// <remarks>
+    /// Unknown member objects or collections (and any of their child members) are skipped completely, but they will not cause
+    /// deserialization to stop.
+    /// </remarks>
+    public static Object deserializeObjectStrict(ClassId _objectTypeId, str _serializedValue)
+    {
+        return TFMJsonSerializer::parseAndDeserializeObjectInternal(_objectTypeId, _serializedValue, true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>flushCache</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// flush the map object cache
+    /// </summary>
+    public static void flushCache()
+    {
+        theDataContractClass = null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deserializeCollection</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Deserializes a collection of strongly typed items. The supported collection types are List and Array.
+    ///
+    /// </summary>
+    public static Object deserializeCollection(ClassId _collectionTypeId, str _serializedValue, Types _itemType, str _itemTypeName = '')
+    {
+        return TFMJsonSerializer::parseAndDeserializeCollectionInternal(
+            _collectionTypeId,
+            _serializedValue,
+            _itemType,
+            _itemTypeName,
+            false); // do not ignore unknown members
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deserializeCollectionStrict</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Deserializes a collection of strongly typed items. The supported collection types are List and Array.
+    /// It is enforced that only member properties that are associated correctly in the class (hierarchy) are deserialized.
+    /// Unknown members are skipped completely.
+    /// </summary>
+    public static Object deserializeCollectionStrict(ClassId _collectionTypeId, str _serializedValue, Types _itemType, str _itemTypeName = '')
+    {
+        return TFMJsonSerializer::parseAndDeserializeCollectionInternal(
+            _collectionTypeId,
+            _serializedValue,
+            _itemType,
+            _itemTypeName,
+            true); // ignore unknown members
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parseAndDeserializeObjectInternal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Internal implementation to parse and deserialize an object of a given type.
+    /// </summary>
+    protected static Object parseAndDeserializeObjectInternal(ClassId _objectTypeId, str _serializedValue, boolean _ignoreUnknownMembers)
+    {
+        System.IO.StringReader stringReader;
+        Newtonsoft.Json.JsonTextReader jsonReader;
+        Object deserializedObject = null;
+
+        stringReader = new System.IO.StringReader(_serializedValue);
+        jsonReader = new Newtonsoft.Json.JsonTextReader(stringReader);
+        jsonReader.DateParseHandling = Newtonsoft.Json.DateParseHandling::None;
+
+        while (deserializedObject == null && jsonReader.Read())
+        {
+            if (jsonReader.TokenType == Newtonsoft.Json.JsonToken::StartObject)
+            {
+                deserializedObject = TFMJsonSerializer::deserializeObjectInternal(_objectTypeId, jsonReader, _ignoreUnknownMembers);
+            }
+        }
+        return deserializedObject;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parseAndDeserializeCollectionInternal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Internal implementation to parse and deserialize a collection of strongly typed items.
+    /// </summary>
+    protected static Object parseAndDeserializeCollectionInternal(
+        ClassId _collectionTypeId,
+        str _serializedValue,
+        Types _itemType,
+        str _itemTypeName,
+        boolean _ignoreUnknownMembers)
+    {
+        System.IO.StringReader stringReader;
+        Newtonsoft.Json.JsonTextReader jsonReader;
+        Object deserializedCollection = null;
+
+        stringReader = new System.IO.StringReader(_serializedValue);
+        jsonReader = new Newtonsoft.Json.JsonTextReader(stringReader);
+        jsonReader.DateParseHandling = Newtonsoft.Json.DateParseHandling::None;
+        
+        while (deserializedCollection == null && jsonReader.Read())
+        {
+            if (jsonReader.TokenType == Newtonsoft.Json.JsonToken::StartArray)
+            {
+                deserializedCollection = TFMJsonSerializer::deserializeCollectionInternal(_collectionTypeId, _itemType, _itemTypeName, jsonReader, _ignoreUnknownMembers);
+            }
+        }
+        return deserializedCollection;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deserializeCollectionInternal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Internal implementation of deserializing a collection of strongly typed items.
+    /// Only few types of collections are supported
+    /// </summary>
+    protected static Object deserializeCollectionInternal(
+        ClassId _collectionTypeId,
+        Types _itemType,
+        str _itemTypeName,
+        Newtonsoft.Json.JsonTextReader jsonReader,
+        boolean _ignoreUnknownMembers)
+    {
+        Object deserializedCollection;
+        List deserializedList;
+        Array deserializedArray;
+        anytype deserializedItem;
+        boolean continueReading;
+        int itemTypeId;
+
+        // Instantiate the desired collection type
+        if (_collectionTypeId == classnum(List))
+        {
+            deserializedList = new List(_itemType);
+            deserializedCollection = deserializedList;
+        }
+        else if (_collectionTypeId == classnum(Array))
+        {
+            deserializedArray = new Array(_itemType);
+            deserializedCollection = deserializedArray;
+        }
+
+        // Resolve the item type name to the right type ID
+        if (_itemType == Types::Class)
+        {
+            itemTypeId = className2Id(_itemTypeName);
+        }
+        else if (_itemType == Types::Enum)
+        {
+            itemTypeId = enumName2Id(_itemTypeName);
+        }
+        
+        continueReading = true;
+        while (continueReading && jsonReader.Read())
+        {
+            deserializedItem = null;
+            if (jsonReader.TokenType == Newtonsoft.Json.JsonToken::EndArray)
+            {
+                // Reached the end of the current array
+                continueReading = false;
+            }
+            else if (jsonReader.TokenType == Newtonsoft.Json.JsonToken::StartObject)
+            {
+                // Deserialize the object
+                deserializedItem = TFMJsonSerializer::deserializeObjectInternal(itemTypeId, jsonReader, _ignoreUnknownMembers);
+            }
+            else if (jsonReader.TokenType == Newtonsoft.Json.JsonToken::Boolean ||
+                jsonReader.TokenType == Newtonsoft.Json.JsonToken::Date ||
+                jsonReader.TokenType == Newtonsoft.Json.JsonToken::Float ||
+                jsonReader.TokenType == Newtonsoft.Json.JsonToken::Integer ||
+                jsonReader.TokenType == Newtonsoft.Json.JsonToken::String)
+            {
+                // Deserialize the basic type value
+                deserializedItem = FormJsonSerializer::deserializeValue(_itemType, jsonReader.Value, itemTypeId);
+            }
+
+            // If an item was deserialized, add to the collection
+            if (deserializedItem != null)
+            {
+                if (deserializedList)
+                {
+                    // Add to the list
+                    deserializedList.addEnd(deserializedItem);
+                }
+                else if (deserializedArray)
+                {
+                    // Add to the array
+                    deserializedArray.value(deserializedArray.lastIndex() + 1, deserializedItem);
+                }
+            }
+        }
+        return deserializedCollection;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deserializeObjectInternal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Internal implementatino of deserializing an object of a given type. Only the data-member attrbuted properties are deserialized.
+    /// </summary>
+    protected static Object deserializeObjectInternal(
+        ClassId _objectTypeId,
+        Newtonsoft.Json.JsonTextReader jsonReader,
+        boolean _ignoreUnknownMembers,
+        ClassId _MapValueClass = 0)
+    {
+        SysDictClass objectType = new SysDictClass(_objectTypeId);
+        Set objectMethods;
+        SysDictMethod objectMethod;
+        SetEnumerator se;
+        str currentJsonProperty;
+        str dataMemberName;
+        anytype propertyValue;
+        DataMemberAttribute memberAttribute;
+        TFMContractClassAttribute contractClassToUse;
+        DataCollectionAttribute collectionAttribute;
+        Map dataMembers = new Map(Types::String, Types::Class);
+        Map contractClassesToPassOn = new Map(Types::String, Types::Class);
+        Object deserializedObject = objectType.makeObject();
+        boolean continueReading;
+
+        // Find all valid data members on this type
+        objectMethods = objectType.methods(true, false, true);
+        se = objectMethods.getEnumerator();
+        while (se.moveNext())
+        {
+            objectMethod = se.current();
+            memberAttribute = objectMethod.getAttribute(classStr(DataMemberAttribute));
+            
+            if (memberAttribute != null)
+            {
+                dataMemberName = memberAttribute.Name();
+                if (!dataMemberName)
+                {
+                    dataMemberName = objectMethod.name();
+                }
+                dataMembers.insert(dataMemberName, objectMethod);
+            }
+            
+        }
+
+        continueReading = true;
+        while(continueReading && jsonReader.Read())
+        {
+            if (jsonReader.TokenType == Newtonsoft.Json.JsonToken::EndObject)
+            {
+                // Reached the end of the current object
+                continueReading = false;
+            }
+            else if (jsonReader.TokenType == Newtonsoft.Json.JsonToken::PropertyName)
+            {
+                // This is identifying a property
+                currentJsonProperty = jsonReader.Value;
+            }
+            else if (jsonReader.TokenType == Newtonsoft.Json.JsonToken::StartArray)
+            {
+                // This is the case for collection type properties
+                if (currentJsonProperty)
+                {
+                    if (dataMembers.exists(currentJsonProperty))
+                    {
+                        // Determine if the property has a colleciton attribute
+                        objectMethod = dataMembers.lookup(currentJsonProperty);
+                        collectionAttribute = objectMethod.getAttribute(classStr(DataCollectionAttribute));
+                        if (collectionAttribute)
+                        {
+                            // Deserialize the collection
+                            propertyValue = TFMJsonSerializer::deserializeCollectionInternal(
+                                objectMethod.returnId(),
+                                collectionAttribute.itemType(),
+                                collectionAttribute.itemTypeName(),
+                                jsonReader,
+                                _ignoreUnknownMembers);
+                            // Set the property
+                            objectType.callObject(objectMethod.name(), deserializedObject, propertyValue);
+                        }
+                    }
+                    else if (_ignoreUnknownMembers)
+                    {
+                        TFMJsonSerializer::skipMember(jsonReader);
+                    }
+                }
+            }
+            else if (jsonReader.TokenType == Newtonsoft.Json.JsonToken::StartObject)
+            {
+                // This is the case for nested complex type properties
+                if (currentJsonProperty)
+                {
+                    if (dataMembers.exists(currentJsonProperty))
+                    {
+                        // Read the object from JSON
+                        objectMethod = dataMembers.lookup(currentJsonProperty);
+                        contractClassToUse = null;
+                        if (objectMethod.returnId() == classNum(Map))
+                        {
+                            contractClassToUse = objectMethod.getAttribute(classStr(TFMContractClassAttribute));
+                        }
+                        // Desrialize the object property
+                        propertyValue = TFMJsonSerializer::deserializeObjectInternal(objectMethod.returnId(), jsonReader, _ignoreUnknownMembers, contractClassToUse != null ? contractClassToUse.getClassId() : 0);
+                        // Set the property value
+                        if (objectMethod.returnId() == classNum(Map))
+                        {
+                            Map             clsMap = objectType.callObject(objectMethod.name(), deserializedObject);
+                            
+                            anytype key;
+                            contractClassesToPassOn = propertyValue;
+                            MapEnumerator   mEnum = contractClassesToPassOn.getEnumerator();
+                            while (mEnum.moveNext())
+                            {
+                                if (clsMap.keyType() != Types::String)
+                                {
+                                    key = TFMDocCustomFunctionFlow::ConvertToType(mEnum.currentKey(),clsMap.keyType(),'');
+                                }
+                                else
+                                {
+                                    key = mEnum.currentKey();
+                                }
+                                clsMap.insert(key,mEnum.currentValue());
+                            }
+                        }
+                        else
+                        {
+                            objectType.callObject(objectMethod.name(), deserializedObject, propertyValue);
+                        }
+                    }
+                    else if (_objectTypeId == classNum(Map) && _MapValueClass)
+                    {
+                        //This is a map, currentJsonProperty is a key in the map, The Value type will be taken from another attribute
+                        propertyValue = TFMJsonSerializer::deserializeObjectInternal(_MapValueClass, jsonReader, _ignoreUnknownMembers);
+                       
+                        contractClassesToPassOn.insert(currentJsonProperty, propertyValue);
+                        deserializedObject = contractClassesToPassOn;
+                    }
+                    else if (_ignoreUnknownMembers)
+                    {
+                        TFMJsonSerializer::skipMember(jsonReader);
+                    }
+                }
+            }
+            else if (jsonReader.TokenType == Newtonsoft.Json.JsonToken::Boolean ||
+                jsonReader.TokenType == Newtonsoft.Json.JsonToken::Date ||
+                jsonReader.TokenType == Newtonsoft.Json.JsonToken::Float ||
+                jsonReader.TokenType == Newtonsoft.Json.JsonToken::Integer ||
+                jsonReader.TokenType == Newtonsoft.Json.JsonToken::String)
+            {
+                // This is the case for basic type values
+                if (jsonReader.Value && deserializedObject && currentJsonProperty)
+                {
+                    if (dataMembers.exists(currentJsonProperty))
+                    {
+                        objectMethod = dataMembers.lookup(currentJsonProperty);
+                        Types returnType = objectMethod.returnType();
+                        enumId enumId = objectMethod.returnId();
+                        if (returnType == Types::UserType)
+                        {
+                            // Get the base type for extended data type
+                            returnType = extendedTypeId2Type(objectMethod.returnId());
+                            if (returnType == Types::Enum)
+                            {
+                                // Get the enumId for enum EDT types
+                                DictType  dt = new DictType(objectMethod.returnId());
+                                enumId = dt.enumId();
+                            }
+                        }
+                        // Deserialize primitive value
+                        propertyValue = FormJsonSerializer::deserializeValue(
+                            returnType,
+                            jsonReader.Value,
+                            enumId);
+                        // Set the property value
+                        objectType.callObject(objectMethod.name(), deserializedObject, propertyValue);
+                    }
+                }
+            }
+            
+        }
+        return deserializedObject;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>skipMember</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Skips to the end token of current member.
+    /// All child members will also be skipped.
+    /// </summary>
+    /// <param name = "jsonReader">The json reader.</param>
+    private static void skipMember(Newtonsoft.Json.JsonTextReader jsonReader)
+    {
+        jsonReader.Skip();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

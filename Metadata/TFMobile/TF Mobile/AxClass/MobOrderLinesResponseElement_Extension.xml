@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobOrderLinesResponseElement_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classStr(TFMOrderLinesResponseElement))]
+final class MobOrderLinesResponseElement_Extension
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _element)
+    {
+        MobOrder						mobOrder;
+        Map								postPromptCollectors;
+        Map								additionalValues;
+        XmlElement                      orderIdElement;
+        XmlNodeList                     nodes;
+        SetEnumerator                   sEnum;
+        
+        next appendToXML(_element);
+        
+        if (fieldsMap == null)
+        {
+            //no records returned, no need to go further
+            return;
+        }
+
+        additionalValues = Map::create(fieldsMap.pack());
+        sEnum = fieldsMap.keySet().getEnumerator();
+
+        if(!fieldsMap.exists(TFMConstants::OrderBackendID()))
+        {
+            nodes = _element.getElementsByTagName(TFMConstants::OrderBackendID());
+            if (nodes)
+            {
+                orderIdElement = nodes.item(0);
+                fieldsMap.insert(TFMConstants::OrderBackendID(), orderIdElement.innerText());
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        mobOrder = MobOrder::constructFromBackendID(fieldsMap.lookup(TFMConstants::OrderBackendID()));
+        postPromptCollectors = mobOrder.getPostPromptCollectors(fieldsMap.lookup(TFMConstants::OrderBackendID()));
+        postPromptCollectors = MobPostOrderPromptOverride::addToCollectors(postPromptCollectors,classIdGet(mobOrder),'',true, additionalValues);
+        while (sEnum && sEnum.moveNext())
+        {
+            //Leaving only added values in map
+            additionalValues.remove(sEnum.current());
+        }
+        MobOrder::addPostPromptCollectors(postPromptCollectors,_element,additionalValues);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

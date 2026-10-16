@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicContextUnitOfMeasure</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Used to set up item Unit of measure convertion list
+/// </summary>
+[TFMDescription("Used to set up item Unit of measure convertion list")]
+class MwmsLogicContextUnitOfMeasure extends TFMLogicContextFunctions
+{
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        noOfInput = 0;
+        outputType = TFMLogicContextTypes::Boolean;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicContextUnitOfMeasure Construct()
+    {
+        MwmsLogicContextUnitOfMeasure uomSetup = new MwmsLogicContextUnitOfMeasure();
+        return uomSetup;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Name</Name>
+				<Source><![CDATA[
+    public Name Name()
+    {
+        return "@TaskletMobileWMS:UnitofMeasureSetup";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    [DataContract(classStr(TFMUnitOfMeasureContextContract))]
+    public Object process(ItemId _itemId = '')
+    {
+        TFMUnitOfMeasureContextContract         contract = new TFMUnitOfMeasureContextContract();
+        InventTable                             iTable = InventTable::find(_itemId);
+        
+        if (iTable)
+        {
+            contract.parmListOfUnitOfMeasure(TFMHelper::getConvertibleUnitList(iTable));
+            contract.parmDefaultUnitId(iTable.inventUnitId());
+        }
+
+        return contract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>icon</Name>
+				<Source><![CDATA[
+    public ResourceName icon()
+    {
+        return resourceStr(TFMBlobUnitOfMeasure);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

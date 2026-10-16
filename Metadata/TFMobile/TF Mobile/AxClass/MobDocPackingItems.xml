@@ -1,0 +1,703 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocPackingItems</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType(classStr(TFMLookup), 'PackingOrder'),
+TFMDocumentType(classStr(TFMLookup),'FinishPackingOrder'),
+TFMDocumentType(classStr(TFMLookup),'FinishPackingOrderLines'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration),'FinishPackingOrderLines'),
+    TFMDocumentType(classStr(TFMLookup), 'FinishPackingOrderLinesContent'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration),'FinishPackingOrderLinesContent'),
+    TFMMenu('PackingOrder',"@MobileWMS:PackingStations","@MobileWMS:PackingStations",resourceStr(MobReportAsFinishedIcon),true,true,['Outbound']),
+    TFMMenu('FinishPackingOrder',"@SYS131256","@SYS131256",resourceStr(MobReadyToSend),true,true,['Outbound'])
+    ]
+class MobDocPackingItems extends TFMDocumentHandler
+{
+    XML							returningXML;
+    MobDocumentContentSubject	content;
+    MobToteTable				restoteTable;
+    MobToteId					toteId;
+    NoYes						useGrossWeight;
+    MobToteContent				regs;
+    WMSOrderTrans				orderTrans;
+    Map                         boxesMapCache;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return "@MobileWMS:PackingStations";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUseGrossWeight</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@SYS53799")]
+    public MobPromptForUnit parmUseGrossWeight(MobPromptForUnit _useGrossWeight = useGrossWeight)
+    {
+        useGrossWeight = _useGrossWeight;
+        return useGrossWeight;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages						ret = super();
+        TFMPageLookup					lookupPage = new TFMPageLookup();
+        TFMPageLookupConfiguration		lookupConfig;
+        TFMPageOrderList				listPage = new TFMPageOrderList();
+        
+        TFMPageOrderListConfiguration	Listconfig;
+        listPage.parmId('Pick4Pack');
+        listPage.parmFilter(methodStr(MobDocPackingItems,Pick4PackOrderFilters));
+        listPage.parmIcon('mainmenureportasfinished');
+        listPage.parmTitle('@{PagePickOrderListTitle}');
+        Listconfig = listPage.getConfiguration();
+        Listconfig.parmNavigateTo('PickLines');
+        Listconfig.parmId(MobConstants::Pick()); //Use Pick Service instead
+        ret.addPage(listPage);
+
+        lookupPage.parmId('PackingOrder');
+        lookupPage.parmFilter(methodStr(MobDocPackingItems,PackingTablesFilter));
+        lookupPage.parmIcon('mainmenureportasfinished');
+        lookupPage.parmTitle('@{PackingOrder}');
+        lookupPage.addAction('Pick4Pack',-5);
+        lookupConfig = lookupPage.getConfiguration();
+        lookupConfig.parmNavigateTo('Pick4Pack');
+        lookupConfig.parmListId(classStr(TFMListLookupJournalHeader));
+        lookupConfig.parmAutomaticAccept(TFMAutomaticAccept::OnOpen);
+        lookupConfig.parmRefreshOnSuccess(true);
+        ret.addPage(lookupPage);
+
+        lookupPage = ret.getPage('FinishPackingOrder');
+        
+        lookupPage.parmFilter(methodStr(MobDocPackingItems,FinishPackingOrderFilter));
+        lookupPage.parmIcon('postready');
+        lookupPage.parmTitle('@{FinishPackingOrder}');
+        lookupConfig = lookupPage.getConfiguration();
+        lookupConfig.parmNavigateTo('FinishPackingOrderLines');
+        lookupConfig.parmListId(classStr(TFMListLookupJournalHeader));
+        lookupConfig.parmAutomaticAccept(TFMAutomaticAccept::OnOpen);
+        lookupConfig.parmRefreshOnSuccess(true);
+        ret.addPage(lookupPage);
+
+        lookupPage = ret.getPage('FinishPackingOrderLines');
+        lookupPage.parmFilter(methodStr(MobDocPackingItems,FinishPackingOrderLinesFilter));
+        lookupPage.parmIcon('postready');
+        lookupPage.parmTitle('@{StagingLines}');
+
+        lookupPage.parmAvailableForMenuPages(false);
+        lookupConfig = lookupPage.getConfiguration();
+        lookupConfig.parmAutomaticAccept(TFMAutomaticAccept::OnOpen);
+        
+        lookupConfig.parmListId(classStr(TFMListLookupJournalHeader));
+        lookupConfig.parmRefreshOnSuccess(true);
+        lookupPage.addAction('FinishPackingOrderLinesContent',1,1);
+        ret.addPage(lookupPage);
+
+        lookupPage = new TFMPageLookup();
+        lookupPage.parmId('FinishPackingOrderLinesContent');
+        lookupPage.parmFilter(methodStr(MobDocPackingItems,FinishPackingOrderLinesContentFilter));
+        lookupPage.parmIcon('postready');
+        lookupPage.parmTitle('@{Repack}');
+        lookupPage.parmAvailableForMenuPages(false);
+        lookupConfig = lookupPage.getConfiguration();
+        lookupConfig.parmUseRegistrationCollector('true');
+        lookupConfig.parmListId(classStr(TFMListLookupNoSlash));
+        lookupConfig.parmAutomaticAccept(TFMAutomaticAccept::OnOpen);
+        lookupConfig.parmRefreshOnSuccess(true);        
+        ret.addPage(lookupPage);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret = super();
+        ret.insert('PackingOrder' , "@MobileWMS:PackingStations");
+        ret.insert('FinishPackingOrder' , "@SYS131256");
+        ret.insert('Staging' , "@SYS131256");
+        ret.insert('StagingLines' , "@MobileWMS:StagingLines");
+        ret.insert('Repack' , "@MobileWMS:Repack");
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerImage</Name>
+				<Source><![CDATA[
+    public Map registerImage()
+    {
+        Map ret = super();
+
+        ret.insert('emptyBox', resourceStr(MobEmptyBox));
+        ret.insert('readytosend',resourceStr(MobReadyToSend));
+        ret.insert('postready',resourceStr(MobReadyToSend));
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerMenu</Name>
+				<Source><![CDATA[
+    public container registerMenu()
+    {
+        container ret;
+
+        ret = [['PackingOrder', "@MobileWMS:PackingStations", true, resourceStr(MobReportAsFinishedIcon)], ['FinishPackingOrder', "@SYS131256", true, resourceStr(MobReadyToSend)]];
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PackingTablesFilter</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets up the filter used on the pick orders page.
+    /// </summary>
+    /// <returns>An XML string with the fields to be used for the filter.</returns>
+    [TFMReferenceDataMethodAttribute]
+    public TFMReferenceData PackingTablesFilter()
+    {
+        TFMReferenceDataConfiguration   refData = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorList    regCollectorList = TFMGetReferenceData::createDefaultWarehouseReferenceData(1);
+
+        refData.addCollector(regCollectorList);
+
+        refData.parmUseDynaFilter(true);
+        return refData;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FinishPackingOrderFilter</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethodAttribute]
+    public TFMReferenceData FinishPackingOrderFilter()
+    {
+        TFMReferenceDataConfiguration   refData = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorList    regCollectorList = TFMGetReferenceData::createDefaultWarehouseReferenceData(1);
+
+        refData.addCollector(regCollectorList);
+
+        refData.parmUseDynaFilter(true);
+        return refData;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FinishPackingOrderLinesContentFilter</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethodAttribute]
+    public TFMReferenceData FinishPackingOrderLinesContentFilter()
+    {
+        TFMReferenceDataConfiguration   refData = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorText    regCollectorText = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(MobToteId));
+
+        regCollectorText.parmLocked(true);
+        regCollectorText.parmClearOnClear(false);
+
+        refData.addCollector(regCollectorText);
+
+        refData.parmUseDynaFilter(true);
+        return refData;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FinishPackingOrderLinesFilter</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethodAttribute]
+    public TFMReferenceData FinishPackingOrderLinesFilter()
+    {
+        TFMReferenceDataConfiguration   refData = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorText    regCollector = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(WMSPickingRouteID));
+        regCollector.parmLocked(true);
+        regCollector.parmClearOnClear(false);
+        refData.addCollector(regCollector);
+
+        refData.parmUseDynaFilter(true);
+        return refData;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPackingOrder</Name>
+				<Source><![CDATA[
+    [TFMLookupResponse(classStr(TFMLookup), 'PackingOrder')]
+    public TFMLookupResponseElement getPackingOrder()
+    {
+        TFMLookupResponseElement	response = TFMLookupResponseElement::Construct(classStr(TFMLookup), 'PackingOrder');
+        InventLocationId			location = request.getFieldValue(MobConstants::Warehouse()) == MobConstants::All() ? '*' : request.getFieldValue(MobConstants::Warehouse());
+        MobPackingStation			packStations;
+
+        while select packStations where packStations.InventLocationId like location
+        {
+            response.addResponse(packStations,tableStr(MobPackingStation) + '/' + fieldStr(MobPackingStation,PackingStationId ) + '/' + packStations.PackingStationId);
+        }
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFinishPackingOrder</Name>
+				<Source><![CDATA[
+    [TFMLookupResponse(classStr(TFMLookup), 'FinishPackingOrder')]
+    public TFMLookupResponseElement getFinishPackingOrder()
+    {
+        TFMLookupResponseElement	response = TFMLookupResponseElement::Construct(classStr(TFMLookup), 'FinishPackingOrder');
+        InventLocationId			location = request.getFieldValue(MobConstants::Warehouse()) == MobConstants::All() ? '*' : request.getFieldValue(MobConstants::Warehouse());
+        MobToteTable				toteTable;
+        
+        Map							routeMap = new Map(Types::String,Types::Record);
+        MapEnumerator				mEnum;
+        WMSPickingRoute             route;
+
+        while select toteTable where toteTable.Status != TFMDocumentQueueStatus::Completed
+            join firstonly regs where regs.ToteID == toteTable.ToteId
+            join orderTrans where orderTrans.RecId == regs.RefRecId
+            {
+                    routeMap.insert(MobConsolidatedPickingRouteOrders::Exists(orderTrans.routeId) ? MobConsolidatedPickingRouteOrders::belongsTo(orderTrans.routeId) : orderTrans.routeId, orderTrans);
+            }
+        
+
+        mEnum = routeMap.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            orderTrans = mEnum.currentValue();
+            if (location == '*' || orderTrans.inventdim().inventLocationId == location)
+            {
+                route = orderTrans.wmsPickingRoute();
+                response.addResponse(route,tableStr(wmsPickingRoute) + '/' + fieldStr(wmsPickingRoute,pickingRouteID ) + '/' + route.pickingRouteID + '/FinishPackingOrder');
+            }
+        }
+
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFinishPackingOrderLines</Name>
+				<Source><![CDATA[
+    [TFMLookupResponse(classStr(TFMLookup), 'FinishPackingOrderLines')]
+    public TFMLookupResponseElement getFinishPackingOrderLines()
+    {
+        TFMLookupResponseElement	response = TFMLookupResponseElement::Construct(classStr(TFMLookup), 'FinishPackingOrderLines');
+        WMSPickingRouteID			pickingRouteId = request.getFieldValue(extendedTypeStr(WMSPickingRouteID));
+        MobToteTable				toteTable;
+        
+        Set							Totes = new Set(Types::String);
+
+        Set							pickingRoutes = MobConsolidatedPickingRouteOrders::getRouteSiblings(pickingRouteId);
+        SetEnumerator				sEnum = pickingRoutes.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            pickingRouteId = sEnum.current();
+            while select toteTable where toteTable.Status != TFMDocumentQueueStatus::Completed 
+            join firstonly regs where regs.ToteID == toteTable.ToteId
+            join orderTrans where orderTrans.RecId == regs.RefRecId && orderTrans.routeId == pickingRouteId
+            {
+                if (!toteTable || totes.in(toteTable.ToteId))
+                {
+                    continue;
+
+                }
+                response.addResponse(toteTable,tableStr(MobToteTable) + '/' + fieldStr(MobToteTable,ToteId) + '/' + toteTable.ToteId,this);
+                totes.add(toteTable.ToteId);
+            }
+        }
+        
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFinishPackingOrderLinesContent</Name>
+				<Source><![CDATA[
+    [TFMLookupResponse(classStr(TFMLookup), 'FinishPackingOrderLinesContent')]
+    public TFMLookupResponseElement getFinishPackingOrderLinesContent()
+    {
+        boxesMapCache = null;
+
+        TFMLookupResponseElement	response = TFMLookupResponseElement::Construct(classStr(TFMLookup), 'FinishPackingOrderLinesContent');
+        
+        toteId = request.getFieldValue(extendedTypeStr(MobToteId));
+        
+        while select regs where regs.ToteID == toteId && regs.Qty
+            join orderTrans where orderTrans.RecId == regs.RefRecId
+        {              
+            response.addResponse(regs,tableStr(MobToteContent) + '/' + fieldStr(MobToteContent,RecId) + '/' + strFmt('%1',regs.RecId),this);
+        }
+        
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FinishPackingOrderLinesContentRegs</Name>
+				<Source><![CDATA[
+    [TFMCollectorMap(classStr(TFMLookup), 'FinishPackingOrderLinesContent')]
+    public Map FinishPackingOrderLinesContentRegs()
+    {
+        Map									returnMap	= new Map(Types::String, Types::Class);
+        TFMRegistrationCollectorDecimal		qty			= new TFMRegistrationCollectorDecimal(1,MobConstants::Quantity(),"@MobileWMS:Quantity_to","@MobileWMS:ThequantityyouwanttomovetoanotherOutboundLicensePlate","@MobileWMS:ThequantityyouwanttomovetoanotherOutboundLicensePlate");
+        TFMRegistrationCollectorList		boxes;
+        WMSPickingRouteID					routeId;
+        MobToteContent						ToteContent;
+        WMSOrderTrans						orderTransLocal;
+        Set									totes = new Set(Types::String);
+        SetEnumerator						sEnum,routeEnum;
+        str									toteStr;
+        str									groupFieldValue;
+        InventQty							maxValue;
+        MobToteTable						toteTable;
+        Map                                 totesCache = new Map(Types::String, Types::String);
+
+		routeId			= orderTrans.routeId;
+
+        str cacheId = (orderTrans.inventSerial()) ? 'regColCache' + '_serial' : 'regColCache'; // to make support for a different workflow for serial numbers.
+
+        maxValue		= regs.Qty;
+
+        // cache the totes/boxes step.
+        if(!boxesMapCache )
+        {
+            groupFieldValue = MobDocPackingItems::getGroupFieldValue(orderTrans);
+
+            routeEnum = MobConsolidatedPickingRouteOrders::getRouteSiblings(routeId).getEnumerator();
+
+            while (routeEnum.moveNext())
+            {
+                routeId = routeEnum.current();
+
+                if(totesCache.exists(routeId))
+                {
+                    toteStr = totesCache.lookup(routeId);
+                }
+
+                while select orderTransLocal where orderTransLocal.routeId == routeId
+            join ToteContent where ToteContent.RefRecId == orderTransLocal.RecId
+                join toteTable 
+                    where   toteTable.ToteId == ToteContent.ToteId && 
+                            !toteTable.Shipped && 
+                            toteTable.Status != TFMDocumentQueueStatus::Completed &&
+                            toteTable.ToteId != this.toteId
+                {
+                    if (!totes.in(ToteContent.ToteId) && MobDocPackingItems::getGroupFieldValue(orderTransLocal) == groupFieldValue)
+                    {
+                        totes.add(ToteContent.ToteId);
+                    }
+                }
+            }
+        
+            if(!toteStr)
+            {
+                sEnum = totes.getEnumerator();
+        
+                while (sEnum.moveNext())
+                {
+                    toteStr += (toteStr ? ';' : '')+sEnum.current();
+                }
+                toteStr += (toteStr ? ';' : '') + "@MobileWMS:NewOutboundLicensePlate";
+            }
+        
+            boxes		= new TFMRegistrationCollectorList(4,'MoveToTote',"@MobileWMS:OutboundLicensePlate_to","@MobileWMS:TheOutboundLicensePlateyouwanttomovetheitemto","@MobileWMS:TheOutboundLicensePlateyouwanttomovetheitemto");
+            boxes.parmListValues(toteStr);
+            boxesMapCache = boxes.getMap();
+        }
+        
+        qty.parmmaxValue(maxValue);
+        qty.parmminValue(0);
+        returnMap.insert(qty.parmName(),qty.getMap());
+        returnMap.insert('MoveToTote', boxesMapCache);
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getGroupFieldValue</Name>
+				<Source><![CDATA[
+    public static str getGroupFieldValue(WMSOrderTrans _orderTrans)
+    {
+        SysDictField					sdf;
+        Common							common;
+        MobDocPickOrder					pickDoc = new MobDocPickOrder();
+        FieldName						FieldName = pickDoc.parmToteGroupingField();
+        SurrogateFKReplacementHelper	surrogateHelper;
+        FieldId							fId;
+        str ret;
+        if (pickDoc.parmUseTotePicking())
+        {
+            sdf = new SysDictField(tableNum(WmsOrderTrans),fieldName2Id(tableNum(WmsOrderTrans),FieldName));
+            common = _orderTrans;
+            fId = fieldName2Id(tableNum(WmsOrderTrans),FieldName);
+            if (!sdf)
+            {
+                sdf = new SysDictField(tableNum(WMSPickingRoute),fieldName2Id(tableNum(WMSPickingRoute),FieldName));
+                if (sdf)
+                {
+                    common = _orderTrans.wmsPickingRoute();
+                    fId = fieldName2Id(tableNum(WMSPickingRoute),FieldName);
+                }
+            }
+            if (!sdf)
+            {
+                sdf = new SysDictField(tableNum(WMSOrder),fieldName2Id(tableNum(WMSOrder),FieldName));
+                if (sdf)
+                {
+                    common = _orderTrans.wmsorder();
+                    fId = fieldName2Id(tableNum(WMSOrder),FieldName);
+                }
+            }
+            if (sdf)
+            {
+                ret = strFmt('%1',common.(fId));
+                if (sdf.baseType() == Types::Int64 && sdf.isSurrogateForeignKey())
+                {
+                    surrogateHelper = SurrogateFKReplacementHelper::construct(AbsoluteFieldBinding::construct(sdF.name(), sdF.tableName()));
+                    ret = TFMGenericDataHelper::getSurrogateReplacement(surrogateHelper, common.(fId)) + '(' + ret + ')';
+                    
+                }
+                
+            }
+            else
+            {
+                ret = _orderTrans.customer;
+            }
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postToteRepack</Name>
+				<Source><![CDATA[
+    [TFMDocumentType(classStr(TFMPostAdhocRegistration),'FinishPackingOrderLinesContent')]
+    public str postToteRepack()
+    {
+        
+        str						moveToTote		= request.getFieldValue('MoveToTote');
+        str				        toteIDToCreate	= request.getFieldValue('NewToteID');
+        WHSContainerTypeCode	box				= request.getFieldValue('packingBox');
+        InventQty				qty				= str2num(request.getFieldValue(MobConstants::Quantity()));
+        WMSOrderTrans           localOrderTrans = request.getReferredRecord();
+        
+        toteId		= request.getFieldValue('toteid');
+
+        if (moveToTote == "@MobileWMS:NewOutboundLicensePlate" && !toteIDToCreate)
+        {
+            // send the collector to the user to create the new tote
+            this.addFunctionCollectors(methodStr(MobDocPackingItems,NewToteFollowup));
+            str xml = this.getResult();
+            resultXml = new XmlDocument();
+            resultXml.loadXml(xml);
+            resultStr = 'Need new Outbound License Plate ID';
+            return resultStr;
+        }
+        else if (moveToTote == "@MobileWMS:NewOutboundLicensePlate" && toteIDToCreate && MobToteTable::Exists(toteIDToCreate))
+        {
+            // if the new tote is already created
+            throw Error("@MobileWMS:OutboundLicensePlatealreadyexists");
+        }
+        
+        MobDocPackingItems::performRepack(toteId, toteIDToCreate ? toteIDToCreate : moveToTote, localOrderTrans.RecId, qty, toteIDToCreate ? box : null);
+       
+        return 'done';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>performRepack</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Perform Repack on toteTable and toteContent.
+    /// </summary>
+    /// <returns>true, if updated</returns>
+    public static void performRepack(MobToteId _currentToteId, str _moveToTote, RecId _orderTransRecId, InventQty _qty, WHSContainerTypeCode _box)
+    {
+        MobToteTable			toteTable;
+        MobToteContent			toteContent;
+        
+        ttsbegin;
+        toteTable = MobToteTable::FindOrCreate(_moveToTote,null,true);
+        if (_box)
+        {
+            toteTable.PackingType = _box;
+        }
+        
+        // update the current toteContent and substract the qty that should be removed.
+        select firstonly forupdate toteContent where toteContent.RefRecId == _orderTransRecId && toteContent.ToteId == _currentToteId;
+        toteContent.Qty -= _qty;
+        toteContent.update(); //PB: investigate all this update and addContent is necessary or even too much.
+
+        toteTable.update();
+        MobToteContent::addContent(_moveToTote, _qty, toteContent.RefRecId, toteContent.OrgInventDimId);
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>NewToteFollowup</Name>
+				<Source><![CDATA[
+    public Map NewToteFollowup()
+    {
+        Map									returnMap	= new Map(Types::String, Types::Class);
+        TFMRegistrationCollectorList		boxes		= new TFMRegistrationCollectorList(4,'packingBox',MobHelper::capitalLetterSentence("@SYS332569"),MobHelper::capitalLetterSentence("@SYS332569"),MobHelper::capitalLetterSentence("@SYS332569"));
+        
+        // Add the step to register the error cause
+        int add =1000;
+        returnMap.insert('NewToteID',TFMRegistrationCollectorText::TextStepMap(false,add,'NewToteID',"@MobileWMS:NewOutboundLicensePlateID","@MobileWMS:NewOutboundLicensePlateID","@MobileWMS:NewOutboundLicensePlateID",40));;
+        boxes.parmDataTable(methodStr(MobDocPackingItems,ContainerList));
+       
+        returnMap.insert(boxes.parmName(),boxes.getMap());
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createProdReportAsFinishedRegs</Name>
+				<Source><![CDATA[
+    [TFMCollectorMap(classStr(TFMLookup), 'FinishPackingOrderLines')]
+    public Map createProdReportAsFinishedRegs()
+    {
+        Map									returnMap	= new Map(Types::String, Types::Class);
+        TFMRegistrationCollectorDecimal		weightReg	= TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(Weight));
+        TFMRegistrationCollectorList		boxes		= new TFMRegistrationCollectorList(4,'packingBox',MobHelper::capitalLetterSentence("@SYS332569"),MobHelper::capitalLetterSentence("@SYS332569"),MobHelper::capitalLetterSentence("@SYS332569"));
+        TFMRegistrationCollectorList		finishBox	= new TFMRegistrationCollectorList(6,'finishBox',"@SYS12772","@SYS12772","@SYS12772");
+        
+        returnMap.insert(weightReg.parmName(),weightReg.getMap());
+     
+        boxes.parmDataTable(methodStr(MobDocPackingItems,ContainerList));
+
+        finishBox.parmListValues("@SYS5461" + ';' + "@SYS2048");
+       
+        returnMap.insert(boxes.parmName(),boxes.getMap());
+        returnMap.insert(finishBox.parmName(),finishBox.getMap());
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postToteFinish</Name>
+				<Source><![CDATA[
+    [TFMDocumentType(classStr(TFMPostAdhocRegistration),'FinishPackingOrderLines')]
+    public void postToteFinish()
+    {
+        
+        Weight					weightReg	= str2Num(request.getFieldValue(extendedTypeStr(Weight)));
+        WHSContainerTypeCode	box			= request.getFieldValue('packingBox');
+        boolean					finishBox	= request.getFieldValue('finishBox') == "@SYS5461";
+        TFMRequestFinishTote	toteRequest = request as TFMRequestFinishTote;
+        weightReg = toteRequest.parmWeight();
+        box = toteRequest.parmPackingBox();
+        finishBox = toteRequest.parmFinishBox();
+        toteId = toteRequest.parmToteId();
+        ttsbegin;
+        restoteTable = MobToteTable::FindOrCreate(toteId,null,true);
+        restoteTable.Weight = weightReg;
+        restoteTable.PackingType = box;
+        restoteTable.Status = finishBox ? TFMDocumentQueueStatus::Completed : TFMDocumentQueueStatus::Processing;
+        restoteTable.update();
+        ttscommit;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResultingMobToteTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(MobToteTable))]
+    public MobToteTable getResultingMobToteTable()
+    {
+        return restoteTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ContainerList</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataFilterList ContainerList()
+    {
+        WHSContainerType containerType;
+        TFMReferenceDataFilterList filterlist = new TFMReferenceDataFilterList();
+        
+        while select containerType
+        {
+            filterlist.addValue(containerType.ContainerTypeCode,containerType.Description);
+        }
+
+        return filterlist;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Pick4PackOrderFilters</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethodAttribute]
+    public TFMReferenceData Pick4PackOrderFilters()
+    {
+        TFMReferenceDataConfiguration   refData = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorList    regCollectorList = TFMGetReferenceData::createDefaultWarehouseReferenceData(1);
+        TFMRegistrationCollectorDate    regCollectorDate = TFMRegistrationCollector::collectorFromEDT(extendedtypestr(WMSDlvDate));
+        TFMRegistrationCollectorText	refCol = new TFMRegistrationCollectorText(40,tableStr(ReferenceIdentity),"@SYS15217","@SYS15217", "@SYS15217");
+        refData.addCollector(regCollectorList);
+
+        regCollectorDate.parmName(MobConstants::DeliveryDate());
+        regCollectorDate.isHeader(true);
+        refData.addCollector(regCollectorDate);
+        refCol.parmLength(100);
+        refCol.parmOptional(true);
+        refCol.parmLocked(true);
+        refData.addCollector(refCol);
+        refData.parmUseDynaFilter(true);
+        return refData;
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

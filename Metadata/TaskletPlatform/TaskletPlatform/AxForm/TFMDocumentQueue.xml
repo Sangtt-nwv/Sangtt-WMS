@@ -1,0 +1,1855 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMDocumentQueue</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+using System.Xml.Linq;
+
+[Form]
+public class TFMDocumentQueue extends FormRun
+{
+    Range                   statusRangeString;
+
+    QueryBuildRange         userIdRange;
+    QueryBuildRange         documentTypeRange;
+    QueryBuildRange         statusRange;
+    boolean                 devMode;
+    boolean                 showAll;
+    boolean                 newDocument;
+    boolean                 readyForProcessing;
+    boolean                 processing;
+    boolean                 completed;
+    boolean                 error;
+
+    TFMDocumentTypeId       documentType;
+    UserId                  userId;
+
+    #DEFINE.CurrentVersion(2)
+    #LOCALMACRO.CurrentList
+        showAll,
+        userId,
+        documentType,
+        newDocument,
+        readyForProcessing,
+        processing,
+        completed,
+        error
+    #ENDMACRO
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>close</Name>
+				<Source><![CDATA[
+    // AOSRunMode::Client
+    public void close()
+    {
+        xSysLastValue::saveLast(this);
+    
+        super();
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>enableButtons</Name>
+				<Source><![CDATA[
+    void enableButtons()
+    {
+        
+        TFMDocumentQueue_ds.allowEdit(TFMDocumentQueue.Status == TFMDocumentQueueStatus::NewDocument || TFMDocumentQueue.Status == TFMDocumentQueueStatus::Error || TFMDocumentQueue.Status == TFMDocumentQueueStatus::ReadyForProcessing || devMode);
+        
+        ResetStatus.enabled(TFMDocumentQueue.Status == TFMDocumentQueueStatus::Processing);
+        
+        OpenReference.enabled(TFMDocumentQueue.RefRecId);
+        FindCode.visible(FindCode.enabled(devMode));
+        ResetData.visible(ResetData.enabled(devMode));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>enableControls</Name>
+				<Source><![CDATA[
+    void enableControls()
+    {
+        // Enable or disable filters based on the value of the show all control
+        ctrlUserId.enabled(!showAll);
+        ctrlDocumentType.enabled(!showAll);
+        ctrlNewDocument.enabled(!showAll);
+        ctrlReadyForProcessing.enabled(!showAll);
+        ctrlProcessing.enabled(!showAll);
+        ctrlCompleted.enabled(!showAll);
+        ctrlError.enabled(!showAll);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        super();
+    
+        xSysLastValue::getLast(this);
+    
+        element.setControls();
+        element.enableControls();
+        devMode = TFMParameters::find().DeveloperMode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    void initParmDefault()
+    {
+    
+        showAll = true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastValueDataAreaId</Name>
+				<Source><![CDATA[
+    // AOSRunMode::Client
+    dataAreaId lastValueDataAreaId()
+    {
+        return curext();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastValueDesignName</Name>
+				<Source><![CDATA[
+    // AOSRunMode::Client
+    identifiername lastValueDesignName()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastValueElementName</Name>
+				<Source><![CDATA[
+    // AOSRunMode::Client
+    identifiername lastValueElementName()
+    {
+        return this.name();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastValueType</Name>
+				<Source><![CDATA[
+    // AOSRunMode::Client
+    UtilElementType lastValueType()
+    {
+        return UtilElementType::Form;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastValueUserId</Name>
+				<Source><![CDATA[
+    // AOSRunMode::Client
+    userId lastValueUserId()
+    {
+        return curuserid();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion,
+            ctrlShowAll.value(),
+            ctrlUserId.text(),
+            ctrlDocumentType.text(),
+            ctrlNewDocument.value(),
+            ctrlReadyForProcessing.value(),
+            ctrlProcessing.value(),
+            ctrlCompleted.value(),
+            ctrlError.value()
+            ];
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setControls</Name>
+				<Source><![CDATA[
+    void setControls()
+    {
+        ctrlShowAll.value(showAll);
+        ctrlUserId.text(UserId);
+        ctrlDocumentType.text(documentType);
+        ctrlNewDocument.value(newDocument);
+        ctrlReadyForProcessing.value(readyForProcessing);
+        ctrlProcessing.value(processing);
+        ctrlCompleted.value(completed);
+        ctrlError.value(error);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setStatusRangeString</Name>
+				<Source><![CDATA[
+    void setStatusRangeString()
+    {
+        statusRangeString = strfmt(identifierstr('%1, %2, %3, %4, %5'),
+                            (ctrlNewDocument.value()            ? queryValue(TFMDocumentQueueStatus::NewDocument)   : SysQuery::valueNot(TFMDocumentQueueStatus::NewDocument)),
+                            (ctrlReadyForProcessing.value()     ? queryValue(TFMDocumentQueueStatus::ReadyForProcessing)   : SysQuery::valueNot(TFMDocumentQueueStatus::ReadyForProcessing)),
+                            (ctrlProcessing.value()             ? queryValue(TFMDocumentQueueStatus::Processing)    : SysQuery::valueNot(TFMDocumentQueueStatus::Processing)),
+                            (ctrlCompleted.value()              ? queryValue(TFMDocumentQueueStatus::Completed)     : SysQuery::valueNot(TFMDocumentQueueStatus::Completed)),
+                            (ctrlError.value()                  ? queryValue(TFMDocumentQueueStatus::Error)         : SysQuery::valueNot(TFMDocumentQueueStatus::Error)));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showRequestXML</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initialize the XML viewer for the Request
+    /// </summary>
+    /// <remarks>
+    /// Called from TabPage pageActivated method
+    /// </remarks>
+    public void showRequestXML()
+    {
+        str xml;
+        //str tempFile;
+        str xmlError;
+        System.Exception ex;
+        System.Exception iex;
+    
+        xml = TFMDocumentQueue.RequestXML();
+        RequestXmlViewer.visible(false);
+        XmlParseError.visible(false);
+        try
+        {
+            
+            RequestXmlViewer.parmFormatAsXml('Yes');
+            RequestXmlViewer.parmHtml(TFMFormXMLFormatter::htmlColorXML(xml));
+            
+            RequestXmlViewer.visible(true);
+        }
+        catch(Exception::CLRError)
+        {
+            XmlParseError.visible(true);
+            ex = CLRInterop::getLastException();
+            iex = ex.get_InnerException();
+            if (iex)
+            {
+                ex = iex;
+            }
+            xmlError = ex.ToString();
+            XmlParseError.Text( xmlError );
+            
+        }		    
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showResponseXML</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initialize the XML viewer for the Answer
+    /// </summary>
+    /// <remarks>
+    /// Called from TabPage pageActivated method
+    /// </remarks>
+    public void showResponseXML()
+    {
+        str xml;
+        xml = TFMDocumentQueue.AnswerXML();
+        ResponseXmlViewer.parmFormatAsXml('Yes');
+        ResponseXmlViewer.parmHtml(TFMFormXMLFormatter::htmlColorXML(xml));
+        ResponseXmlViewer.visible(true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showResultXML</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initialize the XML viewer for the Result
+    /// </summary>
+    /// <remarks>
+    /// Called from TabPage pageActivated method
+    /// </remarks>
+    public void showResultXML()
+    {
+        str xml;        
+        #Xml
+    
+        xml = TFMDocumentQueue.ResultXML();    
+        ResultXmlViewer.parmFormatAsXml('Yes');
+        ResultXmlViewer.parmHtml(TFMFormXMLFormatter::htmlColorXML(xml));
+        ResultXmlViewer.visible(true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container packedClass)
+    {
+        Integer version     = conpeek(packedClass,1);
+    
+        switch (version)
+        {
+            case #CurrentVersion :
+                [version,#CurrentList] = packedClass;
+                break;
+            default :
+                return false;
+        }
+    
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>TFMDocumentQueue</Name>
+				<Methods>
+					<Method>
+						<Name>executeQuery</Name>
+						<Source><![CDATA[
+        public void executeQuery()
+        {
+            if (showAll)
+            {
+                statusRange.value(sysQuery::valueUnlimited());
+                userIdRange.value(sysQuery::valueUnlimited());
+                documentTypeRange.value(sysQuery::valueUnlimited());
+            }
+            else
+            {
+                element.setStatusRangeString();
+                statusRange.value(statusRangeString);
+                userIdRange.value(userId);
+                documentTypeRange.value(documentType);
+            }
+        
+            super();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>init</Name>
+						<Source><![CDATA[
+        public void init()
+        {
+            super();
+        
+            TFMDocumentQueue_ds.query().dataSourceTable(tableNum(TFMDocumentQueue)).addSortField(FieldNum(TFMDocumentQueue, createdDateTime), SortOrder::Descending);
+        
+            statusRange             = TFMDocumentQueue_ds.query().dataSourceTable(tableNum(TFMDocumentQueue)).addRange(fieldnum(TFMDocumentQueue,Status));
+            userIdRange             = TFMDocumentQueue_ds.query().dataSourceTable(tableNum(TFMDocumentQueue)).addRange(fieldnum(TFMDocumentQueue,UserId));
+            documentTypeRange       = TFMDocumentQueue_ds.query().dataSourceTable(tableNum(TFMDocumentQueue)).addRange(fieldnum(TFMDocumentQueue,DocumentType));
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret;
+        
+            ret = super();
+            element.enableButtons();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayOption</Name>
+						<Source><![CDATA[
+        public void displayOption(Common _record, FormRowDisplayOption _options)
+        {
+            TFMDocumentQueue queue = _record;
+            if (queue.Status == TFMDocumentQueueStatus::Error)
+            {
+				_options.backColor(WinAPI::RGB2int(255, 230, 230));
+            }
+            super(_record, _options);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>ctrlShowAll</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        boolean modified()
+        {
+            boolean ret;
+            
+            ret = super();
+        
+            // Find value of the show all control
+            showAll = this.value();
+        
+            // Enable controls
+            element.enableControls();
+        
+            // Run query with the new filter options
+            TFMDocumentQueue_ds.executeQuery();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ctrlUserId</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        boolean modified()
+        {
+            boolean ret;
+        
+            ret = super();
+        
+            userId = this.text();
+            TFMDocumentQueue_ds.executeQuery();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ctrlDocumentType</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        boolean modified()
+        {
+            boolean ret;
+        
+            ret = super();
+        
+            documentType = this.text();
+            TFMDocumentQueue_ds.executeQuery();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ctrlNewDocument</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        boolean modified()
+        {
+            boolean ret;
+        
+            ret = super();
+        
+            newDocument = this.value();
+            TFMDocumentQueue_ds.executeQuery();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ctrlReadyForProcessing</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        boolean modified()
+        {
+            boolean ret;
+        
+            ret = super();
+        
+            readyForProcessing = this.value();
+            TFMDocumentQueue_ds.executeQuery();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ctrlProcessing</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        boolean modified()
+        {
+            boolean ret;
+        
+            ret = super();
+        
+            processing = this.value();
+            TFMDocumentQueue_ds.executeQuery();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ctrlCompleted</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        boolean modified()
+        {
+            boolean ret;
+        
+            ret = super();
+        
+            completed = this.value();
+            TFMDocumentQueue_ds.executeQuery();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ctrlError</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        boolean modified()
+        {
+            boolean ret;
+        
+            ret = super();
+        
+            error = this.value();
+            TFMDocumentQueue_ds.executeQuery();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>RequestXML</Name>
+				<Type>TabPage</Type>
+				<Methods>
+					<Method>
+						<Name>pageActivated</Name>
+						<Source><![CDATA[
+        public void pageActivated()
+        {
+            super();
+            element.showRequestXML();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>RequestXMLGet</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            System.IO.MemoryStream stream = new System.IO.MemoryStream();
+            System.IO.StreamWriter writer = new System.IO.StreamWriter(stream,System.Text.Encoding::GetEncoding(1252));
+            writer.Write('<?xml version="1.0" encoding="utf-8"?>'+TFMDocumentQueue.RequestXML());
+            writer.Flush();
+            stream.Position = 0;
+ 
+            str fileName = TFMDocumentQueue.DocumentType + (TFMDocumentQueue.ContentSubject ? '('+ TFMDocumentQueue.ContentSubject + ')' : '') + ' Request ' +TFMDocumentQueue.UserId + '@' + TFMDeviceTable::FindOrCreateDevice(TFMDocumentQueue.DeviceId).Name + ' ' +strFmt('%1',TFMDocumentQueue.CreatedDateTime);
+            str contentType = 'application/text';
+            str fileExtension = '.xml';//SRSPrintDestinationSettings::findFileNameType(SRSReportFileFormat::PDF, SRSImageFileFormat::BMP);
+            FileUploadTemporaryStorageStrategy fileUploadStrategy = new FileUploadTemporaryStorageStrategy();
+            FileUploadTemporaryStorageResult fileUploadResult = fileUploadStrategy.uploadFile(stream, fileName + fileExtension, contentType , fileExtension);
+        
+            Browser br = new Browser();
+            br.navigate(fileUploadResult.getDownloadUrl(),false, false);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>AnswerXML</Name>
+				<Type>TabPage</Type>
+				<Methods>
+					<Method>
+						<Name>pageActivated</Name>
+						<Source><![CDATA[
+        public void pageActivated()
+        {
+            super();
+            element.showResponseXML();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>AnswerXMLGet</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            System.IO.MemoryStream stream = new System.IO.MemoryStream();
+            System.IO.StreamWriter writer = new System.IO.StreamWriter(stream,System.Text.Encoding::GetEncoding(1252));
+            writer.Write('<?xml version="1.0" encoding="utf-8"?>'+TFMDocumentQueue.AnswerXML());
+            writer.Flush();
+            stream.Position = 0;
+         
+            str fileName = TFMDocumentQueue.DocumentType + (TFMDocumentQueue.ContentSubject ? '('+ TFMDocumentQueue.ContentSubject + ')' : '') + ' Answer ' +TFMDocumentQueue.UserId + '@' + TFMDeviceTable::FindOrCreateDevice(TFMDocumentQueue.DeviceId).Name + ' ' +strFmt('%1',TFMDocumentQueue.CreatedDateTime);
+            str contentType = 'application/text';
+            str fileExtension = '.xml';//SRSPrintDestinationSettings::findFileNameType(SRSReportFileFormat::PDF, SRSImageFileFormat::BMP);
+            FileUploadTemporaryStorageStrategy fileUploadStrategy = new FileUploadTemporaryStorageStrategy();
+            FileUploadTemporaryStorageResult fileUploadResult = fileUploadStrategy.uploadFile(stream, fileName + fileExtension, contentType , fileExtension);
+    
+            Browser br = new Browser();
+            br.navigate(fileUploadResult.getDownloadUrl(),false, false);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ResultXML</Name>
+				<Type>TabPage</Type>
+				<Methods>
+					<Method>
+						<Name>pageActivated</Name>
+						<Source><![CDATA[
+        public void pageActivated()
+        {
+            super();
+            element.showResultXML();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ResultXMLGet</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            System.IO.MemoryStream stream = new System.IO.MemoryStream();
+            System.IO.StreamWriter writer = new System.IO.StreamWriter(stream,System.Text.Encoding::GetEncoding(1252));
+            writer.Write('<?xml version="1.0" encoding="utf-8"?>'+TFMDocumentQueue.ResultXML());
+            writer.Flush();
+            stream.Position = 0;
+         
+            str fileName = TFMDocumentQueue.DocumentType + (TFMDocumentQueue.ContentSubject ? '('+ TFMDocumentQueue.ContentSubject + ')' : '') + ' Result ' +TFMDocumentQueue.UserId + '@' + TFMDeviceTable::FindOrCreateDevice(TFMDocumentQueue.DeviceId).Name + ' ' +strFmt('%1',TFMDocumentQueue.CreatedDateTime);
+            str contentType = 'application/text';
+            str fileExtension = '.xml';//SRSPrintDestinationSettings::findFileNameType(SRSReportFileFormat::PDF, SRSImageFileFormat::BMP);
+            FileUploadTemporaryStorageStrategy fileUploadStrategy = new FileUploadTemporaryStorageStrategy();
+            FileUploadTemporaryStorageResult fileUploadResult = fileUploadStrategy.uploadFile(stream, fileName + fileExtension, contentType , fileExtension);
+    
+            Browser br = new Browser();
+            br.navigate(fileUploadResult.getDownloadUrl(),false, false);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Refresh</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            super();
+        
+            TFMDocumentQueue_ds.executeQuery();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ProcessButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            super();
+        
+            TFMDocumentQueueProcessor::formProcess(TFMDocumentQueue);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TFMDocumentQueueCleanup</Name>
+				<Type>MenuFunctionButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            super();
+        
+            TFMDocumentQueue_ds.executeQuery();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ResetStatus</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            super();
+        
+            if (Box::yesNo("@TFM:TFM125", DialogButton::No) == DialogButton::Yes)
+            {
+                TFMDocumentQueue.resetStatus();
+                TFMDocumentQueue_ds.reread();
+                element.enableButtons();
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>OpenReference</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            TFMDocumentQueue.jumpToMainTable();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FindCode</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            #AOT            
+            TFMDocumentHandler  documentHandler = TFMDocumentTypeProvider::handler(TFMDocumentQueue.DocumentType);
+            DictMethod          method;
+            str                 methodString;
+            super();
+            documentHandler.setRequestXml(TFMXMLDeserializer::getXmlDocument(TFMDocumentQueue.RequestXML()));
+            documentHandler = documentHandler.subHandler();
+            method = documentHandler.parmMethod();
+            if (Method != null)            
+            {
+                methodString = #AOTDelimiter + method.name();                
+            }
+            Info(#ClassesPath + #AOTDelimiter +classId2Name(classIdGet(documentHandler)) + methodString);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ResetData</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            Map                         models = TFMExportSetup::getTables();
+            MapEnumerator				mEnum = models.getEnumerator();
+            Map							tables;
+            MapEnumerator				tEnum;
+            TableName					tName;
+            Common						common;
+            super();
+
+            if (Box::okCancel("@TFM:Areyousureyouwanttodeleteallthes",DialogButton::Cancel) != DialogButton::Ok)
+            {
+                return;
+            }
+
+            while (Menum.moveNext())
+            {
+                tables = mEnum.currentValue();
+                tEnum = tables.getEnumerator();
+                while (tEnum.moveNext())
+                {
+                    tName = tEnum.currentKey();
+                    common = new SysDictTable(TableName2id(tName)).makeRecord();
+                    common.skipDataMethods(true);
+                    delete_from common;
+                }
+            }
+
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>TFMDocumentQueue</Name>
+			<Table>TFMDocumentQueue</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>AnswerDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AnswerXML</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CallStack</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ContentSubject</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>createdDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DeviceId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DocumentType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MessageId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedTransactionId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<AllowEdit>No</AllowEdit>
+					<DataField>msProccessingEnd</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<AllowEdit>No</AllowEdit>
+					<DataField>msProccessingStart</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RefRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RefTableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RequestXML</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RequestXMLOriginal</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ResultXML</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SessionID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Status</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UserId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>TFMDeviceTable</Name>
+			<Table>TFMDeviceTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DeviceId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TFMDeviceType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Name</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>TFMDocumentQueue</JoinSource>
+			<LinkType>OuterJoin</LinkType>
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@TFM:TFM2</Caption>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
+		<TitleDataSource xmlns="">TFMDocumentQueue</TitleDataSource>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FilterGroup</Name>
+				<ElementPosition>536870911</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<HeightMode>Auto</HeightMode>
+				<Type>Group</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl>
+						<Name>QuickFilterControl1</Name>
+						<FormControlExtension>
+							<Name>QuickFilterControl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>targetControlName</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>placeholderText</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>defaultColumnName</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormCheckBoxControl">
+						<Name>ctrlShowAll</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>429496728</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<HelpText>@SYS81397</HelpText>
+						<NeededPermission>Read</NeededPermission>
+						<Type>CheckBox</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Label>@SYS81101</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>ctrlUserId</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>644245092</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>String</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<ExtendedDataType>UserId</ExtendedDataType>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>ctrlDocumentType</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>858993456</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>String</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<ExtendedDataType>TFMDocumentTypeId</ExtendedDataType>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>FormGroupControl1</Name>
+						<Type>Group</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormCheckBoxControl">
+								<Name>ctrlNewDocument</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1073741820</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>CheckBox</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@SYS2055</Label>
+								<Value>1</Value>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormCheckBoxControl">
+								<Name>ctrlReadyForProcessing</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1288490184</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>CheckBox</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@TFM:TFM130</Label>
+								<Value>1</Value>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormCheckBoxControl">
+								<Name>ctrlProcessing</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1503238548</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>CheckBox</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@SYS8577</Label>
+								<Value>1</Value>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormCheckBoxControl">
+								<Name>ctrlCompleted</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1717986912</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>CheckBox</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@TFM:TFM62</Label>
+								<Value>1</Value>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormCheckBoxControl">
+								<Name>ctrlError</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1932735276</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>CheckBox</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@SYS8500</Label>
+								<Value>1</Value>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>HorizontalRight</ArrangeMethod>
+						<Caption>@SYS25532</Caption>
+						<FrameOptionButton>Hide</FrameOptionButton>
+						<OptionValue>0</OptionValue>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+				<Caption>@SYS2163</Caption>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<AlignControl>No</AlignControl>
+				<ElementPosition>1073741822</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Tab</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Overview</Name>
+						<ElementPosition>613566756</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>Grid</Name>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Grid</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Grid_DocumentType</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>DocumentType</DataField>
+										<DataSource>TFMDocumentQueue</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Grid_ContentSubject</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ContentSubject</DataField>
+										<DataSource>TFMDocumentQueue</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Grid_UserId</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>UserId</DataField>
+										<DataSource>TFMDocumentQueue</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>TFMDocumentQueue_DeviceId</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Name</DataField>
+										<DataSource>TFMDeviceTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormDateTimeControl">
+										<Name>TFMDocumentQueue_createdDateTime</Name>
+										<Type>DateTime</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>createdDateTime</DataField>
+										<DataSource>TFMDocumentQueue</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>Grid_Status</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>ComboBox</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Status</DataField>
+										<DataSource>TFMDocumentQueue</DataSource>
+										<Items />
+									</AxFormControl>
+								</Controls>
+								<DataSource>TFMDocumentQueue</DataSource>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS9039</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>General</Name>
+						<ElementPosition>920350134</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Identification</Name>
+								<ElementPosition>715827882</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGuidControl">
+										<Name>Identification_MessageId</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>Guid</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>MessageId</DataField>
+										<DataSource>TFMDocumentQueue</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Identification_DeviceId</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>DeviceId</DataField>
+										<DataSource>TFMDocumentQueue</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Identification_UserId</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>UserId</DataField>
+										<DataSource>TFMDocumentQueue</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Identification_DocumentType</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>DocumentType</DataField>
+										<DataSource>TFMDocumentQueue</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Identification_ContentSubject</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ContentSubject</DataField>
+										<DataSource>TFMDocumentQueue</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>Identification</DataGroup>
+								<DataSource>TFMDocumentQueue</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Status</Name>
+								<ElementPosition>1073741823</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>Status_Status</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>ComboBox</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Status</DataField>
+										<DataSource>TFMDocumentQueue</DataSource>
+										<Items />
+									</AxFormControl>
+								</Controls>
+								<DataGroup>Status</DataGroup>
+								<DataSource>TFMDocumentQueue</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Created</Name>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>Created_msProccessingStart</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>msProccessingStart</DataField>
+										<DataSource>TFMDocumentQueue</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>Created</DataGroup>
+								<DataSource>TFMDocumentQueue</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Answered</Name>
+								<ElementPosition>1789569705</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormDateTimeControl">
+										<Name>Answered_AnswerDateTime</Name>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>DateTime</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>AnswerDateTime</DataField>
+										<DataSource>TFMDocumentQueue</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>Answered_msProccessingEnd</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>msProccessingEnd</DataField>
+										<DataSource>TFMDocumentQueue</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>Answered</DataGroup>
+								<DataSource>TFMDocumentQueue</DataSource>
+							</AxFormControl>
+						</Controls>
+						<ColumnsMode>Fill</ColumnsMode>
+						<Caption>@SYS2952</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>RequestXML</Name>
+						<ElementPosition>1165776836</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>RequestXMLGet</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@SYS75990</Text>
+							</AxFormControl>
+							<AxFormControl>
+								<Name>RequestXmlViewer</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<FormControlExtension>
+									<Name>TFMHtmlViewerCtrl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties>
+										<AxFormControlExtensionProperty>
+											<Name>htmlField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>addCopyLinkField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>formatAsXmlField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+									</ExtensionProperties>
+								</FormControlExtension>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>XMLParseError</Name>
+								<AllowEdit>No</AllowEdit>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1789569705</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>String</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<Visible>No</Visible>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@SYS39647</Label>
+								<MultiLine>Yes</MultiLine>
+							</AxFormControl>
+						</Controls>
+						<HideIfEmpty>No</HideIfEmpty>
+						<Caption>@TFM:TFM49</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>RequestText</Name>
+						<ElementPosition>1411203538</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<Visible>No</Visible>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>TFMDocumentQueue_RequestXML</Name>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>String</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>RequestXML</DataField>
+								<DataSource>TFMDocumentQueue</DataSource>
+								<MultiLine>Yes</MultiLine>
+							</AxFormControl>
+						</Controls>
+						<Caption>@TFM:TFM140</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>AnswerXML</Name>
+						<ElementPosition>1656630240</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>AnswerXMLGet</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@SYS75990</Text>
+							</AxFormControl>
+							<AxFormControl>
+								<Name>ResponseXmlViewer</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension>
+									<Name>TFMHtmlViewerCtrl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties>
+										<AxFormControlExtensionProperty>
+											<Name>htmlField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>addCopyLinkField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>formatAsXmlField</Name>
+											<Type>String</Type>
+											<Value>Yes</Value>
+										</AxFormControlExtensionProperty>
+									</ExtensionProperties>
+								</FormControlExtension>
+							</AxFormControl>
+						</Controls>
+						<Caption>@TFM:TFM50</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>ResultXML</Name>
+						<ElementPosition>1902056942</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ResultXMLGet</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@SYS75990</Text>
+							</AxFormControl>
+							<AxFormControl>
+								<Name>ResultXmlViewer</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<FormControlExtension>
+									<Name>TFMHtmlViewerCtrl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties>
+										<AxFormControlExtensionProperty>
+											<Name>htmlField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>addCopyLinkField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>formatAsXmlField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+									</ExtensionProperties>
+								</FormControlExtension>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS6769</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<Style>Auto</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane_ButtonGroup</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>ButtonGroup</Name>
+						<ElementPosition>1610612733</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>ButtonGroup</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>Refresh</Name>
+								<ElementPosition>715827882</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<HelpText>@SYS92888</HelpText>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<MultiSelect>Yes</MultiSelect>
+								<Text>@SYS92847</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ProcessButton</Name>
+								<ElementPosition>1073741823</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<HelpText>@TFM:TFM104</HelpText>
+								<NeededPermission>Delete</NeededPermission>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<MultiSelect>Yes</MultiSelect>
+								<Text>@SYS605</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>TFMDocumentQueueCleanup</Name>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>MenuFunctionButton</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<MenuItemName>TFMDocumentQueueCleanup</MenuItemName>
+								<MenuItemType>Action</MenuItemType>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ResetStatus</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1789569705</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<HelpText>@MOB124</HelpText>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@SYS9708</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>OpenReference</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<HelpText>@SYS81262</HelpText>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@SYS81262</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>FindCode</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@TFM:FindClass</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ResetData</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@SYS27477</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>TFMRegistrationLog</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MenuItemName>TFMRegistrationLog</MenuItemName>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>Vertical</ArrangeMethod>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts>
+		<AxFormPartReference xmlns="">
+			<Name>ResultViewer</Name>
+			<DataSource>TFMDocumentQueue</DataSource>
+			<DataSourceRelation>SelfLink</DataSourceRelation>
+			<MenuItemName>TFMDocumentResultViewer</MenuItemName>
+		</AxFormPartReference>
+		<AxFormPartReference xmlns="">
+			<Name>HelpPart</Name>
+			<MenuItemName>TFMHelpPart</MenuItemName>
+		</AxFormPartReference>
+	</Parts>
+</AxForm>

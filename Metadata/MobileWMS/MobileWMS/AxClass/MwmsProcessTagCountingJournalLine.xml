@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsProcessTagCountingJournalLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Process definition class for journal line creation for tag counting. Combines several logic blocks
+/// </summary>
+class MwmsProcessTagCountingJournalLine extends TFMProcess
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsProcessTagCountingJournalLine Construct(Name _processName = staticMethodStr(TFMConstants, TagCountingJournalLine), AddUpdate _addOrUpdate = AddUpdate::Update)
+    {
+        return new MwmsProcessTagCountingJournalLine(_processName, _addOrUpdate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaders</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration getHeaders()
+    {
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(Name _processName = staticMethodStr(TFMConstants, TagCountingJournalLine), AddUpdate _addOrUpdate = AddUpdate::Update)
+    {
+        processName = _processName;
+        super();
+        MwmsProcessTagCountingJournalLine::createBlocksSetup(_addOrUpdate, this, MwmsLogicBlockCreateTagCountingJournalLine::Construct(), MwmsLogicBlockCreateTagCountingJournalLicensePlateLine::Construct());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createBlocksSetup</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This is a general set up for transfer journal lines and Tag Lines. It creates the block set up for Lines. The correct block for item and license plate must be provided.  
+    /// </summary>
+    public static void createBlocksSetup(AddUpdate _addOrUpdate, TFMProcess _process, MwmsLogicBlockJournalLinesCommon _itemBlock, MwmsLogicBlockJournalLinesCommon _licensePlateBlock)
+    {
+
+        TFMLogicStepOperatorIf                                  ifLPBlock;
+        TFMLogicStepOperatorIf                                  ifBlock             = new TFMLogicStepOperatorIf();
+     
+        MwmsLogicBlockJournalLinesCommon                        licensePlateBlock = _licensePlateBlock;
+        MwmsLogicBlockJournalLinesCommon                        itemBlock = _itemBlock;
+
+        TFMLogicStepOperatorThrowError                          errorBlock          = new TFMLogicStepOperatorThrowError();
+                
+        itemBlock.parmCreateOrUpdate(_addOrUpdate);
+
+        boolean licensePlatingEnabled = new MobDocLicensePlateOverview().parmEnableLicensePlating();
+        
+        if(licensePlatingEnabled)
+        {
+            licensePlateBlock.parmCreateOrUpdate(_addOrUpdate);
+            ifLPBlock           = new TFMLogicStepOperatorIf();
+        } 
+       
+        _process.addBlock(ifBlock);
+        
+        ifBlock.parmCompareValue1(extendedTypeStr(ItemId));
+        ifBlock.parmCompareValue2('');
+
+        _process.blockCollection().addBlockAddon(itemBlock, new TFMLogicBlockAddonDisableValueTransfers());
+        
+        if(licensePlatingEnabled)
+        {
+            _process.addBlock(ifLPBlock);
+            ifLPBlock.parmCompareValue1(extendedTypeStr(WHSLicensePlateId));
+            ifLPBlock.parmCompareValue2('');
+
+            _process.addBlock(errorBlock);
+            _process.addBlock(licensePlateBlock);
+            _process.linkBlocks(ifBlock,ifLPBlock,ifBlock.outputs().getConnectionName(1),'input_1');
+
+            _process.linkBlocks(ifLPBlock,errorBlock,ifLPBlock.outputs().getConnectionName(1),'input_1');
+            _process.linkBlocks(ifLPBlock,licensePlateBlock,ifLPBlock.outputs().getConnectionName(2),'input_2');
+            _process.addBlock(itemBlock);
+        } 
+        else
+        {
+            _process.addBlock(itemBlock);
+            _process.addBlock(errorBlock);
+            _process.linkBlocks(ifBlock,errorBlock,ifBlock.outputs().getConnectionName(2),'input_1');
+        }
+
+        _process.linkBlocks(ifBlock,itemBlock,ifBlock.outputs().getConnectionName(2),'input_1');
+        
+        errorBlock.parmErrorText("Could not find the identifier.");
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

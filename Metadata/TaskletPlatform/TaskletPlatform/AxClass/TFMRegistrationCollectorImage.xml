@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectorImage</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegistrationCollectorImage extends TFMRegistrationCollector
+{
+    /// <summary>
+    /// Creates a collector step for showing Images; gif, jpg and png are supported
+    /// </summary>
+    /// <param name="_id"></param>
+    /// <param name="_name"></param>
+    /// <param name="_label"></param>
+    /// <param name="_header"></param>
+    /// <param name="_path">
+    /// path can be filename or URL
+    /// </param>
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>ImageStepMap</Name>
+				<Source><![CDATA[
+    public server static Map ImageStepMap(int _id, str _name, str _label, str _header, str _path)
+    {
+        Map stepMap = new Map(Types::String, Types::String);
+    
+        stepMap.insert(TFMConstants::AttributeId(),int2str(_id));
+        stepMap.insert(TFMConstants::AttributeName(),_name);
+        stepMap.insert(TFMConstants::AttributeLabel(), _label);
+        stepMap.insert(TFMConstants::AttributeInputType(),enum2Symbol(enumNum(TFMInputTypes),TFMInputTypes::Image));
+        stepMap.insert(TFMConstants::AttributeHeader(),_header);
+        stepMap.insert(TFMConstants::AttributeDefaultValue(), _path);
+    
+        return stepMap;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

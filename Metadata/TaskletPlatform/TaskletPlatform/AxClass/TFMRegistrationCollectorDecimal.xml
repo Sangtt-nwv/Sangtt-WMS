@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectorDecimal</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegistrationCollectorDecimal extends TFMRegistrationCollector
+{
+    int length;
+    boolean performCalculation;
+    real minimumValue;
+    real maximumvalue;
+    TFMPrimaryInputMethod   primaryInputMethod;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(int _id, str _name, str _header, str _label, str _helpLabel)
+    {
+        super(_id, _name, _header, _label, _helpLabel);
+        minimumValue = real2int(minint());
+        maximumvalue = real2int(maxInt());;
+        length = 14;
+        primaryInputMethod = TFMPrimaryInputMethod::Scan;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmprimaryInputMethod</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414", "The input method sets how the control is shown and works. ScanOnly - the text is not editable only by scan. Scan - The Scan Icon is displayed but can be edited. Control - No scan icon.")]
+    public TFMPrimaryInputMethod parmprimaryInputMethod(TFMPrimaryInputMethod   _primaryInputMethod = primaryInputMethod)
+    {
+        primaryInputMethod = _primaryInputMethod;
+        return primaryInputMethod;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLength</Name>
+				<Source><![CDATA[
+    public int parmLength(int _length = length)
+    {
+        length = _length;
+        return length;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPerformCalculation</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414", "If true then the input box will perform calculation e.g. if the input is 3 + 3 it will be caluculated to 6.")]
+    public boolean parmPerformCalculation(boolean _performCalculation = performCalculation)
+    {
+        performCalculation = _performCalculation;
+        return performCalculation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmminValue</Name>
+				<Source><![CDATA[
+    public real parmminValue(real _minimumValue = minimumValue)
+    {
+        minimumValue = _minimumValue;
+        return minimumValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmmaxValue</Name>
+				<Source><![CDATA[
+    public real parmmaxValue(real _maximumvalue = maximumvalue)
+    {
+        maximumvalue = _maximumvalue;
+        return maximumvalue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dataTypeIcon</Name>
+				<Source><![CDATA[
+    public ResourceName dataTypeIcon()
+    {
+        return resourceStr(TFMDatatypeDecimal);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DecimalStep</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Builds a registration collector for deciaml steps
+    /// </summary>
+    /// <param name="setEmpty"></param>
+    /// <param name="id"></param>
+    /// <param name="name"></param>
+    /// <param name="header"></param>
+    /// <param name="label"></param>
+    /// <param name="helpLabel"></param>
+    /// <param name="performCalculation">
+    /// controls whether the device will accept math expresions like 1.2+1.3 as input
+    /// </param>
+    /// <param name="defaultValue"></param>
+    /// <param name="minValue"></param>
+    /// <param name="maxValue"></param>
+    /// <param name="length"></param>
+    /// <param name="GS1valueId_Deci"></param>
+    /// identifiers for GS1-barcode prefixes
+    /// </param>
+    public static TFMRegistrationCollectorDecimal DecimalStep(
+                                                int     _id,
+                                                str     _name,
+                                                str     _header,
+                                                str     _label,
+                                                str     _helpLabel,
+                                                boolean _performCalculation = false,
+                                                str     _defaultValue = '',
+                                                real    _minValue = minInt(),
+                                                real    _maxValue = maxInt(),
+                                                int     _length = 14,
+                                                str     _eanAI = '')
+    {
+        TFMRegistrationCollectorDecimal collector = new TFMRegistrationCollectorDecimal(_id,_name,_header,_label,_helpLabel);
+        collector.parmPerformCalculation(_performCalculation);
+        collector.parmDefaultValue(_defaultValue);
+        collector.parmMinValue(_minValue);
+        collector.parmmaxValue(_maxValue);
+        collector.parmLength(_length);
+        collector.parmEanAI(_eanAI);
+        return collector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DecimalStepMap</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Builds a registration collector for deciaml steps
+    /// </summary>
+    /// <param name="setEmpty"></param>
+    /// <param name="id"></param>
+    /// <param name="name"></param>
+    /// <param name="header"></param>
+    /// <param name="label"></param>
+    /// <param name="helpLabel"></param>
+    /// <param name="performCalculation">
+    /// controls whether the device will accept math expresions like 1.2+1.3 as input
+    /// </param>
+    /// <param name="defaultValue"></param>
+    /// <param name="minValue"></param>
+    /// <param name="maxValue"></param>
+    /// <param name="length"></param>
+    /// <param name="GS1valueId_Deci"></param>
+    /// identifiers for GS1-barcode prefixes
+    /// </param>
+    public static Map DecimalStepMap(
+                                                int     _id,
+                                                str     _name,
+                                                str     _header,
+                                                str     _label,
+                                                str     _helpLabel,
+                                                boolean _performCalculation = false,
+                                                str     _defaultValue = '',
+                                                real    _minValue = -100000000,
+                                                real    _maxValue = 100000000,
+                                                int     _length = 14,
+                                                str     _eanAI = '')
+    {
+        return TFMRegistrationCollectorDecimal::DecimalStep(_id,_name,_header,_label,_helpLabel,_performCalculation,_defaultValue,_minValue,_maxValue,_length,_eanAI).getMap();
+    }
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    /*public Map getMap()
+    {
+        Map stepMap = new Map(Types::String, Types::String);
+        stepMap.insert(#AttributeId, int2str(id));
+        stepMap.insert(#AttributeName, name);
+        stepMap.insert(#AttributeInputType, enum2Symbol(enumNum(TFMInputTypes),TFMInputTypes::Decimal));
+        stepMap.insert(#AttributeHeader, header);
+        stepMap.insert(#AttributeLabel, label);
+        stepMap.insert(#AttributeHelpLabel, help);
+        stepMap.insert(#AttributeDefaultValue, defaultValue);
+        stepMap.insert(#AttributeMinValue, int2str(minimumValue));
+        stepMap.insert(#AttributeMaxValue, int2str(maximumValue));
+        stepMap.insert(#AttributeLength, int2str(length));
+        stepMap.insert(#AttributeEanAi, eanAI);
+        stepMap.insert(#AttributePerformCalculation, strFmt('%1',performCalculation));
+        return stepMap;
+    }*/
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

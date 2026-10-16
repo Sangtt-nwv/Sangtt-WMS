@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobReservedCarts</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobReservedCarts extends common
+{
+    
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>reserveCart</Name>
+				<Source><![CDATA[
+    public static void reserveCart(MobCartID _cartId, MobDocumentDeviceId _device, userId _user)
+    {
+        MobReservedCarts resCart;
+        ttsbegin;
+        delete_from resCart
+            where	resCart.CartID == _cartId;
+			
+		resCart.CartID = _cartId;
+        resCart.DeviceId = _device;
+        resCart.UserId = _user;
+        resCart.insert();
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unreserveCart</Name>
+				<Source><![CDATA[
+    public static void unreserveCart(MobCartID _cartId)
+    {
+        MobReservedCarts	resCart;
+        MobCarts			cart;
+        ttsbegin;
+        delete_from resCart
+            where	resCart.CartID == _cartId;
+
+        cart = MobCarts::Find(_cartId,true);
+        cart.PickMode = NoYes::Yes;
+        //cart.ReferenceId = '';
+        cart.update();
+        
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>reserveInfo</Name>
+				<Source><![CDATA[
+    public static str reserveInfo(MobCartID _cartId)
+    {
+        MobReservedCarts resCart;
+        select firstonly resCart where resCart.CartID == _cartId;
+
+		if (!resCart)
+        {
+            return '';
+        }
+
+        return "@MobileWMS:CartCurrentlyUsedBy" + (resCart.UserId ? HcmWorker::find(HcmWorker::userId2Worker(resCart.UserId)).name() : '') + (resCart.UserId && resCart.DeviceId ? ', ' :'') + (resCart.DeviceId ? "@SYS90307" + ' ' + TFMDeviceTable::FindOrCreateDevice(resCart.DeviceId).Name : '');
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IsCartReserved</Name>
+				<Source><![CDATA[
+    public static boolean IsCartReserved(MobCartID _cartId, MobDocumentDeviceId _device, userId _user)
+    {
+        MobReservedCarts resCart;
+        select firstonly resCart where resCart.CartID == _cartId;
+		
+		if (!resCart.recid)
+        {
+            return false;
+        }
+		if ((!_device || resCart.DeviceId != _device) && (!_user || resCart.UserId != _user))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@MobileWMS:ReservedCarts_devDoc</DeveloperDocumentation>
+	<Label>@MobileWMS:ReservedCarts</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>CartID</TitleField1>
+	<TitleField2>DeviceId</TitleField2>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CartID</Name>
+			<ExtendedDataType>MobCartID</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>UserId</Name>
+			<ExtendedDataType>UserId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DeviceId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>MobDocumentDeviceId</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>CartIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>CartID</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

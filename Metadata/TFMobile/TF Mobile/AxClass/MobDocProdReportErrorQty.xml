@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocProdReportErrorQty</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[
+TFMDocumentTypeAttribute(classStr(TFMGetRegistrationConfiguration), 'ProdErrorQty', methodStr(MobDocProdReportErrorQty,createProdReportErrorsPrompt)),
+    TFMDocumentTypeAttribute(classStr(TFMPostAdhocRegistration), 'ProdErrorQty', methodStr(MobDocProdReportErrorQty,postProdReportAsFinished))
+]
+class MobDocProdReportErrorQty extends TFMDocumentHandler
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret = new Map(Types::String, Types::String);
+        ret.insert('ProdErrorQty', "@SYS325491");
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createProdReportErrorsPrompt</Name>
+				<Source><![CDATA[
+    public Map createProdReportErrorsPrompt()
+    {
+        Map             returnMap = new Map(Types::String, Types::Class);
+        int             add;
+        add+=10;
+
+        returnMap.insert(MobConstants::ErrorQuantity(),TFMRegistrationCollectorDecimal::DecimalStepMap(add,MobConstants::ErrorQuantity(),"@SYS2083","@SYS105177",'',false));
+        // Add the step to register the error cause
+        add+=10;
+        returnMap.insert(MobConstants::ErrorCause(),TFMRegistrationCollectorList::ListStepMap(false,add,MobConstants::ErrorCause(),"@SYS13992","@SYS14862",'',MobHelper::getEnumValues(enumNum(ProdErrorCause)),true));
+
+
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages pages = super();
+        TFMPage page = pages.getPage('ProdErrorQty');
+        page.parmIcon(resourceStr(MobTrashCanFilled));
+        page.parmAvailableForMenuPages(false);
+        return pages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return "@SYS325491";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postProdReportAsFinished</Name>
+				<Source><![CDATA[
+    [TFMPostMethodAttribute(tableStr(ProdJournalTable))]
+    protected str postProdReportAsFinished()
+    {
+        ProdId                      prodId;
+        InventQty                   errorQty = MobHelper::convertStr2Num(request.getFieldValue(MobConstants::ErrorQuantity()));
+        str                         errorCause = Request.getFieldValue(MobConstants::ErrorCause());
+        PmfProdCoBy                 prodCoBy;
+        str                         refRecord = request.getFieldValue(tableStr(ReferenceIdentity));
+        container                   refCon;
+        RefRecId                    refId;
+        ProdTable                   prodtable;
+        prodJournalTable            prodJournalTable;
+        ProdJournalTableData        prodTableData;
+        InventDim                   inventDim;
+        InventBatch                 inventBatch;
+        int                         lineNum;
+        ProdJournalProd             prodJournalProd;
+        ProdJournalName             prodJournalName;
+        ProdJournalCheckPost        journalCheckPost;
+        ProdErrorCause              prodErrorCause;
+        NoYes                       noYes;
+        int                         startLine;
+        int                         i;
+        str                         errorMessage;
+
+        if (refRecord)
+        {
+            refCon      = strSplit(refRecord,';').pack();
+            if (conPeek(refCon ,4) == tableStr(PmfProdCoBy))
+            {
+                prodCoBy          = new DictTable(tableName2Id(conPeek(refCon ,4))).makeRecord();
+                refId = str2Int64(conPeek(refCon ,5));
+                select firstonly prodCoBy where prodCoBy.RecId == refId;
+                // Get the production/job id from the XML
+                prodId      = prodCoBy.ProdId;
+                prodTable = ProdTable::find(prodId);
+            }
+            else
+            {
+                prodTable          = new DictTable(tableName2Id(conPeek(refCon ,4))).makeRecord();
+                refId = str2Int64(conPeek(refCon ,5));
+                select firstonly prodTable where prodTable.RecId == refId;
+                // Get the production/job id from the XML
+                prodId      = prodTable.ProdId;
+
+            }
+        }
+        select firstOnly prodJournalProd order by LineNum desc where prodJournalProd.ProdId == prodId;
+        lineNum = prodJournalProd.LineNum + 1;
+
+        // Get the journal name from the Mobile WMS parameters
+        prodJournalName = ProdJournalName::find(MobParameters::find().ProdJournalNameFinish);
+        prodJournalTable.initValue();
+        prodJournalTable.JournalType        = prodJournalType::ReportFinished;
+        prodTableData = JournalTableData::newTable(ProdJournalTable);
+        prodTableData.initFromJournalName(prodJournalName);
+        prodJournalTable.NumOfLines         = 1;
+        prodJournalTable.Description        = "@MobileWMS:MEL36";
+        prodJournalTable.ProdId             = prodId;
+        prodJournaltable.insert();
+        prodJournalProd.clear();
+        prodJournalProd.initValue();
+        prodJournalProd.initFromProdJournalTable(prodJournalTable);
+        prodJournalProd.initFromProdTable(prodTable);
+        if (prodCoby)
+        {
+            prodJournalProd.pmfInitFromProdCoBy(prodCoby);
+        }
+        prodJournalProd.QtyError = errorQty;
+        prodJournalProd.QtyGood = 0;
+        prodJournalProd.ErrorCause = str2enum(prodErrorCause,errorCause);
+        prodJournalProd.ProdFinished = NoYes::No;
+        /*inventDim = prodJournalProd.inventDim();
+        inventDim.inventBatchId = 'ErrorBatch';
+
+        if (!InventBatch::exist(prodJournalProd.ItemId,inventDim.inventBatchId))
+        {
+            InventBatch.itemId = prodJournalProd.ItemId;
+            InventBatch.inventBatchId = inventDim.inventBatchId;
+            InventBatch.expDate = MobHelper::today();
+            InventBatch.insert();
+        }*/
+        prodJournalProd.LineNum = lineNum;
+        prodJournalProd.validateWrite();
+        prodJournalProd.insert();
+        startLine        = Global::infologLine();
+        journalCheckPost = ProdJournalCheckPostProd::newJournalCheckPost(true,true,JournalCheckPostType::Post,prodJournalTable.TableId,prodJournalTable.JournalId);
+        #ifnot.isAX6
+        JournalCheckPost.runOperation();
+        #endif
+        #if.isAX6
+        JournalCheckPost.run();
+        #endif
+        if (ProdJournalTable::exist (prodJournalTable.JournalId) && ! ProdJournalTable::find(prodJournalTable.JournalId).Posted)
+        {
+            /*ttsbegin;
+            prodJournaltable.delete();
+            ttscommit;*/
+            if(Global::infologLine() > startLine)
+            {
+                for (i = startLine+1; i<=infolog.num();i++)
+                {
+                    errorMessage += infolog.text(i);
+                }
+            }
+            throw error(errorMessage);
+        }
+        return "@MobileWMS:MEL81";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ProdErrorQtyHeader</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethodAttribute]
+    public TFMReferenceDataConfiguration ProdErrorQtyHeader()
+    {
+        TFMReferenceDataConfiguration refCon = new TFMReferenceDataConfiguration();
+        refCon.addCollector(TFMGetReferenceData::defaultReferenceIdentity());
+        return refCon;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

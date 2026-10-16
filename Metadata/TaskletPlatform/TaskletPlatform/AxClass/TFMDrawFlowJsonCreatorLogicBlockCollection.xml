@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowJsonCreatorLogicBlockCollection</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDrawFlowJsonCreatorLogicBlockCollection extends TFMDrawFlowJsonCreator
+{
+    Map                     blockname2Id;
+    Map                     blockContracts;
+    Map                     depthBreadth;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>classHandled</Name>
+				<Source><![CDATA[
+    public ClassName classHandled()
+    {
+        return classStr(TFMProcess);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>jSon</Name>
+				<Source><![CDATA[
+    public str jSon(Object _class)
+    {
+        TFMProcess              process    = _class;
+        TFMLogicBlockCollection collection = process.blockCollection();
+        TFMLogicBlock           lb;
+        MapEnumerator           mEnum = collection.blocksSet().getEnumerator();
+        TFMBlockConnectionNode  node;
+        ListEnumerator          lEnum;
+        List                    startingNodes = new List(Types::Class);
+        TFMDrawFlowContract     contract = TFMDrawFlowContract::Construct();
+
+        blockname2Id = new Map(Types::String, Types::Integer);        
+        blockContracts = new Map(Types::Integer, Types::Class);
+        depthBreadth = new Map(Types::Integer, Types::Integer);
+        while (mEnum.moveNext())
+        {
+            lb = mEnum.currentValue();
+            blockname2Id.insert(lb.parmName(), lb.GetHashCode());
+        }
+
+        mEnum = collection.blockNodes().getEnumerator();
+
+        while (mEnum.moveNext())
+        {
+            node = mEnum.currentValue();
+            node.parmData(mEnum.currentKey());
+            node.parmBlock(collection.blocksSet().lookup(mEnum.currentKey()));
+        }
+
+        if(!node)
+        {
+            return '';
+        }
+
+        node.findStartingNodes(startingNodes);
+        lEnum = startingNodes.getEnumerator();
+        
+        while (lEnum.moveNext())
+        {
+            node = lEnum.current();
+            
+            this.buildBlockNodeGraph(node,0);
+            break;
+        }
+        
+        mEnum = blockContracts.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            contract.addBlockContract(mEnum.currentValue());
+        }
+
+        return TFMJsonSerializer::serializeClass(contract);        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>instanceFromJson</Name>
+				<Source><![CDATA[
+    public Object instanceFromJson(str _json)
+    {
+        Object ret;
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveJson2Data</Name>
+				<Source><![CDATA[
+    public void saveJson2Data(str _json, str _keyValue, object _keyObject)
+    {
+        TFMDrawFlowContract                 contract = TFMJsonSerializer::deserializeObject(classNum(TFMDrawFlowContract),_json);
+        TFMDrawFlowLogicBlockContract       blockContract;
+        MapEnumerator                       mEnum, outputEnum;
+        SetEnumerator                       sEnum;
+        TFMProcessBlocks                    blockTbl;
+        Map                                 blockId2RecID = new Map(Types::Integer, Types::Int64);
+        Map                                 block2block = new Map(Types::Integer, Types::Class);
+        Map                                 blockLinkMap= new Map(Types::Integer, Types::String);
+        TFMDrawFlowLogicBlockInputsOutputs  outputs;
+        TFMProcessBlockchainLinks           linksTbl;
+
+        TFMProcess process = _keyObject;
+        //Info (_json);
+
+        ttsbegin;
+
+        delete_from blockTbl where blockTbl.ProcessID == process.parmProcessName() && blockTbl.Version == process.parmVersion();
+
+        blockContracts = contract.getBlocks();
+        mEnum = blockContracts.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            blockContract = mEnum.currentValue();
+            blockTbl.BlockClass = blockContract.parmData().parmClassName();
+            blockTbl.ProcessID  = process.parmProcessName();
+            blockTbl.Version    = process.parmVersion();
+            blockTbl.BlockName  = blockContract.parmData().parmBlockName();
+            blockTbl.insert();
+            blockId2RecID.insert(blockContract.parmId(),blockTbl.RecId);
+            blockLinkMap = block2block.exists(blockContract.parmId()) ? block2block.lookup(blockContract.parmId()) : new Map(Types::Integer, Types::String);
+            outputEnum = blockContract.parmOutputs().getEnumerator();
+            
+            while (outputEnum.moveNext())
+            {
+                outputs = outputEnum.currentValue();
+                outputs.updateBlockLinkMap(blockLinkMap,outputEnum.currentKey());
+                block2block.insert(blockContract.parmId(),blockLinkMap);
+                
+            }
+
+        }
+        mEnum = block2block.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            blockLinkMap = mEnum.currentValue();
+            outputEnum = blockLinkMap.getEnumerator();
+            while (outputEnum.moveNext())
+            {
+                linksTbl.FromBlock = blockId2RecID.lookup(mEnum.currentKey());
+                linksTbl.ToBlock   = blockId2RecID.lookup(outputEnum.currentKey());
+                linksTbl.fromName    = outputEnum.currentValue();
+                linksTbl.insert();
+            }
+        }
+
+        ttscommit;
+        TFMProcessProvider::instance().invalidateProvider();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildBlockNodeGraph</Name>
+				<Source><![CDATA[
+    protected void buildBlockNodeGraph(TFMBlockConnectionNode _node, int _depth = 0)
+    {
+        ListEnumerator          lEnum = _node.getToLinks().getEnumerator();
+        TFMBlockConnectionNode  childNode;
+        this.createTreeNode(_node,_depth);
+
+        while (lEnum.moveNext())
+        {
+            childNode = lEnum.current();
+            this.buildBlockNodeGraph(childNode, _depth + 1);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createTreeNode</Name>
+				<Source><![CDATA[
+    protected void createTreeNode(TFMBlockConnectionNode _node, int _depth)
+    {        
+        ListEnumerator                  lEnum;
+        TFMDrawFlowLogicBlockContract   blockContract = new TFMDrawFlowLogicBlockContract();
+        TFMBlockConnectionNode          connectednode;
+        TFMLogicBlock                   block = _node.parmBlock();        
+        List                            inList = new List(Types::Class), outList = new List(Types::Class);
+        int                             breadthForDepth = depthBreadth.exists(_depth) ? depthBreadth.lookup(_depth) : 0;
+        int                             outputs;
+        str                             connectName;
+
+        TFMDrawFlowBlockStyle           blockStyle;
+
+        lEnum = _node.getToLinks().getEnumerator();
+        outputs = 0;
+        while (lEnum.moveNext())
+        {
+            outputs++;
+            connectednode = lEnum.current();            
+            outList = new List(Types::Class);
+            outList.addEnd(TFMDrawFlowLogicBlockConnectionContract::Construct(int2Str(blockname2Id.lookup(connectednode.parmData())), 'input_1',''));
+            blockContract.parmOutputs().insert('output_'+int2Str(outputs),TFMDrawFlowLogicBlockInputsOutputs::Construct(outList));            
+        }
+        while (outputs < block.outputs().NoOfConnections())
+        {
+            outputs++;            
+            blockContract.parmOutputs().insert('output_'+int2Str(outputs),TFMDrawFlowLogicBlockInputsOutputs::Construct(new List(Types::Class)));       
+        }
+
+        lEnum = _node.getFromLinks().getEnumerator();
+        outputs = 0;
+        while (lEnum.moveNext())
+        {
+            outputs++;
+            connectednode = lEnum.current();
+            inList = new List(Types::Class);
+            connectName = connectednode.getConnectionName(_node.parmBlock());
+            outputs = connectednode.parmBlock().outputs().getIdFromConnectionName(connectName);
+            inList.addEnd(TFMDrawFlowLogicBlockConnectionContract::Construct(int2Str(blockname2Id.lookup(connectednode.parmData())),'', 'output_'+ int2Str(outputs)));
+            blockContract.parmInputs().insert('input_1', TFMDrawFlowLogicBlockInputsOutputs::Construct(inList));            
+        }
+        while (outputs < block.inputs().NoOfConnections())
+        {
+            outputs++;
+          
+            blockContract.parmInputs().insert('input_'+int2Str(outputs),TFMDrawFlowLogicBlockInputsOutputs::Construct(new List(Types::Class)));
+        }
+        
+        blockContract.parmId(blockname2Id.lookup(block.parmName()));
+        blockContract.parmData(TFMDrawFlowLogicBlockDataContract::Construct(block.parmName(),classId2Name(classIdGet(block))));
+        
+        blockStyle = TFMDrawFlowBlockStyle::findStyleClass(classStr(TFMLogicBlock));
+        blockContract.parmHtml(blockStyle.htmlForClass(block));
+       
+        blockContract.parmPosX(50 +_depth*250);
+        blockContract.parmPosY(100 + 100*breadthForDepth);
+        
+        depthBreadth.insert(_depth,breadthForDepth +1);
+
+        blockContracts.insert(blockContract.parmId(),blockContract);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

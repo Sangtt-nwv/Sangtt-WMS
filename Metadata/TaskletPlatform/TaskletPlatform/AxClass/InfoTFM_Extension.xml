@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>InfoTFM_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classStr(Info))]
+final class InfoTFM_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>add</Name>
+				<Source><![CDATA[
+    Exception add(
+        Exception _exception,
+        str _txt,
+        str _helpUrl,
+        Object _sysInfoAction,
+        boolean buildprefix,
+        str _label)
+    {
+        str txt = _txt;
+        TFMTraceLog	traceLog;
+        UserConnection	userConnection;
+
+        if (_exception == Exception::Error && TFMTracingUsers::doTrace())
+        {
+            userConnection = new userConnection();
+            userConnection.ttsbegin();
+            traceLog.EventMessage = _txt;
+            traceLog.CallStack = xSession::xppCallStack();
+            traceLog.setConnection(userConnection);
+            traceLog.doInsert();
+            userConnection.ttscommit();
+            
+        }
+        return next add(_exception, txt, _helpUrl, _sysInfoAction, buildprefix, _label);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

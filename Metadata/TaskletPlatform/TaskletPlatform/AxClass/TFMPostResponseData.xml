@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPostResponseData</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPostResponseData extends TFMResponseElement
+{
+    
+    Map                         printOutput;
+    TFMRegistrationCollectors   regCols;
+    Map	                        fields;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMPostResponseData Construct()
+    {
+        return new TFMPostResponseData();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        printOutput = new Map (Types::String, Types::String);
+        fields = new Map(Types::String, Types::String);
+        regCols = TFMRegistrationCollectors::Construct();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addMenuItemToCollectors</Name>
+				<Source><![CDATA[
+    public void addMenuItemToCollectors(TFMMenuItemStateConfiguration _menuItemState)
+    {
+        regCols.addPageToOpen(_menuItemState);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPrintOutput</Name>
+				<Source><![CDATA[
+    public void addPrintOutput(str _printerAddress, str _printCommand)
+    {        
+        printOutput.insert(_printerAddress, (printOutput.exists(_printerAddress) ? printOutput.lookup(_printerAddress) : '') + _printCommand);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>printOutputEnumerator</Name>
+				<Source><![CDATA[
+    public MapEnumerator printOutputEnumerator()
+    {
+        return printOutput.getEnumerator();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mergePrintOutput</Name>
+				<Source><![CDATA[
+    public void mergePrintOutput(MapEnumerator _mEnum)
+    {
+        while (_mEnum.moveNext())
+        {
+            this.addPrintOutput(_mEnum.currentKey(), _mEnum.currentValue());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addCollector</Name>
+				<Source><![CDATA[
+    public void addCollector(TFMRegistrationCollector _collector)
+    {
+        
+        regCols.addCollector(_collector);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors getCollectors()
+    {
+        
+        return regCols;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addField</Name>
+				<Source><![CDATA[
+    public void addField(str _key, str _value)
+    {
+        fields.insert(_key, _value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFieldValue</Name>
+				<Source><![CDATA[
+    public str getFieldValue(str _key)
+    {
+        return fields.exists(_key) ? fields.lookup(_key) : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFields</Name>
+				<Source><![CDATA[
+    public Map getFields()
+    {
+        return fields;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXml</Name>
+				<Source><![CDATA[
+    public void appendToXml(XmlElement _element)
+    {
+        XmlElement					registrationCollectorConfigurationElement;
+        MapEnumerator				mEnum;
+        if (regCols && regCols.collectorMap().elements())
+        {
+            registrationCollectorConfigurationElement = _element.ownerDocument().createElement(TFMConstants::registrationCollectorConfiguration());
+            TFMRegistrationConfigurationResponseElement::appendRegistrationCollectorsToXML(registrationCollectorConfigurationElement, regCols);
+            _element.appendChild(registrationCollectorConfigurationElement);
+        }
+
+        
+        mEnum = printOutput.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            this.appendPrintToXML(_element, mEnum.currentKey(), mEnum.currentValue());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendPrintToXML</Name>
+				<Source><![CDATA[
+    protected void appendPrintToXML(XmlElement _element, str _printerAddress, str _printCommand)
+    {
+        XmlElement  PrintElement          = _element.ownerDocument().createElement('print');
+        XmlElement  PrintTypeElement      = _element.ownerDocument().createElement('printerType');
+        XmlElement  PrintAddressElement   = _element.ownerDocument().createElement('printerAddress');
+        XmlElement  PrintCommandElement   = _element.ownerDocument().createElement('printCommand');
+
+        PrintTypeElement.innerText('Zebra');
+        PrintAddressElement.innerText(_printerAddress);
+        PrintCommandElement.innerText(_printCommand);
+        PrintElement.appendChild(PrintTypeElement);
+        PrintElement.appendChild(PrintAddressElement);
+        PrintElement.appendChild(PrintCommandElement);
+        _element.appendChild(PrintElement);
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

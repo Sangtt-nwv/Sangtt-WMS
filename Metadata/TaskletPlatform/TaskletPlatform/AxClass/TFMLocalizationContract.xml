@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLocalizationContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+public class TFMLocalizationContract
+{
+    str key;
+    str translation;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmKey</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public str parmKey(str _key = key)
+    {
+        key = _key;
+        return key;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTranslation</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public str parmTranslation(str _translation = translation)
+    {
+        translation = _translation;
+        return translation;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

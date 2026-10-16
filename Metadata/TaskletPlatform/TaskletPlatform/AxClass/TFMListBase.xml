@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListBase</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMListBase
+{
+    Name name;
+    Map	baseChildren;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addChild</Name>
+				<Source><![CDATA[
+    public void addChild(Object _child)
+    {
+        baseChildren.insert(baseChildren.elements(),_child);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getChildren</Name>
+				<Source><![CDATA[
+    public Map getChildren()
+    {
+        return baseChildren;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        baseChildren = new Map(Types::Integer,Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ParmName</Name>
+				<Source><![CDATA[
+	public str ParmName(str _name = name)
+    {
+        SysDictClass			sdc;
+        TFMListELementAttribute	attr;
+		if (!name && !_name)
+        {
+            sdc = new SysDictClass(classIdGet(this));
+            attr = sdc.getAttribute(classStr(TFMListELementAttribute));
+            name = attr ? attr.parmName() : subStr(classId2Name(classIdGet(this)),8,1000);
+		}
+		else
+        {
+            name = _name;
+        }
+
+        return name;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>attributeSummary</Name>
+				<Source><![CDATA[
+    public str attributeSummary()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Output for XML
+    /// </summary>
+    /// <param name = "_parent"></param>
+    public void appendToXML(XmlElement _parent, boolean _expandCustomComponents)
+   
+    {
+        TFMListBase elem;
+        MapEnumerator mEnum = baseChildren.getEnumerator();
+        XmlElement currentElement;
+
+        str currentName = this.ParmName();
+        if(currentName)
+        {
+            currentElement = _parent.ownerDocument().createElement(currentName);
+            _parent.appendChild(currentElement);
+        } 
+        else
+        {
+            currentElement = _parent;
+        }
+
+        while(mEnum.moveNext())
+        {
+            elem = mEnum.currentValue();
+            elem.appendToXML(currentElement, _expandCustomComponents);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>render</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Output for render format
+    /// </summary>
+    /// <param name = "_parent"></param>
+    public void render(TFMListVisualizationInterface _visualizer)
+    {
+        _visualizer.render(this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>replaceTextWithValue</Name>
+				<Source><![CDATA[
+    public str replaceTextWithValue(str _text, Map _valuesMap)
+    {
+        int posStart=1, posEnd;
+        str textBetweenBrackets;
+        str text = _text;
+        str textToPutInstead;
+        while (posStart)
+        {
+            posStart = strScan(text,'{',posEnd,1000);
+            if (!posStart)
+            {
+                break;
+            }
+            posEnd = strScan(text,'}',posStart,1000);
+            textBetweenBrackets = subStr(text,posStart+1,posEnd-posStart-1);
+            if (_valuesMap != null)
+            {
+                textToPutInstead = _valuesMap.exists(textBetweenBrackets) ? _valuesMap.lookup(textBetweenBrackets) : '';
+                /*if (!textToPutInstead && dataBindingView)
+                {
+                    textToPutInstead = '{'+textBetweenBrackets+'}';
+                }*/
+                text = strReplace(text, '{'+textBetweenBrackets+'}', textToPutInstead);
+                posEnd -= (strLen(textBetweenBrackets) + 2);
+                posEnd += strLen(textToPutInstead);
+            }
+        }
+        return text;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

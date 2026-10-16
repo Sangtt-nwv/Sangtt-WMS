@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Global Class Statics"
+  short_description: "Resolve Global:: vs bare predefined function calls"
+  default_prompt: "Use $global-class-statics to resolve a Global helper call for this D365FO change."

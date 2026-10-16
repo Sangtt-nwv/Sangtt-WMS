@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXmlFormatLookupTransferJournals</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[
+TFMTableName(tableStr(InventJournalTrans), 'Transfer')
+    ]
+    class MobXmlFormatLookupTransferJournals extends TFMXMLFormatLookup
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        InventJournalTrans      inventJournalTrans = common;        
+        str                     quantityStr;
+        TFMMenuItemStateConfiguration MenuItemConf;
+        InventDim               toIDim = inventJournalTrans.toInventDim();
+        super();
+        
+        inventDim = inventJournalTrans.inventDim();
+        imageId = MobHelper::imageIDFromDocuref(MobHelper::FindItemDocuref(inventJournalTrans.itemId,inventJournalTrans.InventDimId));
+
+        // Show Configuration / Size / Color / Batch / Serial
+        displayLine3 = '';
+        if (inventDim.configId)
+        {
+            displayLine3 = inventDim.configId + ' ';
+        }
+    
+        if (inventDim.InventSizeId)
+        {
+            displayLine3 += inventDim.InventSizeId + ' ';
+        }
+    
+        if (inventDim.InventColorId)
+        {
+            displayLine3 += inventDim.InventColorId + ' ';
+        }
+    
+        if (inventDim.inventBatchId)
+        {
+            displayLine3 += inventDim.inventBatchId + ' ';
+        }
+    
+        if (inventDim.inventSerialId)
+        {
+            displayLine3 += inventDim.inventSerialId + ' ';
+        }
+    
+        quantityStr = MobHelper::formatItemQty(inventJournalTrans.Qty,inventJournalTrans.unitId());
+    
+        displayLine1 = inventJournalTrans.ItemId;
+        displayLine2 = InventTable::find(inventJournalTrans.ItemId).productName(new xInfo().language());
+        
+        fieldsToAdd.insert(MobConstants::Quantity(), quantityStr);
+        fieldsToAdd.insert(MobConstants::UnitOfMeasure(), inventJournalTrans.unitId());
+        fieldsToAdd.insert(extendedTypeStr(JournalId), inventJournalTrans.JournalId);
+        fieldsToAdd.insert(MobConstants::LineNumber(), MobHelper::formatLineNum(inventJournalTrans.LineNum));
+
+        str toWMSLocationIdStr = 'To' + extendedTypeStr(WMSLocationId);
+        if(toIDim.wMSLocationId && !fieldsToAdd.exists(toWMSLocationIdStr))
+        {
+            fieldsToAdd.insert(toWMSLocationIdStr, toIDim.wMSLocationId);
+        }
+
+        fieldsToAdd.insert('dimensionLabelsProduct', "@MobileWMS:ToWarehouse"+MobConstants::lineBreak()+"@MobileWMS:ToLocation" + (toIDim.LicensePlateId ? MobConstants::lineBreak()+"@MobileWMS:ToLicensePlate" : ''));
+        fieldsToAdd.insert('dimensionValuesProduct', toIDim.InventLocationId+MobConstants::lineBreak()+toIDim.wMSLocationId+ (toIDim.LicensePlateId ? MobConstants::lineBreak()+toIDim.LicensePlateId : ''));
+        fieldsToAdd.insert('slash','');
+
+        if (MenuItemsConf.exists(MobConstants::LicensePlateInfo()))
+        {
+            MenuItemConf = MenuItemsConf.lookup(MobConstants::LicensePlateInfo());
+            MenuItemConf.parmEnabled(false);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

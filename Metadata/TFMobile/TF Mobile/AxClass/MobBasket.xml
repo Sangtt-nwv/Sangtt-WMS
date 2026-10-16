@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobBasket</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Common class for processes using the Basket/Cart approach
+/// </summary>
+abstract class MobBasket extends TFMDocumentHandler
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        
+        return "@SYS34305";
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

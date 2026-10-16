@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxResource xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobEntityFilter</Name>
+	<FileName>entity_filter.png</FileName>
+	<RelativeUriInModelStore>TFMobile\TF Mobile\AxResource\ResourceContent\Images\entity_filter.png</RelativeUriInModelStore>
+</AxResource>

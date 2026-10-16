@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO System (Kernel) Objects"
+  short_description: "Reason about xRecord, Common, Args, and other kernel types"
+  default_prompt: "Use $system-objects to reason about a kernel type for this D365FO change."

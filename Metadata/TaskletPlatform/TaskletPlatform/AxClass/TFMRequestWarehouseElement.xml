@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestWarehouseElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+#tfm
+[TFMDocumentType(classStr(TFMLookup), staticMethodStr(TFMConstants,LocationContent)),
+    TFMDocumentType(classStr(TFMLookup), staticMethodStr(TFMConstants,LocateItem))]
+class TFMRequestWarehouseElement extends TFMRequestElement
+{
+    InventSiteId        siteId;
+    InventLocationId    locationId;
+    WMSLocationId       wmsLocationId;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmLocation</Name>
+				<Source><![CDATA[
+    public WMSLocationId parmLocation(WMSLocationId _Location = wmsLocationId)
+    {
+        wmsLocationId = _Location;
+        return wmsLocationId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmWmsLocationId</Name>
+				<Source><![CDATA[
+    public WMSLocationId parmWmsLocationId(WMSLocationId _Location = wmsLocationId)
+    {
+        wmsLocationId = _Location;
+        return wmsLocationId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmWarehouse</Name>
+				<Source><![CDATA[
+    public InventLocationId parmWarehouse(InventLocationId _Location = locationId)
+    {
+        locationId = _Location;
+        return locationId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInventLocationId</Name>
+				<Source><![CDATA[
+    public InventLocationId parmInventLocationId(InventLocationId _Location = locationId)
+    {
+        locationId = _Location;
+        return locationId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSite</Name>
+				<Source><![CDATA[
+    public InventSiteId getSite()
+    {
+        
+        return InventLocation::find(locationId).InventSiteId;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

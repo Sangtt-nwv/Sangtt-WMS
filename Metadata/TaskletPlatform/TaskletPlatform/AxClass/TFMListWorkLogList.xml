@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListWorkLogList</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListIdAttribute('WorkLogList')]
+class TFMListWorkLogList extends TFMList
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+    public TFMListConfiguration getList()
+    {
+        TFMListConfiguration				listConfig	= TFMListConfiguration::Construct(listName);
+        TFMListRow							row			= listConfig.addRow();
+        TFMListColumn						column;
+        TFMListCustomComponentTrafficLight	status		= new TFMListCustomComponentTrafficLight();
+        column		= row.makeColumn(93);
+        column.addElement(TFMListTextElement::ConstructTextElement('{Header}',TFMFonts::FindOrCreateFromProperties('contentFontBold',TFMFontSizes::medium,true,false,'').id));
+        column = row.makeColumn(7);
+        status.parmwidth(7);
+        status.parmGreenLightValue('#7DDA58');
+        status.parmRedLightValue('#E4080A');
+        status.parmYellowLightValue('#FFDE59');
+        column.addElement(status);
+        
+        row			= listConfig.addRow();        
+        row.makeColumn(15).addElement(TFMListImageElement::ConstructImageElement('{imageId}','',15,0));
+        row.makeColumn(43).addElement(TFMListTextElement::ConstructTextElement('{Parameters}',TFMFonts::FindOrCreateFromProperties('smallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        row.makeColumn(43).addElement(TFMListTextElement::ConstructTextElement('{Values}',TFMFonts::FindOrCreateFromProperties('smallContentFont',TFMFontSizes::small,false,false,'').id));
+
+        listConfig.addRow().makeColumn(100).addElement(TFMListTextElement::ConstructTextElement('{Footer}',TFMFonts::FindOrCreateFromProperties('smallContentFont',TFMFontSizes::small,false,false,'').id));
+        
+        return listConfig;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

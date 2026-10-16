@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobVersion</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class created to return version information from the model.
+/// </summary>
+class MobVersion
+{
+    str versionStr;
+    str Publisher;
+    str versionName;
+    #mob
+    #define.modelClass(Microsoft.Dynamics.AX.Metadata.MetaModel.ModelInfo)
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MobVersion Construct()
+    {
+        return new MobVersion();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        #ifnot.isAX6
+        Microsoft.Dynamics.AX.Metadata.MetaModel.ModelInfo modelInfo = MobVersion::modelForClass(classIdGet(this));
+        versionStr = strFmt('%1.%2.%3.%4', modelInfo.VersionMajor, modelInfo.VersionMinor, modelInfo.VersionBuild, modelInfo.VersionRevision);
+        Publisher = modelInfo.Publisher;
+        versionName = modelInfo.Description;
+        #endif
+        #if.isAX6
+        #AOT
+        TreeNode            node = TreeNode::findNode(#ClassesPath+ '\\' + classStr(MobVersion));
+        XML                 manifest = SysModelStore::getModelManifest(int642int(node.AOTGetModel()));
+        XmlDocument         document = XmlDocument::newXml(manifest);
+        XmlElement          elementModelManifest;
+        XmlElement          elementVersion;
+        str                 ret = "@RET1644";
+        elementModelManifest = document.getNamedElement('ModelManifest');
+        if (elementModelManifest)
+        {
+            elementVersion = elementModelManifest.getNamedElement('Version');
+            if (elementVersion)
+            {
+                versionStr = elementVersion.text();
+            }
+        }
+  
+        //versionStr = strFmt('%1.%2.%3.%4', modelInfo.VersionMajor, modelInfo.VersionMinor, modelInfo.VersionBuild, modelInfo.VersionRevision);
+        Publisher = 'Tasklet Factory';
+        versionName = 'Obelisk';
+ 
+        #endif
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modelForClass</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// A method to retrieve the model that a certain class belongs to.
+    /// </summary>
+    /// <param name = "_classID">The Class ID of the class, you need to know the model for.</param>
+    /// <returns>Model Info of the model that contains the class.</returns>
+    public static #modelClass modelForClass(ClassId _classID)
+    {   
+        #ifnot.isAX6
+        var models = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::GetModelsOfMetadataArtifact(classId2Name(_classID), new Microsoft.Dynamics.AX.Metadata.MetaModel.AxClass().GetType());
+        var Enumerator = models.getEnumerator();
+        Enumerator.moveNext();
+        Microsoft.Dynamics.AX.Metadata.MetaModel.ModelInfo modelInfo = Enumerator.Current;
+        return modelInfo;
+        #endif
+        #if.isAX6
+        return '';
+        #endif
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateGroupWithExtensions</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method used to populate a FormGroupControl of a form, with the models that extend mobile WMS.
+    /// </summary>
+    /// <param name = "_fgc">The FormGroupControl to populate with the model names.</param>
+    public void populateGroupWithExtensions(FormGroupControl _fgc)
+    {
+        MapEnumerator           extensionModels = MobVersion::extensionModels().getEnumerator();
+        FormStaticTextControl   fstc;
+        while (extensionModels.moveNext())
+        {
+            fstc = _fgc.addControl(FormControlType::StaticText,guid2Str(newGuid()));
+            fstc.text(extensionModels.currentValue());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>extensionModels</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// A method to find all the Document Handler Classes, and check if any of them are in a model different from the main Mobile WMS Model.
+    /// </summary>
+    /// <returns>A Map containing all the models with document handlers, that are not in the main Mobile WMS model.</returns>
+    public static Map extensionModels()
+    {
+        Map                                                 modelsInstalled = new Map ( Types::String, Types::String);
+        #ifnot.isAX6
+        ListEnumerator                                      lEnum           = new DictClass(className2Id(classStr(TFMDocumentHandler))).extendedBy(true).getEnumerator();
+        Microsoft.Dynamics.AX.Metadata.MetaModel.ModelInfo  modelInfo = MobVersion::modelForClass(className2Id(classStr(TFMDocumentHandler)));
+        int                                                 modelIgnoreID = modelInfo.Id;
+        
+        while (lEnum.moveNext())
+        {            
+            modelInfo = MobVersion::modelForClass(lEnum.current());
+            if ( modelsInstalled.exists(modelInfo.Id) || modelInfo.Id == modelIgnoreID)
+            {
+                continue;
+            }
+            modelsInstalled.insert(modelInfo.Name,strFmt('%1 %2 %3.%4.%5.%6 %7 %8',modelInfo.DisplayName, "@SYS40796", modelInfo.VersionMajor, modelInfo.VersionMinor, modelInfo.VersionBuild, modelInfo.VersionRevision,"@SYS190924",modelInfo.Publisher));
+        }
+
+        #endif
+
+        
+        return modelsInstalled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getModelVersion</Name>
+				<Source><![CDATA[
+    public str getModelVersion()
+    {
+        return versionStr;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getVersionName</Name>
+				<Source><![CDATA[
+    public str getVersionName()
+    {
+        return versionName;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getModelPublisher</Name>
+				<Source><![CDATA[
+    public str getModelPublisher()
+    {
+        return Publisher;
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

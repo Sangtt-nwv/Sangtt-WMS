@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMCustomFunctionFlow</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMCustomFunctionFlow extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>validateWrite</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public boolean validateWrite()
+    {
+        boolean ret;
+    
+        ret = super();
+        this.addParms();
+
+        if (!TFMtranslations::Find(this.TFMMenu+'_Label'))
+        {
+            TFMtranslations::create(this.TFMMenu+'_Label',this.TFMMenu);
+        }
+
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addParms</Name>
+				<Source><![CDATA[
+    public void addParms()
+    {
+        TFMCustomFunctionFlowParmLines  parms;
+        DictMethod                      method = new DictMethod(UtilElementType::ClassStaticMethod,className2Id(this.className),this.MethodName);
+        int                             i;
+        RecordInsertList                list = new RecordInsertList(tableNum(TFMCustomFunctionFlowParmLines));
+
+        delete_from parms where parms.TFMMenu == this.TFMMenu;
+        for (i = 1; i <= method.parameterCnt(); i++)
+        {
+            parms.ParmName = method.parameterName(i);
+            parms.baseType = method.parameterType(i);
+            parms.EDTName  = method.parameterTypeName(i);            
+            parms.TFMMenu  = this.TFMMenu;
+            if (parms.baseType == Types::UserType && parms.EDTName)
+            {
+                parms.baseType = new DictType(extendedTypeName2Id(parms.EDTName)).baseType();
+            }
+            else if (parms.baseType == Types::Record)
+            {
+                parms.IsFilter = NoYes::Yes;
+            }
+
+            list.add(parms);
+        }
+        list.insertDatabase();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Find</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public static TFMCustomFunctionFlow Find(TFMMenu _menu, boolean _forupdate = false)
+    {
+        TFMCustomFunctionFlow flow;
+        flow.selectForUpdate(_forupdate);
+        select firstonly flow where flow.TFMMenu == _menu;
+
+        return flow;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:CustomFunctionFlowDevDesc</DeveloperDocumentation>
+	<Label>@TFM:FunctionFlowCustomization</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<Tags>NoExport</Tags>
+	<TitleField1>TFMMenu</TitleField1>
+	<TitleField2>ClassName</TitleField2>
+	<ReplacementKey>MenuIdx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>TFMMenu</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ClassName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MethodName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>TFMMenu</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>TFMMenu</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ClassName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MethodName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>TFMMenu</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMMenu</ExtendedDataType>
+			<Label>@WAX1026</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ClassName</Name>
+			<ExtendedDataType>ClassName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>MethodName</Name>
+			<ExtendedDataType>MethodName</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>MenuIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>TFMMenu</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

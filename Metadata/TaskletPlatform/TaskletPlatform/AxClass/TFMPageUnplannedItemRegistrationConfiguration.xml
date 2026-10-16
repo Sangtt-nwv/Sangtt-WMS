@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageUnplannedItemRegistrationConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('UnplannedItemRegistration', "Unplanned Item Registration")]
+class TFMPageUnplannedItemRegistrationConfiguration extends TFMPageConfiguration
+{
+    str                 useRegistrationCollector;
+    boolean             includeInputDataRowInSubmitRequest;
+    boolean             automaticAcceptAfterLastScan;
+    boolean	            automaticAcceptOnOpen;
+    boolean	            enabled;
+    TFMPageID           navigateTo;
+    TFMPageID           navigateToOnSuccess;
+    boolean             close;
+    boolean             refreshOnSuccess;
+    boolean	            clearAfterPost;
+    boolean	            postAllRegistrationsEnabled;
+    TFMDocumentTypeId   getRegistrationConfiguration;
+    TFMDocumentTypeId	submit;
+
+    //offline configurations
+    boolean			    viewRegistrationsEnabled;
+    TFMPageID			viewRegistrationsNavigateTo;
+    TFMPageTitleString	viewRegistrationsTitle;
+    boolean	            offlineServiceEnabled;
+    TFMWorkflowName     workFlowId;
+    TFMListId           listId;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmType</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','')]
+    public str parmType(str _type = type)
+    {
+        type = _type;
+        return type;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>hasOfflineOptions</Name>
+				<Source><![CDATA[
+    public boolean hasOfflineOptions()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUseRegistrationCollector</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('auto','','',false,false)]
+    public str parmUseRegistrationCollector(str _useRegistrationCollector = useRegistrationCollector)
+    {
+        useRegistrationCollector = _useRegistrationCollector;  
+        return useRegistrationCollector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIncludeInputDataRowInSubmitRequest</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(false,'')]
+    public boolean parmIncludeInputDataRowInSubmitRequest(boolean _includeInputDataRowInSubmitRequest = includeInputDataRowInSubmitRequest)
+    {
+        includeInputDataRowInSubmitRequest = _includeInputDataRowInSubmitRequest;
+        return includeInputDataRowInSubmitRequest;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAutomaticAcceptAfterLastScan</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'header','',true)]
+    public boolean parmAutomaticAcceptAfterLastScan(boolean _automaticAcceptAfterLastScan = automaticAcceptAfterLastScan)
+    {
+        automaticAcceptAfterLastScan = _automaticAcceptAfterLastScan;
+        return automaticAcceptAfterLastScan;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAutomaticAcceptOnOpen</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'header','',true)]
+    public boolean parmAutomaticAcceptOnOpen(boolean _automaticAcceptOnOpen = automaticAcceptOnOpen)
+    {
+        automaticAcceptOnOpen = _automaticAcceptOnOpen;
+        return automaticAcceptOnOpen;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClearAfterPost</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'header','',true)]
+    public boolean parmClearAfterPost(boolean _clearAfterPost = clearAfterPost)
+    {
+        clearAfterPost =_clearAfterPost;
+        return clearAfterPost;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClose</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(false,'onSuccessfulPost')]
+    public boolean parmClose(boolean _close = close)
+    {
+        close = _close;
+        return close;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRefreshOnSuccess</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'onSuccessfulPost')]
+    public boolean parmRefreshOnSuccess(boolean _refreshOnSuccess = refreshOnSuccess)
+    {
+        refreshOnSuccess = _refreshOnSuccess;
+        return refreshOnSuccess;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmNavigateToOnSuccess</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','onSuccessfulPost','navigateTo')]
+    public TFMPageID parmNavigateToOnSuccess(TFMPageID _navigateToOnSuccess = navigateToOnSuccess)
+    {
+        navigateToOnSuccess = _navigateToOnSuccess;
+        return navigateToOnSuccess;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmGetRegistrationConfiguration</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','requests/', 'getRegistrationConfiguration')]
+    public TFMDocumentTypeId parmGetRegistrationConfiguration(TFMDocumentTypeId _getRegistrationConfiguration = getRegistrationConfiguration)
+    {
+        getRegistrationConfiguration = _getRegistrationConfiguration;
+        return getRegistrationConfiguration;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSubmit</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','requests/', 'submit')]
+    public TFMDocumentTypeId parmSubmit(TFMDocumentTypeId _submit = submit)
+    {
+        submit = _submit;
+        return submit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOfflineServicesEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(false,'offlineRegistrationService','enabled', true)]
+    public boolean parmOfflineServicesEnabled(boolean _offlineServiceEnabled = offlineServiceEnabled)
+    {
+        offlineServiceEnabled = _offlineServiceEnabled;
+        return offlineServiceEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isOfflineEnabled</Name>
+				<Source><![CDATA[
+    public boolean isOfflineEnabled()
+    {
+        return this.parmOfflineServicesEnabled();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPostAllRegistrationsEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(false,'postAllRegistrations','enabled'),TFMPageAction(TFMPageMenuItemTypes::OfflinePageMenuItem)]
+    public boolean parmPostAllRegistrationsEnabled(boolean _postAllRegistrationsEnabled = postAllRegistrationsEnabled)
+    {
+        postAllRegistrationsEnabled = _postAllRegistrationsEnabled;
+        return postAllRegistrationsEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmWorkflowId</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('Standard','offlineRegistrationService','workflowId', true)]
+    public TFMWorkflowName parmWorkflowId(TFMWorkflowName _workFlowId = workFlowId)
+    {
+        workFlowId = _workFlowId;
+        return workFlowId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOfflineListId</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(classStr(TFMListPendingAdhocRegistrationsList),'offlineRegistrationService/displayLineConfiguration','listId')]
+    public TFMListId parmOfflineListId(TFMListId _listId = listId)
+    {
+        listId = _listId;
+        return listId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmViewRegistrationsNavigateTo</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(staticMethodStr(TFMConstants, ViewPendingRegistrations),'offlineRegistrationService/viewRegistrations','navigateTo',true), TFMPageAction(TFMPageMenuItemTypes::OfflinePageMenuItem)]
+    public TFMPageID parmViewRegistrationsNavigateTo(TFMPageID _viewRegistrationsNavigateTo = viewRegistrationsNavigateTo)
+    {
+        viewRegistrationsNavigateTo = _viewRegistrationsNavigateTo;
+        return this.parmOfflineServicesEnabled() ? viewRegistrationsNavigateTo : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmViewRegistrationsTitle</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('ViewRegistrations','offlineRegistrationService/viewRegistrations','title',true), TFMPageAction(TFMPageMenuItemTypes::OfflinePageMenuItem)]
+    public TFMPageTitleString parmViewRegistrationsTitle(TFMPageTitleString _viewRegistrationsTitle = viewRegistrationsTitle)
+    {
+        viewRegistrationsTitle = _viewRegistrationsTitle;
+        return viewRegistrationsTitle;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

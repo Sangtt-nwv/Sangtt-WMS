@@ -1,0 +1,123 @@
+.xtb {
+    display: table;
+    font-family: monospace;
+    color: #17696F;
+}
+
+.xtc {
+    display: table-cell;
+}
+
+.xmt {
+    color: #0000CC;
+    display: inline;
+}
+
+.xel {
+    color: #990000;
+    display: inline;
+}
+
+.xdt {
+    color: #009900;
+    display: inline;
+}
+
+.xat {
+    color: #082192;
+    display: inline;
+}
+
+
+.tile-square {
+    height: 70px;
+    min-width: 320px;
+    max-width: 320px;
+    color: black;
+    border-radius: 5px;
+    border-color: #C8EBFB;
+    border-style: solid;
+    border-width: 2px;
+    display: flex;
+    padding: 5px;
+    overflow-wrap: break-word;
+    flex-wrap: nowrap;
+    -webkit-appearance: button;
+    margin-top: 5px;
+    margin-left: 2px;
+    transition: 1.3s;
+}
+
+    .tile-square:hover {
+        background-color: #C8EBFB;
+    }
+
+.tile-square-info {
+    height: 70px;
+    min-width: 320px;
+    max-width: 320px;
+    color: black;
+    display: flex;
+    padding: 5px;
+    overflow-wrap: break-word;
+    flex-wrap: nowrap;
+    margin-top: 5px;
+    margin-left: 2px;
+    transition: 1.3s;
+}
+
+.grid-square {
+    width: 90px;
+    height: 100px;
+    border-radius: 5px;
+    display: inline-block;
+    padding: 10px;
+    margin: 7px;
+    z-index: 2;
+    overflow-wrap: break-word;
+    flex-wrap: wrap;
+}
+
+.menuicon {
+    width: 64px;
+}
+
+.menutitle {
+    font-size: 0.9em;
+    font-weight: bold;
+    padding: 3px;
+    text-align: center;
+    min-height: 2em;
+    height: 2em;
+    line-height: 1em;
+    max-width: 100px;
+    overflow-wrap: break-word;
+    overflow-y: hidden;
+}
+
+.drawPageLabel {
+    display: block;
+    margin: 5px;
+    font-size: small;
+}
+
+.drawPageLine {
+    height: 2px;
+    background-color: #395076a3;
+    height: 2px;
+    margin-bottom: 10px;
+    margin-top: 25px;
+    margin-left: 5px;
+    margin-right 5px;
+}
+
+.drawPageBottom-right {
+    float: right;
+    margin: 10px;
+    background-color: #1c355e;
+    padding: 15px;
+    color: white;
+    border-radius: 5px;
+    font-size: medium;
+    text-transform: uppercase;
+}

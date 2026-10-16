@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Warehouse Mobile App"
+  short_description: "Customize warehouse app screens with ProcessGuide"
+  default_prompt: "Use $warehouse-mobile-app to add or fix a warehouse mobile app screen for this D365FO change."

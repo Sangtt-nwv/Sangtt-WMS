@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMDocumentOverview</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMDocumentOverview extends FormRun
+{
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void run()
+    {
+        super();
+        DocumentTree.deleteAll();
+        TFMDocumentTreeBuilder::Construct(DocumentTree,contentGroup).buildTree(0,0);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="" />
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Pattern xmlns="">SimpleListDetails-Tree</Pattern>
+		<PatternVersion xmlns="">1.3</PatternVersion>
+		<Style xmlns="">SimpleListDetails</Style>
+		<UseCaptionFromMenuItem xmlns="">Yes</UseCaptionFromMenuItem>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>FormActionPaneControl1</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>NavigationGroup</Name>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<Type>Group</Type>
+				<Width>300</Width>
+				<WidthMode>Manual</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTreeControl">
+						<Name>DocumentTree</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>Tree</Type>
+						<FormControlExtension
+							i:nil="true" />
+					</AxFormControl>
+				</Controls>
+				<FrameType>None</FrameType>
+				<Style>SidePanel</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>VerticalSplitter</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+				<Style>SplitterVerticalContainer</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>Details</Name>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+				<FrameType>None</FrameType>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>FormTabControl1</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>NodeContent</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>ContentGroup</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls />
+								<HideIfEmpty>No</HideIfEmpty>
+							</AxFormControl>
+						</Controls>
+						<HideIfEmpty>No</HideIfEmpty>
+					</AxFormControl>
+				</Controls>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

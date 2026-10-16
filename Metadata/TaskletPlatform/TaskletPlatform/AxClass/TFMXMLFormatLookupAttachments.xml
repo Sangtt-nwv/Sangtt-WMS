@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMXMLFormatLookupAttachments</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableNameAttribute(tableStr(Docuref))]
+class TFMXMLFormatLookupAttachments extends TFMXMLFormatLookup
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        DocuRef docuRef = common;
+        super();
+        imageId = TFMHelper::imageIDFromDocuref(docuRef);
+        DisplayLine3 =          HcmWorker::find(HcmWorker::userId2Worker(docuRef.CreatedBy)).name();
+        DisplayLine1 =			docuRef.Name;
+        DisplayLine2 =			displayLine4 + TFMConstants::lineBreak() + displayLine3 + TFMConstants::lineBreak() + docuRef.Notes;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

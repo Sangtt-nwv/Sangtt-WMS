@@ -1,0 +1,4 @@
+interface:
+  display_name: "NWVEI E-Invoice Architecture"
+  short_description: "Apply the NWVEI e-invoice architecture baseline"
+  default_prompt: "Use $nwvei-einvoice-architecture to design or review an NWVEI e-invoice change."

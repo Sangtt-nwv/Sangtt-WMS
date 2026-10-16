@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicComponentDimensions</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicComponentDimensions extends TFMLogicComponent
+{
+    boolean disableProdDim, disableStorDim, disableTracDim;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        if (!disableStorDim)
+        {
+            // Warehouse to count
+            refCon.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(1, strLwr(extendedTypeStr(InventLocationId)), "@SYS6437", methodStr(TFMGetReferenceData,WarehouseList)));
+        }
+        // Item number text box
+        refCon.addCollector(TFMGetReferenceData::defaultItemIdCollector(40));
+        return refCon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDisableProductDim</Name>
+				<Source><![CDATA[
+    public boolean parmDisableProductDim(boolean _disableProdDim = disableProdDim)
+    {
+        disableProdDim = _disableProdDim;
+        return disableProdDim;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDisableStorageDim</Name>
+				<Source><![CDATA[
+    public boolean parmDisableStorageDim(boolean _disableStorDim = disableStorDim)
+    {
+        disableStorDim = _disableStorDim;
+        return disableStorDim;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDisableTrackingDim</Name>
+				<Source><![CDATA[
+    public boolean parmDisableTrackingDim(boolean _disableTracDim = disableTracDim)
+    {
+        disableTracDim = _disableTracDim;
+        return disableTracDim;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventDim</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(inventDim))]
+    public InventDim getInventDim(TFMRequestElement _request)
+    {
+        InventDim inventDim;
+        //Find inventDim from request
+        
+
+        return inventDim;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>requestClassProvided</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method that tells which request Class it's data can be parsed into
+    /// </summary>
+    /// <returns>The name of the request class the components data can be parsed to</returns>
+    public ClassName requestClassProvided()
+    {
+        return classStr(TFMRequestItemAndDimensionElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        return TFMInventDimHelper::enabledInventDimCollectors('',disableProdDim, disableStorDim, disableTracDim);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>componentRequest</Name>
+				<Source><![CDATA[
+    public TFMRequestElement componentRequest(TFMRequestElement _request)
+    {
+        TFMRequestElement locRequest = super(_request);
+        locRequest.logicContext().addContextObject(TFMLogicContextDimensionSetup::Construct());
+
+        return locRequest;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

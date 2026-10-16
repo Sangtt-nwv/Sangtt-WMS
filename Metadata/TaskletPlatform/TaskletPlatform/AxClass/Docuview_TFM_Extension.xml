@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>Docuview_TFM_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(formstr(DocuView))]
+final class Docuview_TFM_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>DocuRef_OnWritten</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Removes the image from the Media Provider when the attached file is updated.
+    /// </summary>
+    /// <param name = "_sender"></param>
+    /// <param name = "_e"></param>
+    [FormDataSourceEventHandler(formDataSourceStr(DocuView, DocuRef), FormDataSourceEventType::Written)]
+    public static void DocuRef_OnWritten(FormDataSource _sender, FormDataSourceEventArgs _e)
+    {
+        DocuRef docuRef;
+        docuRef = _sender.cursor() as DocuRef;
+        TFMImageTable imgTable =  docuRef.refCommon() as TFMImageTable;
+        if(imgTable)
+        {
+            TFMMediaProvider::instance().removeMedia(imgTable.ImageName);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DocuRef_OnActivated</Name>
+				<Source><![CDATA[
+    [FormDataSourceEventHandler(formDataSourceStr(DocuView, DocuRef), FormDataSourceEventType::Activated)]
+    public static void DocuRef_OnActivated(FormDataSource _sender, FormDataSourceEventArgs _e)
+    {
+        DocuRef docuRef;
+        TFMMediaQueue   mediaQueue;
+        xFormRun formRun;
+        int i,j,k;
+        FormControl fc;
+        FormTabControl tabFc;
+        FormTabPageControl tabPFC;
+        DocuViewerContainer     docuContainer;
+        TFMHtmlViewerCtrl       htmlViewer;
+        System.Drawing.Image    image;
+        
+        if (_sender != null)
+        {
+            docuRef = _sender.cursor() as DocuRef;
+            select firstonly mediaQueue where mediaQueue.RefRecId == docuRef.RefRecId && mediaQueue.RefTableId == docuRef.RefTableId && docuRef.RecId == mediaQueue.DocuRefRecId;
+            
+            formRun = _sender.formRun();
+            for ( i = 1 ; i <=FormRun.design().controlCount(); i++)
+            {
+                fc = FormRun.design().controlNum(i);
+                tabFc = classIdGet(fc) == className2Id(classStr(FormTabControl)) ? fc : null;
+                if (tabFc == null)
+                {
+                    continue;
+                }
+                for (j = 1 ; j <= tabFc.controlCount();  j++)
+                {
+                    tabPFC = (tabFc.controlNum(j));
+                    
+                    if (tabPFC.name() == 'Preview')
+                    {
+                        for (k = 1 ; k <= tabPFC.controlCount();  k++)
+                        {
+                            
+                            docuContainer = classIdGet(tabPFC.controlNum(k)) == className2Id(classStr(DocuViewerContainer)) ? tabPFC.controlNum(k) : docuContainer;
+                            htmlViewer = classIdGet(tabPFC.controlNum(k)) == className2Id(classStr(TFMHtmlViewerCtrl)) ? tabPFC.controlNum(k) : htmlViewer;
+                        }
+                    }
+                }
+            }
+            docuContainer.visible(!mediaQueue);
+            htmlViewer.visible(false);
+            htmlViewer.parmHtml('');
+            if (!mediaQueue)
+            {
+                return;
+            }
+            FileUploadTemporaryStorageStrategy fileUploadStrategy = new FileUploadTemporaryStorageStrategy();
+            System.IO.Stream Stream = DocumentManagement::getAttachmentStream(docuRef);
+            FileUploadTemporaryStorageResult fileUploadResult = fileUploadStrategy.uploadFile(Stream, docuRef.Name);
+            image = System.Drawing.Image::FromStream(Stream);
+            
+            htmlViewer.parmHtml('<img src="'+fileUploadResult.getDownloadUrl()+'" alt="'+docuRef.Name+'" height="'+int2Str(real2int(image.Height * 0.25))+'" width="'+int2Str(real2int(image.Width * 0.25))+'">');
+            htmlViewer.visible(true);
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setImage</Name>
+				<Source><![CDATA[
+    public static void setImage(xFormRun formRun, DocuRef _dRef)
+    {
+        int i;
+        int j;
+        FormControl fc;
+        FormControl fcSub;
+        FormTabControl tabFc;
+        FormActionPaneControl actFc;
+
+        
+        for ( i = 1 ; i <=FormRun.design().controlCount(); i++)
+        {
+            fc = FormRun.design().controlNum(i);
+            fc.visible(fc.name() == 'ActionPane' || fc.name() == 'Tab');
+
+            if (fc.visible())
+            {
+                tabFc = classIdGet(fc) == className2Id(classStr(FormTabControl)) ? fc : null;
+                actFc = classIdGet(fc) == className2Id(classStr(FormActionPaneControl)) ? fc : null;
+                if (actFc != null)
+                {
+                    actFc.hideIfEmpty(false);
+                }
+                for (j = 1 ; j <= (tabFc == null ? actFc.controlCount() : tabFc.controlCount());  j++)
+                {
+                    fcSub = (tabFc == null ? actFc.controlNum(j) : tabFc.controlNum(j));
+                }
+            }
+
+        }
+        FormRun.design().caption("@TFMPrint:LabelPrint");
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

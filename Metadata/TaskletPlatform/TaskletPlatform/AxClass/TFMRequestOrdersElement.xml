@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestOrdersElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType('Order')]
+class TFMRequestOrdersElement extends TFMRequestElement
+{
+    List            lines;
+    PackingSlipId   packingSlipId;
+    TFMBackendId            BackendID;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmLine</Name>
+				<Source><![CDATA[
+    public TFMRequestLineElement parmLine(TFMRequestLineElement _line)
+    {
+        lines.addEnd(_line);
+        return _line;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        lines = new List(Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPackingSlip</Name>
+				<Source><![CDATA[
+    public str parmPackingSlip(PackingSlipId _packingSlip = packingSlipId)
+    {
+        packingSlipId = _packingSlip;
+        return packingSlipId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmProductReceiptId</Name>
+				<Source><![CDATA[
+    public ProductReceiptId parmProductReceiptId(ProductReceiptId _packingSlip = packingSlipId)
+    {
+        packingSlipId = _packingSlip;
+        return packingSlipId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBackendID</Name>
+				<Source><![CDATA[
+    public TFMBackendId parmBackendID(TFMBackendId _backendId = BackendID)
+    {
+        BackendID = _backendId;
+        return BackendID;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Lines</Name>
+				<Source><![CDATA[
+    public List Lines()
+    {
+        return lines;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

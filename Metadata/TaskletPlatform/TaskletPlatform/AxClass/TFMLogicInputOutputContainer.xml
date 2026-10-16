@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicInputOutputContainer</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicInputOutputContainer
+{
+    Map	connection;
+    Map	connectionBlocks;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        connection          = new Map(Types::Integer, Types::String);
+        connectionBlocks    = new Map(Types::Integer, Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMLogicInputOutputContainer Construct()
+    {
+        return new TFMLogicInputOutputContainer();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>NoOfConnections</Name>
+				<Source><![CDATA[
+    public int NoOfConnections()
+    {
+        return connection.elements();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addConnectionName</Name>
+				<Source><![CDATA[
+    public void addConnectionName(str _name)
+    {
+        connection.insert(connection.elements()+1,_name);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConnectionName</Name>
+				<Source><![CDATA[
+    public str getConnectionName(int _id)
+    {
+        return connection.exists(_id) ? connection.lookup(_id) : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getIdFromConnectionName</Name>
+				<Source><![CDATA[
+    public int getIdFromConnectionName(str _connectionName)
+    {
+        MapEnumerator mEnum;
+        mEnum = connection.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            if (mEnum.currentValue() == _connectionName)
+            {
+                return mEnum.currentKey();
+            }
+        }
+        return 1;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBlockAtConnection</Name>
+				<Source><![CDATA[
+    public TFMLogicBlock getBlockAtConnection(int _id)
+    {
+        TFMLogicBlock logicBlock;
+
+        return logicBlock;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBlockAtConnectionName</Name>
+				<Source><![CDATA[
+    public TFMLogicBlock getBlockAtConnectionName(str _name)
+    {
+        TFMLogicBlock logicBlock;
+
+        return logicBlock;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addBlockAtConnection</Name>
+				<Source><![CDATA[
+    public void addBlockAtConnection(int _id, TFMLogicBlock _lb)
+    {
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

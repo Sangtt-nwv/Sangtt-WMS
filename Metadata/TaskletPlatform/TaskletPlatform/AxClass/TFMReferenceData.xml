@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMReferenceData</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Reference data object.
+/// </summary>
+abstract class TFMReferenceData
+{
+    str key;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmKey</Name>
+				<Source><![CDATA[
+    public str parmKey(str _key = key)
+    {
+        key = _key;
+        return key;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public abstract void appendToXML(XmlElement _referenceDataElement)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

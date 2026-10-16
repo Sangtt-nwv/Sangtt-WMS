@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMExportLists</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.Xml.Linq;
+class TFMExportLists extends RunBase
+{
+    DialogField onlySelected;
+    DialogField exportOpen;
+    Args		args;
+    static str	latestList;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        
+        TFMExportLists		exportList = new TFMExportLists();
+        exportList.setArgs(_args);
+        if (exportList.prompt())
+        {
+            exportList.runOperation();
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setArgs</Name>
+				<Source><![CDATA[
+	public void setArgs(Args _args)
+    {
+        args = _args;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return conNull();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container packedClass)
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    protected boolean canRunInNewSession()
+    {
+        boolean ret;
+
+        ret = false;
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        Dialog                      dialog = super();
+
+        // Set a title for dialog
+        dialog.caption( "@SYS94280");
+        exportOpen = dialog.addField(extendedTypeStr(NoYesId), "@TFM:Exportopenversions");
+                
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {      
+        XmlDocument							xmlDoc;
+        TFMLists lists = args.record() as TFMLists;
+        if(lists)
+        {
+            TFMListID listId = lists.ListId;
+            if(listId)
+            {
+                xmlDoc = TFMExportLists::GetConfigurationXmlForLists(exportOpen.value(), listId);
+                this.sendFileToUser(xmlDoc.xml(), listId);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetConfigurationXmlForLists</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns a XmlDocument with fonts and list in the ApplicationConfiguration format. <application><resources>...
+    /// </summary>
+    /// <param name = "_exportOpenVersions"></param>
+    /// <param name = "_listId"></param>
+    /// <returns></returns>
+    public static XmlDocument GetConfigurationXmlForLists(boolean _exportOpenVersions, TFMListId _listId)
+    {
+        XmlDocument							xmlDoc;
+        XmlElement							resourcesElement, listsElement, fontsElement;
+
+        xmlDoc	= XmlDocument::newXml('<?xml version="1.0" encoding="utf-8"?><application></application>');
+        resourcesElement = xmlDoc.createElement('resources');
+        listsElement = xmlDoc.createElement('lists');
+        listsElement.setAttribute('tweak', 'append');
+
+        
+        fontsElement = TFMExportFonts::GetConfigurationXmlForFonts();
+        fontsElement = xmlDoc.importNode(fontsElement, true);
+
+        TFMList list = TFMListsProvider::getAllLists().getList(_listId);
+        if(list)
+        {
+            resourcesElement.appendChild(fontsElement);
+                
+            list.appendToXML(listsElement, TFMListsVersion::newestVersion(_listId, !_exportOpenVersions));
+                
+            resourcesElement.appendChild(listsElement);
+            xmlDoc.documentElement().appendChild(resourcesElement);
+        }
+        return xmlDoc;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendFileToUser</Name>
+				<Source><![CDATA[
+    private void sendFileToUser(str _output, str _listName)
+    {
+        str fileName = _listName + '_listexport';
+        str contentType = 'application/xml';
+        str fileExtension = '.cfg';
+        #if.isAX6
+        System.IO.StreamWriter sw;
+        str filePath = WinAPI::getSaveFileName(0,['Tasklet Factory device configuration','*'+fileExtension],'',"@SYS56237",fileExtension,fileName);
+        InteropPermission perm = new InteropPermission(InteropKind::ClrInterop);
+        perm.assert();
+
+        sw = new System.IO.StreamWriter(filePath);
+        sw.Write(_output);
+        sw.Flush();
+        sw.Close();
+        sw.Dispose();
+
+        CodeAccessPermission::revertAssert();
+        
+        
+        #endif
+        #ifnot.IsAX6 //365
+        System.IO.MemoryStream stream = new System.IO.MemoryStream();
+        System.IO.StreamWriter writer = new System.IO.StreamWriter(stream,System.Text.Encoding::GetEncoding(1252));
+        writer.Write(_output);
+        writer.Flush();
+        
+        stream.Position = 0;
+        FileUploadTemporaryStorageStrategy fileUploadStrategy = new FileUploadTemporaryStorageStrategy();
+        FileUploadTemporaryStorageResult fileUploadResult = fileUploadStrategy.uploadFile(stream, fileName + fileExtension, contentType , fileExtension);
+        Browser br = new Browser();
+        br.navigate(fileUploadResult.getDownloadUrl(),false, false);
+        #endif
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

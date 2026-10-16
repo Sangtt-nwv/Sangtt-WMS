@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsProcessUnplannedMove</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+internal final class MwmsProcessUnplannedMove extends TFMProcess
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsProcessUnplannedMove Construct()
+    {
+        return new MwmsProcessUnplannedMove();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaders</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration getHeaders()
+    {
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        MwmsLogicBlockMoveInvent                    itemBlock = new MwmsLogicBlockMoveInvent();
+        processName = TFMConstants::UnplannedMove();
+        super();
+        this.addBlock(itemBlock);
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

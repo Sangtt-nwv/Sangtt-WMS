@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowBlockStyleRegistrationCollector</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDrawFlowBlockStyleRegistrationCollector extends TFMDrawFlowBlockStyle
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>styleProvidedForThisClass</Name>
+				<Source><![CDATA[
+    public ClassName styleProvidedForThisClass()
+    {
+        return classStr(TFMRegistrationCollector);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>htmlForClass</Name>
+				<Source><![CDATA[
+    public str htmlForClass(Object _object)
+    {
+        str blockName;
+        str blockIconUrl;
+
+        TFMRegistrationCollector collector = _object;
+        
+        TFMDrawFlowControlInteraction interactionClass = collector.getInteractionClass();
+        if(interactionClass)
+        {
+            TFMProcess process = interactionClass.parmKeyObject();
+            TFMLogicBlockCollection  blockCollection = process.blockCollection();
+            TFMLogicBlock            logicBlock = blockCollection.blockFromName(collector.origins().parmOriginBlockName());
+
+            blockName = logicBlock.blockName();
+            blockIconUrl = logicBlock.blockIcon();
+            if(blockIconUrl)
+            {
+                blockIconUrl = TFMDocGetMedia::getURLFromIconName(logicBlock.blockIcon(), true);
+            }
+        }
+
+        resourceNode rn = TFMDrawFlowBlockStyleRegistrationCollector::findResourceForCollector(collector);
+        str             boxText;
+        str helpLabel = collector.parmHelpLabel() ? '<div style="flex-basis: 100%; margin-left: 3px;">' + collector.parmHelpLabel() + '</div>' : '<div style="width: 150px; height: 12px;"></div>';
+        str inputTypeContent = this.getInputHtmlForType(collector, helpLabel); // add the type of the input/registration collector. Use the InputMethod to determine what to show.
+        
+
+        str html = '<div><div class="regcollectorheader"><img src="/resources/images/'+ rn.fileName() + '" /><b >' + collector.parmHeader() + '</b></div>'
+            + '<div class="title-box">' 
+                + inputTypeContent
+            + '</div>' 
+            + '<div class="boxType">'
+            + '<div>' + blockName + '</div><img src="' + blockIconUrl +'" />'
+            + '</div></div>';
+
+        return html;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInputHtmlForType</Name>
+				<Source><![CDATA[
+    public str getInputHtmlForType(TFMRegistrationCollector _collector, str _helpLabel)
+    {
+        resourceNode rn;
+        resourceNode rnPlus;
+        str html = '';
+
+        
+        str label = TFMListVisualization::getMenuTitle(_collector.parmLabel());
+
+        if(_collector is TFMRegistrationCollectorDate || _collector is TFMRegistrationCollectorDateTime )
+        {
+            rn = new resourceNode(resourceStr(TFMDatatypeDateTime));
+            str iconStr = '<img src="/resources/images/' + rn.fileName()  + '" />';
+
+            
+            str defaultValue = (_collector.parmDefaultValue()) ? '<input style="margin-top: 3px; width: 130px;" type="text" disabled value="' + _collector.parmDefaultValue() + '"></input>' : ''; //'<div style="align-content: center;">' + _collector.parmDefaultValue() + '</div>' : '';
+                
+            return '<div class="regCollectorblock">'
+                + '<div style="display: flex;">'
+                + iconStr
+                + defaultValue
+                + '</div></div>'
+                + _helpLabel
+                ;
+        }
+        else if(_collector is TFMRegistrationCollectorQuantityByScan )
+        {
+            rn = new resourceNode(resourceStr(TFMTypeBarcode));
+            str iconStr = '<img src="/resources/images/' + rn.fileName()  + '" />';
+
+            return '<div class="regCollectorblock">'
+                + '<div style="display: flex;">'
+                + iconStr
+                + '</div></div>'
+                + _helpLabel;
+        }
+        else if(_collector is TFMRegistrationCollectorInformation )
+        {
+            rn = new resourceNode(resourceStr(TFMDatatypeInformation));
+            str iconStr = '<img src="/resources/images/' + rn.fileName()  + '" />';
+
+            return '<div class="regCollectorblock" >'
+                + '<div style="display: flex;">'
+                + iconStr
+                + '</div></div>'
+                + _helpLabel;
+        }
+        else if(_collector is TFMRegistrationCollectorImageCapture )
+        {
+            TFMMediaQueue mediaQueue;
+            rn = new resourceNode(resourceStr(TFMDatatypeImageCapture));
+            rnPlus = new resourceNode(resourceStr(TFMStatePlus));
+            str iconStr = '<img src="/resources/images/' + rn.fileName()  + '" /><img src="/resources/images/' + rnPlus.fileName() + '" style="width: 15px;position:relative;left: -10px;top:10px" />';
+
+            Map medias = TFMMediaQueue::separateIDsAndComments(_collector.parmDefaultValue());
+            MapEnumerator mediasEnum = medias.getEnumerator();
+
+            str capturedImgStr = '';
+            if(mediasEnum.moveNext())
+            {
+                capturedImgStr = mediasEnum.currentKey();
+                mediaQueue = TFMMediaQueue::FindByMediaId(capturedImgStr);
+                capturedImgStr = '<div style="width: 180px; display: flex; justify-content: center;">' + mediaQueue.getImageHtml(70) ;
+                if(medias.elements() > 1)
+                {
+                    capturedImgStr += '<div style="position: relative;left: -13px;margin-top: 19px;width: 25px;height: 25px;background-color: #002e50; color: white;border-radius: 50%;display: flex;justify-content: center;align-items: center;font-weight: bold;font-size: 10px;box-shadow: 0 0 5px rgba(0,0,0,0.2);">'
+                    + int2Str(medias.elements()) + '</div>';
+                }
+                capturedImgStr +=  '</div>';
+            }
+
+            return '<div class="regCollectorblock" >'
+                + '<div style="display: flex;">'
+                + iconStr
+                + '</div></div>'
+                + _helpLabel
+                + capturedImgStr;
+        }
+        else if(_collector is TFMRegistrationCollectorSignature)
+        {
+            rn = new resourceNode(resourceStr(TFMSignatureIcon));
+            str iconStr = '<img style="max-height: 50px; width: 40px; margin-right: 0px;" src="/resources/images/' + rn.fileName()  + '" />';
+            
+            str output;
+            if(_collector.parmDefaultValue())
+            {
+                output = '<div class="regCollectorblock" >'
+                    + '<div style="display: flex;">'
+                    + '<img style="width: auto;" src="data:image/png;base64, ' + _collector.parmDefaultValue() + '" alt="' + label + '" />'
+                + '</div></div>';
+            } 
+            else
+            {
+                output = '<div class="regCollectorblock" >'
+                    + '<div style="display: flex;">'
+                    + iconStr
+                    + '</div></div>'
+                    + _helpLabel;
+            }
+
+            return output;
+        }
+        else if(_collector is TFMRegistrationCollectorTypeAndQuantity)
+        {
+            rn = new resourceNode(resourceStr(TFMTypeAndQtyExample));
+            str iconStr = '<img style="max-height: 90px; width: 155px; margin-right: 0px;" src="/resources/images/' + rn.fileName()  + '" />';
+
+            return '<div class="regCollectorblock" >'
+                + '<div style="display: flex;">'
+                + iconStr
+                + '</div></div>';
+        }
+        else if(_collector is TFMRegistrationCollectorRadioButton)
+        {
+            str typeSpecificHtml =  '<div style="display: block">' +
+                                    '<div>' +
+                                        '<input style="width: 30px; margin-right: 0px; height: 20px" type="radio" name="choice" value="choice-1" id="choice-1" checked>' +
+                                        '<label style="position:relative; top: -4px;" for="choice-2">A</label>' +
+                                    '</div>' +
+                                    '<div>' +
+                                        '<input style="width: 30px; margin-right: 0px; height: 20px" type="radio" name="choice" value="choice-2" id="choice-2" checked>' +
+                                        '<label style="position:relative; top: -4px;" for="choice-2">B</label>' +
+                                    '</div>' +
+                                '</div>';
+
+            return '<div class="regCollectorblock">'
+                + '<div style="display: flex;">'
+                + typeSpecificHtml
+                + '</div></div>'
+                + _helpLabel;
+        }
+        else if(_collector is TFMRegistrationCollectorList)
+        {
+            str typeSpecificHtml =  '<select list="genericList" id="genericList1" name="gList" >';
+            if(_collector.parmDefaultValue())
+            {
+                typeSpecificHtml += strFmt('<option value="%1" selected>%1</option>', _collector.parmDefaultValue());
+            } 
+            else
+            {
+                typeSpecificHtml += '<option value="Item 1" selected>- 1 -</option>'
+                        + '<option value="Item 1" >- 2 -</option>'
+                        + '<option value="Item 1" >- 3 -</option>';
+            }
+            typeSpecificHtml += '</select>';
+                                    
+
+            return '<div class="regCollectorblock">'
+                + '<div style="display: flex;">'
+                + typeSpecificHtml
+                + '</div></div>'
+                + _helpLabel;
+        }
+        else 
+        {
+            boolean hasPrimaryInputMethod = SysTest::hasMethod(_collector,methodStr(TFMRegistrationCollectorDecimal, parmprimaryInputMethod));
+            str iconStr = '';
+            if(hasPrimaryInputMethod)
+            {
+                TFMPrimaryInputMethod primaryInputMethod = new SysDictClass(classIdGet(_collector)).callObject(methodStr(TFMRegistrationCollectorDecimal, parmprimaryInputMethod), _collector);
+                rn = new resourceNode(resourceStr(TFMTypeBarcode));
+                    
+                if(primaryInputMethod == TFMPrimaryInputMethod::Control || _collector.parmName() == "@TFM:Quantity")
+                {
+                    iconStr = '<input style="margin-top: 3px; type="text" disabled value="' + _collector.parmDefaultValue() + '"></input>';
+                }
+                else
+                {
+                    iconStr = '<img src="/resources/images/' + rn.fileName()  + '" />';
+                    iconStr += '<input style="width: 130px;margin-top: 3px;padding-left: 3px;" type="text" disabled value="' + _collector.parmDefaultValue() + '"></input>';
+                }
+            }
+            else
+            {
+                iconStr = '<input style="margin-top: 3px; type="text" disabled >' + _collector.parmDefaultValue() + '"></input>';
+            }
+                
+            return '<div class="regCollectorblock" >'
+                + '<div style="display: flex;">'
+                   + iconStr
+                + '</div></div>'
+                + _helpLabel;
+        }
+
+        return html;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findResourceForCollector</Name>
+				<Source><![CDATA[
+    public static resourceNode findResourceForCollector(TFMRegistrationCollector _node)
+    {
+        resourceNode                    rn;
+        SetEnumerator                   sEnum = _node.origins().fieldsAndEDTs().getEnumerator();
+        str                             resName;
+        while (sEnum.moveNext())
+        {
+            resName = sEnum.current();
+            rn = new resourceNode('TFMDatatype' + resName);
+            if (rn.isFound())
+            {
+                return rn;
+            }
+        }
+        rn  = new resourceNode(_node.dataTypeIcon() );
+        return rn;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

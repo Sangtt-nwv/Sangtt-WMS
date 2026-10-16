@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsProcessAddCountLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Process definition for Adding Count Line
+/// </summary>
+class MwmsProcessAddCountLine extends TFMProcess
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        TFMLogicBlock block = MwmsLogicBlockAddCountLine::Construct();
+        processName = TFMConstants::AddCountLine();
+        super();
+        this.addBlock(block);
+        this.blockCollection().addBlockAddon(block, new TFMLogicBlockAddonDisableValueTransfers());
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

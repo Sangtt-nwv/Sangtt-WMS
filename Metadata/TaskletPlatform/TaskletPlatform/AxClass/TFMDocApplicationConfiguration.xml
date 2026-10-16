@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocApplicationConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.Xml.Linq;
+
+/// <summary>
+/// The TFMDocApplicationConfiguration is the document handler for providing application cfg tweak file to the mobile device.
+/// </summary>
+[TFMDocumentType(methodStr(TFMDocApplicationConfiguration, GetApplicationConfiguration))]
+class TFMDocApplicationConfiguration extends TFMDocumentHandler
+{
+    NoYes requestApplicationConfiguration;
+    str nameOfCfg = 'axcfg';
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmEnableRequestApplicationConfiguration</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes,"@TFM:EnableFetchApplicationConfigurationText",'', "@TFM:EnableFetchApplicationConfigurationHelpText")]
+    public TFMPromptForUnit parmEnableRequestApplicationConfiguration(TFMPromptForUnit _requestApplicationConfiguration = requestApplicationConfiguration)
+    {
+        requestApplicationConfiguration = _requestApplicationConfiguration;
+        return requestApplicationConfiguration;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        TFMDocumentHandlerDescription ret;
+        ret = "@TFM:ApplicationConfiguration";
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages						pages = new TFMPages();
+
+        // adding the registration page used on by the orderlines page.
+        TFMPage registrationsPage = new TFMPageRegistrations();
+        registrationsPage.parmId('ViewRegistrations');
+        registrationsPage.parmIcon(resourceStr(TFMViewRegistrations));
+        registrationsPage.parmTitle('PageRegistrationsTitle');
+        registrationsPage.parmAvailableForMenuPages(false);
+        pages.addPage(registrationsPage);
+
+        TFMPage pendingRegistrationsPage = new TFMPagePendingRegistrations();
+        pendingRegistrationsPage.parmId(TFMConstants::ViewPendingRegistrations());
+        pendingRegistrationsPage.parmIcon(resourceStr(TFMViewRegistrations));
+        pendingRegistrationsPage.parmTitle('PageRegistrationsTitle');
+        pendingRegistrationsPage.parmAvailableForMenuPages(false);
+        pendingRegistrationsPage.parmDescription("@TFM:Apagetoseependingregistrationsfo");
+        pages.addPage(pendingRegistrationsPage);
+
+        TFMPage searchPage = new TFMPageSearch();
+        searchPage.parmId('Search');
+        searchPage.parmIcon('mainmenulocateitem');
+        searchPage.parmTitle('PageSearchTitle');
+        searchPage.parmAvailableForMenuPages(false);		
+        pages.addPage(searchPage);
+
+        TFMPage scanInfo = new TFMPageScanInfo();
+        scanInfo.parmId('ScanInfo');
+        scanInfo.parmIcon('mainmenuscaninfoi');
+        scanInfo.parmTitle('PageScanInfoTitle');
+        scanInfo.parmAvailableForMenuPages(true);
+        pages.addPage(scanInfo);
+
+        TFMPage settingsPage = new TFMPageSettings();
+        settingsPage.parmId('Settings');
+        settingsPage.parmIcon('mainmenusettings');
+        settingsPage.parmTitle('PageSettingsTitle');
+        settingsPage.parmAvailableForMenuPages(true);
+        settingsPage.addPageBelongsToMenuGroups('Miscellaneous');
+        settingsPage.addAction('ScanInfo', 1);
+        pages.addPage(settingsPage);
+
+        return pages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetApplicationConfiguration</Name>
+				<Source><![CDATA[
+    public void GetApplicationConfiguration()
+    {
+        
+        TFMDocumentNodes                nodes               = TFMDocumentNodes::Construct('applicationConfiguration');
+        TFMDocumentNode                 root                = nodes.getRoot();
+        TFMDocumentNode                 configurationNode;
+        str	                            configurationContent;
+        TFMRequestElement	            subReq;
+        ListEnumerator                  confEnumerator;
+        TFMRequestConfigurationElement  configurationElement;
+        str                             configName;
+  
+        if(request)
+        {
+            subReq = request.getSubNodes('applicationConfiguration');
+        }
+
+        TFMRequestApplicationConfigurationElement confElement = subReq as TFMRequestApplicationConfigurationElement;
+
+        if(confElement)
+        {
+            confEnumerator = confElement.Configurations().getEnumerator();
+            while(confEnumerator.moveNext())
+            {
+                configurationElement = confEnumerator.current();
+                configurationNode = nodes.makeChild(root, 'configuration');
+                configName = configurationElement.getFieldValue('name');
+                configurationNode.addAttribute('name', configName);
+                configurationNode.addAttribute('version', configurationElement.getFieldValue('version'));
+                if(configName == nameOfCfg)
+                {
+                    configurationContent = this.getApplicationConfigurationContent();
+                }
+                else if (configName == nameOfCfg + 'Main')
+                {
+                    configurationContent = this.getApplicationConfigurationMainContent();
+                }
+                configurationNode.parmValue(configurationContent);
+            }
+        }
+      
+        resultXml = nodes.makeXml();
+
+        // adding aos attribute
+        XmlAttribute aosAttr = resultXml.createAttribute('aos');
+        aosAttr.value(new xSession().AOSName());
+        resultXml.root().attributes().setNamedItem(aosAttr);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getApplicationConfigurationContent</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the content of the application configuration xml.
+    /// </summary>
+    /// <returns>Aplication configuration xml content</returns>
+    public str getApplicationConfigurationContent()
+    {
+        XmlElement          xmlElementFonts;
+        XmlElement          xmlElementPages;
+        str	                configurationContent;
+
+        str		            listContentXML = TFMListsProvider::getAllListsXML(); //Run here to ensure it is run before fonts, as lists can create fonts when needed
+        TFMPagesExport      mobPagesExport = TFMPagesExport::Construct();
+        xmlElementPages = mobPagesExport.GetConfigurationXmlForPages();
+
+        configurationContent += '<application xmlns="' + TFMConstants::applicationSchemaPath() + '" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="' + TFMConstants::applicationSchemaPath() + '">' + "@TFM:lineBreak";
+        configurationContent += '<resources >' + "@TFM:lineBreak";
+
+        // add fonts
+        xmlElementFonts = TFMExportFonts::GetConfigurationXmlForFonts();
+        configurationContent += xmlElementFonts.ToString();
+        configurationContent += "@TFM:lineBreak";
+
+        // add lists
+        //TODO: Add developermode to export open versions for lists.
+        configurationContent += listContentXML + TFMConstants::lineBreak();
+        // add Headers
+        configurationContent += TFMHeadersProvider::getXML(mobPagesExport.getReferencedFilters()) + "@TFM:lineBreak";
+        // add workflows
+        configurationContent += TFMWorkflowProvider::getAllWorkflowsXML().xml() + "@TFM:lineBreak";
+
+        configurationContent += '</resources>' + "@TFM:lineBreak";
+        
+        // add services
+        configurationContent += TFMServiceProvider::getAllServicesXML() + "@TFM:lineBreak";
+
+        // add pages
+        configurationContent += xmlElementPages.ToString();
+       
+        configurationContent += '</application>' + "@TFM:lineBreak";
+
+        configurationContent = strReplace(configurationContent, 'xmlns=""', '');
+
+        return configurationContent;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getApplicationConfigurationMainContent</Name>
+				<Source><![CDATA[
+    public str getApplicationConfigurationMainContent()
+    {
+        return TFMHelper::resource2str(resourceStr(TFMApplicationMain));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>applicationConfiguration</Name>
+				<Source><![CDATA[
+    [TFMreferenceDataMethod]
+    public TFMReferenceData applicationConfiguration()
+    {
+        TFMReferenceDataConfiguration refData = new TFMReferenceDataConfiguration();
+
+        if(requestApplicationConfiguration == NoYes::Yes)
+        {
+            TFMVersion versionClass = TFMVersion::Construct();
+            str versionStr = versionClass.getModelVersion();
+
+            List configurationsStrings = new List(Types::String);
+
+            // add the main version
+            str cData = this.GetConfigurationStrForReferenceData(nameOfCfg + 'Main', versionStr, true);
+            configurationsStrings.addEnd(cData);
+
+            // add the tweak version
+            cData = this.GetConfigurationStrForReferenceData(nameOfCfg, TFMVersionProvider::getCurrentVersion(), false);
+            configurationsStrings.addEnd(cData);
+
+            cData = this.GetApplicationConfigurationStrForReferenceData(configurationsStrings);
+            refData.addCDataConfiguration(methodStr(TFMDocApplicationConfiguration, applicationConfiguration), cData);
+            refData.parmIsHeader(false);
+        }
+        return refData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetApplicationConfigurationStrForReferenceData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Logic when to let the TFM application know that it should request a application configuration file from the backend.
+    /// </summary>
+    public str GetApplicationConfigurationStrForReferenceData(List configurations)
+    {
+        ListIterator configurationsIterator = new ListIterator(configurations);
+        str cData = '<applicationConfiguration>';
+        
+        while(configurationsIterator.more())
+        {
+            cData += configurationsIterator.value();
+            configurationsIterator.next();
+        }
+        cData += '</applicationConfiguration>';
+
+        return cData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetConfigurationStrForReferenceData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Logic when to let the TFM application know that it should request a application configuration file from the backend.
+    /// </summary>
+    public str GetConfigurationStrForReferenceData(str _nameOfCfg, str _versionNo, boolean _isMain = false)
+    {
+        if(!_isMain)
+        {
+            str shortendVersion = this.GetShortendVersionNumber(_versionNo);
+            return '<configuration name="' + _nameOfCfg + '" orgVersion="' + _versionNo + '" version="' + shortendVersion + '" main="false" />';
+        }
+
+        return '<configuration name="' + _nameOfCfg + '" version="' + _versionNo + '" main="true" />';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetShortendVersionNumber</Name>
+				<Source><![CDATA[
+    public str GetShortendVersionNumber(str _versionNo)
+    {
+        str encryptedProviderVersion = TFMCrypt::computeMD5Hash(_versionNo);
+        str shortendVersion = subStr(_versionNo, 0, 20) + '__' + subStr(encryptedProviderVersion, 0, 20);
+        return shortendVersion;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

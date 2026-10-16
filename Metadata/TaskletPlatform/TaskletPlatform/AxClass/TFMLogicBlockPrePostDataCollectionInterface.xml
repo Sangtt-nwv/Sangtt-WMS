@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicBlockPrePostDataCollectionInterface</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Interface for blocks containing data collection logic when further data needs to be picked before posting. This ensures that the block can provide header fields, optional flow steps, a posting method, a prompt for additional steps from the posting,
+/// </summary>
+interface TFMLogicBlockPrePostDataCollectionInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method is called before the post method, and gives the option to add extra registration collectors for the user to be prompted for before the post method is executed.
+    /// </summary>
+    /// <returns>Returns a TFMRegistrationCollectors object if the user must be further prompted, otherwise it returns null</returns>
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        //Online Steps
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

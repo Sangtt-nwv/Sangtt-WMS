@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobMenuOptions</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobMenuOptions extends common
+{
+
+}
+
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+	<DeveloperDocumentation>@MobileWMS:MenuOptionsDevDesc</DeveloperDocumentation>
+	<Label>@MobileWMS:MEL88</Label>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>Menu</TitleField1>
+	<TitleField2>MenuDescription</TitleField2>
+	<ReplacementKey>PrimaryIdx</ReplacementKey>
+	<DeleteActions>
+		<AxTableDeleteAction>
+			<Name>MobMenuPermissions</Name>
+			<DeleteAction>Cascade</DeleteAction>
+			<Relation>MobMenuPermissions</Relation>
+			<Table>MobMenuPermissions</Table>
+		</AxTableDeleteAction>
+	</DeleteActions>
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Menu</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MenuDescription</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Menu</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MenuDescription</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Menu</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Menu</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MenuDescription</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Menu</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>MobMenu</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>MenuDescription</Name>
+			<ExtendedDataType>MobMenuDescription</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>PrimaryIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Menu</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

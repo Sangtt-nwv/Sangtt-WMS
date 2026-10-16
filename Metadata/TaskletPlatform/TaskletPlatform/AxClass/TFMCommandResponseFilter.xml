@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMCommandResponseFilter</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMCommandResponseFilter extends TFMCommandResponse
+{
+    str filterName;
+    str filterValue;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _element)
+    {
+        XmlElement filterElement = _element.ownerDocument().createElement('filter');
+        filterElement.setAttribute('name', filterName);
+        filterElement.setAttribute('value', filterValue);
+        _element.appendChild(filterElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFilterName</Name>
+				<Source><![CDATA[
+    public str parmFilterName(str _filterName = filterName)
+    {
+        filterName = _filterName;
+        return filterName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFilterValue</Name>
+				<Source><![CDATA[
+    public str parmFilterValue(str _filterValue = filterValue)
+    {
+        filterValue = _filterValue;
+        return filterValue;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

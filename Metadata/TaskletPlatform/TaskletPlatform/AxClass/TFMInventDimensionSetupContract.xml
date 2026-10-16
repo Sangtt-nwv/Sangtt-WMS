@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMInventDimensionSetupContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContract]
+class TFMInventDimensionSetupContract
+{
+    boolean active;
+    boolean allowBlank;
+    str     productDimensionValues;
+    boolean hasValueInContext;
+    str     valueFromContext;
+    boolean manualAllocation;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmActive</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('Active'), TFMDescription("@TFM:Defineswhetherornotthisdimension")]
+    public boolean parmActive(boolean _active = active)
+    {
+        active = _active;
+        return active;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAllowBlank</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('AllowBlank'), TFMDescription("@TFM:Indicatesifthisdimensionallowsbl")]
+    public boolean parmAllowBlank(boolean _allowBlank = allowBlank)
+    {
+        allowBlank = _allowBlank;
+        return allowBlank;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAllowedValues</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('ProductDimensionValues'), TFMDescription("@TFM:Deliversalistofallowedvaluesfora")]
+    public str parmAllowedValues(str _productDimensionValues = productdimensionValues)
+    {
+        productDimensionValues = _productDimensionValues;
+        return productDimensionValues;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHasValueInContext</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('HasValueInContext'), TFMDescription("@TFM:Indicatesifthechosendimensionhas")]
+    public boolean parmHasValueInContext(boolean _hasValueInContext = hasValueInContext)
+    {
+        hasValueInContext = _hasValueInContext;
+        return hasValueInContext;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmValueFromContext</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('ValueFromContext'), TFMDescription("@TFM:Thevalueofthechosendimensioninth")]
+    public str parmValueFromContext(str _valueFromContext = valueFromContext)
+    {
+        valueFromContext = _valueFromContext;
+        return valueFromContext;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmManualAllocation</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('ManualAllocation'), TFMDescription("Does the tracking dimension har manual allocation setup")]
+    public boolean parmManualAllocation(boolean _manualAllocation = manualAllocation)
+    {
+        manualAllocation = _manualAllocation;
+        return manualAllocation;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

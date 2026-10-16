@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMSystemStartupEvent</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMSystemStartupEvent
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>onSystemStartup</Name>
+				<Source><![CDATA[
+    [SubscribesTo(classStr(ApplicationStartupEventManager),staticDelegateStr(ApplicationStartupEventManager,onSystemStartup))]
+    public static void onSystemStartup()
+    {
+        
+        CompanyInfo companyInfo;
+
+        try
+        {
+            while select companyInfo
+            {
+                changecompany(companyInfo.DataArea)
+                {
+                    TFMPageMenuItems::convertPromotedAndAddLineNumbers();
+                }
+            }
+            TFMVersionProvider::reset();
+        }
+        catch
+        {
+
+        }
+
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>onSessionStartup</Name>
+				<Source><![CDATA[
+    [SubscribesTo(classStr(ApplicationStartupEventManager),staticDelegateStr(ApplicationStartupEventManager,onFirstTimeUserInteractiveSessionCreated))]
+    public static void onSessionStartup()
+    {
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

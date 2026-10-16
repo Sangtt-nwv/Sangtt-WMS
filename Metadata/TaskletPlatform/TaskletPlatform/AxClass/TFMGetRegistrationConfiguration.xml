@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMGetRegistrationConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class to generate multiple registration configurations.
+/// </summary>
+public class TFMGetRegistrationConfiguration extends TFMDocumentHandler
+{
+//    #define.GS1_QTY('30,37')
+    #tfm
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>canBeEnqueued</Name>
+				<Source><![CDATA[
+    public boolean canBeEnqueued()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return subStr(classStr(TFMGetRegistrationConfiguration),4,100);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    public Set getDocumentTypes()
+    {
+        Set retMap = new Set(Types::String);
+        retMap.add(subStr(classStr(TFMGetRegistrationConfiguration),4,100));
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentContentSubject</Name>
+				<Source><![CDATA[
+    public TFMDocumentContentSubject getDocumentContentSubject()
+    {
+        TFMDocumentContentSubject ret;
+    
+        ret = request.ContentType();
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>subHandler</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandler subHandler()
+    {
+        TFMDocumentTypeAttribute    docTypeAttribute;
+        TFMDocumentHandler          docHandler;
+        DictMethod                  Method;
+        DictMethod                  PostMethod;
+        XML                         xml;
+        TFMCollectorMapAttribute    attribute = new TFMCollectorMapAttribute(subStr(classStr(TFMGetRegistrationConfiguration),4,100), request.ContentType());
+        docTypeAttribute = new TFMDocumentTypeAttribute(subStr(classStr(TFMGetRegistrationConfiguration),4,100), request.ContentType());
+        docHandler = TFMGetRegistrationConfiguration::getClassFromSysAttribute(classStr(TFMDocumentHandler), docTypeAttribute);
+        if (docHandler == null)
+        {
+            resultStr = strFmt("@TFM:CouldNotFindAppropriateClass",subStr(classStr(TFMGetRegistrationConfiguration),4,100), request.ContentType());
+            return null;
+        }
+        Method = TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classIdGet(docHandler),docTypeAttribute);
+        if (!Method)
+        {
+            Method = TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classIdGet(docHandler),attribute);
+        }
+        if (Method == null)
+        {
+            resultStr = strFmt("@TFM:CouldNotFindAppropriateMethod",subStr(classStr(TFMGetRegistrationConfiguration),4,100), request.ContentType(),classId2Name(classIdGet(docHandler)));
+            return null;
+        }
+        docTypeAttribute = new TFMDocumentTypeAttribute(classStr(TFMPostAdhocRegistration), request.ContentType());
+        PostMethod = TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classIdGet(docHandler),docTypeAttribute);
+        if (PostMethod == null)
+        {
+            resultStr = strFmt("@TFM:CouldNotFindAppropriatePostingMethod",Method.name(), request.ContentType(),classId2Name(classIdGet(docHandler)));
+            return null;            
+		}
+        docHandler.parmmethod(Method);
+        return docHandler;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public void process()
+    {
+        this.findClass(request.ContentType());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findClass</Name>
+				<Source><![CDATA[
+    private void findClass(TFMDocumentContentSubject _contentType, TFMDocumentTypeId _documentType = subStr(classStr(TFMGetRegistrationConfiguration),4,100))
+    {
+        
+        TFMDocumentHandler          docHandler;
+        DictMethod                  Method;        
+        XML                         xml;
+
+        docHandler = this.subHandler();
+        if(docHandler)
+        {
+            Method = docHandler.parmMethod();
+            docHandler.parmMessageId(messageId);
+            docHandler.setRequestObject(request);
+            docHandler.fillInParms();
+            docHandler.preProcess();
+
+            docHandler.addFunctionCollectors(Method.name());
+            xml = docHandler.getResult();
+            resultXml = new XmlDocument();
+            resultXml.loadXml(xml);
+            resultStr = docHandler.getResultStr();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMethodFromSysAttribute</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method used to find the method that handles a specific Document Type on a given class
+    /// </summary>
+    /// <param name = "_classID">Class ID of the class to search for the attribute from</param>
+    /// <param name = "_sysAttribute">The partial attribute to search from</param>
+    /// <returns>A DictMethod object pointing to the method matching the attribute</returns>
+    public static DictMethod getMethodFromSysAttribute(ClassId _classID, SysAttribute _sysAttribute)
+    {
+        MapEnumerator	mEnum;
+        DictMethod		DM;
+        SysDictClass    sdc;
+        MethodName      methodName;
+        Object          attr = TFMAttributeHandler::updateAttributeFromClass(_classID,_sysAttribute);
+
+        if (SysTest::hasMethod(attr, methodStr(TFMDocumentTypeAttribute,getMethodName)))
+        {
+            //Attribute has a pointer to a method handling document type. No need to search for methods with the attribute.
+            methodName = attr.getMethodName();
+            DM = new DictMethod(UtilElementType::ClassInstanceMethod,_classID,methodName);
+            sdc = new SysDictClass(_classID);
+            if (methodName && DM && sdc && sdc.hasObjectMethod(methodName))
+            {
+                return DM;
+            }
+        }
+
+        mEnum = TFMAttributeHandler::getMethodNamesFromSysAttribute(_classID,_sysAttribute,false).getEnumerator();
+		while (mEnum.moveNext())
+        {
+            DM = new DictMethod(UtilElementType::ClassInstanceMethod,_classID,mEnum.currentKey());
+			if (DM)
+            {
+                return DM;
+            }
+		}
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>stringIsSimilar</Name>
+				<Source><![CDATA[
+    public static boolean stringIsSimilar(str _baseString, str _wildCardString)
+    {
+        //boolean similar;
+
+        container strings = TFMHelper::strSplit(_wildCardString,'*').pack();
+        str firstPart = conPeek(strings,conLen(strings)- 1);
+        str secondPart = conPeek(strings,conLen(strings));
+        str compareStr = subStr(_baseString,1,strLen(firstPart)) + '*' + subStr(_baseString,strLen(_baseString) - strLen(secondPart)+1,strLen(secondPart));
+
+        return compareStr == _wildCardString;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>classFromSysAttributeProvider</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Provides a map stored in memory of classes extended with a specific attribute to avoid having to use reflection multiple times on the same class when looking for attributes. The key of the map is the name of the class extended and the value is another map where the key is the name of the attribute and the value is the object of the attribute.
+    /// </summary>
+    /// <returns>A map of fields in field groups per table</returns>
+    protected static Map classFromSysAttributeProvider()
+    {
+        System.Runtime.Caching.ObjectCache memCache = System.Runtime.Caching.MemoryCache::Default;
+        
+        Map sysAttributeMap = memCache.Get(funcName());
+
+        if(!sysAttributeMap)
+        {
+            sysAttributeMap = new Map (Types::String, Types::Integer);
+            memCache.Add(funcName(), sysAttributeMap, new System.Runtime.Caching.CacheItemPolicy());
+        }
+        return sysAttributeMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getClassFromSysAttribute</Name>
+				<Source><![CDATA[
+    public static Object getClassFromSysAttribute(ClassName _baseClassName, SysAttribute _sysAttribute)
+    {
+        SysDictClass dc;
+        ListEnumerator classesExtending;
+        SysDictClass dcSub;
+        SysDictClass attrDC;
+        boolean thereIsAMatch;
+        Object result;
+        Array testResult;
+        Object attrObject;
+        int i;
+        MethodName methodname;
+        Set parmMethodsOnAttributeClass;
+        SetEnumerator sEnum;
+        ExecutePermission exePerm;
+        SysExtensionIAttribute attribute = (_sysAttribute is SysExtensionIAttribute) ? _sysAttribute as SysExtensionIAttribute : null;
+        str                 cacheKey = attribute ? classId2Name(className2Id(_baseClassName)) + '_' + attribute.parmCacheKey() : '';
+
+
+        Map resultMap = TFMGetRegistrationConfiguration::classFromSysAttributeProvider();
+
+        if (cacheKey && resultMap.exists(cacheKey))
+        {
+            dcSub = new SysDictClass(resultMap.lookup(cacheKey));
+            return dcSub.makeObject();
+        }
+
+        dc = new SysDictClass(className2Id(_baseClassName));
+        classesExtending = dc.extendedBy().getEnumerator();
+        attrDC = new SysDictClass(classIdGet(_sysAttribute));
+        result = dc.isAbstract() ? null : dc.makeObject();
+        parmMethodsOnAttributeClass = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(_sysAttribute),true);
+
+        while (classesExtending.moveNext())
+        {
+            dcSub = new SysDictClass(classesExtending.current());
+
+            testResult = dcSub.getAttributes(classId2Name(classIdGet(_sysAttribute)));
+            
+            if (0 == testResult.lastIndex())
+            {
+                continue;
+            }
+            for (i = 1; i <= testResult.lastIndex(); i++)
+            {
+                attrObject = testResult.value(i);
+                thereIsAMatch = true;
+                exePerm = new ExecutePermission();
+                exePerm.assert();
+                sEnum = parmMethodsOnAttributeClass.getEnumerator();
+                while (sEnum.moveNext() && thereIsAMatch)
+                {
+                    methodname = sEnum.current(); 
+                    str res1 = attrDC.callObject(methodname,attrObject);
+                    str res2 = attrDC.callObject(methodname,_sysAttribute);
+                    if (strScan(res1,'*',1,strLen(res1)))
+                    {
+                        //Wildcard class
+                        thereIsAMatch = thereIsAMatch && TFMGetRegistrationConfiguration::stringIsSimilar(res2,res1);
+                    }
+                    else
+                    {
+                        thereIsAMatch = thereIsAMatch && (res1 == res2);
+                    }
+                }
+
+                CodeAccessPermission::revertAssert();
+                if (thereIsAMatch)
+                {
+                    if (cacheKey)
+                    {
+                        resultMap.insert(cacheKey,classesExtending.current());
+                    }
+                    return dcSub.makeObject();
+                }
+            }
+        }
+
+        return result;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

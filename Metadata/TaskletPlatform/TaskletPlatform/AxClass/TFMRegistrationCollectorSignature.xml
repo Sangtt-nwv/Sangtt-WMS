@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectorSignature</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegistrationCollectorSignature extends TFMRegistrationCollector
+{
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>SignatureStep</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectorSignature SignatureStep(  int      _id,
+                                                                    str      _name,
+                                                                    str      _header,
+                                                                    str      _label,
+                                                                    str      _helpLabel,
+                                                                    boolean  _optional=false)
+    {
+        TFMRegistrationCollectorSignature collector = new TFMRegistrationCollectorSignature(_id,_name,_header,_label,_helpLabel);
+        collector.parmOptional(_optional);
+        return collector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SignatureStepMap</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Builds a registration collector for signature input
+    /// </summary>
+    /// <param name="_stepsElement"></param>
+    /// <param name="_id"></param>
+    /// <param name="_name"></param>
+    /// <param name="_header"></param>
+    /// <param name="_label"></param>
+    /// <param name="_helpLabel"></param>    
+    /// <param name="_optional"></param>
+    public client server static Map SignatureStepMap(          int      _id,
+                                                               str      _name,
+                                                               str      _header,
+                                                               str      _label,
+                                                               str      _helpLabel,
+                                                               boolean  _optional=false)
+    {
+        return TFMRegistrationCollectorSignature::SignatureStep(_id,_name,_header,_label,_helpLabel,_optional).getMap();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dataTypeIcon</Name>
+				<Source><![CDATA[
+    public ResourceName dataTypeIcon()
+    {
+        return resourceStr(TFMDatatypeSignature);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

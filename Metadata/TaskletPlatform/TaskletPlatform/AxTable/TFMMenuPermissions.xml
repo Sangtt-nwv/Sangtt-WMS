@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMenuPermissions</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMMenuPermissions extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>MigrateIfNeeded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public static void MigrateIfNeeded()
+    {
+        TFMMenuPermissions perms;
+
+        select sum(MenuLineNumber) from perms;  
+
+        if (perms.MenuLineNumber > 0.5)
+        {
+            return;
+        }
+
+        ttsbegin;
+        while select forupdate perms
+        {
+            perms.MenuLineNumber = perms.MenuSorting;
+            perms.doUpdate();
+        }
+        ttscommit;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MoveItem</Name>
+				<Source><![CDATA[
+    public static void MoveItem(TFMMenu _menuToMove, TFMMenu _menuToMoveTo, UserGroupId _groupID, TFMMenuGroupId _menuGroup)
+    {
+        TFMMenuPermissions  permsMoveItem;
+        TFMMenuPermissions  permsOtherItems;
+        LineNumber          nextNumber, previousNumber;
+        select firstonly MenuLineNumber from permsOtherItems order by MenuLineNumber where permsOtherItems.UserGroupId == _groupID && permsOtherItems.Menu == _menuToMoveTo && permsOtherItems.MenuGroup == _menuGroup;
+
+        nextNumber = permsOtherItems.MenuLineNumber;
+        select firstonly MenuLineNumber from permsOtherItems order by MenuLineNumber desc where permsOtherItems.UserGroupId == _groupID && permsOtherItems.MenuLineNumber < nextNumber && permsOtherItems.MenuGroup == _menuGroup;
+        previousNumber = permsOtherItems.MenuLineNumber;
+
+        ttsbegin;
+        select firstonly forupdate permsMoveItem where permsMoveItem.Menu == _menuToMove && permsMoveItem.UserGroupId == _groupID && permsMoveItem.MenuGroup == _menuGroup;
+        permsMoveItem.MenuLineNumber = 0.5*(nextNumber + previousNumber);
+        permsMoveItem.doUpdate();
+        ttscommit;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addItem</Name>
+				<Source><![CDATA[
+    public static void addItem(TFMMenu _menuToAdd, UserGroupId _groupID, TFMMenuGroupId _menuGroup, LineNumber _lineNumberOverride = 0)
+    {
+        TFMMenuPermissions  permsCheck;
+        TFMMenuPermissions  perms;
+        TFMMenuPermissions  permsOtherItems;
+        
+        select firstonly permsCheck where permsCheck.UserGroupId == _groupID && permsCheck.MenuGroup == _menuGroup && permsCheck.Menu == _menuToAdd;
+        if(permsCheck)
+        {
+            return;
+        }
+
+        select firstonly permsOtherItems order by MenuLineNumber desc where permsOtherItems.UserGroupId == _groupID && permsOtherItems.MenuGroup == _menuGroup;
+        if(!permsOtherItems || !permsOtherItems.MenuLineNumber)
+        {
+            _lineNumberOverride = 10; //make sure we start with 10.
+        }
+
+        perms.Menu = _menuToAdd;
+        perms.MenuLineNumber = _lineNumberOverride ? _lineNumberOverride : permsOtherItems.MenuLineNumber +1;
+        perms.UserGroupId = _groupID;
+        perms.MenuGroup = _menuGroup;
+        perms.insert();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeItem</Name>
+				<Source><![CDATA[
+    public static void removeItem(TFMMenu _menuToRemove, UserGroupId _groupID, TFMMenuGroupId _menuGroup)
+    {
+        TFMMenuPermissions  perms;
+        
+        ttsbegin;
+        select firstonly forupdate perms where perms.UserGroupId == _groupID && perms.Menu == _menuToRemove && perms.MenuGroup == _menuGroup;
+        perms.delete();
+        ttscommit;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDefaultMenuPermissions</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Addes the default permission for menu pages so that the first time it runs the TFM-User and TFM-Admin has the default menu items.
+    /// </summary>
+    /// <param name = "_pages"></param>
+    /// <param name = "_userGroupID"></param>
+    /// <param name = "_menuGroup"></param>
+    public static void addDefaultMenuPermissions(TFMPages _pages, UserGroupId _userGroupID = null, TFMMenuGroupId _menuGroup = null)
+    {
+        TFMPage             currentTFMPage;        
+        MapEnumerator       pagesEnum = _pages.getPages().getEnumerator();
+        SetEnumerator       categoriesEnum;
+        LineNumber          lineNumberOverride;
+
+        // create all controls for the pages.
+        while (pagesEnum.moveNext())
+        {
+            currentTFMPage = pagesEnum.currentValue() as TFMPage;
+          
+            // Add the Menu Groups that has not been created yet.
+            categoriesEnum = currentTFMPage.getPageBelongsToMenuGroups().getEnumerator();
+            while(categoriesEnum.moveNext())
+            {
+                if((!_menuGroup || categoriesEnum.current() == _menuGroup))
+                {
+                    if(currentTFMPage.parmAvailableForMenuPages())
+                    {
+                        lineNumberOverride = currentTFMPage.parmId() == TFMConstants::Pick() ? 4 : (currentTFMPage.parmId() == 'Receive' ? 2 : (currentTFMPage.parmId() == 'Count' ? 6 : 0)); // to make sure the order is somewhat correct the first time the system loads.
+                        TFMMenuPermissions::addMenu(currentTFMPage.parmId(), categoriesEnum.current(), _userGroupID, lineNumberOverride);
+                    }
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addMenu</Name>
+				<Source><![CDATA[
+    public static void addMenu(TFMMenu _menuName, TFMMenuGroupId _menuGroup, UserGroupId _groupID, LineNumber _lineNumberOverride)
+    {
+        
+        ttsbegin;
+
+        if(_groupId)
+        {
+            TFMMenuPermissions::addItem(_menuName, _groupID, _menuGroup, _lineNumberOverride);
+        }
+        else
+        {
+            TFMMenuPermissions::addItem(_menuName, TFMConstants::TFMUser(), _menuGroup, _lineNumberOverride);
+            TFMMenuPermissions::addItem(_menuName, TFMConstants::TFMAdmin(), _menuGroup, _lineNumberOverride);
+        }
+
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:MenuPremissionsDevDesc</DeveloperDocumentation>
+	<Label>@TFM:MEL89</Label>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>Menu</TitleField1>
+	<TitleField2>UserGroupId</TitleField2>
+	<ClusteredIndex>PrimaryIdx</ClusteredIndex>
+	<CreateRecIdIndex>No</CreateRecIdIndex>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<PrimaryIndex>PrimaryIdx</PrimaryIndex>
+	<ReplacementKey>PrimaryIdx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Menu</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MenuSorting</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SecurityRoleRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserGroupId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Disabled</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Menu</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Menu</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserGroupId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Menu</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MenuSorting</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SecurityRoleRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserGroupId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Disabled</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Menu</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMMenu</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>MenuGroup</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMMenuGroupId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>MenuSorting</Name>
+			<ExtendedDataType>TFMMenuSorting</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>MenuLineNumber</Name>
+			<ExtendedDataType>LineNumber</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>SecurityRoleRecId</Name>
+			<ExtendedDataType>RecId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>UserGroupId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>UserGroupId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Disabled</Name>
+			<Label>@SYS88623</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>PrimaryIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Menu</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>UserGroupId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>MenuGroup</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

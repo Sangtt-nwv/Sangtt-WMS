@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMExpressionsGetAttachedNote</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMExpressionsGetAttachedNote extends TFMExpressions
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processExpressionCommon</Name>
+				<Source><![CDATA[
+    public str processExpressionCommon(Common _common, DocuTypeId _typeId = DocuType::typeNote())
+    {
+        DocuRef		dRef;
+		str			ret;
+        
+        while select dRef
+            where dRef.RefCompanyId		== _common.dataAreaId
+            && dRef.RefTableId          == _common.TableId
+            && dRef.RefRecId			== _common.RecId
+			&& (dRef.TypeId				== _typeId || !_typeId)
+            && dRef.Restriction			== DocuRestriction::Internal
+        {
+            ret += (ret ? TFMConstants::lineBreak() : '' ) + dRef.Name + ':' + TFMConstants::lineBreak() + dRef.Notes;
+        }
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processExpressionValue</Name>
+				<Source><![CDATA[
+	[SysObsolete]
+    public str processExpressionValue(str _value)
+    {
+        str ret;
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

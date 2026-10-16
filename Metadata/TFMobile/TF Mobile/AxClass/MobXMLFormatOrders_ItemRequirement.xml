@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_ItemRequirement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for picking sales orders.
+/// </summary>
+[TFMTableNameAttribute(tableStr(SalesTable), staticMethodStr(MobConstants,ItemRequirement))]
+class MobXMLFormatOrders_ItemRequirement extends MobXMLFormatOrders_Pick
+{
+    SalesTable          salesTable;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        super();
+    
+        salesTable         = common;
+    
+        /*backendId          = TFMOrder::constructFromTableName(tableStr(SalesTable)).getBackendID(Common);//#PickSalesOrderPrefix + salesTable.SalesId;
+    
+        if(MobLockedOrders::find(backendId,MobConstants::Pick()))
+        {
+            status = MobConstants::locked();
+        }
+        else
+        {
+            status = MobConstants::Unlocked();
+        }*/
+    
+        displayLine1            = new DictField(tablenum(SalesTable), fieldnum(SalesTable, SalesId)).Label() + ': ' + salesTable.SalesId;
+        displayLine2            = new DictField(tablenum(SalesTable), fieldnum(SalesTable, SalesName)).label() + ': ' + salesTable.SalesName;
+        displayLine4            = new DictField(tablenum(SalesTable), fieldnum(SalesTable, DeliveryDate)).label() + ': ' + strfmt('%1',salesTable.DeliveryDate);
+        displayLine3			= new DictField(tablenum(SalesTable), fieldnum(SalesTable, ProjId)).Label() + ': ' + salesTable.ProjId;
+        displayLine5			= new DictField(tablenum(SalesTable), fieldnum(SalesTable, SalesType)).Label() + ': ' + strFmt('%1',salesTable.SalesType);
+        headerLabel1            = new DictField(tablenum(SalesTable), fieldnum(SalesTable, SalesId)).Label();
+        headerLabel2            = new DictField(tablenum(SalesTable), fieldnum(SalesTable, ProjId)).label();
+        headerValue1            = salesTable.SalesId;
+        headerValue2            = salesTable.ProjId;
+        sorting                 = strKeep(date2Str(salesTable.DeliveryDate,321,2,0,2,0,2),'1234567890');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,1050 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMInventDimHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMInventDimHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>GetInventDimCollectors</Name>
+				<Source><![CDATA[
+    public static Map GetInventDimCollectors(int _addStart, TFMInventDimSetup _inventDimSetup, InventDimParm _inventDimParm, Map _replaceLabels = null, Map _onlineValidationDocuments = null, InventDim _defaultValues = null, boolean _lockValues = false)
+    {
+        Map									returnMap = new Map(Types::String, Types::Class);
+        InventDimGroupSetup					inventDimGroupSetup = InventDimGroupSetup::newInventTable(_inventDimSetup.parmInventTable());
+        SysDictType							dictType;
+        SysDictField						sdf;
+        FieldName							fieldName;
+        int									add = _addStart;
+        str									labelForField;
+        Set									storDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, StorageDimensions));
+        Set									prodDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, ProductDimensions));
+        Set									tracDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, TrackingDimensions));
+        SetEnumerator						sEnum = storDims.getEnumerator();
+        TFMRegistrationCollectorList		regCollectorList;
+        Map									collectorMap;
+
+        _inventDimParm.InventStatusFlag = NoYes::No; // Never prompt for Status
+        if (_inventDimSetup.registerWMSPallet())
+        {
+            _inventDimParm.WMSLocationIdFlag = NoYes::No; // Never prompt for Location if using Pallet/LP
+        }
+        while (sEnum.moveNext())
+        {
+            fieldName = sEnum.current();
+            if (!EcoResStorageDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getStorageDimensionGroup(),fieldName2Id(tableNum(InventDim),sEnum.current())).IsActive)
+            {
+                continue;
+            }
+            
+            if (!_inventDimParm.(InventDim::dim2dimParm(fieldName2Id(tableNum(InventDim),sEnum.current()))))
+            {
+                continue;
+            }
+            sdf = new SysDictField(tableNum(InventDim), fieldName2Id(tableNum(InventDim),sEnum.current()));
+            add+=10;
+            dictType = new SysDictType(sdf.typeId());
+            labelForField = dictType.label();
+            if (_replaceLabels != null && _replaceLabels.exists(sdf.name()))
+            {
+                labelForField = _replaceLabels.lookup(sdf.name());
+            }
+
+			
+            if (fieldName == fieldStr(InventDim,InventLocationId))
+            {                
+				regCollectorList = new TFMRegistrationCollectorList(5,TFMConstants::Warehouse(),"@SYS6437","@SYS6437","@SYS6437"); //TFMRegistrationCollector::collectorFromEDT(extendedtypestr(InventLocationId));
+        
+				regCollectorList.parmDataTable(methodStr(TFMGetReferenceData,WarehouseFilterList));
+				regCollectorList.parmDataKeyColumn(extendedtypestr(InventLocationId));
+				regCollectorList.parmDataDisplayColumn(extendedtypestr(Name));
+                collectorMap = regCollectorList.getMap();
+            }
+            else if (fieldName == fieldStr(InventDim,LicensePlateId))
+            {
+                collectorMap = TFMRegistrationCollectorText::TextStepMap(false,add,strLwr(sdf.name()),labelForField,labelForField,dictType.help(),dictType.stringLen(),false,'',TFMInventDimHelper::inventDimField2GS1(sdf.name()));
+                if (!TFMInventDimSetup::Construct(_inventDimSetup.parmInventTable()).registerLicensePlate())
+                {
+                    continue; 
+                }
+                
+            }
+			else
+            {
+                collectorMap = TFMRegistrationCollectorText::TextStepMap(false,add,strLwr(sdf.name()),labelForField,labelForField,dictType.help(),dictType.stringLen(),false,'',TFMInventDimHelper::inventDimField2GS1(sdf.name()));
+            }
+            if (_onlineValidationDocuments != null && _onlineValidationDocuments.exists(sdf.name()))
+            {
+                collectorMap.insert('onlineValidationDocument',_onlineValidationDocuments.lookup(sdf.name()));
+            }
+            if (_defaultValues != null && _defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())))
+            {
+                collectorMap.insert('defaultValue',_defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())));
+                if (_lockValues)
+                {
+                    collectorMap.insert('validationValues',_defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())));
+                }
+            }
+            returnMap.insert(sdf.name(),collectorMap);
+			
+        }
+
+        sEnum = prodDims.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            fieldName = sEnum.current();
+            if (!EcoResProductDimGroupSetup::newItemId(_inventDimSetup.parmInventTable().ItemId).getFieldSetup(fieldName2Id(tableNum(InventDim),sEnum.current())).isActive())
+            {
+                continue;
+            }
+            if (!_inventDimParm.(fieldName2Id(tableNum(InventDimParm),TFMInventDimHelper::flagFieldName(fieldName))))
+            {
+                continue;
+            }
+            sdf = new SysDictField(tableNum(InventDim), fieldName2Id(tableNum(InventDim),sEnum.current()));
+            add+=10;
+            dictType = new SysDictType(sdf.typeId());
+            labelForField = dictType.label();
+            if (_replaceLabels != null && _replaceLabels.exists(sdf.name()))
+            {
+                labelForField = _replaceLabels.lookup(sdf.name());
+            }
+            collectorMap = TFMRegistrationCollectorList::ListStepMap(false,add, strlwr(sdf.name()) ,labelForField,labelForField,dictType.help(),TFMInventDimHelper::getProductDimensionValues(_inventDimSetup.parminventTable().Product,sEnum.current()),false,'',';',TFMInventDimHelper::inventDimField2GS1(sdf.name()));
+            if (_onlineValidationDocuments != null && _onlineValidationDocuments.exists(sdf.name()))
+            {
+                collectorMap.insert('onlineValidationDocument',_onlineValidationDocuments.lookup(sdf.name()));
+            }
+            if (_defaultValues != null && _defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())))
+            {
+                collectorMap.insert('defaultValue',_defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())));
+                if (_lockValues)
+                {
+                    collectorMap.insert('validationValues',_defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())));
+                }
+            }
+			returnMap.insert(sdf.name(),collectorMap);
+
+        }
+        sEnum = tracDims.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            fieldName = sEnum.current();
+            if (!EcoResTrackingDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getTrackingDimensionGroup(), fieldName2Id(tableNum(InventDim),sEnum.current())).isActive)
+            {
+                continue;
+            }
+            if (!_inventDimParm.(fieldName2Id(tableNum(InventDimParm),TFMInventDimHelper::flagFieldName(fieldName))))
+            {
+                continue;
+            }
+            sdf = new SysDictField(tableNum(InventDim), fieldName2Id(tableNum(InventDim),sEnum.current()));
+            add+=10;
+            dictType = new SysDictType(sdf.typeId());
+            labelForField = dictType.label();
+            if (_replaceLabels != null && _replaceLabels.exists(sdf.name()))
+            {
+                labelForField = _replaceLabels.lookup(sdf.name());
+            }
+            collectorMap = TFMRegistrationCollectorText::TextStepMap(false,add,strLwr(sdf.name()),labelForField,labelForField,dictType.help(),dictType.stringLen(),false,'',TFMInventDimHelper::inventDimField2GS1(sdf.name()));
+            if (_onlineValidationDocuments != null && _onlineValidationDocuments.exists(sdf.name()))
+            {
+                collectorMap.insert('onlineValidationDocument',_onlineValidationDocuments.lookup(sdf.name()));
+            }
+            if (_defaultValues != null && _defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())))
+            {
+                collectorMap.insert('defaultValue',_defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())));
+                if (_lockValues)
+                {
+                    collectorMap.insert('validationValues',_defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())));
+                }
+            }
+			returnMap.insert(sdf.name(),collectorMap);
+        }
+    
+        if ((_inventDimParm.(fieldName2id(tableNum(InventDimParm),fieldStr(InventDimParm, inventSerialIdFlag))) && !returnMap.exists(fieldStr(InventDim, inventSerialId)))/* ||
+            (_inventDimParm.(fieldName2id(tableNum(InventDimParm),fieldStr(InventDimParm, inventSerialIdFlag))))*/)
+        {
+            // If serial numbers are not used we ask for a quantity (for serial numbers the quantity is always 1)
+            add+=10;
+            dictType = new SysDictType(extendedTypeNum(Qty));
+            collectorMap = TFMRegistrationCollectorDecimal::DecimalStepMap(add,TFMConstants::Quantity(),"@SYS130676",dictType.label(),'',false,'',0,10000000,14,TFMGS1Table::AIsfromName(TFMConstants::Quantity()));
+            if (_onlineValidationDocuments != null && _onlineValidationDocuments.exists(TFMConstants::Quantity()))
+            {
+                collectorMap.insert('onlineValidationDocument',_onlineValidationDocuments.lookup(TFMConstants::Quantity()));
+            }
+            returnMap.insert(TFMConstants::Quantity(),collectorMap);
+        }
+
+        
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getStorageDimensions</Name>
+				<Source><![CDATA[
+    public static Map getStorageDimensions(ItemId _itemId, InventDim _inventDim) 
+    {
+        Map					returnMap = new Map(Types::String,Types::String);
+        InventDimGroupSetup	inventDimGroupSetup = InventDimGroupSetup::newInventTable(InventTable::find(_itemId));
+        FieldName			fieldName;
+        Set					storDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, StorageDimensions));
+        SetEnumerator		sEnum = storDims.getEnumerator();
+        SysDictField		sdf;
+        SysDictType			dictType;
+        str					labelForField;
+		while (sEnum.moveNext())
+        {
+
+            fieldName = sEnum.current();
+
+            if (!EcoResStorageDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getStorageDimensionGroup(),fieldName2Id(tableNum(InventDim),sEnum.current())).IsActive)
+            {
+                continue;
+            }
+            sdf = new SysDictField(tableNum(InventDim), fieldName2Id(tableNum(InventDim),sEnum.current()));
+            
+            dictType = new SysDictType(sdf.typeId());
+            labelForField = dictType.label();
+            
+            returnMap.insert(labelForField,strFmt('%1',_inventDim.(fieldName2Id(tableNum(InventDim),fieldName))));
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isStorageDimensionForWMSLocationNotActive</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns true if the storage dimension for the WMSLocationID is set to not active.
+    /// </summary>
+    /// <param name = "_itemId">The itemId to find the InventDimGroupSetup from</param>
+    /// <returns>true if the storage dimension for the WMSLocationID is not active.</returns>
+    public static boolean isStorageDimensionForWMSLocationNotActive(ItemId _itemId)
+    {
+        EcoResStorageDimensionGroupFldSetup wmsLocationIdSetup;
+        InventDimGroupSetup	inventDimGroupSetup = InventDimGroupSetup::newInventTable(InventTable::find(_itemId));
+        wmsLocationIdSetup = EcoResStorageDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getStorageDimensionGroup(),fieldName2Id(tableNum(InventDim), extendedTypeStr(wMSLocationId)));
+
+        if(!wmsLocationIdSetup || wmsLocationIdSetup.IsActive)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTrackingDimensions</Name>
+				<Source><![CDATA[
+    public static Map getTrackingDimensions(ItemId _itemId, InventDim _inventDim)
+    {
+        Map					returnMap = new Map(Types::String,Types::String);
+        InventDimGroupSetup	inventDimGroupSetup = InventDimGroupSetup::newInventTable(InventTable::find(_itemId));
+        FieldName			fieldName;
+        Set					tracDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, TrackingDimensions));
+        SetEnumerator		sEnum = tracDims.getEnumerator();
+        SysDictField		sdf;
+        SysDictType			dictType;
+        str					labelForField;
+        while (sEnum.moveNext())
+        {
+            fieldName = sEnum.current();
+			if (!EcoResTrackingDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getTrackingDimensionGroup(), fieldName2Id(tableNum(InventDim),sEnum.current())).isActive)
+            {
+                continue;
+            }
+            sdf = new SysDictField(tableNum(InventDim), fieldName2Id(tableNum(InventDim),sEnum.current()));
+            
+            dictType = new SysDictType(sdf.typeId());
+            labelForField = dictType.label();
+            
+            returnMap.insert(labelForField,strFmt('%1',_inventDim.(fieldName2Id(tableNum(InventDim),fieldName))));
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProductDimensions</Name>
+				<Source><![CDATA[
+    public static Map getProductDimensions(ItemId _itemId, InventDim _inventDim)
+    {
+        Map					returnMap = new Map(Types::String,Types::String);
+        
+        FieldName			fieldName;
+        Set					prodDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, ProductDimensions));
+        SetEnumerator		sEnum = prodDims.getEnumerator();
+        SysDictField		sdf;
+        SysDictType			dictType;
+        str					labelForField;
+        while (sEnum.moveNext())
+        {
+            fieldName = sEnum.current();
+            if (!EcoResProductDimGroupSetup::newItemId(_itemId).getFieldSetup(fieldName2Id(tableNum(InventDim),sEnum.current())).isActive())
+            {
+                continue;
+            }
+            sdf = new SysDictField(tableNum(InventDim), fieldName2Id(tableNum(InventDim),sEnum.current()));
+            
+            dictType = new SysDictType(sdf.typeId());
+            labelForField = dictType.label();
+            
+            returnMap.insert(labelForField,strFmt('%1',_inventDim.(fieldName2Id(tableNum(InventDim),fieldName))));
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetInventDimFromLicensePlate</Name>
+				<Source><![CDATA[
+    public static InventDim GetInventDimFromLicensePlate(WHSLicensePlateId _licensePlate)
+    {
+        InventTrans iTrs;
+        InventDim   iDim;
+        InventSum   iSum;
+
+        select firstonly isum
+            join iDim where iDim.inventDimId == isum.InventDimId
+            &&   iDim.LicensePlateId == _licensePlate && isum.PhysicalInvent;
+        if (iDim)
+        {
+            return iDim;
+        }
+
+
+        select firstonly iTrs order by DatePhysical desc where iTrs.StatusReceipt != StatusReceipt::None
+            join iDim where iDim.LicensePlateId == _licensePlate && iDim.inventDimId == iTrs.inventDimId;
+
+        return iDim  ? iDim : null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>WmsLocationIdFromLicensePlate</Name>
+				<Source><![CDATA[
+    public static WMSLocation WmsLocationIdFromLicensePlate(WHSLicensePlateId _licensePlate)
+    {
+        InventDim inventDim = TFMInventDimHelper::GetInventDimFromLicensePlate(_licensePlate);
+        if(inventDim && inventDim.RecId)
+        {
+            return inventDim.wmsLocation();
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>flagFieldName</Name>
+				<Source><![CDATA[
+    public static str flagFieldName(FieldName _inventDimFieldName)
+    {
+        //FieldName   fieldNameFlag;
+        int         ruPos = strScan(_inventDimFieldName,'_RU',1,strLen(_inventDimFieldName));
+        if (!ruPos)
+        {
+            return _inventDimFieldName + 'Flag';
+        }
+        return subStr(_inventDimFieldName,1,strLen(_inventDimFieldName)-3) + 'Flag_RU';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>inventDimField2GS1</Name>
+				<Source><![CDATA[
+    public static str inventDimField2GS1(FieldName _inventDimFieldName)
+    {
+        str result = '';
+        result = TFMGS1Table::AIsfromField(new SysDictField(tableNum(InventDim),fieldName2Id(tableNum(InventDim),_inventDimFieldName)));
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProductDimensionValues</Name>
+				<Source><![CDATA[
+    public static str getProductDimensionValues(RefRecId _product, FieldName _fieldName)
+    {
+        str                             resultValues;
+        ecoResProductVariantDimValue    ecoResProductVariantDimValue;
+        List                            values;
+        ListEnumerator                  enumerator;
+        //Common                          prodDimTable;
+    
+        ecoResProductVariantDimValue = EcoResProductVariantDimValue::newEcoResProductVariantDimValue(fieldName2Id(tableNum(InventDim),_fieldName));
+        values = ecoResProductVariantDimValue.getDimValues(_product);
+        enumerator = values.getEnumerator();
+    
+        // Generate the list of valid values for this item
+        while (enumerator.moveNext())
+        {
+            
+            resultValues += (resultValues ? ';' : '') + enumerator.current();
+        }
+    
+        return resultValues;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>locationMismatch</Name>
+				<Source><![CDATA[
+    public static void locationMismatch(InventDim _inventDim, InventTransId _inventTransID = '')
+    {
+        InventTrans iTrs;
+        InventTransOrigin iOrigin;
+        if (!_inventDim.LicensePlateId)
+        {
+            //Don't correct for non-licenseplate orders.
+            return;
+        }
+        select firstonly iTrs order by RecId desc where iTrs.inventDimId
+            join iOrigin where iTrs.InventTransOrigin == iOrigin.recId && iOrigin.InventTransId == _inventTransID;
+
+        if(iOrigin.ReferenceCategory == InventTransType::TransferOrderReceive)
+        {
+            _inventDim.InventLocationId = iTrs.inventLocationId();            
+            _inventDim.wMSLocationId = InventLocation::find(_inventDim.InventLocationId).WMSLocationIdDefaultReceipt;
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LpContentHtml</Name>
+				<Source><![CDATA[
+    public static str LpContentHtml(WHSLicensePlateId _licensePlate)
+    {
+        Set				lpContent = TFMInventDimHelper::LicensePlateDetailedContent(_licensePlate);
+        SetEnumerator	sEnum = lpContent.getEnumerator();
+		str				html;
+        str				imgBase64;
+        //Set				itemImg;
+        InventSum		iSum;
+        html = '<html><body>'+strFmt("@TFM:Licenseplatehasfollowingcontent",_licensePlate)+'<table style="width:100%">';
+		while (sEnum.moveNext())
+        {
+            html += '<tr><td style="width:30%"><img width="95%" src="data:image/png;base64, ';
+            iSum = sEnum.current();
+            imgBase64 = TFMHelper::imageIDFromDocuref(TFMHelper::FindItemDocuref(iSum.itemId,iSum.InventDimId));
+            imgBase64 = TFMDocGetMedia::getBase64FromName(imgBase64);
+            html += imgBase64+'" /></td><td><b>'+iSum.ItemId + '</b><br><i>' +iSum.itemName()+'</i><br><u>'+ strFmt('%1 %2',iSum.PhysicalInvent,iSum.inventTable().inventUnitId()) + '</u></td></tr>';
+        }
+        html += '</table></body></html>';
+        return html;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LicensePlateDetailedContent</Name>
+				<Source><![CDATA[
+    public static Set LicensePlateDetailedContent(WHSLicensePlateId _LicensePlate)
+    {
+        InventSum       iSum;
+        InventDim       InventDim;
+        Set             items = new Set(Types::Record);
+        
+        while select InventDim
+            where InventDim.LicensePlateId == _LicensePlate
+        join iSum
+            where iSum.InventDimId     == InventDim.InventDimId    &&
+                  iSum.Closed          == NoYes::No && iSum.PhysicalInvent
+        {
+            items.add(iSum);
+            
+        }
+		return items;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LicensePlateContent</Name>
+				<Source><![CDATA[
+    public static Map LicensePlateContent(WHSLicensePlateId _LicensePlate)
+    {
+        InventSum       iSum;
+        InventDim       InventDim;
+        Map             itemIDs = new Map(Types::String,Types::Real);
+        
+        while select InventDim
+            where InventDim.LicensePlateId == _LicensePlate
+        join iSum
+            where iSum.InventDimId     == InventDim.InventDimId    &&
+                  iSum.Closed          == NoYes::No && iSum.PhysicalInvent
+        {
+            itemIDs.insert(iSum.ItemId, (itemIDs.exists(iSum.ItemId) ? itemIDs.lookup(iSum.ItemId) : 0) + iSum.PhysicalInvent);            
+        }
+        return itemIDs;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventDim</Name>
+				<Source><![CDATA[
+    public static InventDim getInventDim(InventDim _iDim,
+                                        ItemId _itemid,
+                                        TFMRequestInventDimElement _request, str _prefix = '')
+    {
+        //* iDim can be initialized with values - prior to call.
+        #tfm
+        InventTable         inventTable = InventTable::find(_ItemId);        
+        TFMInventDimSetup   tfmInventDimSetup;
+        SysDictClass        dc = new SysDictClass(classIdGet(_request));
+        FieldName           fieldName;
+        InventDim           inventDim = _iDim;
+        Set                 storDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, StorageDimensions));
+        Set                 prodDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, ProductDimensions));
+        Set                 tracDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, TrackingDimensions));
+        InventDimGroupSetup inventDimGroupSetup = InventDimGroupSetup::newInventTable(inventTable);
+        tfmInventDimSetup = TFMInventDimSetup::Construct(inventTable);
+        SetEnumerator       sEnum = storDims.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            fieldName = sEnum.current();
+            if (!EcoResStorageDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getStorageDimensionGroup(),fieldName2Id(tableNum(InventDim),sEnum.current())).IsActive)
+            {
+                continue;
+            }            
+            if (_prefix && dc.hasObjectMethod('parm' + _prefix + sEnum.current())) 
+            {
+                inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())) = dc.callObject('parm'+ _prefix + sEnum.current(), _request);
+            }
+            if (!inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())) && dc.hasObjectMethod('parm' + sEnum.current()))
+            {
+                inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())) = dc.callObject('parm'+ sEnum.current(), _request);
+            }
+            if (! inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())) && _request.getFieldMap().exists(sEnum.current()))
+            {
+                inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())) = _request.getFieldValue(sEnum.current());
+            }
+            if (_prefix && !inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())) && _request.getFieldMap().exists(_prefix + sEnum.current()))
+            {
+                inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())) = _request.getFieldValue(_prefix + sEnum.current());
+			}
+        }
+        sEnum  = prodDims.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            fieldName = sEnum.current();
+            if (!EcoResProductDimGroupSetup::newItemId(_ItemId).getFieldSetup(fieldName2Id(tableNum(InventDim),sEnum.current())).isActive())
+            {
+                continue;
+            }
+            if (_prefix && dc.hasObjectMethod('parm' + _prefix + sEnum.current()))
+            {
+                inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())) = dc.callObject('parm'+ _prefix + sEnum.current(), _request);
+            }
+            else if (_prefix && _request.getFieldMap().exists(_prefix + sEnum.current()))
+            {
+                inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())) = _request.getFieldValue(_prefix + sEnum.current());
+            }
+            if (inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())))
+            {
+				//Already have a value
+                continue;
+            }
+
+            if (dc.hasObjectMethod('parm' + sEnum.current()))
+            {
+                inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())) = dc.callObject('parm' + sEnum.current(), _request);
+            }
+            else if (_request.getFieldMap().exists(sEnum.current()))
+            {
+                inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())) = _request.getFieldValue(sEnum.current());
+            }
+            
+        }
+        sEnum  = tracDims.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            fieldName = sEnum.current();
+            if (!EcoResTrackingDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getTrackingDimensionGroup(), fieldName2Id(tableNum(InventDim),sEnum.current())).isActive)
+            {
+                continue;
+            }
+            if (_prefix && dc.hasObjectMethod('parm' + _prefix + sEnum.current()))
+            {
+                inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())) = dc.callObject('parm'+ _prefix + sEnum.current(), _request);
+            }
+            if (_prefix && _request.getFieldMap().exists(_prefix + sEnum.current()))
+            {
+                inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())) = _request.getFieldValue(_prefix + sEnum.current());
+            }
+            else if (dc.hasObjectMethod('parm' + sEnum.current()))
+            {
+                inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())) = dc.callObject('parm' + sEnum.current(), _request);
+            }
+            else if (_request.getFieldMap().exists(sEnum.current()))
+            {
+                inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())) = _request.getFieldValue(sEnum.current());
+            }
+            
+        }
+
+        if (inventDim.InventLocationId)
+        {
+            // SiteId is extracted from Warehouse
+            inventDim.InventSiteId = InventLocation::find(inventDim.InventLocationId).InventSiteId;
+        }
+    
+        // Get the dimension setup for the item
+        
+        // Determine if a pallet id or location should be used
+        if (tfmInventDimSetup.registerWMSPallet() && !inventDim.LicensePlateId && inventDim.wMSLocationId)
+        {
+            // Make sure to set the correct from location on the journal line
+            // Lookup the current location for the pallet
+            // The value of the pallet / location is always stored in the #FromLocation element in the XML
+
+            // Set the values for the pallet and location (where the pallet is placed now)
+            inventDim.LicensePlateId   = _request.parmWMSLocationId();
+            if (!WHSLicensePlate::exist(inventDim.LicensePlateId))
+            {
+                WHSLicensePlate::createLicensePlate(inventDim.LicensePlateId);
+            }
+            inventDim.wMSLocationId    = TFMInventDimHelper::WmsLocationIdFromLicensePlate(inventDim.LicensePlateId).wMSLocationId;
+
+        }
+            
+        if (tfmInventDimSetup.registerWMSPallet() && !inventDim.wMSLocationId && inventDim.LicensePlateId)
+        {            
+            inventDim.wMSLocationId    = TFMInventDimHelper::WmsLocationIdFromLicensePlate(inventDim.LicensePlateId).wMSLocationId;
+        }
+
+        if (inventDim.LicensePlateId && !WHSLicensePlate::exist(inventDim.LicensePlateId))
+        {
+            WHSLicensePlate::createLicensePlate(inventDim.LicensePlateId);
+        }
+        return inventDim;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllEnabledDimensions</Name>
+				<Source><![CDATA[
+    public static InventDimParm getAllEnabledDimensions()
+    {
+        InventDimParm parm;
+        ListEnumerator enumerator  = InventDim::dimEnabledFieldList().getEnumerator();
+        parm.clear();
+        while (enumerator.moveNext())
+        {
+            FieldId dimFieldId = enumerator.current();
+            FieldId dimParmFieldId = InventDim::dim2dimParm(dimFieldId);
+            parm.(dimParmFieldId) = NoYes::Yes;
+        }
+
+        return parm;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllEnabledProductDimensions</Name>
+				<Source><![CDATA[
+    public static InventDimParm getAllEnabledProductDimensions()
+    {
+        InventDimParm parm;
+        ListEnumerator enumerator  = InventDim::dimProductDimensionEnabledFieldList().getEnumerator();
+        parm.clear();
+        while (enumerator.moveNext())
+        {
+            FieldId dimFieldId = enumerator.current();
+            FieldId dimParmFieldId = InventDim::dim2dimParm(dimFieldId);
+            parm.(dimParmFieldId) = NoYes::Yes;
+        }
+
+        return parm;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllEnabledStorageDimensions</Name>
+				<Source><![CDATA[
+    public static InventDimParm getAllEnabledStorageDimensions()
+    {
+        InventDimParm parm;
+        ListEnumerator enumerator  = InventDimMetaDataCache::dimStorageDimEnabledFieldList().getEnumerator();
+        parm.clear();
+        while (enumerator.moveNext())
+        {
+            FieldId dimFieldId = enumerator.current();
+            FieldId dimParmFieldId = InventDim::dim2dimParm(dimFieldId);
+            parm.(dimParmFieldId) = NoYes::Yes;
+        }
+
+        return parm;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllEnabledTrackingDimensions</Name>
+				<Source><![CDATA[
+    public static InventDimParm getAllEnabledTrackingDimensions()
+    {
+        InventDimParm parm;
+        ListEnumerator enumerator  = InventDimMetaDataCache::dimTrackingDimEnabledFieldList().getEnumerator();
+        parm.clear();
+        while (enumerator.moveNext())
+        {
+            FieldId dimFieldId = enumerator.current();
+            FieldId dimParmFieldId = InventDim::dim2dimParm(dimFieldId);
+            parm.(dimParmFieldId) = NoYes::Yes;
+        }
+
+        return parm;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>enabledInventDimCollectors</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectors enabledInventDimCollectors(ItemId _itemId = '', boolean _disableProdDim =false, boolean _disableStorDim = false, boolean _disableTracDim = false, Map _replaceLabels = null, Map _onlineValidationDocuments = null, InventDim _defaultValues = null, boolean _lockValues = false, str _itemIdStringForConditions = '{itemId}')
+    {
+        Map replaceLabels = new Map(Types::String, Types::String);
+        Map validationDocs = new Map(Types::String, Types::String);
+        SysDictType dictType;        
+        InventDimParm parm;
+        if (!_disableProdDim && !_disableStorDim && !_disableTracDim)
+        {
+            parm = TFMInventDimHelper::getAllEnabledDimensions();
+        }
+        else
+        {
+            parm = _disableProdDim ? parm  : TFMInventDimHelper::getAllEnabledProductDimensions();
+            parm = InventDimParm::orParms(parm, _disableStorDim ? parm  : TFMInventDimHelper::getAllEnabledStorageDimensions());
+            parm = InventDimParm::orParms(parm, _disableTracDim ? parm  : TFMInventDimHelper::getAllEnabledTrackingDimensions());
+        }
+        parm.InventSiteIdFlag = NoYes::No;
+        //parm.InventLocationIdFlag = NoYes::No;
+        return  TFMInventDimHelper::GetInventDimRegistationCollectors(20,parm,_itemId, _replaceLabels, _onlineValidationDocuments, _defaultValues, _lockValues, _itemIdStringForConditions);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExtractInventDim</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Extras the Invent Dim from the Xml Request noode and Item Id.
+    /// </summary>
+    public static void ExtractInventDim(InventDim _iDim,
+                                        ItemId _itemid,
+                                        XmlNode _requestDataNode)
+    {
+        TFMInventDimSetup                   MobInventDimSetup = TFMInventDimSetup::Construct(InventTable::find(_itemId));
+        Set									storDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, StorageDimensions));
+        Set									prodDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, ProductDimensions));
+        Set									tracDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, TrackingDimensions));
+        SetEnumerator						sEnum = storDims.getEnumerator();
+        FieldName                           fieldName;
+
+        while (sEnum.moveNext())
+        {
+            fieldName = sEnum.current();
+            if (_requestDataNode.getNamedElement( strLwr(fieldName) ) != null)
+            {
+                _iDim.(fieldName2Id(tableNum(InventDim),fieldName)) = _requestDataNode.getNamedElement( strLwr(fieldName) ).innerText();
+            }
+            else if (_requestDataNode.getNamedElement( fieldName ) != null)
+            {
+                _iDim.(fieldName2Id(tableNum(InventDim),fieldName)) = _requestDataNode.getNamedElement( fieldName ).innerText();
+            }
+        }
+        sEnum = prodDims.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            fieldName = sEnum.current();
+            if (_requestDataNode.getNamedElement( strLwr(fieldName) ) != null)
+            {
+                _iDim.(fieldName2Id(tableNum(InventDim),fieldName)) = _requestDataNode.getNamedElement( strLwr(fieldName) ).innerText();
+            }
+            else if (_requestDataNode.getNamedElement( fieldName ) != null)
+            {
+                _iDim.(fieldName2Id(tableNum(InventDim),fieldName)) = _requestDataNode.getNamedElement( fieldName ).innerText();
+            }
+        }
+        sEnum = tracDims.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            fieldName = sEnum.current();
+            if (_requestDataNode.getNamedElement( strLwr(fieldName) ) != null)
+            {
+                _iDim.(fieldName2Id(tableNum(InventDim),fieldName)) = _requestDataNode.getNamedElement( strLwr(fieldName) ).innerText();
+            }
+            else if (_requestDataNode.getNamedElement( fieldName ) != null)
+            {
+                _iDim.(fieldName2Id(tableNum(InventDim),fieldName)) = _requestDataNode.getNamedElement( fieldName ).innerText();
+            }
+        }
+    
+        if (!_iDim.wMSLocationId && _requestDataNode.getNamedElement( fieldStr(InventDim, wMSLocationId)) != null)
+        {
+
+            if (MobInventDimSetup.registerWMSLocation() && !_iDim.wMSLocationId)
+            {
+                _iDim.wMSLocationId    = _requestDataNode.getNamedElement( fieldStr(InventDim,wMSLocationId) ).text();
+            }
+        }
+
+        if (!_iDim.InventLocationId && _requestDataNode.getNamedElement( TFMConstants::Warehouse() ) != null)
+        {
+            _iDim.InventLocationId = _requestDataNode.getNamedElement( TFMConstants::Warehouse() ).text();
+        }
+        if (!_iDim.InventSiteId && _iDim.InventLocationId)
+        {
+            // SiteId is extracted from Warehouse
+            _iDim.InventSiteId = InventLocation::find(_iDim.InventLocationId).InventSiteId;
+        }
+    
+        if (_iDim.LicensePlateId && !WHSLicensePlate::exist(_iDim.LicensePlateId))
+        {
+            WHSLicensePlate::createLicensePlate(_iDim.LicensePlateId);
+        }
+        if (!_iDim.wMSLocationId && _iDim.LicensePlateId)
+        {
+            _iDim.wMSLocationId    = TFMInventDimHelper::WmsLocationIdFromLicensePlate(_iDim.LicensePlateId).wMSLocationId;
+        }
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetInventDimRegistationCollectors</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectors GetInventDimRegistationCollectors(int _addStart, InventDimParm _inventDimParm, ItemId _itemId = '', Map _replaceLabels = null, Map _onlineValidationDocuments = null, InventDim _defaultValues = null, boolean _lockValues = false, str _itemIdStringForConditions = '{itemId}')
+    {
+        TFMRegistrationCollectors           collectors = TFMRegistrationCollectors::Construct();
+        SysDictType							dictType;
+        SysDictField						sdf;
+        FieldName							fieldName;
+        int									add = _addStart;
+        str									labelForField;
+        Set									storDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, StorageDimensions));
+        Set									prodDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, ProductDimensions));
+        Set									tracDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, TrackingDimensions));
+        SetEnumerator						sEnum = storDims.getEnumerator();
+        TFMRegistrationCollectorList		regCollectorList;
+        TFMRegistrationCollector            collector;
+        TFMConditions                       conditions;
+        InventTable                         inventTable = InventTable::find(_itemId);
+        refRecId                            productid = inventTable.Product;
+        str                                 listValues;
+        TFMCondition                        conditionParent, conditionChild;
+        TFMInventDimSetup                   inventDimSetup;
+
+        _inventDimParm.InventStatusFlag = NoYes::No; // Never prompt for Status
+        /*if (_inventDimSetup.registerWMSPallet())
+        {
+            _inventDimParm.WMSLocationIdFlag = NoYes::No; // Never prompt for Location if using Pallet/LP
+        }*/
+        while (sEnum.moveNext())
+        {
+            fieldName = sEnum.current();
+            
+            if (!_inventDimParm.(InventDim::dim2dimParm(fieldName2Id(tableNum(InventDim),sEnum.current()))))
+            {
+                continue;
+            }
+            sdf = new SysDictField(tableNum(InventDim), fieldName2Id(tableNum(InventDim),sEnum.current()));
+            add+=10;
+            dictType = new SysDictType(sdf.typeId());
+            labelForField = dictType.label();
+            if (_replaceLabels != null && _replaceLabels.exists(sdf.name()))
+            {
+                labelForField = _replaceLabels.lookup(sdf.name());
+            }
+
+   
+            if (fieldName == fieldStr(InventDim,InventLocationId))
+            {
+                regCollectorList = new TFMRegistrationCollectorList(5,strLwr(extendedTypeStr(InventLocationId)),"@SYS6437","@SYS6437","@SYS6437");
+        
+                regCollectorList.parmDataTable(methodStr(TFMGetReferenceData,WarehouseFilterList));
+                regCollectorList.parmDataKeyColumn(extendedtypestr(InventLocationId));
+                regCollectorList.parmDataDisplayColumn(extendedtypestr(Name));
+                collector = regCollectorList;
+            }
+            else if (fieldName == fieldStr(InventDim,LicensePlateId))
+            {
+                collector = TFMRegistrationCollectorText::TextStep(false,add,strLwr(sdf.name()),labelForField,labelForField,dictType.help(),dictType.stringLen(),false,'',TFMInventDimHelper::inventDimField2GS1(sdf.name()));
+                collector.parmOnlineValidator('LicensePlateValidation'); // This is a methodStr from the MobOnlineValidator. In the future this should be replaced.
+            }
+            else
+            {
+                collector = TFMRegistrationCollectorText::TextStep(false,add,strLwr(sdf.name()),labelForField,labelForField,dictType.help(),dictType.stringLen(),false,'',TFMInventDimHelper::inventDimField2GS1(sdf.name()));
+            }
+            if (_onlineValidationDocuments != null && _onlineValidationDocuments.exists(sdf.name()))
+            {
+                collector.setOnlineValidationDocument(_onlineValidationDocuments.lookup(sdf.name()));                
+            }
+            if (_defaultValues != null && _defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())))
+            {
+                collector.parmDefaultValue(_defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())));
+                if (_lockValues && SysTest::hasMethod(collector, methodStr(TFMRegistrationCollectorText, parmValidationValues)))
+                {
+                    new SysDictClass(classIdGet(collector)).callObject(methodStr(TFMRegistrationCollectorText, parmValidationValues),collector, _defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())));
+                }
+            }
+            conditions = TFMConditions::Construct();
+
+            //conditionParent = TFMCondition::ConstructOperator(classStr(TFMLogicContextAndGate));
+            //conditions.addCondition(conditionParent,methodStr(TFMRegistrationCollector,parmActive));
+
+            conditionChild = TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldName, _itemIdStringForConditions],'Active');
+            
+            conditions.addCondition(conditionChild,methodStr(TFMRegistrationCollector,parmActive));
+            if (fieldName == fieldStr(InventDim,WMSLocationId))
+            {
+                // Suppress WMSLocation if LicensePlate dim is active
+                conditionParent = TFMCondition::ConstructOperator(classStr(TFMLogicContextAndGate));
+                conditions.addCondition(conditionParent,methodStr(TFMRegistrationCollector,parmActive));
+                conditions.addLink(conditionChild, conditionParent,methodStr(TFMRegistrationCollector,parmActive));
+                conditionChild = TFMCondition::ConstructOperator(classStr(TFMLogicContextInverterOperator));
+                conditions.addCondition(conditionChild,methodStr(TFMRegistrationCollector,parmActive));
+                conditions.addLink(conditionChild, conditionParent,methodStr(TFMRegistrationCollector,parmActive));
+                conditionParent = TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldStr(InventDim, LicensePlateId), _itemIdStringForConditions],'Active');
+                conditions.addCondition(conditionParent,methodStr(TFMRegistrationCollector,parmActive));
+                conditions.addLink(conditionParent, conditionChild,methodStr(TFMRegistrationCollector,parmActive));
+            }
+            /*conditions.addLink(conditionChild,conditionParent, methodStr(TFMRegistrationCollector,parmActive));
+
+            conditionChild = TFMCondition::ConstructOperator(classStr(TFMLogicContextInverterOperator));
+            conditions.addCondition(conditionChild,methodStr(TFMRegistrationCollector,parmActive));
+            conditions.addLink(conditionChild,conditionParent, methodStr(TFMRegistrationCollector,parmActive));
+
+            conditionParent = TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldName],'AllowBlank');
+            conditions.addCondition(conditionParent,methodStr(TFMRegistrationCollector,parmActive));
+            conditions.addLink(conditionParent, conditionChild,methodStr(TFMRegistrationCollector,parmActive));*/
+            
+            conditions.addCondition(TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldName, _itemIdStringForConditions],'AllowBlank'),methodStr(TFMRegistrationCollector,parmOptional));
+            collector.parmConditions(conditions);
+            collector.addTableFieldOrigin(tableStr(InventDim), sEnum.current());
+            collectors.addCollector(collector);               
+        }
+
+        sEnum = prodDims.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            fieldName = sEnum.current();
+            listValues = '';
+            if (!_inventDimParm.(fieldName2Id(tableNum(InventDimParm),TFMInventDimHelper::flagFieldName(fieldName))))
+            {
+                continue;
+            }
+            sdf = new SysDictField(tableNum(InventDim), fieldName2Id(tableNum(InventDim),sEnum.current()));
+            add+=10;
+            dictType = new SysDictType(sdf.typeId());
+            labelForField = dictType.label();
+            if (_replaceLabels != null && _replaceLabels.exists(sdf.name()))
+            {
+                labelForField = _replaceLabels.lookup(sdf.name());
+            }
+            /*if (productid)
+            {
+                listValues = TFMInventDimHelper::getProductDimensionValues(productid,sEnum.current()); //TODO: Convert to condition object
+            }*/
+            collector = TFMRegistrationCollectorList::ListStep(false,add, strlwr(sdf.name()) ,labelForField,labelForField,dictType.help(),listValues,false,'',';',TFMInventDimHelper::inventDimField2GS1(sdf.name()));
+            if (_onlineValidationDocuments != null && _onlineValidationDocuments.exists(sdf.name()))
+            {
+                collector.setOnlineValidationDocument(_onlineValidationDocuments.lookup(sdf.name()));
+            }
+            if (_defaultValues != null && _defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())))
+            {
+                collector.parmDefaultValue(_defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())));
+            }
+            conditions = TFMConditions::Construct();
+            conditions.addCondition(TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldName, _itemIdStringForConditions],'active'),methodStr(TFMRegistrationCollector,parmActive) );
+            conditions.addCondition(TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldName, _itemIdStringForConditions],'AllowBlank'),methodStr(TFMRegistrationCollector,parmOptional) );
+            conditions.addCondition(TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldName, _itemIdStringForConditions],'ProductDimensionValues'),methodStr(TFMListValuesAndDataTable, parmListValues) );
+            conditions.addCondition(TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldName, _itemIdStringForConditions],'HasValueInContext'),methodStr(TFMRegistrationCollector, getSetAddAsAdditionalValue) );
+            conditions.addCondition(TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldName, _itemIdStringForConditions],'ValueFromContext'),methodStr(TFMRegistrationCollector, parmDefaultValue) );
+            collector.parmConditions(conditions);
+            
+            collector.addTableFieldOrigin(tableStr(InventDim), sEnum.current());
+            collectors.addCollector(collector);
+
+        }
+        sEnum = tracDims.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            fieldName = sEnum.current();
+
+            if (!_inventDimParm.(fieldName2Id(tableNum(InventDimParm),TFMInventDimHelper::flagFieldName(fieldName))))
+            {
+                continue;
+            }
+            sdf = new SysDictField(tableNum(InventDim), fieldName2Id(tableNum(InventDim),sEnum.current()));
+            add+=10;
+            dictType = new SysDictType(sdf.typeId());
+            labelForField = dictType.label();
+            if (_replaceLabels != null && _replaceLabels.exists(sdf.name()))
+            {
+                labelForField = _replaceLabels.lookup(sdf.name());
+            }
+            collector = TFMRegistrationCollectorText::TextStep(false,add,strLwr(sdf.name()),labelForField,labelForField,dictType.help(),dictType.stringLen(),false,'',TFMInventDimHelper::inventDimField2GS1(sdf.name()));
+            if (_onlineValidationDocuments != null && _onlineValidationDocuments.exists(sdf.name()))
+            {
+                collector.setOnlineValidationDocument(_onlineValidationDocuments.lookup(sdf.name()));
+            }
+            if (_defaultValues != null && _defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())))
+            {
+                collector.parmDefaultValue(_defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())));
+                if (_lockValues && SysTest::hasMethod(collector, methodStr(TFMRegistrationCollectorText, parmValidationValues)))
+                {
+                    new SysDictClass(classIdGet(collector)).callObject(methodStr(TFMRegistrationCollectorText, parmValidationValues),collector, _defaultValues.(fieldName2Id(tableNum(InventDim),sEnum.current())));
+                }
+            }
+            conditions = TFMConditions::Construct();
+            conditions.addCondition(TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldName, _itemIdStringForConditions],'active'),methodStr(TFMRegistrationCollector,parmActive) );
+            conditions.addCondition(TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldName, _itemIdStringForConditions],'AllowBlank'),methodStr(TFMRegistrationCollector,parmOptional) );
+            collector.parmConditions(conditions);
+            collector.addTableFieldOrigin(tableStr(InventDim), sEnum.current());
+            collectors.addCollector(collector);
+        }
+
+        return collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SerialNumberIsactiveInSalesOnly</Name>
+				<Source><![CDATA[
+    public static boolean SerialNumberIsactiveInSalesOnly(ItemId _itemId)
+    {
+        TFMInventDimSetup setup = TFMInventDimSetup::Construct(InventTable::find(_itemId));
+
+        return (setup.registerSerialNumberSales() && !setup.registerSerialNumber());
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

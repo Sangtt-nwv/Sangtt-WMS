@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicComponentInventoryJournalLicensePlates</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic Block component that handles data collection for license plates on inventory journals
+/// </summary>
+class MwmsLogicComponentInventoryJournalLicensePlates extends MwmsLogicComponentInventoryJournalId
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicComponentInventoryJournalLicensePlates Construct()
+    {
+        return new MwmsLogicComponentInventoryJournalLicensePlates();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        TFMReferenceDataConfiguration   ret = super();
+        TFMRegistrationCollectorText    lpCollector = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(WHSLicensePlateId));
+        lpCollector.parmOptional(false);
+        ret.addCollector(lpCollector);        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>provideDataIfPossible</Name>
+				<Source><![CDATA[
+    public Common provideDataIfPossible(Common _table)
+    {
+        Common ret;
+
+        ret = super(_table);
+
+        if (_table.TableId == tableNum(WHSLicensePlate))
+        {
+            ret = this.initLicensePlate(_table);
+        }
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initLicensePlate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initiates a License Plate buffer from the request object if none is passed, otherwise returns it
+    /// </summary>
+    /// <param name = "_lp">A License Plate Buffer</param>
+    /// <returns>A license plate buffer</returns>
+    protected WHSLicensePlate initLicensePlate(WHSLicensePlate _lp)
+    {
+        TFMRequestItemAndDimensionElement   docRequest = subComponents.getComponent(classStr(TFMLogicComponentDimensions)).componentRequest(request);
+        
+        if (!_lp.RecId)
+        {
+            //New record
+            return WhsLicensePlate::find(docRequest.parmWHSLicensePlateId(), true);
+        }
+        _lp.selectForUpdate(true);
+        
+        return _lp;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockAddCountLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic block containing business logic for adding a count line
+/// </summary>
+class MwmsLogicBlockAddCountLine extends MwmsLogicBlockCreateCountingJournalLine//MwmsLogicBlockJournalLinesCommon implements TFMLogicBlockDataCollectionInterface, TFMLogicBlockPrePostDataModifyInterface
+{
+    InventTable             inventTable;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicBlockAddCountLine Construct()
+    {
+        return new MwmsLogicBlockAddCountLine();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        this.parmCreateOrUpdate(AddUpdate::Add);
+        categories.add("@TaskletMobileWMS:Count");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        TFMRegistrationCollectors regCols = components.getCollectors();
+
+        regCols.removeCollector(TFMConstants::Quantity());
+        return regCols;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        refConf = components.getHeaders();        
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Name of the block Type.
+    /// </summary>
+    /// <returns>Name of the block</returns>
+    public Name blockName()
+    {
+        return "@MobileWMS:AddCountLine";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preparePost</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to set up tables to be used in the posting. Ensures that addons can be made, that can modify the data of the block before posting, when needed.
+    /// </summary>
+    public void preparePost()
+    {
+        this.getTables();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData                 response = TFMPostResponseData::Construct();
+        inventJournalTrans.inventMovement();
+        inventJournalTrans.Counted      = 0;
+        inventJournalTrans.Qty          = 0;
+        inventJournalTrans.InventOnHand = InventSumDatePhysicalDim::onHandQty(MobHelper::today(),inventJournalTrans.ItemId,InventDim::find(inventJournalTrans.InventDimId),InventDimParm::activeDimFlag(InventDimGroupSetup::newInventTable(request.parmInventTable())));
+        inventJournalTrans.inventMovement().journalSetCounted();
+        inventJournalTrans.MobRegisteredOnMobile = false;
+        inventJournalTrans.write();
+        inventJournalTable::initTotal(inventJournalTable);
+        inventJournalTable.write();
+        response.parmResponseText("@SYS80122");
+
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMStatePlus);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

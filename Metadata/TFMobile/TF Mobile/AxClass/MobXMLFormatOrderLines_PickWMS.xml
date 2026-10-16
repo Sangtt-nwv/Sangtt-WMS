@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_PickWMS</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for picking WMS order lines.
+/// </summary>
+[TFMTableNameAttribute(tableStr(WMSOrderTrans))]
+class MobXMLFormatOrderLines_PickWMS extends MobXMLFormatOrderLines_Pick
+{
+    WMSOrderTrans           orderTrans;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setInventDim</Name>
+				<Source><![CDATA[
+    protected void setInventDim(ItemId _itemId)
+    {
+        super(_itemId);
+        
+        if(!registerSerialNumber)
+        {
+            registerSerialNumber = TFMInventDimSetup::Construct(InventTable::find(_itemId),mainOrderType).registerSerialNumberSales();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+		MobDocPickOrder					pickDoc = new MobDocPickOrder();
+        MobConsolidatedPickingRouteId	consolidateId;
+        
+		super();
+    
+        orderTrans      = common;
+        inventDim       = orderTrans.inventDim();
+    
+        this.setInventDim(orderTrans.ItemId);
+		
+        consolidateId			= MobConsolidatedPickingRouteOrders::belongsTo(orderTrans.routeId);
+
+        orderBackendId          = MobOrder::constructFromTableName(tableStr(WMSPickingRoute)).getBackendID(WMSPickingRoute::find(orderTrans.routeId));//#PickWMSPickRouteOrderPrefix + orderTrans.routeId;
+		lineNumber              = int642str(orderTrans.RecId);
+        itemNumber              = orderTrans.ItemId;
+        description             = InventTable::find(orderTrans.itemId).productName(new xInfo().language());
+        unitOfMeasure           = InventTableModule::find(orderTrans.itemId,ModuleInventPurchSales::Invent).UnitId;
+       
+        quantity                = MobHelper::formatItemQty(orderTrans.qty,unitOfMeasure);
+        registeredQuantity      = MobConstants::NotUsed0();
+        status                  = MobConstants::NotUsed0();
+        displayLine1            = orderTrans.ItemId;
+        displayLine2            = InventTable::find(orderTrans.itemId).productName(new xInfo().language());
+        displayLine3            = inventDim.wMSLocationId;
+
+
+        if (consolidateId)
+        {
+            orderBackendId      = strReplace(orderBackendId,orderTrans.routeId, consolidateId);
+            displayLine4		= new DictField(tablenum(WMSPickingRoute), fieldnum(WMSPickingRoute, customer)).Label() + ': ' + orderTrans.wmsPickingRoute().customer;
+            displayLine5		= new DictField(tablenum(WMSPickingRoute), fieldnum(WMSPickingRoute, PickingRouteId)).Label() + ': ' + orderTrans.routeId;
+            //fieldsToAdd.insert('Destination', orderTrans.customer);
+        }
+        pickDoc.fillInParms();
+        if (pickDoc.parmUseTotePicking())
+        {
+            fieldsToAdd.insert('Destination', MobDocPackingItems::getGroupFieldValue(orderTrans));
+        }
+
+        if ( MobPackingStation::FindByLocation(inventDim.InventLocationId, inventDim.wMSLocationId))
+        {            
+            FieldsToAdd.insert(TFMConstants::ValidateFromBin(), TFMConstants::False()); //Don't prompt for location if on packing station
+            //fromBin             = MobConstants::NotUsed();
+        }
+
+        this.addMenuItemsConfigurationIfExists(MobConstants::CancelPickLine(),-1,true);
+        
+        underDeliveryValidation = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),SalesParameters::find().SubDelivery ? (SalesLine::findInventTransId(orderTrans.inventTransId).underDeliveryPct > 0 ?  TFMUnderDeliveryValidation::None : TFMUnderDeliveryValidation::Block ) : TFMUnderDeliveryValidation::Block); //Must be able to handle partial receipt
+        overDeliveryValidation  = MobHelper::enumName(enumnum(TFMOverDeliveryValidation),SalesParameters::find().OverDelivery ? (SalesLine::findInventTransId(orderTrans.inventTransId).overDeliveryPct > 0 ?  TFMOverDeliveryValidation::None : TFMOverDeliveryValidation::Block ) : TFMOverDeliveryValidation::Block); //Must be able to handle partial receipt
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

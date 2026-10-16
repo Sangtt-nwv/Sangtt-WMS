@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_PickWMS</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for pick WMS orders.
+/// </summary>
+[TFMTableNameAttribute(tableStr(WMSPickingRoute))]
+class MobXMLFormatOrders_PickWMS extends MobXMLFormatOrders_Pick
+{
+    WMSPickingRoute          wMSPickingRoute;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        InventTransferTable inventTransferTable;
+        
+    
+        wMSPickingRoute         = common;
+    
+        backendId          = MobOrder::constructFromTableName(tableStr(WMSPickingRoute)).getBackendID(Common);//#PickWMSPickRouteOrderPrefix + wMSPickingRoute.pickingRouteID;
+    
+        if (MobConsolidatedPickingRouteOrders::belongsTo(wMSPickingRoute.pickingRouteID))
+        {
+            backendId = strReplace(backendId,wMSPickingRoute.pickingRouteID, MobConsolidatedPickingRouteOrders::belongsTo(wMSPickingRoute.pickingRouteID));
+        }
+    
+
+    
+        if (wMSPickingRoute.transType == InventTransType::TransferOrderShip)
+        {
+            select firstonly inventTransferTable
+                where inventTransferTable.TransferId == wMSPickingRoute.transRefId;
+    
+            displayLine1            = strfmt('%1 > %2, %3',inventTransferTable.InventLocationIdFrom, inventTransferTable.InventLocationIdTo, inventTransferTable.ReceiveDate);
+        }
+        else if (MobConsolidatedPickingRouteOrders::Exists(wMSPickingRoute.pickingRouteID))
+        {
+            displayLine1            = "@SYS110110" + ': ' + MobConsolidatedPickingRouteOrders::belongsTo(wMSPickingRoute.pickingRouteID);
+            
+        }
+        else
+        {
+            displayLine1            = new DictField(tablenum(WMSPickingRoute), fieldnum(WMSPickingRoute, PickingRouteID)).Label() + ': ' + wMSPickingRoute.pickingRouteID;
+        }
+
+        if (wMSPickingRoute.transType != InventTransType::TransferOrderShip && (new MobDocPickOrder().parmUseTotePicking()))
+        {
+            fieldsToAdd.insert('TotePicking','true');
+        }
+        //displayLine2            = strfmt('%1: %2', new DictField(tablenum(WMSPickingRoute), fieldnum(WMSPickingRoute, pickingAreaId)).Label(), wMSpickingRoute.pickingAreaId);
+        displayLine2            = strfmt('%1: %2', enum2str(wMSPickingRoute.transType), wMSPickingRoute.transRefId);
+        displayLine3            = new DictField(tablenum(WMSPickingRoute), fieldnum(WMSPickingRoute, ActivationDateTime)).Label() + ': ' + strfmt('%1', DateTimeUtil::date(WMSPickingRoute.ActivationDateTime));
+        displayLine5            = new DictField(tablenum(SalesTable), fieldnum(SalesTable, SalesType)).label() + ': ' + (MobConsolidatedPickingRouteOrders::belongsTo(wMSPickingRoute.pickingRouteID) ? "@SYS110110" : strfmt('%1', SalesTable::find(wMSPickingRoute.transRefId).SalesType));
+        headerLabel1            = new DictField(tablenum(WMSPickingRoute), fieldnum(WMSPickingRoute, PickingRouteID)).Label();
+        headerLabel2            = substr(enum2str(wMSPickingRoute.transType), 1, 20);
+        headerValue1            = wMSPickingRoute.pickingRouteID;
+        headerValue2            = wMSPickingRoute.transRefId;
+
+        if (MobConsolidatedPickingRouteOrders::Exists(wMSPickingRoute.pickingRouteID))
+        {
+            headerLabel1 = "@SYS110110";
+            headerValue1 = MobConsolidatedPickingRouteOrders::belongsTo(wMSPickingRoute.pickingRouteID);
+            headerLabel2 = "@MobileWMS:SubLists";
+            headerValue2 = strFmt ( '%1', MobConsolidatedPickingRouteOrders::getRouteSiblings(wMSPickingRoute.pickingRouteID).elements());
+        }
+        sorting                 = strKeep(date2Str(DateTimeUtil::date(WMSPickingRoute.ActivationDateTime),321,2,0,2,0,2),'1234567890');
+
+        if (MenuItemsConf.exists('CartOverview') && MobCarts::FindByReference(wMSPickingRoute.pickingRouteID) )
+        {
+            MenuItemsConf.remove('CartOverview');
+        }
+        super();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

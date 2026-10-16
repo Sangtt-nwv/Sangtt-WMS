@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMAppInsightsDocumentTypeIdProperty</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMAppInsightsDocumentTypeIdProperty extends SysApplicationInsightsProperty
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>newFromValue</Name>
+				<Source><![CDATA[
+    static TFMAppInsightsDocumentTypeIdProperty newFromValue(str _documentType)
+    {
+        return new TFMAppInsightsDocumentTypeIdProperty(_documentType);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initialize</Name>
+				<Source><![CDATA[
+    protected container initialize()
+    {
+        return ['DocumentType', SysApplicationInsightsComplianceDatatype::SystemMetadata];
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

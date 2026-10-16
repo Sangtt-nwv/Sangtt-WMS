@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Business Events"
+  short_description: "Author D365FO outbound business events safely"
+  default_prompt: "Use $business-events-authoring to create or extend a D365FO business event."

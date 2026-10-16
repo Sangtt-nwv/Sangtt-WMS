@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListAttachments</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListIdAttribute('Attachments'), TFMListIdAttribute('attachments')]
+class TFMListAttachments extends TFMList
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+    public TFMListConfiguration getList()
+    {
+        TFMListConfiguration				listConfig	= TFMListConfiguration::Construct(listName);
+        TFMListRow							row			= listConfig.addRow();
+        TFMListColumn						column		= row.makeColumn(100);
+        
+        column.addElement(TFMListTextElement::ConstructTextElement('{DisplayLine1}',TFMFonts::FindOrCreateFromProperties('contentFontBold',TFMFontSizes::medium,true,false,'').id));
+        column.addElement(TFMListImageElement::ConstructImageElement('{imageId}','',100,0));
+        column.addElement(TFMListTextElement::ConstructTextElement('{DisplayLine2}',TFMFonts::FindOrCreateFromProperties('smallFont',TFMFontSizes::small,false,false,'').id));
+        return listConfig;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

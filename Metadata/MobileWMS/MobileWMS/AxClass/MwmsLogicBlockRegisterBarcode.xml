@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockRegisterBarcode</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic block containing everything needed to register a new barcode for an item
+/// </summary>
+class MwmsLogicBlockRegisterBarcode extends TFMLogicBlock implements TFMLogicBlockDataCollectionInterface, TFMLogicBlockPrePostDataModifyInterface
+{
+    InventTable         inventTable;
+    InventItemBarcode   inventItemBarcode;
+    InventDim           inventDim;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getInventTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventTable))]
+    public InventTable getInventTable()
+    {
+        return inventTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventItemBarcode</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventItemBarcode))]
+    public InventItemBarcode getInventItemBarcode()
+    {
+        return inventItemBarCode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventDim</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventDim))]
+    public InventDim getInventDim()
+    {
+        return inventDim;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicBlockRegisterBarcode Construct()
+    {
+        return new MwmsLogicBlockRegisterBarcode();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        TFMLogicComponentDimensions comp = new TFMLogicComponentDimensions();
+        super();
+        comp.parmDisableStorageDim(true);
+        comp.parmDisableTrackingDim(true);
+        components.addComponent(comp);
+        components.addComponent(new TFMLogicComponentQuantity());
+
+        categories.add("@SYS6437");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        TFMRegistrationCollectors       ret = components.getCollectors();
+        TFMRegistrationCollectorList    colList = new TFMRegistrationCollectorList(1,extendedTypeStr(BarcodeSetupId),"@DMF974","@DMF974",'');
+        TFMRegistrationCollectorText    barcodeCol = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(ItemBarCode));
+        TFMRegistrationCollectorList    unitOfMeasure = MwmsLogicBlockAddonInventoryUnit::makeUnitOfMeasureCollector();// new TFMRegistrationCollectorList(2,TFMConstants::UnitOfMeasure(),"@SYS40864","@SYS40864",''); //TFMHelper::getConvertibleUnitList(inventTable)
+        
+        unitOfMeasure.parmName(TFMConstants::UnitOfMeasure());
+        ret.addCollector(unitOfMeasure);
+        ret.addCollector(barcodeCol);
+        colList.parmDataTable(methodStr(MwmsLogicBlockRegisterBarcode, barcodeSetup));
+        ret.addCollector(colList);
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        refConf = components.getHeaders();
+
+        refConf.addEmbeddedDataList(methodStr(MwmsLogicBlockRegisterBarcode, barcodeSetup), this.barcodeSetup());
+
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>barcodeSetup</Name>
+				<Source><![CDATA[
+    protected TFMReferenceDataFilterList barcodeSetup()
+    {
+        return TFMReferenceDataFilterList::createFromTableName(tableStr(BarcodeSetup), fieldStr(BarcodeSetup,barcodeSetupId), fieldStr(BarcodeSetup, description));        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Name of the block Type.
+    /// </summary>
+    /// <returns>Name of the block</returns>
+    public Name blockName()
+    {
+        return "@MobileWMS:Registerbarcode";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preparePost</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to set up tables to be used in the posting. Ensures that addons can be made, that can modify the data of the block before posting, when needed.
+    /// </summary>
+    public void preparePost()
+    {
+        BarcodeSetupId                      barcodeSetupId;
+        UnitOfMeasureSymbol                 unit;
+        Qty                                 qty;        
+        BarCodeString                       itemBarcode;
+        InventDimCombination                inventDimCombination;
+        TFMRequestItemAndDimensionElement   barcodeRequest = request.convertToOtherRequestType(classStr(TFMRequestItemAndDimensionElement));
+        inventTable     = barcodeRequest.parmInventTable();
+        barcodeSetupId  = barcodeRequest.parmBarcodeSetupId();
+        itemBarcode     = barcodeRequest.getFieldValue(extendedTypeStr(ItemBarcode));
+    
+        inventItemBarCode.itemId = barcodeRequest.parmitemid();
+             
+        inventItemBarCode.Description = InventTable::find(inventItemBarCode.itemId).defaultProductName();
+        inventItemBarCode.UnitID = InventTable::find(inventItemBarCode.itemId).salesUnitId();
+        inventItemBarCode.BarcodeSetupId = RetailInventTable::find(inventItemBarCode.itemId).BarcodeSetupId;
+        inventItemBarCode.itemBarCode  = itemBarcode;
+        
+        qty = barcodeRequest.parmQuantity();
+        unit = barcodeRequest.parmUnitOfMeasure() ? barcodeRequest.parmUnitOfMeasure() :  inventTable.inventUnitId();
+        
+        inventItemBarCode.qty = qty;
+        inventItemBarCode.UnitID = unit;
+    
+        inventDim = barcodeRequest.createInventDim(inventDim);
+    
+        inventItemBarCode.inventDimId = inventDim.inventDimId;
+        inventItemBarCode.barcodeSetupId = barcodeSetupId;
+    
+        inventItemBarCode.useForInput = true;
+            
+        select firstonly RetailVariantId from inventDimCombination where inventDimCombination.ItemId == inventItemBarCode.itemId && inventDimCombination.InventDimId == inventDim.inventDimId;
+
+        inventItemBarCode.RetailVariantId = inventDimCombination.RetailVariantId;
+
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData result = TFMPostResponseData::Construct();
+        int                 lineBefore = Global::infologLine();
+        if(inventItemBarCode.validateWrite(true))
+        {
+            inventItemBarCode.write();
+            result.parmResponseText("@SYS11408");
+        }
+        else
+        {
+            result.parmResponseText(this.extractInfoLogInfo(lineBefore,Global::infologLine()));
+        }
+
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMRegisterBarcodeIcon);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>extractInfoLogInfo</Name>
+				<Source><![CDATA[
+    private str extractInfoLogInfo(int _fromLine, int _toLine)
+    {
+    
+        str result,temp;
+        
+        while(_fromLine <= _toLine)
+        {
+            temp = infolog.text(_fromLine);
+            temp = strRem(temp,'\t');
+            temp = strLTrim(temp);
+            result +=  temp;
+            if(result != '' && _fromLine != _toLine)
+            {
+                result += '\n';
+            }
+            _fromLine++;
+        }
+        return result;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

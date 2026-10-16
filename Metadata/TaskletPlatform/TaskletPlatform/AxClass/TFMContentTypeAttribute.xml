@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMContentTypeAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Attribute class used for indicating content-type
+/// </summary>
+public class TFMContentTypeAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    TFMDocumentContentSubject   contentType;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(TFMDocumentContentSubject _contentType)
+    {
+        super();
+ 
+        contentType = _contentType;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmContentType</Name>
+				<Source><![CDATA[
+    public TFMDocumentContentSubject parmContentType(TFMDocumentContentSubject _contentType = contentType)
+    {
+        contentType = _contentType;
+ 
+        return contentType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMContentTypeAttribute)+';'+contentType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

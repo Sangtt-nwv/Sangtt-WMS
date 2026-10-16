@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageAttributeAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMPageAttributeAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    str				name;
+    str				xPath;
+    anytype			defaultValue;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(str _name = '', str _xPath = '', anytype _defaultValue = null)
+    {
+        super();
+        defaultValue = _defaultValue;
+        name = _name;    
+        xPath=_xPath;    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmXPath</Name>
+				<Source><![CDATA[
+    public str parmXPath(str _xPath = xPath)
+    {
+        xPath = _xPath;
+ 
+        return xPath;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmName</Name>
+				<Source><![CDATA[
+    public str parmName(str _name = name)
+    {
+        name = _name;
+ 
+        return name;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMPageAttributeAttribute)+';'+name;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

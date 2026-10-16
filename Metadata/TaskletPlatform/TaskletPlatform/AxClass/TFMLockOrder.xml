@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLockOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Document handler for locking orders.
+/// </summary>
+public class TFMLockOrder extends TFMDocumentHandler
+{
+    TFMOrderTypes   type;
+    TFMBackendId    backendId;
+    Num             backendNum;
+    Str             backendType;
+    TFMOrderTypes   orderType;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>canBeEnqueued</Name>
+				<Source><![CDATA[
+    public boolean canBeEnqueued()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return TFMConstants::LockOrder();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    public Set getDocumentTypes()
+    {
+        Set retMap = super();
+        retMap.add(TFMConstants::LockOrder());
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentContentSubject</Name>
+				<Source><![CDATA[
+    public TFMDocumentContentSubject getDocumentContentSubject()
+    {
+        return strFmt('%1 %2 (%3)', type, backendNum, backendType);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public void process()
+    {
+        TFMLockedOrders                     TFMLockedOrders;
+        TFMPageDatasources                  ds;
+        TableName                           tblName;
+        SetEnumerator                       sEnum;
+        TFMDataSourceBlock                  dsb;
+        TFMDataSourceBlockLockOrderList     dsbOrderList;
+        TFMBackendIDInstance                backendInstance;
+        TFMDocumentDeviceId                 deviceId = request.parmdeviceID();
+        UserId                              currentUser = curUserId();
+        TFMLockingLevel                     lockingLevel = TFMLockingLevel::Both;
+        TFMPageID                           pageId = request.getFieldValue('type');            
+        backendId = request.getFieldValue(TFMConstants::backendID());
+        backendInstance = TFMBackendIDInstance::Construct(backendId);
+        backendNum = backendInstance.parmFieldValue();
+        tblName = backendInstance.parmTableName();
+        backendType = tblName;
+        orderType = backendInstance.parmType();
+        
+
+        select firstonly ds where ds.PageID == pageId && ds.TableName == tblName && (ds.OrderType == orderType || !orderType);
+
+        if (ds)
+        {
+            sEnum = ds.GetDataSourceBlocks(null).getEnumerator();
+            while (sEnum.movenext())
+            {
+                dsb = sEnum.current();
+                
+                if (classIdGet(dsb) == classNum(TFMDataSourceBlockLockOrderList))
+                {
+                    dsbOrderList = dsb;
+                    lockingLevel = dsbOrderList.parmLockingLevel();
+                    if (!lockingLevel)
+                    {
+                        resultStr = "@TFM:MEL9";
+                        return;
+                    }
+                    
+                }
+
+            }
+        }
+
+    
+        if (backendId)
+        {
+            
+            
+    
+            if (TFMLockedOrders::isOrderLocked(backendId, deviceId, lockingLevel))
+            {
+                TFMLockedOrders = TFMLockedOrders::Find(backendId,type);
+                throw error(strfmt("@TFM:MEL12", backendId, '', TFMLockedOrders.UserID));
+            }
+            else if (!TFMLockedOrders::exist(backendId,'',''))
+            {
+                try
+                {
+                    ttsBegin;
+                    TFMLockedOrders.BackendId  = backendId;
+                    TFMLockedOrders.UserID     = curuserid();
+                    TFMLockedOrders.DeviceId   = deviceId; 
+                    TFMLockedOrders.insert();
+                    ttscommit;
+                }
+                catch (Exception::Error)
+                {
+                    throw error(strfmt("@TFM:MEL13",backendId));
+                }
+                resultStr = "@TFM:MEL9";
+            }
+        }
+        else
+        {
+            throw error(strfmt("@TFM:MEL11", TFMConstants::BackendID(), TFMConstants::Type()));
+        }
+    
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

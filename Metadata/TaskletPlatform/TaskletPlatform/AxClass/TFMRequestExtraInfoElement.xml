@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestExtraInfoElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+#tfm
+[TFMDocumentType(staticMethodStr(TFMConstants,ExtraInfo))]
+class TFMRequestExtraInfoElement extends TFMRequestElement
+{
+    ReturnDispositionCodeId RMA_CauseId;
+    InventTransId			inventTransId;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmRMA_CauseId</Name>
+				<Source><![CDATA[
+    public ReturnDispositionCodeId parmRMA_CauseId(ReturnDispositionCodeId _RMA_CauseId  = RMA_CauseId)
+    {
+        RMA_CauseId = _RMA_CauseId;
+        return RMA_CauseId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCauseId</Name>
+				<Source><![CDATA[
+    public ReturnDispositionCodeId parmCauseId(ReturnDispositionCodeId _RMA_CauseId  = RMA_CauseId)
+    {
+        RMA_CauseId = _RMA_CauseId;
+        return RMA_CauseId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInventTransId</Name>
+				<Source><![CDATA[
+    public InventTransId parmInventTransId(InventTransId _inventTransId = inventTransId)
+    {
+        inventTransId = _inventTransId;
+        return inventTransId;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

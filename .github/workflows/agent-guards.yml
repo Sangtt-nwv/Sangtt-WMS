@@ -1,0 +1,39 @@
+# Guards for the agent skill corpus.
+#
+# Both checks are seconds long and need no D365FO environment - they read files only.
+# They exist because both failures they catch have already happened here:
+#
+#   1. A policy telling agents to hand-author AOT XML when the CLI is unavailable was
+#      copied into 65 files and survived a full manual remediation, because the guard
+#      meant to catch it swept 2 of the 5 directories agents actually read.
+#   2. Skill mirrors drifted until one topic had five different bodies and no way to
+#      tell which an agent would load.
+
+name: agent-guards
+
+on:
+  push:
+    paths:
+      - '.claude/**'
+      - '.agents/**'
+      - '.github/skills/**'
+      - '.codex/**'
+      - 'tools/**'
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  guards:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Mirrors match the source of truth
+        shell: pwsh
+        run: .\tools\sync-agent-skills.ps1 -Check
+
+      - name: No unsafe fallback policy, no broken skills
+        shell: pwsh
+        run: .\tools\check-skill-sync.ps1

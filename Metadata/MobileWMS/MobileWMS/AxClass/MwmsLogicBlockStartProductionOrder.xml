@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockStartProductionOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MwmsLogicBlockStartProductionOrder extends TFMLogicBlock implements TFMLogicBlockDataCollectionInterface
+{
+    ProdTable           prodTable;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getProdTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(ProdTable))]
+    public ProdTable getProdTable()
+    {
+        return prodTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        str ret;
+
+        ret = methodStr(MwmsImageHandlerCombinedImages, productionStart);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        return "Start Production Order";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        TFMReferenceDataConfiguration headerconf = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorText prodIdCollector = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(ProdId));
+        prodIdCollector.parmOptional(false);
+        headerconf.addCollector(prodIdCollector);
+        return headerconf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method gives you the registration collectors for this data collection block.
+    /// </summary>
+    /// <returns>A collection of registration collectors.</returns>
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        TFMRegistrationCollectors cols = TFMRegistrationCollectors::Construct();
+        TFMRegistrationCollectorDecimal qtyCollector = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(Qty));
+
+        cols.addCollector(qtyCollector);
+
+        return cols;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method is called before the post method, and gives the option to add extra registration collectors for the user to be prompted for before the post method is executed.
+    /// </summary>
+    /// <returns>Returns a TFMRegistrationCollectors object if the user must be further prompted, otherwise it returns null</returns>
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method executed when all data has been collected, and contains the posting logic.
+    /// </summary>
+    /// <returns>A TFMPostResponseData object.</returns>
+    public TFMPostResponseData post()
+    {
+        
+        ProdMultiStartUp    prodMultiStartUp;
+        ProdParmStartUp     prodParmStartUpUpd;
+        ProdParmStartUp     prodParmStartUp;
+        TFMPostResponseData response = TFMPostResponseData::Construct();
+        ProdId              prodId = request.getFieldValue(extendedTypeStr(ProdId));
+        Qty                 qty = str2Num(request.getFieldValue(extendedTypeStr(Qty)));
+
+        prodTable = ProdTable::find(prodId);
+
+        if (prodTable)
+        {
+            ttsbegin;            
+            prodMultiStartUp = ProdMultiStartUp::construct(new Args());
+            RunBaseMultiParm::initParm(prodMultiStartUp);
+
+            prodParmStartUp= prodMultiStartUp.defaultParmBuffer();
+
+            prodMultiStartUp.insert(prodTable, prodParmStartUp);
+
+            // Overwrite parameters using hardcoded settings
+            prodParmStartUpUpd = ProdParmStartUp::find(prodParmStartUp.ParmId, prodParmStartUp.ProdId, true);
+            prodParmStartUpUpd.StartUpQty       = qty;
+            prodParmStartUpUpd.RouteAutoConsump = RouteAutoConsump::Never;
+            prodParmStartUpUpd.bomAutoConsump   = BOMAutoConsump::Never;
+            prodParmStartUpUpd.update();
+
+            prodMultiStartUp.run();
+            ttscommit;
+        
+            response.parmResponseText(strFmt("Production order %1 has been started.", prodId));
+        }
+        else
+        {
+            throw error(strFmt("Production order %1 not found.", prodId));
+        }
+        return response;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

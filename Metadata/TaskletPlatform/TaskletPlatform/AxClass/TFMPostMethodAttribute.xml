@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPostMethodAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Attribute class, that indicates that a method is a posting method for a given flow.
+/// </summary>
+public class TFMPostMethodAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    TableName tableName;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>name</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Retrieves the name of the dataset the posting method creates or modifies.
+    /// </summary>
+    /// <returns>
+    ///    The name of dataset.
+    /// </returns>
+    public str name()
+    {
+        return tableName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(str _tableName)
+    {
+        tableName = _tableName;
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMPostMethodAttribute)+';'+tableName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

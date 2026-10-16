@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsRequestCartContentElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Request class used for the cart
+/// </summary>
+class MwmsRequestCartContentElement // extends TFMRequestGetOrdersElement
+{
+}
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+</AxClass>

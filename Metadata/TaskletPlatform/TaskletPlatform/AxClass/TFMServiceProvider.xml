@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMServiceProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMServiceProvider
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getServices</Name>
+				<Source><![CDATA[
+	public static Map getServices()
+    {
+        
+        MapEnumerator						containedPages;
+        TFMPages							pages = TFMPagesProvider::getAllPages();
+        TFMPage								page;
+        TFMPageOrderList					pageOrderList;
+        TFMPageOrderListConfiguration		listConfig;
+        TFMService							service;
+        Map									services = new Map(Types::String, Types::Class);        
+		
+        containedPages = pages.getPages().getEnumerator();
+		while (containedPages.moveNext())
+        {
+            page = containedPages.currentValue();
+            if (page.parmType() != 'OrderList')
+            {
+                continue;
+            }
+            pageOrderList = page;
+            listConfig = page.getConfiguration();
+            if (listConfig.parmId() != page.parmId())
+			{
+                continue;
+            }
+            service = TFMService::Construct(page);
+            services.insert(listConfig.parmId(),service);
+        }
+        
+        return services;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllServicesXML</Name>
+				<Source><![CDATA[
+    public static XML getAllServicesXML()
+    {
+        MapEnumerator						availableServices = TFMServiceProvider::getServices().getEnumerator();
+        XML									xml;
+        TFMService							service;
+        Map									services = new Map(Types::String, Types::Class);
+
+        while (availableServices.moveNext())
+        {
+            
+            service = availableServices.currentValue();
+            xml += service.getXML();
+        }
+
+        return '<services tweak="replace">' + xml + '</services>';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDeviceVisualization</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDeviceVisualization
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>DrawPage</Name>
+				<Source><![CDATA[
+    public static void DrawPage(TFMPage _page, TFMHtmlViewerCtrl _htmlViewer)
+    {
+        TFMPageTypeAttribute pageType;
+        TFMDrawPage drawPage;
+		
+        pageType = new SysDictClass(classIdGet(_page)).getAttribute(classStr(TFMPageTypeAttribute));
+		
+        if (!pageType)
+        {
+            return;
+        }
+        drawPage = SysExtensionAppClassFactory::getClassFromSysAttribute(classStr(TFMDrawPage), pageType);
+		if (!drawPage)
+        {
+            _htmlViewer.parmHtml('<html><body><h3>' + "@TFM:Previewnotavailable" + '</h3></body></html>');
+            return;
+        }
+        drawPage.DrawPage(_page,_htmlViewer);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

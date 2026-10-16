@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMenuGroupingIconAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMMenuGroupingIconAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    str   groupingType;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(TFMDocumentContentSubject _groupingType)
+    {
+        super();
+ 
+        groupingType = _groupingType;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmGroupingType</Name>
+				<Source><![CDATA[
+    public TFMDocumentContentSubject parmGroupingType(TFMDocumentContentSubject _groupingType = groupingType)
+    {
+        groupingType = _groupingType;
+ 
+        return groupingType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMMenuGroupingIconAttribute)+';'+groupingType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

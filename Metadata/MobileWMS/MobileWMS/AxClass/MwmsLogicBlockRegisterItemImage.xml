@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockRegisterItemImage</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic block used to register images for items
+/// </summary>
+class MwmsLogicBlockRegisterItemImage extends MWmsLogicBlock implements TFMLogicBlockDataCollectionInterface
+{
+    InventTable             inventTable;
+    InventDim               inventDim;
+    Common                  common;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getCommon</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(Common))]
+    public Common getCommon()
+    {
+        return common;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRecord</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(Common))]
+    public Common getRecord()
+    {
+        return common;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventDim</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventDim))]
+    public InventDim getInventDim()
+    {
+        return inventDim;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventTable))]
+    public InventTable getInventTable()
+    {
+        return inventTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicBlockRegisterItemImage Construct()
+    {
+        return new MwmsLogicBlockRegisterItemImage();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        TFMLogicComponentDimensions comp = new TFMLogicComponentDimensions();
+        super();
+        comp.parmDisableStorageDim(true);
+        comp.parmDisableTrackingDim(true);
+        components.addComponent(comp);
+
+        categories.add("@TaskletMobileWMS:Image");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        TFMRegistrationCollectors               ret = components.getCollectors();
+        TFMRegistrationCollectorImageCapture    imgCapt = new TFMRegistrationCollectorImageCapture(100,extendedTypeStr(ImageDataString),"@SYS59132","@SYS59132",'');
+        ret.addCollector(imgCapt);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        refConf = components.getHeaders();
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Name of the block Type.
+    /// </summary>
+    /// <returns>Name of the block</returns>
+    public Name blockName()
+    {
+        return "@MobileWms:RegisterItemImage";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData                 result = TFMPostResponseData::Construct();
+        ItemId                              itemid;
+        InventDimCombination                iDimCom;
+        TFMRequestItemAndDimensionElement   postRequest = request.convertToOtherRequestType(classStr(TFMRequestItemAndDimensionElement));
+        str                                 mediaIDs = postRequest.getFieldValue(extendedTypeStr(ImageDataString));
+        
+        itemid = postRequest.parmItemId();
+        inventDim = InventDim::findOrCreate(postRequest.parmInventDim());
+        
+        iDimCom = InventDimCombination::find(itemid,inventDim.inventDimId);
+
+        if (mediaIDs)
+        {
+            common = iDimCom;
+            if (common == null)
+            {
+                common = InventTable::find(itemid);
+            }
+            TFMMediaQueue::AddMap2Queue(common, TFMMediaQueue::separateIDsAndComments(mediaIDs), postRequest.parmdeviceID());
+        }
+
+        result.parmResponseText("@TFM:MEL9");
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMItemImageCapture);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(d365fo doctor:*)",
+      "Bash(d365fo search:*)",
+      "Bash(d365fo get:*)",
+      "Bash(d365fo find:*)",
+      "Bash(d365fo models:*)",
+      "Bash(d365fo knowledge:*)",
+      "Bash(d365fo prepare:*)",
+      "Bash(d365fo validate:*)",
+      "Bash(d365fo lint:*)",
+      "Bash(d365fo review:*)",
+      "Bash(d365fo index:*)",
+      "Bash(d365fo --version)",
+      "Bash(d365fo --help)",
+      "Read(//c/AosService/PackagesLocalDirectory/**)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git check-ignore:*)"
+    ],
+    "deny": [
+      "Read(./Metadata/**/XppMetadata/**)",
+      "Read(./**/bin/**)",
+      "Read(./**/obj/**)",
+      "Edit(./Metadata/**/XppMetadata/**)",
+      "Write(./Metadata/**/XppMetadata/**)",
+      "Edit(//c/AosService/PackagesLocalDirectory/**)",
+      "Write(//c/AosService/PackagesLocalDirectory/**)"
+    ]
+  },
+  "env": {
+    "D365FO_BRIDGE_ENABLED": "1"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -NonInteractive -File \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-doctor.ps1\"",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -NonInteractive -File \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-new-aot-xml.ps1\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -NonInteractive -File \"$CLAUDE_PROJECT_DIR/.claude/hooks/validate-xpp-edit.ps1\"",
+            "timeout": 90
+          }
+        ]
+      }
+    ]
+  }
+}

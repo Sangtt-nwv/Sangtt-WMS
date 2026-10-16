@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMDrawFlow</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMDrawFlow extends FormRun
+{
+    TFMProcess process;
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        TFMProcessVersion versionTbl;
+        Common record = element.args().record();
+
+        if (record.TableId != tableNum(TFMProcessVersion))
+        {
+            
+            throw error (strFmt("@SYS134996",tableStr(TFMProcessVersion)));
+            
+        }
+        else
+        {
+            versionTbl = element.args().record();
+            process = TFMProcessProvider::GetAllProcessesImpl().getProcess(versionTbl.ProcessID, versionTbl.Version);
+            
+        }
+        
+        super();
+        TFMDrawFlowControlInteractionSteps interactionClass = StepsControl.interactionClass();
+        interactionClass.setProcess(process);
+        if (process && process.parmLocked())
+        {
+            TFMProcessEditHeaders.caption("@TFM:ViewHeaders");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setContextGroup</Name>
+				<Source><![CDATA[
+    public void setContextGroup(FormGroupControl _fgc)
+    {
+        StepsControl.setContextGroup(_fgc);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProcess</Name>
+				<Source><![CDATA[
+    public TFMProcess getProcess()
+    {
+        return process;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="" />
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">@TFM:FlowEditor</Caption>
+		<Pattern xmlns="">Custom</Pattern>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
+		<ViewEditMode xmlns="">View</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>FormActionPaneControl1</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>FormButtonGroupControl1</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormDropDialogButtonControl">
+								<Name>FormDropDialogButtonControl1</Name>
+								<Type>DropDialogButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MenuItemName>TFMDrawFlowTestDropDialog</MenuItemName>
+								<Text>@TFM:Test</Text>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>FormButtonGroupControl11</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>TFMProcessEditHeaders</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MenuItemName>TFMProcessEditHeaders</MenuItemName>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormContainerControl">
+				<Name>StepsControl</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<Type>Container</Type>
+				<FormControlExtension>
+					<Name>TFMDrawFlowControl</Name>
+					<ExtensionComponents />
+					<ExtensionProperties>
+						<AxFormControlExtensionProperty>
+							<Name>parmClassName</Name>
+							<Type>ExtendedDataType</Type>
+							<TypeName>ClassName</TypeName>
+							<Value>TFMDrawFlowControlInteractionSteps</Value>
+						</AxFormControlExtensionProperty>
+					</ExtensionProperties>
+				</FormControlExtension>
+				<Controls />
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts>
+		<AxFormPartReference xmlns="">
+			<Name>ContextPart</Name>
+			<IsLinked>Yes</IsLinked>
+			<MenuItemName>TFMDrawFlowContextPart</MenuItemName>
+		</AxFormPartReference>
+	</Parts>
+</AxForm>

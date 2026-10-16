@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocShipTotes</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType(classStr(TFMPostAdhocRegistration), 'PickToteForShipping'), TFMDocumentType(classStr(TFMPostAdhocRegistration), 'shipSelectedTotes'),
+TFMMenu('ShipTotes',"@SYS88262","@SYS88262",resourceStr(MobShipping),true,true,['Outbound']),
+    TFMMenu('PickToteForShipping',"@MobileWMS:PickOutboundlicenseplateforshipping","@MobileWMS:PickOutboundlicenseplateforshipping",resourceStr(MobShipping),false,true),
+    TFMPageLineAdhocRequest(methodStr(MobDocShipTotes, ShipSelectedTotes), '@{ShipSelected}','postIcon',true),
+    TFMOrderListGetOrdersDocumentType('ShipTotes',methodStr(MobDocShipTotes,GetShippingToteOrders))]
+class MobDocShipTotes extends TFMDocumentHandler
+{
+    XML							returningXML;
+    NoYes						shipUnstaged;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {    
+        return "@SYS88262";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret = super();
+        ret.insert('Shipping', "@SYS88262");
+        ret.insert('PickToteForShipping', "@MobileWMS:PickOutboundlicenseplateforshipping");
+        ret.insert('ShipSelected', "@SYS78221");
+        ret.insert('RegistrationCollectorToteEmptyHeader', "@MobileWMS:ScanemptyOutboundlicenseplate");
+        ret.insert('RegistrationCollectorToteEmptyHelpLabel', "@MobileWMS:ScantheemptyOutboundlicenseplateyouareplacingtheiteminto");
+        ret.insert('RegistrationCollectorToteHelpLabel', "@MobileWMS:ScantheemptyOutboundlicenseplateyouareplacingtheiteminto");
+        ret.insert('RegistrationCollectorToteHeader', "@MobileWMS:Tote");
+        ret.insert('OnlineToteValidationFailed', "@MobileWMS:ValidatingtheOutboundlicenseplateonlinefailed");
+        ret.insert('ValidationNewToteScanned', "@MobileWMS:Youhavescannedanewoutboundlicenseplate");
+        ret.insert('ValidationNewToteTitle', "@MobileWMS:Newoutboundlicenseplatescanned");
+        ret.insert('ValidationScanExistingTote', "@MobileWMS:Scananexistingoutboundlicenseplate");
+        ret.insert('ValidationToteOccupied', "@MobileWMS:Theoutboundlicenseplateisinuseby");
+        ret.insert('ToteLabelPrefix', "@MobileWMS:Tote"+':');
+        ret.insert('ValidationToteFailedToCreate', "@MobileWMS:Failedtocreatetheoutboundlicenseplateusingthevalue");
+        ret.insert('MainMenuToteShipping', "@MobileWMS:OutboundLicensePlateShipping");
+        ret.insert('PageToteShippingTitle', "@MobileWMS:OutboundLicensePlateShipping");
+        ret.insert('ShipSelected', "@SYS78221");
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmShipUnstaged</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@MobileWMS:ShipUnstagedOutboundLicensePlates")]
+    public MobPromptForUnit parmShipUnstaged(MobPromptForUnit _shipUnstaged = shipUnstaged)
+    {
+        shipUnstaged = _shipUnstaged;
+        return shipUnstaged;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerImage</Name>
+				<Source><![CDATA[
+    public Map registerImage()
+    {
+        Map ret = super();
+        ret.insert('mainmenushipping',resourceStr(MobShipping));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages ret = super();
+        TFMPageOrderList	listPage = new TFMPageOrderList();
+        TFMPageUnplannedItemRegistration page;
+        TFMPageUnplannedItemRegistrationConfiguration configuration;
+        TFMDataSourceBlockLockOrderList		dsbOrderList = new TFMDataSourceBlockLockOrderList();//Containing IC4
+        
+        TFMPageOrderListConfiguration Listconfig;
+        listPage.parmId('ShipTotes');
+        listPage.parmFilter(methodStr(MobDocShipTotes,ShipTotesFilters));
+        listPage.parmIcon('mainmenushipping');
+        listPage.parmTitle('@{Shipping}');
+        Listconfig = listPage.getConfiguration();
+
+        dsbOrderList.parmUseOrderLocking(false);
+        listPage.addDataSourceBlock(dsbOrderList);
+
+        Listconfig.parmNavigateTo('PickToteForShipping');
+        listPage.addAdhocAction(methodStr(MobDocShipTotes, ShipSelectedTotes),1);
+        ret.addpage(listPage);
+        page = ret.getPage('PickToteForShipping');
+        configuration = page.getConfiguration();
+        configuration.parmClose(true);
+
+        ret.removePage('shipSelectedTotes');
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ShipTotesFilters</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets up the filter used on the pick orders page.
+    /// </summary>
+    /// <returns>An XML string with the fields to be used for the filter.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceData ShipTotesFilters()
+    {
+        TFMReferenceDataConfiguration   refData = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorList    regCollectorList = TFMGetReferenceData::createDefaultWarehouseReferenceData(1);
+        TFMRegistrationCollectorDate    regCollectorDate = TFMRegistrationCollector::collectorFromEDT(extendedtypestr(WMSRequestedShipDate));
+        TFMRegistrationCollectorList    regCollectorDlv = new TFMRegistrationCollectorList(5, extendedtypestr(DlvModeId), "@SYS50767", "@SYS50767", "@SYS50767"); //TFMRegistrationCollector::collectorFromEDT(extendedtypestr(DlvModeId));
+        //TFMRegistrationCollectorText	refCol = new TFMRegistrationCollectorText(40,tableStr(ReferenceIdentity),"@SYS15217","@SYS15217", "@SYS15217");
+        refData.addCollector(regCollectorList);
+
+        regCollectorDate.parmName(MobConstants::DeliveryDate());
+        regCollectorDate.isHeader(true);
+        refData.addCollector(regCollectorDate);
+        regCollectorDlv.parmDataTable(methodStr(MobDocShipTotes,DlvMode ));
+
+        refData.addCollector(regCollectorDlv);
+        //refData.parmUseDynaFilter(true);
+        return refData;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DlvMode</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataFilterList DlvMode()
+    {
+        return TFMReferenceDataFilterList::createFromTableName(tableStr(DlvMode),fieldStr(DlvMode,Code), fieldStr(DlvMode,Txt),true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetShippingToteOrders</Name>
+				<Source><![CDATA[
+	public str GetShippingToteOrders()
+    {
+        str                         scannedValue;
+        XmlElement                  ordersElement;
+        TFMRequestGetOrdersElement  orderRequest = request;
+        TFMRequestFiltersElement    filters;
+        MobToteTable				totes;
+        MobToteContent				content;
+        WmsOrderTrans				wmsOrderTrans;
+        WMSPickingRoute				route;
+        WMSShipment					shipment;
+		InventLocationId			inventLocationId = MobConstants::All();
+        Date						deliveryDate;
+        TFMXMLFormat				xmlFormat;
+        //SalesTable					salesTable;
+        Set							totesInView = new Set(Types::String);
+        SetEnumerator				sEnum;
+        int							i = 100;
+        DlvModeId					DlvModeId;
+        
+        
+        // Create the response XML document where the found orders will be added to
+        resultXml   = new XmlDocument();
+        ordersElement = resultXml.appendChild(resultXml.createElement(MobConstants::Orders()));
+    
+        // Before the search for orders is performed we get the filter values entered on the mobile device
+        if (orderRequest.parmFilters() != null)
+        {
+            filters = orderRequest.parmFilters();
+            
+            inventLocationId	= filters.parmWarehouse();
+            deliveryDate		= filters.parmDeliveryDate();
+            scannedValue		= filters.getFieldValue(MobConstants::ScannedValue());
+            DlvModeId			= filters.getFieldValue(extendedTypeStr(DlvModeId));
+
+        }
+		/*if (scannedValue)
+        {
+            TFMMultiSelectionTable::addOrRemoveSelection(curuserid(),request.parmdeviceID(),scannedValue,  classStr(MobDocShipTotes));
+        }*/
+        while select * from content where content.Qty != 0 && (!scannedValue || scannedValue == content.ToteId)
+            join totes where totes.ToteId == content.ToteId && !totes.Shipped && (totes.Status == TFMDocumentQueueStatus::Completed || shipUnstaged)
+            join wmsOrderTrans where wmsOrderTrans.RecId == content.RefRecId			
+            join route where route.pickingRouteID == wmsOrderTrans.routeId && (route.DlvModeId == DlvModeId || DlvModeId == MobConstants::All()) && route.inventLocationId == inventLocationId
+            join shipment where shipment.shipmentId == route.shipmentId && shipment.RequestedShipDate <= deliveryDate 
+        {
+            totesInView.add(content.ToteId);
+        }
+
+        sEnum = totesInView.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            xmlFormat = TFMXMLFormat::constructFromBackendID(tableStr(MobToteTable) + '/' + fieldStr(MobToteTable, ToteId) + '/' + sEnum.current(),classStr(TFMXMLFormatOrders));
+            //backendIDcon = MobHelper::strSplit(mEnum.currentKey(),'/').pack();
+            
+            xmlFormat.initFromCommon(resultXml,MobToteTable::FindOrCreate(sEnum.current()),(scannedValue == sEnum.current() ? 1 : i) ,'');
+            xmlFormat.parmPageID('ShipTotes');
+            xmlFormat.run();
+            i++;
+        }
+        returningXML = resultXml.xml();
+        returningXML = strReplace(returningXML,'<' + MobConstants::Orders() + '>','');
+        returningXML = strReplace(returningXML,'</' + MobConstants::Orders() + '>','');
+
+        resultXml = null;
+
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PickToteForShipping</Name>
+				<Source><![CDATA[
+	[TFMDocumentType(classStr(TFMPostAdhocRegistration), 'PickToteForShipping')]
+	public str PickToteForShipping()
+    {
+        TFMMultiSelectionTable::addOrRemoveSelection(curuserid(),request.parmdeviceID(),request.getFieldValue(extendedTypeStr(MobToteId)), classStr(MobDocShipTotes));
+        Return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ShipSelectedTotes</Name>
+				<Source><![CDATA[
+    [TFMDocumentType(classStr(TFMPostAdhocRegistration), 'shipSelectedTotes')]
+    public str ShipSelectedTotes()
+    {
+        SetEnumerator	allSelectedTotes = TFMMultiSelectionTable::GetAllInContext(curUserId(),classStr(MobDocShipTotes),request.parmdeviceID()).getEnumerator();
+        MobToteTable	toteTable;
+        ttsbegin;
+        while (allSelectedTotes.moveNext())
+        {
+            toteTable = MobToteTable::Find(allSelectedTotes.current(),true);
+            toteTable.Shipped = NoYes::Yes;
+			if (toteTable)
+            {
+                toteTable.update();
+            }
+        }
+        ttscommit;
+        TFMMultiSelectionTable::RemoveAllInContext(curUserid(),classStr(MobDocShipTotes),request.parmdeviceID());
+        Return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PickToteForShippingFilter</Name>
+				<Source><![CDATA[
+	[TFMReferenceDataMethod]
+    public TFMReferenceData PickToteForShippingFilter()
+    {
+        TFMReferenceDataConfiguration   refData = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorText    regCollectorText = TFMRegistrationCollector::collectorFromEDT(extendedtypestr(MobToteId));
+        
+        refData.addCollector(regCollectorText);
+        
+        return refData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResult</Name>
+				<Source><![CDATA[
+    public XML getResult()
+    {
+        if (resultXml)
+        {
+            return resultXml.xml();
+        }
+    
+        return returningXML;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

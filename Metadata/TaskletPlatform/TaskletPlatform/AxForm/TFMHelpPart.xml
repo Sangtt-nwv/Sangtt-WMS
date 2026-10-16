@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMHelpPart</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMHelpPart extends FormRun
+{
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        str callerName= element.args().callerName();
+        TFMFormHelp	helpEnum = TFMHelper::EnumSymbol2Value(enumNum(TFMFormHelp),callerName);
+        str html = new SysDictEnum(enumNum(TFMFormHelp)).value2Label(helpEnum);
+        //str	html = strFmt('%1',helpEnum);
+		super();
+        
+        HtmlViewer.parmHtml(html + strFmt("@TFM:AdditionalHelp",callerName));
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="" />
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Style xmlns="">FormPart</Style>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>htmlGroup</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl>
+						<Name>HtmlViewer</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<FormControlExtension>
+							<Name>TFMHtmlViewerCtrl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>htmlField</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatLookupProfitLoss</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableName(tableStr(inventJournalTable), 'ProfitLoss'),
+TFMTableName(tableStr(inventJournalTable), 'LossProfit'),
+    TFMTableName(tableStr(inventJournalTable), 'Movement'),
+    TFMTableName(tableStr(inventJournalTable), 'Transfer')]
+class MobXMLFormatLookupProfitLoss extends TFMXMLFormatLookup
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        inventJournalTable      inventJournalTable = common;
+        inventJournalTrans      inventJournalTrans;
+        int						lineCount;
+        Set						itemSet = new Set(Types::String);    
+        SetEnumerator			sEnum;
+        super();
+        
+        
+        while select ItemId from inventJournalTrans where inventJournalTrans.journalID == inventJournalTable.JournalId
+        {
+            itemSet.add(inventJournalTrans.ItemId);
+            lineCount++;
+        }
+        sEnum = itemSet.getEnumerator();
+		while (sEnum.moveNext())
+        {
+            imageID += (imageID ? ',' : '') + sEnum.current();
+        }
+        displayLine1 = new DictField(tablenum(inventJournalTable), fieldnum(inventJournalTable, JournalId)).Label() +': '+ inventJournalTable.JournalId;
+        displayLine2 = "@SYS25589" + ': ' +inventJournalTable.Description;
+        displayLine3 = "@SYS23470" + ': ' +strFmt("@SYS343263", lineCount);
+
+        
+        fieldsToAdd.insert(extendedTypeStr(JournalId), inventJournalTable.JournalId);
+        fieldsToAdd.insert(strLwr(extendedTypeStr(InventLocationId)), inventJournalTable.InventLocationId);
+        fieldsToAdd.insert(strLwr(extendedTypeStr(InventSiteId)), inventJournalTable.InventSiteId);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMFieldNameVariables</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMFieldNameVariables extends TFMfieldFromNameCreator
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>fieldHandled</Name>
+				<Source><![CDATA[
+    public boolean fieldHandled(str _fieldName)
+    {
+        return subStr(_fieldName,1,9) == TFMConstants::variables();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleField</Name>
+				<Source><![CDATA[
+    public void handleField(str _value, FormGroupControl _fgc)
+    {
+        
+        ListEnumerator          lEnum = TFMHelper::strSplit(_value, '[;]').getEnumerator();
+        List                    keyAndValue;
+        ListEnumerator          kvEnum;
+        str                     key, value;
+        while (lEnum.moveNext())
+        {
+            keyAndValue = TFMHelper::strSplit(lEnum.current(),'[=]');
+            if (keyAndValue.elements() == 2)
+            {
+                kvEnum = keyAndValue.getEnumerator();
+                kvEnum.moveNext();
+                key = kvEnum.current();
+                kvEnum.moveNext();
+                value = kvEnum.current();
+                this.makeField(_fgc, key, value);
+            }
+        }
+        
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeField</Name>
+				<Source><![CDATA[
+    protected void makeField(FormGroupControl _fgc, str _key, str _value)
+    {
+        str                     key = strReplace(_key, TFMConstants::ItemNumber(), extendedTypeStr(ItemId));
+        FormStringControl       fsc = _fgc.addControl(FormControlType::String,TFMConstants::variables()+'_'+key);
+
+        if (extendedTypeName2Id(key))
+        {
+            
+            fsc.extendedDataType(extendedTypeName2Id(key));
+        }
+        else
+        {
+            fsc.label(key);
+        }
+
+        fsc.text(_value);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

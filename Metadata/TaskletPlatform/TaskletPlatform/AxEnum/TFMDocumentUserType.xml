@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentUserType</Name>
+	<Help>@TFM:TFM60</Help>
+	<Label>@TFM:TFM59</Label>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>User</Name>
+			<Label>@SYS16181</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>UserGroup</Name>
+			<Label>@SYS21952</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

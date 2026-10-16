@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListOrderLines</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListIdAttribute('OrderLines')]
+public class TFMListOrderLines extends TFMList
+{
+    boolean dontShowDimTracking;
+    boolean dontShowDimProduct;
+    boolean dontShowDimStorage;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+    public TFMListConfiguration getList()
+    {
+        TFMListConfiguration					listConfig	= TFMListConfiguration::Construct(listName);
+        TFMListRow								row			= listConfig.addRow();
+        TFMListColumn							column		= row.makeColumn(65);
+        TFMListCustomComponentDimensionDisplay	dimDisplay  = new TFMListCustomComponentDimensionDisplay();
+		listConfig.parmDisplayStatus(true);
+        column.addElement(TFMListTextElement::ConstructTextElement('{'+extendedTypeStr(ItemName)+'}',TFMFonts::FindOrCreateFromProperties('contentFontBold',TFMFontSizes::medium,true,false,'').id));
+        row.makeColumn(35).addElement(TFMListTextElement::ConstructTextElement(this.quantityCellContent(),TFMFonts::FindOrCreateFromProperties('MediumContentFont',TFMFontSizes::medium,false,false,'').id,SysChartHorizontalAlignment::Right));
+        
+        row			= listConfig.addRow();
+        TFMListColumns columns = TFMListColumns::Construct();
+        row.addChild(columns);
+        dimDisplay.parmItemID(true);
+		dimDisplay.parmProductDimensions(!dontShowDimProduct);
+        dimDisplay.parmStorageDimensions(!dontShowDimStorage);
+        dimDisplay.parmTrackingDimensions(!dontShowDimTracking);
+		dimDisplay.parmwidth(80);
+        columns.addChild(dimDisplay);
+
+        column = row.makeColumn(20);
+		column.addElement(TFMListImageElement::ConstructImageElement('{imageId}','',20,0));
+        column.addElement(TFMListImageElement::ConstructImageElement('{attachmentImage}','',5,0,SysChartHorizontalAlignment::Right,TFMVerticalAlignment::Bottom));
+        
+        return listConfig;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>quantityCellContent</Name>
+				<Source><![CDATA[
+    protected str quantityCellContent() 
+    {
+        return '{ActionDefinedQuantity}/{Quantity} {UnitOfMeasure}';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

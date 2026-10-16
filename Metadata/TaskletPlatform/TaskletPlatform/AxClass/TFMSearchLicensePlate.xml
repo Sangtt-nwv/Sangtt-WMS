@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMSearchLicensePlate</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class to handle search whenever a WHSLicensePlateId EDT is used in a header. This is an example of how to levereage the generic search function, but modify how the data is presented.
+/// </summary>
+[TFMSearchType('WHSLicensePlate_Search')]
+class TFMSearchLicensePlate extends TFMSearchGenericTable
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addResult</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Example of how to override the result from the search
+    /// </summary>
+    /// <param name = "_id">The Id that should be returned when the result has been selected on a search page</param>
+    /// <param name = "_name">Naming of the result</param>
+    /// <param name = "_originRecord">Record the result comes from</param>
+    /// <param name = "_displayLine1">Display line 1, headline.</param>
+    /// <param name = "_displayLine2">Display line 2</param>
+    /// <param name = "_displayLine3">Display line 3</param>
+    /// <param name = "_imageId">Unique Image ID that can be converted to image by GetMedia handler</param>
+    protected void addResult(str _id, str _name, Common _originRecord, str _displayLine1 = '', str _displayLine2 = '', str _displayLine3 = '', str _imageId = '')
+    {
+        InventDim           inventDim;
+        InventSum           iSum;
+        WHSLicensePlate     licensePlate = _originRecord;
+        WMSLocationId       location;
+        InventLocationId    warehouse;
+        Set                 ItemIds = new Set(Types::String);
+        SetEnumerator       sEnum;
+        str                 itemImageStr;
+        str                 displayLine1, displayLine2, displayLine3;
+        
+        while select inventDim
+            where inventDim.LicensePlateId == licensePlate.LicensePlateId
+        join iSum
+            where iSum.InventDimId     == inventDim.InventDimId    &&
+                  iSum.Closed          == NoYes::No && iSum.PhysicalInvent
+        {
+            itemIDs.add(iSum.ItemId);            
+            location = inventDim.wMSLocationId;
+        }
+
+        sEnum = itemIDs.getEnumerator();
+        while(sEnum.moveNext())
+        {            
+            itemImageStr += (itemImageStr ? ',' : '') + sEnum.current();
+        }
+
+        displayLine1 = new DictField(tablenum(WHSLicensePlate), fieldnum(WHSLicensePlate, LicensePlateId)).Label() + ' ' + licensePlate.LicensePlateId;        
+        displayLine2 = new DictField(tablenum(InventLocation), fieldnum(InventLocation, InventLocationId)).Label() + ': ' + location;
+        displayLine3 = new DictField(tablenum(WMSLocation), fieldnum(WMSLocation, WMSLocationId)).Label() + ': ' + location;
+
+        super(_id, _name, _originRecord, displayLine1, displayLine2, displayLine3, itemImageStr);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

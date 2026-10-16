@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestRegistrationElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType('Registration')]
+class TFMRequestRegistrationElement extends TFMRequestElement
+{
+    TFMActionTypes              actionType;
+    str							fromLocation; // Str because sometimes license plate can be used in this field.
+    str							toLocation;
+    InventBatchId               batchId;
+    InventSerialId              serialId;
+    InventQty                   qty;
+    UnitOfMeasureSymbol         unit;
+    TransDate                   expirationDate;
+    InventDim                   inventDimIssue;
+    InventDim                   inventDimReceipt;
+    TFMRequestExtraInfoElement  extraInfo;
+    TFMToteId					toteId;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmExtraInfo</Name>
+				<Source><![CDATA[
+    public TFMRequestExtraInfoElement parmExtraInfo(TFMRequestExtraInfoElement _extraInfo = extraInfo)
+    {
+        extraInfo = _extraInfo;
+        return extraInfo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExtraInfo</Name>
+				<Source><![CDATA[
+    public TFMRequestExtraInfoElement ExtraInfo()
+    {
+        extraInfo = extraInfo == null ? new TFMRequestExtraInfoElement() : extraInfo;
+        return extraInfo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmActionType</Name>
+				<Source><![CDATA[
+    public TFMActionTypes parmActionType(TFMActionTypes _actionType = actionType)
+    {
+        actionType = _actionType;
+        return actionType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFromBin</Name>
+				<Source><![CDATA[
+    public str parmFromBin(str _fromLocation = fromLocation)
+    {
+        fromLocation = _fromLocation;
+        return fromLocation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFromLocation</Name>
+				<Source><![CDATA[
+    public str parmFromLocation(str _fromLocation = fromLocation)
+    {
+        fromLocation = _fromLocation;
+        return fromLocation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmToBin</Name>
+				<Source><![CDATA[
+    public str parmToBin(str _toLocation = toLocation)
+    {
+        toLocation = _toLocation;
+		
+        return toLocation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLotNumber</Name>
+				<Source><![CDATA[
+    public InventBatchId parmLotNumber(str _batchId = batchId)
+    {
+        batchId = _batchId;
+        expirationDate = str2date(substr(_batchId, strfind(_batchId, ',', 1, strlen(_batchId)) + 1, strlen(_batchId)), 123);
+        
+        return batchId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmExpirationDate</Name>
+				<Source><![CDATA[
+    public TransDate parmExpirationDate(TransDate _expirationDate = expirationDate)
+    {
+        expirationDate = _expirationDate;
+
+        return expirationDate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSerialNumber</Name>
+				<Source><![CDATA[
+    public InventSerialId parmSerialNumber(str _serialId = serialId)
+    {
+        serialId = _serialId;
+        return serialId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmToteId</Name>
+				<Source><![CDATA[
+    public TFMToteId parmToteId(TFMToteId _toteId = toteId)
+    {
+        toteId = _toteId;
+        return toteId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmQuantity</Name>
+				<Source><![CDATA[
+    public InventQty parmQuantity(InventQty _qty = qty)
+    {
+        qty = _qty;
+        return qty;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUnitOfMeasure</Name>
+				<Source><![CDATA[
+    public UnitOfMeasureSymbol parmUnitOfMeasure(UnitOfMeasureSymbol _unit = unit)
+    {
+        unit = _unit;
+        return unit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InventDimIssue</Name>
+				<Source><![CDATA[
+    public InventDim InventDimIssue()
+    {
+        
+        return InventDimIssue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InventDimReceipt</Name>
+				<Source><![CDATA[
+    public InventDim InventDimReceipt()
+    {
+        
+        return InventDimReceipt;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExtractInventDim</Name>
+				<Source><![CDATA[
+    public InventDim ExtractInventDim(ItemId _itemId)
+    {
+        inventDim           retDim;
+        TFMInventDimSetup   dimSet = TFMInventDimSetup::Construct(InventTable::find(_itemId));
+        
+        if ((actionType == TFMActionTypes::TAKE && fromLocation) || (actionType == TFMActionTypes::PLACE && toLocation))
+        {        
+            if (dimSet.registerWMSPallet())
+            {
+                // Make sure to set the correct from location on the journal line
+                // Lookup the current location for the pallet
+                // The value of the pallet / location is always stored in the #FromLocation element in the XML
+                //wmsFromPallet                   = WmsPallet::find(requestDataNode.getNamedElement( _Location ).text());
+
+                // Set the values for the pallet and location (where the pallet is placed now)
+                retDim.LicensePlateId   = (actionType == TFMActionTypes::TAKE  ? fromLocation : toLocation);
+                if (!WHSLicensePlate::exist(retDim.LicensePlateId))
+                {
+                    WHSLicensePlate::createLicensePlate(retDim.LicensePlateId);
+                }
+                retDim.wMSLocationId    = TFMInventDimHelper::WmsLocationIdFromLicensePlate(retDim.LicensePlateId).wMSLocationId;
+
+            }
+            else
+            //#endif
+            if (dimSet.registerWMSLocation())
+            {
+                retDim.wMSLocationId    = (actionType == TFMActionTypes::TAKE && fromLocation ? fromLocation : toLocation);//(actionType == TFMActionTypes::TAKE  ? fromLocation : toLocation);
+                //retDim.InventLocationId	= TFMHelper::EnsureInventDim //TODO: Find Latest warehouse in queue for device
+            }
+        }
+
+        
+        retDim.inventBatchId    = TFMHelper::lotNumber_LotNumber( batchId);
+        
+        retDim.inventSerialId   = serialId;
+
+        retDim.InventLocationId = this.ExtraInfo().getFieldValue(extendedTypeStr(InventLocationId));
+        
+        return retDim;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

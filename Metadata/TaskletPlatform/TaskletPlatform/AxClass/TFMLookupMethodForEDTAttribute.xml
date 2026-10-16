@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLookupMethodForEDTAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMLookupMethodForEDTAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    
+    str                 parmType;
+    
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(str _parmType)
+    {
+        super();
+ 
+        
+        parmType = _parmType;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmParameterType</Name>
+				<Source><![CDATA[
+    public str parmParameterType(str _parmType = parmType)
+    {
+        parmType = _parmType;
+ 
+        return parmType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMLookupMethodForEDTAttribute)+';'+parmType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

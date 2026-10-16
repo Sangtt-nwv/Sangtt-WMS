@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxSecurityRole xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobileWMSMaintain</Name>
+	<Description>@MobileWMS:MobMaintainRoleHelpText</Description>
+	<Label>@MobileWMS:MobMaintainRoleLabel</Label>
+	<DirectAccessPermissions>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>MobInventLocationsGroupRights</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>MobInventLocationsPickReceiveTypes</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>MobLockedOrders</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>MobMenuPermissions</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>MobRealtimeRegistredQuantity</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>MobRegistrations</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>MobDocumentAccessRights</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>MobDocumentQueue</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>MobDocumentTmpHandlerLookup</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>MobDocumentType</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>MobParameters</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+	</DirectAccessPermissions>
+	<Duties>
+		<AxSecurityDutyReference>
+			<Name>MobMaintain</Name>
+		</AxSecurityDutyReference>
+	</Duties>
+	<Privileges />
+	<SubRoles />
+</AxSecurityRole>

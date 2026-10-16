@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMGetPagesVisitor</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public final class TFMGetPagesVisitor implements TFMIDocumentHandlerVisitor
+{
+    TFMPage             mobPage;
+    TFMPages            mobPages;
+    MapEnumerator		pagesEnum;
+    TFMPages			pages;
+
+
+            
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(TFMPages _pages)
+    {
+        pages = _pages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>visitDocumentHandler</Name>
+				<Source><![CDATA[
+    void visitDocumentHandler(DictClass _subClass, TFMDocumentHandler _documentHandler)
+    {
+        Map categories = new Map(Types::String,Types::Class);
+        TFMGetGroupsVisitor getGroupsVisitor = new TFMGetGroupsVisitor(categories);
+        getGroupsVisitor.visitDocumentHandler(_subClass, _documentHandler);
+        mobPages = _subClass.callObject( methodStr(TFMDocumentHandler, pages), _documentHandler);
+        pagesEnum = mobPages.getPages().getEnumerator();
+        while(pagesEnum.moveNext())
+        {
+            mobPage = pagesEnum.currentValue() as TFMPage;
+
+            // add the menu groups that the page belongs to.
+            Set categoriesToAdd = categories.exists(mobPage.parmId()) ? categories.lookup(mobPage.parmId()) : new Set(Types::String);
+            SetEnumerator categoriesToAddEnumerator = categoriesToAdd.getEnumerator();
+            while(categoriesToAddEnumerator.moveNext())
+            {
+                mobPage.addPageBelongsToMenuGroups(categoriesToAddEnumerator.current());
+            }
+
+            mobPage.setDocumentHandler(_documentHandler);
+			
+            pages.addPage(mobPage);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

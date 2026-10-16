@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMAppInsightsCompanyNameProperty</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMAppInsightsCompanyNameProperty extends SysApplicationInsightsProperty
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>newFromValue</Name>
+				<Source><![CDATA[
+    static TFMAppInsightsCompanyNameProperty newFromValue(str _companyName)
+    {
+        return new TFMAppInsightsCompanyNameProperty(_companyName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initialize</Name>
+				<Source><![CDATA[
+    protected container initialize()
+    {
+        return ['CompanyName', SysApplicationInsightsComplianceDatatype::SystemMetadata];
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestQuarantineElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+#tfm
+[
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(TFMConstants,QuarantineOrders)),
+    TFMDocumentType(classStr(TFMLookup), staticMethodStr(TFMConstants,QuarantineOrders)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(TFMConstants,CreateQuarantineOrders)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticMethodStr(TFMConstants,CreateQuarantineOrders))
+    ]
+class TFMRequestQuarantineElement extends TFMRequestItemAndDimensionElement
+{
+    InventTransRefId    InventTransRefId;
+    InventQuarantineId  inventQuarantineId;
+    Qty                 scrapQty;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmScrapQuantity</Name>
+				<Source><![CDATA[
+    public Qty parmScrapQuantity(Qty _scrapQty = scrapQty)
+    {
+        scrapQty = _scrapQty;
+        return scrapQty;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInventTransRefId</Name>
+				<Source><![CDATA[
+    public InventTransRefId parmInventTransRefId(InventTransRefId _InventTransRefId = InventTransRefId)
+    {
+        InventTransRefId = _InventTransRefId;
+        return InventTransRefId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInventQuarantineId</Name>
+				<Source><![CDATA[
+    public InventQuarantineId parmInventQuarantineId(InventQuarantineId _InventQuarantineId = inventQuarantineId)
+    {
+        inventQuarantineId = _InventQuarantineId;
+        return inventQuarantineId;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

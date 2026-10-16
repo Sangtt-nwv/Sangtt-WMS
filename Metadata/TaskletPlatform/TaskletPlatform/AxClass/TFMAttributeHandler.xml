@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMAttributeHandler</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class made to general handling of attributes
+/// </summary>
+class TFMAttributeHandler
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getMethodNamesFromSysAttribute</Name>
+				<Source><![CDATA[
+    public static Map getMethodNamesFromSysAttribute(ClassId _classID, SysAttribute _sysAttribute, boolean _allMatchesOnAttribute = false)
+    {
+        Map					methods = new Map(Types::String, Types::Class);
+        SysDictClass		dc = new SysDictClass(_classID);        
+        SysDictClass		attrDC = new SysDictClass(classIdGet(_sysAttribute));
+        boolean				thereIsAMatch;        
+        Array				array;
+        Object				attrObject;
+        DictMethod			DM;
+        SetEnumerator		methodSet = dc.objectMethodSet(true).getEnumerator();
+        int					j;
+        MethodName			methodname;
+        Set					parmMethodsOnAttributeClass = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(_sysAttribute));
+        SetEnumerator		sEnum;
+        ExecutePermission	exePerm;
+
+		while (methodSet.moveNext())
+        {
+            DM = new DictMethod(UtilElementType::ClassInstanceMethod,_classID, methodSet.current());
+            array = DM.getAttributes(classId2Name(classIdGet(_sysAttribute)));
+            if (array != null)
+            {
+                for (j = 1; j <= array.lastIndex(); j++)
+                {
+                    
+                    attrObject = array.value(j);
+                    thereIsAMatch = true;
+                    exePerm = new ExecutePermission();
+                    exePerm.assert();
+                    sEnum = parmMethodsOnAttributeClass.getEnumerator();
+                    while (sEnum.moveNext() && !_allMatchesOnAttribute)
+                    {
+                        methodname = sEnum.current();
+                        var res1 = attrDC.callObject(methodname,attrObject);
+                        var res2 = attrDC.callObject(methodname,_sysAttribute);
+                        thereIsAMatch = thereIsAMatch && (res1 == res2);
+                    }
+
+                    CodeAccessPermission::revertAssert();
+                    if (thereIsAMatch)
+                    {
+                        methods.insert(DM.name(),attrObject);
+                        
+                    }
+                }
+            }
+        }
+
+        
+        return methods;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getClassesUsingAttribute</Name>
+				<Source><![CDATA[
+    public static Map getClassesUsingAttribute(ClassName _attributeName)
+    {
+        List                               list;
+        SysDictClass                       dictClass;
+        SysDictClass                       currentClass;
+        ListEnumerator                     listEnumerator;        
+        Object								attribute;
+        Map									retMap = new Map(Types::String, Types::Class);
+
+        dictClass = new SysDictClass(classNum(TFMDocumentHandler));        
+        listEnumerator = dictClass.extendedBy().getEnumerator();
+        
+        while (listEnumerator.moveNext())
+        {
+            currentClass = new SysDictClass(listEnumerator.current());
+
+            attribute = currentClass.getAttribute(_attributeName);
+            if (attribute != null)
+            {
+                retMap.insert(attribute.parmCacheKey(),currentClass);
+            }
+        }
+
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAttributesFromClasses</Name>
+				<Source><![CDATA[
+    public static Map getAttributesFromClasses(ClassName _attributeName, ClassId _specificClass = 0)
+    {
+        List                               list;
+        SysDictClass                       dictClass;
+        SysDictClass                       currentClass;
+        ListEnumerator                     listEnumerator;
+        Object								attribute;
+        Array								testResult;
+        Map									retMap = new Map(Types::String, Types::Class);
+        int									i;
+        if (_specificClass)
+        {
+            list = new List(Types::Int64);
+            list.addEnd(_specificClass);
+            listEnumerator = list.getEnumerator();
+        }
+        else
+        {
+            dictClass = new SysDictClass(classNum(TFMDocumentHandler));
+            listEnumerator = dictClass.extendedBy().getEnumerator();
+        }
+        while (listEnumerator.moveNext())
+        {
+            currentClass = new SysDictClass(listEnumerator.current());
+            testResult = currentClass.getAttributes(_attributeName);
+            
+            if (0 == testResult.lastIndex())
+            {
+                continue;
+            }
+            for (i = 1; i <= testResult.lastIndex(); i++)
+            {
+                attribute = testResult.value(i);
+            
+                if (attribute != null)
+                {
+                    retMap.insert(attribute.parmCacheKey(),attribute);
+                }
+            }
+        }
+
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateAttributeFromClass</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method used to refresh class attribute. 
+    /// This is necessary because in order for the Mobile WMS Core system to find the relevant class when a document is received from the mobile device, a partially filled out attribute class is used for the search.
+    /// Once the class is found, more info on the attribute declared on the class may be needed.
+    /// </summary>
+    /// <param name = "_classID">Class ID of the class to search for the attribute from</param>
+    /// <param name = "_sysAttribute">The partial attribute to search from</param>
+    /// <returns>The updated SysAttribute Object found on the class</returns>
+    public static SysAttribute updateAttributeFromClass(ClassId _classID, Object _sysAttribute)
+    {
+        SysAttribute    result;
+        Map             attributesOnClass = TFMAttributeHandler::getAttributesFromClasses(classId2Name(classIdGet(_sysAttribute)),_classID);
+
+        result = attributesOnClass.exists(_sysAttribute.parmCacheKey()) ? attributesOnClass.lookup(_sysAttribute.parmCacheKey()) : _sysAttribute;
+
+        return result;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

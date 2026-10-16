@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMHtmlListCtrlBuild</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[FormDesignControlAttribute(classStr(TFMHtmlListCtrl))]
+class TFMHtmlListCtrlBuild extends FormBuildContainerControl
+{
+
+}
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+</AxClass>

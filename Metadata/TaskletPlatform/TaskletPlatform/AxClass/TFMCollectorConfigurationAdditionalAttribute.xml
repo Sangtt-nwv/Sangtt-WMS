@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMCollectorConfigurationAdditionalAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Attribute class made to add extra attributes to the registration collector configuration element
+/// </summary>
+public class TFMCollectorConfigurationAdditionalAttribute  extends SysAttribute implements SysExtensionIAttribute
+{
+    str attributeName;
+    str value;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(str _attributeName, str _value)
+    {
+        super();
+ 
+        attributeName = _attributeName;
+        value = _value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAttributeName</Name>
+				<Source><![CDATA[
+    public TFMDocumentContentSubject parmAttributeName(TFMDocumentContentSubject _attributeName = attributeName)
+    {
+        attributeName = _attributeName;
+ 
+        return attributeName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmValue</Name>
+				<Source><![CDATA[
+    public TFMDocumentTypeId parmValue(TFMDocumentTypeId _value = value)
+    {
+        value = _value;
+ 
+        return value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMCollectorConfigurationAdditionalAttribute)+';'+attributeName+';'+value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

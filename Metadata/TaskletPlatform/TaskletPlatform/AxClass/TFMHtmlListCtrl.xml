@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMHtmlListCtrl</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[FormControlAttribute('TFMHtmlListCtrl','/Resources/html/TFMHtmlListCtrl',classstr(TFMHtmlListCtrlBuild))]
+public class TFMHtmlListCtrl extends FormTemplateContainerControl
+{
+    TFMPageOverviewFormClass formClass;
+    FormProperty        SendItemsToJavascriptProperty;
+    FormProperty        SendUpdatingToJavascriptProperty;
+    Map                 createdItems;
+    int                 counter = 0;
+    int                 hashCode;    
+    str                 cachedAllPagesContracts;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(FormBuildControl _build, FormRun _formRun)
+    {
+        super(_build, _formRun);
+        this.setTemplateId('TFMHtmlListCtrl');
+        this.setResourceBundleName('/Resources/html/TFMHtmlListCtrl');
+
+        SendItemsToJavascriptProperty = this.addProperty(methodstr(TFMHtmlListCtrl, SendItemsToJavascript), Types::String);
+        SendUpdatingToJavascriptProperty = this.addProperty(methodstr(TFMHtmlListCtrl, SendUpdatingToJavascript), Types::String);
+
+        this.createdItems = new Map(Types::String, Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setFormClass</Name>
+				<Source><![CDATA[
+    public void setFormClass(TFMPageOverviewFormClass _formClass)
+    {
+        formClass = _formClass;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendUpdatingToControl</Name>
+				<Source><![CDATA[
+    public void sendUpdatingToControl()
+    {
+        counter++;
+        this.SendUpdatingToJavascript(int2Str(counter));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendItemsToJavascriptControl</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sends the items to the control.
+    /// </summary>
+    public void sendItemsToJavascriptControl(TFMPages _pages)
+    {
+        boolean cacheAllPagesItems;
+        str serializedItems;
+        MapEnumerator pagesEnum;
+        List items;
+        TFMPage page;
+        TFMListItemContract contract;
+        Set queryPageSet;
+
+        if(!hashCode)
+        {
+            hashCode = _pages.getPages().GetHashCode();
+            cacheAllPagesItems = true;
+        } 
+        else if(hashCode == _pages.getPages().GetHashCode())
+        {
+            this.SendItemsToJavascript(cachedAllPagesContracts);
+            return;
+        }
+
+        queryPageSet = TFMDeltaPages::GetAllPageNames();
+
+        items = new List(Types::Class);
+        pagesEnum = _pages.getPages().getEnumerator();
+        while(pagesEnum.moveNext())
+        {
+            page = pagesEnum.currentValue();
+            contract = this.convertToContract(page, _pages, queryPageSet);
+            items.addEnd(contract);
+        }
+
+        serializedItems = FormJsonSerializer::serializeClass(items);
+        if(cacheAllPagesItems)
+        {
+            cachedAllPagesContracts = serializedItems;
+        }
+
+        this.SendItemsToJavascript(serializedItems);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SendUpdatingToJavascript</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'SendUpdatingToJavascript')]
+    private str SendUpdatingToJavascript(str _value = SendUpdatingToJavascriptProperty.parmValue())
+    {
+        SendUpdatingToJavascriptProperty.setValueOrBinding(_value);
+        return SendUpdatingToJavascriptProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SendItemsToJavascript</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'SendItemsToJavascript')]
+    private str SendItemsToJavascript(str _value = SendItemsToJavascriptProperty.parmValue())
+    {
+        SendItemsToJavascriptProperty.setValueOrBinding(_value);
+        return SendItemsToJavascriptProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLocalization</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The javascript control requests the translation based on the _localizationKey and then it is returned to the javascript.
+    /// </summary>
+    /// <param name = "_localizationKey"></param>
+    /// <returns></returns>
+    [FormCommandAttribute('getTranslation')]
+    public str getLocalization(str _localizationKey)
+    {
+        str sReturn;
+        TFMLocalizationContract contract = new TFMLocalizationContract();
+
+        str labelStr = SysLabel::labelId2String("@TFM:" + _localizationKey);
+        contract.parmKey(_localizationKey);
+        contract.parmTranslation(labelStr);
+        sReturn = FormJsonSerializer::serializeClass(contract);
+        return sReturn;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>selectListItem</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the selected item id so that the FO can update the datasource.
+    /// </summary>
+    /// <param name = "_selectedItemId"></param>
+    /// <returns></returns>
+    [FormCommandAttribute('selectListItem')]
+    public str selectListItem(str _selectedItemId)
+    {
+        str sReturn = '';
+        if(formClass)
+        {
+            formClass.setCurrentPage(_selectedItemId);
+        }
+        return sReturn;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertToContract</Name>
+				<Source><![CDATA[
+    private TFMListItemContract convertToContract(TFMPage _pageItem, TFMPages _pages, Set _queryPageSet)
+    {
+        TFMListItemContract contract;
+        str overriddenStatus;
+
+        if(createdItems.exists(_pageItem.parmId()))
+        {
+            contract = createdItems.lookup(_pageItem.parmId());
+        }
+        else
+        {
+            contract = new TFMListItemContract();
+            contract.parmListItemId(_pageItem.parmId());
+            contract.parmTitle(_pageItem.parmId());
+            contract.parmLine2(_pageItem.parmId());
+            contract.parmLine2(TFMListVisualization::getMenuTitle(_pageItem.parmTitle()));
+            contract.parmLine3(TFMHelper::convertCamelCaseToNiceText(_pageItem.parmType()));
+
+            if(_queryPageSet.in(_pageItem.parmId()))
+            {
+                overriddenStatus = "@TFM:Overridden";
+                contract.parmLine4Class('items_green');
+            }
+            else
+            {
+                overriddenStatus = _pageItem.extensionModel() ? _pageItem.extensionModel() : "@TFM:Standardversion";
+                contract.parmLine4Class('items_blue');
+            }
+            contract.parmLine4(overriddenStatus);
+            
+            contract.parmIconName(TFMDocGetMedia::getURLFromIconName(_pageItem.parmIcon(), true));
+            createdItems.add(_pageItem.parmId(), contract);
+        }
+
+        return contract;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentNodes</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The TFMDocumentNodes class contains a hierarchy of nodes, that can be exported to XML.
+/// </summary>
+class TFMDocumentNodes
+{
+    Map nodes;
+    Set rootLevelNodes;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    Public static TFMDocumentNodes Construct(str _root)
+    {
+        return new TFMDocumentNodes(_root);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(str _rootName)
+    {
+        TFMDocumentNode root = TFMDocumentNode::Construct(0,null, this);
+        root.parmName(_rootName);
+        nodes = new Map(Types::int64, Types::Class);
+        rootLevelNodes = new Set(Types::Int64);
+        rootLevelNodes.add(0);
+        nodes.insert(0,root);
+        //return root;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRoot</Name>
+				<Source><![CDATA[
+    public TFMDocumentNode getRoot()
+    {
+        return nodes.lookup(0);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeRootSibling</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to add a sibling node to the root node.
+    /// </summary>
+    /// <param name = "_name">The name of the node to be created.</param>
+    /// <returns>A TFMDocumentNode instance.</returns>
+    public TFMDocumentNode makeRootSibling(str _name)
+    {
+        TFMDocumentNode root = TFMDocumentNode::Construct(nodes.elements(),null,this);
+        root.parmName(_name);
+        rootLevelNodes.add(nodes.elements());
+        nodes.insert(nodes.elements(),root);        
+        return root;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeChild</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create a child to a given node.
+    /// </summary>
+    /// <param name = "_parent">The parent node, for which the child should be created.</param>
+    /// <param name = "_name">The name of the child node.</param>
+    /// <returns>A TFMDocumentNode instance of the created node.</returns>
+    public TFMDocumentNode makeChild(TFMDocumentNode _parent, str _name)
+    {
+        TFMDocumentNode child = TFMDocumentNode::Construct(nodes.elements(),_parent,this);
+        child.parmName(_name);
+        nodes.insert(nodes.elements(),child);
+        _parent.addChild(child);
+        return child;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to append the current TFMDocumentNode hierarchy tree to an existing XML.
+    /// </summary>
+    /// <param name = "_parentElement">The XMLElement to append to.</param>
+    public void appendToXML(XmlElement _parentElement)
+    {
+        TFMDocumentNode root;
+        SetEnumerator   sEnum = rootLevelNodes.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            root = nodes.lookup(sEnum.current());
+            this.makeNode(_parentElement,root);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeXml</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create a new XML from the current TFMDocumentNode hierarchy tree.
+    /// </summary>
+    /// <returns>The XMLDocument instance created.</returns>
+    public XmlDocument makeXml()
+    {
+        TFMDocumentNode root = nodes.lookup(0);
+        TFMDocumentNode child;
+        MapEnumerator   mEnum;
+        XmlElement      xmlRoot;
+        XmlDocument     returnXML = new XmlDocument();
+        SetEnumerator   sEnum = rootLevelNodes.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            root = nodes.lookup(sEnum.current());
+            mEnum = root.getChildren().getEnumerator();
+            xmlRoot = returnXML.createElement(root.parmName());
+        
+            while (mEnum.moveNext())
+            {
+                if (!nodes.exists(mEnum.currentValue()))
+                {
+                    continue;
+                }
+                child = nodes.lookup(mEnum.currentValue());
+                this.makeNode(xmlRoot,child);
+            }
+            returnXML.appendChild(xmlRoot);
+        }
+        return returnXML;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeNode</Name>
+				<Source><![CDATA[
+    private void makeNode(XmlElement _parentElement, TFMDocumentNode _nodeToMake)
+    {
+        XmlDocument owner = _parentElement.ownerDocument();
+        XmlElement  node  = owner.createElement(_nodeToMake.parmName());
+        TFMDocumentNode child;
+        XmlAttribute    attr;
+        str             value = _nodeToMake.parmValue();
+        str             cData = _nodeToMake.getCDataAsXML();//_nodeToMake.parmCData() == null ? '' : _nodeToMake.parmCData().makeXML().xml();
+        MapEnumerator   mEnum = _nodeToMake.parmAttributes().getEnumerator();
+        XmlCDataSection cDataSection;
+
+        _parentElement.appendChild(node);
+        while (mEnum.moveNext())
+        {
+
+            attr = owner.createAttribute(mEnum.currentKey());
+            attr.text(mEnum.currentValue());
+            node.setAttributeNode(attr);
+        }
+            
+        if (value)
+        {
+            node.text(value);
+            return;
+        }
+        if (cData)
+        {
+            cDataSection  = owner.createCDataSection('');
+            // Add the CDATA to the <Value> element
+            cDataSection.appendData(cData);
+            node.appendChild(cDataSection);
+            return;
+        }
+            
+        mEnum = _nodeToMake.getChildren().getEnumerator();
+        while (mEnum.moveNext())
+        {
+            if (!nodes.exists(mEnum.currentValue()))
+            {
+                continue;
+            }
+            child = nodes.lookup(mEnum.currentValue());
+            this.makeNode(node,child);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

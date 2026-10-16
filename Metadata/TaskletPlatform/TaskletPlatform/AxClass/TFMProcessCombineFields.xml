@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMProcessCombineFields</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class to handle combined fields
+/// </summary>
+class TFMProcessCombineFields
+{
+    TFMRegistrationCollector    replacementCollector;
+    Set                         subCollectors;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMProcessCombineFields Construct()
+    {
+        return new TFMProcessCombineFields();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>add2AliasMap</Name>
+				<Source><![CDATA[
+    public void add2AliasMap(Map _aliases)
+    {
+        SetEnumerator sEnum = subCollectors.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            _aliases.insert(sEnum.current(), replacementCollector.parmName());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        subCollectors = new Set(Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmReplacementCollector</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollector parmReplacementCollector(TFMRegistrationCollector _collector = replacementCollector)
+    {
+        replacementCollector = _collector;
+        return replacementCollector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addSubCollector</Name>
+				<Source><![CDATA[
+    public void addSubCollector(str _subCollectorName)
+    {
+        subCollectors.add(_subCollectorName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSubCollectors</Name>
+				<Source><![CDATA[
+    public Set getSubCollectors()
+    {
+        return subCollectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>combineCollectors</Name>
+				<Source><![CDATA[
+    public void combineCollectors(TFMRegistrationCollector _col1, TFMRegistrationCollector _col2)
+    {
+        replacementCollector = TFMProcessCombineFields::combineCollectorsToOne(_col1, _col2);
+
+        subCollectors.add(_col1.parmName());
+        subCollectors.add(_col2.parmName());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>combineCollectorsToOne</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollector combineCollectorsToOne(TFMRegistrationCollector _col1, TFMRegistrationCollector _col2)
+    {
+        SysDictClass                sdc= new SysDictClass(classIdGet(_col1));
+        MethodName                  name = methodStr(TFMRegistrationCollectorText, parmLength);
+        MethodName                  nameFrom;
+        SetEnumerator               parmMethodsOnClass = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(_col1)).getEnumerator();
+        Name                        collectorName = _col1.parmName() == _col2.parmName() ? _col1.parmName() : _col1.parmName() + _col2.parmName();
+        str                         label = _col1.parmLabel() == _col2.parmLabel() ? _col1.parmLabel() : _col1.parmLabel()+'/'+_col2.parmLabel();
+        str                         header= _col1.parmHeader() == _col2.parmHeader() ? _col1.parmHeader() : _col1.parmHeader()+'/'+_col2.parmHeader();
+        TFMRegistrationCollector    newCollector = sdc.makeObject(min(_col1.parmId(), _col2.parmId()), collectorName, label, header, _col1.parmHelpLabel());
+        SetEnumerator               sEnum;
+        if (classIdGet(_col1) == classIdGet(_col2))
+        {
+            while (parmMethodsOnClass.moveNext())
+            {
+                name = parmMethodsOnClass.current();
+                nameFrom = name;
+                if (name == methodStr(TFMRegistrationCollector, parmActive) || name == methodStr(TFMRegistrationCollector, parmVisible) || name == methodStr(TFMRegistrationCollector, parmHeader)|| name == methodStr(TFMRegistrationCollector, parmName)|| name == methodStr(TFMRegistrationCollector, parmLabel))
+                {
+                    continue;
+                }
+                if (strScan(name, methodStr(TFMListValuesAndDataTable, linkedElement),1,100))
+                {
+                    nameFrom = subStr(name,5,100);
+                }
+                sdc.callObject(name,newCollector, max(sdc.callObject(nameFrom,_col1), sdc.callObject(nameFrom,_col2)));
+            }
+        }
+
+        newCollector.parmOptional(min(_col1.parmOptional(), _col2.parmOptional()));
+
+        newCollector.setEDT(_col2.getEDT());
+        newCollector.setEDT(_col1.getEDT());
+        newCollector.origins().mergeInOrigin(_col1.origins());
+        newCollector.origins().mergeInOrigin(_col2.origins());
+        sEnum = _col1.getAliases().getEnumerator();
+        while (sEnum.moveNext())
+        {
+            newCollector.addAlias(sEnum.current());
+        }
+
+        sEnum = _col2.getAliases().getEnumerator();
+        while (sEnum.moveNext())
+        {
+            newCollector.addAlias(sEnum.current());
+        }
+
+        return newCollector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyHeaderConfiguration</Name>
+				<Source><![CDATA[
+    public void modifyHeaderConfiguration(TFMReferenceDataConfiguration _configuration)
+    {        
+        TFMRegistrationCollector            subCol;
+        SetEnumerator                       sEnum = subCollectors.getEnumerator();
+        
+        while (sEnum.moveNext())
+        {
+            if (!_configuration.collectorNameExists(sEnum.current()))
+            {
+                continue;
+            }
+            subCol = _configuration.getCollector(sEnum.current());
+            subCol.parmActive(false);
+        }
+
+        _configuration.addCollector(replacementCollector);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRequestXml</Name>
+				<Source><![CDATA[
+    public void modifyRequestXml(XmlDocument _requestXml)
+    {
+        XmlElement      combinedField = _requestXml.getElementsByTagName(replacementCollector.parmName()).item(0);
+        XmlElement      originalField;
+        SetEnumerator   sEnum;
+        if (combinedField == null)
+        {
+            combinedField = _requestXml.getElementsByTagName(replacementCollector.parmName()).item(0);
+        }
+        if (combinedField == null)
+        {
+            return;
+        }
+        sEnum = subCollectors.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            //Make the original field in the xml, as if it had been in the header on the device
+            originalField = _requestXml.createElement(sEnum.current());
+            originalField.innerText(combinedField.innerText());
+            combinedField.parentNode().appendChild(originalField);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_PickSales</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for picking Sales order lines.
+/// </summary>
+[TFMTableName(tableStr(SalesLine))]
+class MobXMLFormatOrderLines_PickSales extends MobXMLFormatOrderLines_Pick
+{
+    SalesLine            salesLine;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        super();
+    
+        salesLine       = common;
+        inventDim       = salesLine.inventDim();
+    
+        this.setInventDim(salesLine.ItemId);
+    
+        orderBackendId          = MobOrder::constructFromTableName(tableStr(SalesTable)).getBackendID(SalesTable::find(SalesLine.SalesId));//#PickSalesOrderPrefix + salesLine.SalesId;
+        lineNumber              = salesLine.InventTransId;
+        itemNumber              = salesLine.ItemId;
+        description             = InventTable::find(salesLine.itemId).productName(new xInfo().language());
+        quantity                = MobHelper::formatItemQty(salesLine.RemainSalesPhysical, salesLine.SalesUnit);
+        registeredQuantity      = MobConstants::NotUsed0();
+        unitOfMeasure           = salesLine.SalesUnit;
+        
+        status                  = MobConstants::NotUsed0();
+        displayLine1            = salesLine.ItemId;
+        displayLine2            = InventTable::find(salesLine.itemId).productName(new xInfo().language());
+        displayLine3            = inventDim.wMSLocationId;
+        underDeliveryValidation = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),SalesParameters::find().SubDelivery ? (salesLine.underDeliveryPct > 0 ?  TFMUnderDeliveryValidation::None : TFMUnderDeliveryValidation::Block ) : TFMUnderDeliveryValidation::Block); //Must be able to handle partial receipt
+        overDeliveryValidation  = MobHelper::enumName(enumnum(TFMOverDeliveryValidation),SalesParameters::find().OverDelivery ? (salesLine.overDeliveryPct > 0 ?  TFMOverDeliveryValidation::None : TFMOverDeliveryValidation::Block ) : TFMOverDeliveryValidation::Block); //Must be able to handle partial receipt
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

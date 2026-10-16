@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowControlInteractionLogicBlocks</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDrawFlowControlInteractionLogicBlocks extends TFMDrawFlowControlInteraction
+{
+
+    int latestId;
+    TFMProcess process;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>SetProcess</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The version that the Process uses. The parmKeyId is the ProcessName.
+    /// </summary>
+    /// <param name = "_processVersion"></param>
+    /// <returns></returns>
+    public void SetProcess(TFMProcess _process)
+    {
+        process = _process;
+        this.parmKeyObject(_process);
+        this.clearContextPane();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockList</Name>
+				<Source><![CDATA[
+    public List blockList()
+    {
+        TFMLogicBlock                   lb;
+        TFMLogicBlocksContract          contract;
+        resourceNode                    rn;
+        List                            blockList   = new List(Types::Class);
+        ListEnumerator                  le          = new SysDictClass(classNum(TFMLogicBlock)).extendedBy(true).getEnumerator();
+        List                            categoriesList;
+        SetEnumerator                   se;
+        str                             iconStr;
+        
+        while (le.moveNext())
+        {
+            lb = new SysDictClass(le.current()).makeObject();
+
+            if (!(lb is TFMLogicBlockDataCollectionInterface) && !(lb is TFMLogicStepOperatorInterface) && !(lb is TFMLogicBlockPostAdhocRegistrationInterface))
+            {
+                continue;
+            }
+            
+            contract = new TFMLogicBlocksContract();
+            contract.parmBlockName(lb.blockName());
+            contract.parmClassName(classId2Name(classIdGet(lb)));
+            
+            iconStr = lb.blockIcon();
+            if(iconStr)
+            {
+                str iconUrlBase = TFMDocGetMedia::getURLFromIconName(iconStr, true);
+                contract.parmResourcePath(iconUrlBase);
+            }
+                
+            contract.parmNumberOfInputs(lb.inputs().NoOfConnections());
+            contract.parmNumberOfOutputs(lb.outputs().NoOfConnections());
+
+            categoriesList = new List(Types::String);
+            se = lb.parmCategories().getEnumerator();
+            while (se.moveNext())
+            {
+                categoriesList.addEnd(se.current());
+            }
+            contract.parmCategories(categoriesList);
+
+            blockList.addEnd(contract);
+        }
+
+        return  blockList;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveData</Name>
+				<Source><![CDATA[
+    public void saveData(str _json)
+    {
+        Object fr = flowControl.formRun();
+
+        if (!this.validateBeforeSaving(_json))
+        {
+            warning ("@TFM:Notallblocksareconnected");
+            return;
+        }
+
+        fr.showLoader(false);
+
+        jsonMediator.saveJson2Data(_json, '', this.parmKeyObject());
+
+        fr.executeQueryForVersion();
+        
+        this.clearContextPane();
+        info(strFmt("@TFM:Saved1", process.parmProcessName()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateBeforeSaving</Name>
+				<Source><![CDATA[
+    public boolean validateBeforeSaving(str _json)
+    {
+        TFMDrawFlowContract                 contract = TFMJsonSerializer::deserializeObject(classNum(TFMDrawFlowContract),_json);
+        TFMDrawFlowLogicBlockContract       blockContract;
+        MapEnumerator                       mEnum, outputEnum;        
+        TFMDrawFlowLogicBlockInputsOutputs  outputs;
+        Map                                 linkMap = new Map(Types::Integer, Types::Class);
+        Set                                 innerLinks;        
+        Map                                 blockContracts = contract.getBlocks();
+        mEnum = blockContracts.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            blockContract = mEnum.currentValue();
+            
+            outputEnum = blockContract.parmOutputs().getEnumerator();
+
+            innerLinks = new Set(Types::Integer);
+            
+            
+            while (outputEnum.moveNext())
+            {
+                outputs = outputEnum.currentValue();
+                TFMDrawFlowLogicBlockConnectionContract connCont;
+                ListEnumerator lEnum = outputs.parmConnection().getEnumerator();
+                while (lEnum.moveNext())
+                {
+                    connCont = lEnum.current();
+            
+                    innerLinks.add(str2Int(connCont.parmNode()));
+                }
+                
+            }
+            linkMap.insert(blockContract.parmId(),  innerLinks);
+        }
+        
+        return TFMConnectedConditions::isGraphConnected(linkMap);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeCreated</Name>
+				<Source><![CDATA[
+    public void nodeCreated(TFMDrawFlowLogicBlockContract _createdNode)
+    {
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeDeleted</Name>
+				<Source><![CDATA[
+    public void nodeDeleted(int _id)
+    {
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getData</Name>
+				<Source><![CDATA[
+    public str getData()
+    {
+        if(!process)
+        {
+            return '';
+        }
+
+        if(!jsonMediator)
+        {
+            jsonMediator = TFMDrawFlowJsonCreator::Construct(classStr(TFMProcess));
+        }
+
+        return jsonMediator.jSon(process);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>clearContextPane</Name>
+				<Source><![CDATA[
+    protected void clearContextPane()
+    {
+        while (fgc && fgc.controlCount())
+        {
+            fgc.formRun().design().removeControl(fgc.controlNum(1).id());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeSelected</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_id"></param>
+    public void nodeSelected(int _id)
+    {
+        TFMLogicBlockCollection                 blockCollection = process.blockCollection();
+        TFMLogicBlock                           logicBlock = blockCollection.blockFromHash(_id);
+        TFMLogicBlockDataCollectionInterface    dataCollection;
+        MapEnumerator                           components;
+        MapEnumerator                           mEnum;
+        TFMLogicComponent                       component;
+        int                                     controlnum, subControlNum;
+        FormControl                             fc;
+        FormStringControl                       fsc;
+        FormStaticTextControl                   fstc;
+        FormGroupControl                        subFgc;
+        
+        this.clearContextPane();
+
+        if (fgc == null)
+        {
+            return;
+        }
+
+        if (logicBlock == null)
+        {
+            fstc = fgc.addControl(FormControlType::StaticText, 'BlockNotSavedInfo');
+            fstc.text("@TFM:Youneedtosaveyourflowbeforeyouca");
+            return;
+        }
+
+        fgc.enabled(!(process.parmDeltaLevel() == TFMDeltaLevel::Code || process.parmLocked()));
+
+        latestId = _id;
+        TFMProcessBlocksParametersEdit edt  = new TFMProcessBlocksParametersEdit(fgc);
+        edt.setInteractionClass(this);
+        // Populate with Block Parameters
+        edt.parmProcess(process);
+        edt.parmCurrentBlockName(logicBlock.parmName());
+        edt.populateGroupWithParmsFromInstance(logicBlock,fgc);
+        
+        //Find subcomponents parameters
+        components = logicBlock.components().componentSet().getEnumerator();
+
+        while (components.moveNext())
+        {
+            component = components.currentValue();
+            edt.parmClassNameReplace(classId2Name(classIdGet(logicBlock)));
+            edt.populateGroupWithParmsFromInstance(component,fgc,'',true);
+        }
+
+        //Go through all generated fields, override tablename lookup, if any
+        for (controlnum = 1; controlnum <= fgc.controlCount(); controlnum++)
+        {
+            fc = fgc.controlNum(controlnum);
+            if (fc is FormGroupControl)
+            {
+                subFgc = fgc.controlNum(controlnum);
+                for (subControlNum = 1; subControlNum <= subFgc.controlCount(); subControlNum++)
+                {
+                    fc = subFgc.controlNum(subControlNum);
+
+                    if (fc is FormStringControl)
+                    {
+                        fsc = fc;
+                        mEnum = TFMAttributeHandler::getMethodNamesFromSysAttribute(classIdGet(this), new TFMLookupMethodForEDTAttribute(extendedTypeId2name(fsc.extendedDataType()))).getEnumerator();
+                        while (mEnum.moveNext())
+                        {
+                            //Special Case, override lookup.
+                            fsc.registerOverrideMethod(methodStr(FormStringControl, lookup), mEnum.currentKey(),this);
+                        }
+
+                    }
+                }
+            }
+        }
+        if (logicBlock is TFMLogicBlockDataCollectionInterface && logicBlock is TFMLogicBlockPrePostDataModifyInterface)
+        {
+            //Add on compatible
+            blockCollection.addGUI(logicBlock, fgc, process, _id);
+        }
+        if(!TFMPagesProvider::instance().developerMode())
+        {
+            return;
+        }
+        TFMHtmlViewerCtrl htmlDebug = fgc.addControlEX(classStr(TFMHtmlViewerCtrl), 'developerSection');
+
+        htmlDebug.parmHtml(logicBlock.inheritedValues().InheritanceContent());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupContextDataSources</Name>
+				<Source><![CDATA[
+    [TFMLookupMethodForEDT(ExtendedTypeStr(TableName))]
+    public void lookupContextDataSources(FormStringControl _fsc)
+    {
+        TFMLogicBlockCollection         blockCollection = process.blockCollection();
+        TFMLogicBlock                   logicBlock = blockCollection.blockFromHash(latestId);
+        MapEnumerator                   blockDataSources = logicBlock.inheritedValues().datasourcesAvailable().getEnumerator();
+        SetEnumerator                   dataSets;
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpTableName), _fsc);
+        TmpTableName                    tmpLookup;
+        str                             tblStr;
+        
+        sysTableLookup.addLookupfield(fieldnum(TmpTableName, TableName),true);
+        
+        tmpLookup.setTmp();
+        while (blockDataSources.moveNext())
+        {
+            tblStr = blockDataSources.currentValue();
+            tmpLookup.TableName  = substr(tblStr, 1, strScan(tblStr,'[', 1,1666)-1);
+            tmpLookup.insert();
+        }
+        blockDataSources = logicBlock.inheritedValues().prePostDatasourcesAvailable().getEnumerator();
+        while (blockDataSources.moveNext())
+        {
+            tblStr = blockDataSources.currentValue();
+            tmpLookup.TableName  = substr(tblStr, 1, strScan(tblStr,'{', 1,1666)-1); 
+            tmpLookup.insert();
+            
+        }
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupContextBlocks</Name>
+				<Source><![CDATA[
+    [TFMLookupMethodForEDT(ExtendedTypeStr(TFMLogicBlockName))]
+    public void lookupContextBlocks(FormStringControl _fsc)
+    {
+        TFMLogicBlockCollection         blockCollection = process.blockCollection();
+        SetEnumerator                   prevblocks;
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpTableName), _fsc);
+        TmpTableName                    tmpLookup;
+        TFMLogicBlock                   logicBlock = blockCollection.blockFromHash(latestId);
+        
+        sysTableLookup.addLookupfield(fieldnum(TmpTableName, TableName),true);
+        
+        tmpLookup.setTmp();
+
+        prevblocks = logicBlock.inheritedValues().previousBlocksEnumerator();
+        while (prevblocks.moveNext())
+        {
+            
+            tmpLookup.TableName  = prevblocks.current();
+            tmpLookup.insert();
+        }
+
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupContextVariable</Name>
+				<Source><![CDATA[
+    [TFMLookupMethodForEDT(ExtendedTypeStr(TFMFlowVariableContextLookupField))]
+    public void lookupContextVariable(FormStringControl _fsc)
+    {
+        TFMLogicBlockCollection                             blockCollection = process.blockCollection();        
+        TFMLogicBlock                                       logicBlock = blockCollection.blockFromHash(latestId);        
+        Args                                                args = new Args();
+        Object                                              formRun;
+
+        args.name(formStr(TFMLogicContextLookup));
+        args.caller(_fsc);
+        formRun = classfactory.formRunClass(args);
+        formRun.setBlock(logicBlock);
+        formRun.init();
+        _fsc.performFormLookup(formRun);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateHtmlForCurrentNode</Name>
+				<Source><![CDATA[
+    public void updateHtmlForCurrentNode()
+    {
+        TFMDrawFlowBlockStyle           blockStyle;
+        TFMLogicBlockCollection         blockCollection = process.blockCollection();
+        TFMLogicBlock                   logicBlock = blockCollection.blockFromHash(latestId);
+        
+        str html;
+        blockStyle = TFMDrawFlowBlockStyle::findStyleClass(classStr(TFMLogicBlock));
+        if(logicBlock)
+        {
+            html = blockStyle.htmlForClass(logicBlock);
+            flowControl.updateHtmlForNode(latestId, html);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

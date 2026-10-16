@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestGetOrdersElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType('Get*Orders'),
+TFMDocumentType('CartContent')]
+class TFMRequestGetOrdersElement extends TFMRequestElement
+{
+    TFMRequestFiltersElement  filters;
+
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmFilters</Name>
+				<Source><![CDATA[
+    public TFMRequestFiltersElement parmFilters(TFMRequestFiltersElement _filters = filters)
+    {
+        filters = _filters;
+		if (!filters)
+        {
+            filters = new TFMRequestFiltersElement();
+            filters.parmInitFromParmFilter(true);
+		}
+        return filters;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

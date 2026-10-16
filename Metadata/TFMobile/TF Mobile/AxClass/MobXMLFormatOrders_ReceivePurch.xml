@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_ReceivePurch</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for purchase orders.
+/// </summary>
+[TFMTableNameAttribute(tableStr(PurchTable))]
+class MobXMLFormatOrders_ReceivePurch extends MobXMLFormatOrders_Receive
+{
+    PurchTable  purchTable;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        super();
+    
+        purchTable              = common;
+    
+        displayLine1            = strFmt('%1: %2', new DictField(tablenum(PurchTable), fieldnum(PurchTable, PurchId)).Label(),purchTable.PurchId);
+        displayLine2            = strFmt('%1: %2', new DictField(tablenum(PurchTable), fieldnum(PurchTable, PurchName)).Label(),purchTable.PurchName);
+        displayLine3            = strfmt('%1: %2',new DictField(tablenum(PurchTable), fieldnum(PurchTable, DeliveryDate)).Label(), purchTable.DeliveryDate);
+        headerLabel1            = new DictField(tablenum(PurchTable), fieldnum(PurchTable, PurchId)).Label();
+        headerLabel2            = new DictField(tablenum(PurchTable), fieldnum(PurchTable, PurchName)).label();
+        headerValue1            = purchTable.PurchId;
+        headerValue2            = purchTable.PurchName;
+        sorting                 = strKeep(date2Str(purchTable.DeliveryDate,321,2,0,2,0,2),'1234567890');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

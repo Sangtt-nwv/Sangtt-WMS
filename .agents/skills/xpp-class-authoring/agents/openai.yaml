@@ -1,0 +1,4 @@
+interface:
+  display_name: "X++ Class Authoring"
+  short_description: "Create and extend metadata-grounded X++ classes"
+  default_prompt: "Use $xpp-class-authoring to implement this X++ class change."

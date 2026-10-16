@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageLookupConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('Lookup', "Lookup")]
+class TFMPageLookupConfiguration extends TFMListPageConfiguration
+{
+    str					useRegistrationCollector;
+    boolean				includeInputDataRowInSubmitRequest;
+    boolean				automaticAcceptAfterLastScan;
+    TFMAutomaticAccept	automaticAccept;
+    boolean				hideAfterAccept;
+    boolean				enabled;
+    TFMPageID			navigateTo;
+    TFMPageID			navigateToOnSuccess;    
+    boolean				close;
+    boolean				refreshOnSuccess;
+    str					lookup;
+    str					submit;
+    TFMListId			listId;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmType</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','')]
+    public str parmType(str _type = type)
+    {
+        type = _type;
+        return type;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUseRegistrationCollector</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('Auto','','',false,false)]
+    public str parmUseRegistrationCollector(str _useRegistrationCollector = useRegistrationCollector)
+    {
+        useRegistrationCollector = _useRegistrationCollector;
+        return useRegistrationCollector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIncludeInputDataRowInSubmitRequest</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(false,'')]
+    public boolean parmIncludeInputDataRowInSubmitRequest(boolean _includeInputDataRowInSubmitRequest = includeInputDataRowInSubmitRequest)
+    {
+        includeInputDataRowInSubmitRequest = _includeInputDataRowInSubmitRequest;
+        return includeInputDataRowInSubmitRequest;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHideAfterAccept</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'header','',true)]
+    public boolean parmHideAfterAccept(boolean _hideAfterAccept = hideAfterAccept)
+    {
+        hideAfterAccept = _hideAfterAccept;
+        return hideAfterAccept;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAutomaticAcceptAfterLastScan</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'header','',true)]
+    public boolean parmAutomaticAcceptAfterLastScan(boolean _automaticAcceptAfterLastScan = automaticAcceptAfterLastScan)
+    {
+        automaticAcceptAfterLastScan = _automaticAcceptAfterLastScan;
+        return automaticAcceptAfterLastScan;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'onResultSelected')]
+    public boolean parmEnabled(boolean _enabled = enabled)
+    {
+        enabled = _enabled;
+        return enabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmNavigateTo</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','onResultSelected')]
+    public TFMPageID parmNavigateTo(TFMPageID _navigateTo = navigateTo)
+    {
+        navigateTo = _navigateTo;
+        return navigateTo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmListId</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(classStr(TFMListLookupWithRegistrations),'list','',true)]
+    public TFMListId parmListId(TFMListId _listId = listId)
+    {        
+        TFMList			listCls;
+        listId = _listId;
+		if (className2Id(listId))
+        {
+            listCls = new SysDictClass(className2Id(listId)).makeObject();
+            listId = listCls.parmListName();
+		}
+        return listId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClose</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(false,'onSuccessfulPost')]
+    public boolean parmClose(boolean _close = close)
+    {
+        close = _close;
+        return close;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmNavigateToOnSuccess</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','onSuccessfulPost','navigateTo')]
+    public TFMPageID parmNavigateToOnSuccess(TFMPageID _navigateToOnSuccess = navigateToOnSuccess)
+    {
+        navigateToOnSuccess = _navigateToOnSuccess;
+        return navigateToOnSuccess;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRefreshOnSuccess</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'onSuccessfulPost','',true)]
+    public boolean parmRefreshOnSuccess(boolean _refreshOnSuccess = refreshOnSuccess)
+    {
+        refreshOnSuccess = _refreshOnSuccess;
+        return refreshOnSuccess;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAutomaticAccept</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(0,'header')]
+    public TFMAutomaticAcceptEDT parmAutomaticAccept(TFMAutomaticAcceptEDT _automaticAccept = automaticAccept)
+    {
+        automaticAccept = _automaticAccept;
+        return automaticAccept;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLookup</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','requests/', 'lookup')]
+    public str parmLookup(str _lookup = lookup)
+    {
+        lookup = _lookup;
+        return lookup;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSubmit</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','requests/', 'submit')]
+    public str parmSubmit(str _submit = submit)
+    {
+        submit = _submit;
+        return submit;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

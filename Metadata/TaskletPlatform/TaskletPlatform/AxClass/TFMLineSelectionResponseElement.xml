@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLineSelectionResponseElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLineSelectionResponseElement extends TFMResponseElement
+{
+    TFMRequestElement			request;
+    InventSum                   inventSum;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new (TFMDocumentTypeId _documentType, TFMDocumentContentSubject _contentType = '')
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMLineSelectionResponseElement Construct(TFMDocumentTypeId _documentType, TFMDocumentContentSubject _contentType = '')
+    {
+        return new TFMLineSelectionResponseElement(_documentType, _contentType);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addResponse</Name>
+				<Source><![CDATA[
+    public void addResponse(InventSum _inventSum)
+    {
+        inventSum = _inventSum;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getXML</Name>
+				<Source><![CDATA[
+    public XmlDocument getXML()
+    {
+        XmlDocument		returnXML       = new XmlDocument();
+        XmlElement		tmpRootElement  = returnXML.createElement('responseData');
+
+        this.appendToXML(tmpRootElement);
+        return returnXML;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendInventDimToXmlElement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Appends all invent Dim fields to xml element.
+    /// 
+    /// Returns the names that was contained in the inventDim.
+    /// </summary>
+    public static Map appendInventDimToXmlElement(XmlElement _element, InventDim _inventDim)
+    {
+        int             idx;
+        DictTable       dictTable = new DictTable(tableNum(InventDim));
+        SysDictTable	sysDictTable = new SysDictTable(_inventDim.TableId);
+        FieldName       fieldName;
+        DictField       dictField;
+        XmlElement  fieldXmlElement;
+        InventDim       inventDim = _inventDim;
+        XmlDocument     xmlDoc = _element.ownerDocument();
+        Map             fieldNamesAdded = new Map(Types::String, Types::String);
+
+        for (idx = 1; idx <= dictTable.fieldCnt(); idx++)
+        {
+            fieldName = strLwr(dictTable.fieldName(dictTable.fieldCnt2Id(idx)));
+            dictField = new DictField(dictTable.id(),dictTable.fieldCnt2Id(idx));
+            if (dictField.isSystem() || dictField.baseType() == Types::Container || any2Str(inventDim.(dictTable.fieldName2Id(fieldName))) == '')
+            {
+                continue;
+            }
+
+            fieldXmlElement = xmlDoc.createElement(fieldName);
+            fieldXmlElement.text(any2Str(inventDim.(dictTable.fieldName2Id(fieldName))));
+            _element.appendChild(fieldXmlElement);
+            fieldNamesAdded.insert(fieldName, any2Str(inventDim.(dictTable.fieldName2Id(fieldName))));
+        }
+        return fieldNamesAdded;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _element)
+    {
+        XmlDocument         returnXML = _element.ownerDocument();
+        XmlElement          tmpRootElement          = _element;
+        XmlElement			lineSelectionElement;
+        Map                 inventDimFields;
+        XmlElement          selectElement;
+        List                translationList;
+        XmlElement          valuesElement;
+        XmlElement          quantityElement;
+
+        returnXML.appendChild(tmpRootElement);
+
+        selectElement = returnXML.createElement('select');
+        selectElement.setAttribute('name', 'ItemNumber');
+        selectElement.setAttribute('value', inventSum.ItemId);
+
+        quantityElement = returnXML.createElement('Quantity');
+        valuesElement = returnXML.createElement('values');
+        
+        quantityElement.innerText(strFmt('%1', inventSum.AvailPhysical));
+        valuesElement.appendChild(quantityElement);
+
+        inventDimFields = TFMLineSelectionResponseElement::appendInventDimToXmlElement(valuesElement, inventSum.inventDim());
+
+        translationList = new List(Types::String);
+        translationList.addEnd(TFMConstants::ToBin());                                                                                      
+        translationList.addEnd(TFMConstants::FromBin());
+
+        this.translateFieldNamesToMobileApi(inventDimFields, valuesElement, extendedTypeStr(WMSLocationId), translationList);
+
+        translationList = new List(Types::String);
+        translationList.addEnd(TFMConstants::LotNumber());
+        this.translateFieldNamesToMobileApi(inventDimFields, valuesElement, extendedTypeStr(InventBatchId), translationList);
+
+        translationList = new List(Types::String);
+        translationList.addEnd(TFMConstants::Warehouse());
+        this.translateFieldNamesToMobileApi(inventDimFields, valuesElement, extendedTypeStr(inventLocationId), translationList);
+
+        selectElement.appendChild(valuesElement);
+        tmpRootElement.appendChild(selectElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>translateFieldNamesToMobileApi</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Translates to one or more fields to match the mobile api.
+    /// 
+    /// e.g. wmsLocationId -> ToBin and FromBin.
+    /// </summary>
+    /// <param name = "_fieldNamesAdded">The list of fields already added.</param>
+    /// <param name = "_containerElement">The Xml element should be add to.</param>
+    /// <param name = "_name">The name of the field to find.</param>
+    /// <param name = "_translatedNames">The names of the elements to add.</param>
+    private void translateFieldNamesToMobileApi(Map _fieldNamesAdded, XmlElement _containerElement, str _name, List _translatedNames)
+    {
+        str        translatedName;
+        str        value;
+        XmlElement addingElement;
+
+        XmlDocument xmlDoc = _containerElement.OwnerDocument();
+        ListEnumerator listEnum = _translatedNames.GetEnumerator();
+        
+        while(listEnum.moveNext())
+        {
+            if(_fieldNamesAdded.exists(_name))
+            {
+                translatedName = listEnum.current();
+                value = _fieldNamesAdded.lookup(_name);
+                addingElement = xmlDoc.createElement(translatedName);
+                addingElement.text(value);
+                _containerElement.appendChild(addingElement);
+                _fieldNamesAdded.insert(translatedName, value);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

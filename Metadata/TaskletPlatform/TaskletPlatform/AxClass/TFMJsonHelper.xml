@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMJsonHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMJsonHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>ConFromJSON</Name>
+				<Source><![CDATA[
+        /// <summary>
+        /// Method to convert a json string to a container
+        /// </summary>
+        /// <param name = "_jsonString">The Json string</param>
+        /// <returns>Container made from the Json string</returns>
+        public static container ConFromJSON(str _jsonString)
+        {
+        
+            System.Web.Script.Serialization.JavaScriptSerializer ser = new System.Web.Script.Serialization.JavaScriptSerializer();
+            CLRObject dict = ser.DeserializeObject(_jsonString);
+            container con = TFMJsonHelper::convertCLRObjectToContainer(dict);
+            return con;
+        
+        }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertCLRObjectToContainer</Name>
+				<Source><![CDATA[
+        private static container convertCLRObjectToContainer(CLRObject _clrObject)
+        {
+            str stringValue;
+            boolean isDictValue;
+            boolean isArrayValue;
+            System.Type valueType;
+
+            Map complexValue;
+            List arrayValue;
+
+            container packedValue;
+
+            isDictValue = false;
+            isArrayValue = false;
+            if (_clrObject)
+            {
+                valueType = _clrObject.GetType();
+                if (_clrObject is System.Array)
+                {
+                    isArrayValue = true;
+                }
+                else if (!valueType.get_IsValueType() && !(_clrObject is System.String))
+                {
+                    isDictValue = true;
+                }
+            }
+
+            if (isArrayValue)
+            {
+                arrayValue = TFMJsonHelper::getList(_clrObject);
+                packedValue = arrayValue.pack();
+            }
+            else if (isDictValue)
+            {
+                complexValue = TFMJsonHelper::getMap(_clrObject);
+                packedValue = complexValue.pack();
+            }
+            else if (!_clrObject)
+            {
+                packedValue = [''];
+            }
+            else
+            {
+                stringValue = _clrObject;
+                packedValue = [stringValue];
+            }
+
+            return packedValue;
+        }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+        private static List getList(CLRObject _array)
+        {
+            List result;
+            container packedValue;
+
+            System.Collections.IEnumerator itemsEnumerator;
+            System.Array deserializedArray;
+            CLRObject value;
+
+            deserializedArray = _array;
+            itemsEnumerator = deserializedArray.GetEnumerator();
+
+            result = new List(Types::Container);
+
+            while (itemsEnumerator.MoveNext())
+            {
+                value = itemsEnumerator.get_Current();
+                packedValue = TFMJsonHelper::convertCLRObjectToContainer(value);
+                result.addEnd(packedValue);
+            }
+
+            return result;
+        }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMap</Name>
+				<Source><![CDATA[
+        private static Map getMap(CLRObject deserializedCollection)
+        {
+            Map result;
+            //System.Collections.IDictionary collection = deserializedCollection;
+            System.Collections.ICollection keys;
+            System.Collections.IEnumerator keysEnumerator;
+            //System.Collections.IDictionaryEnumerator enumerator;
+            str key;
+            CLRObject value;
+            container packedValue;
+        
+            keys = deserializedCollection.get_Keys();
+        
+            keysEnumerator = keys.GetEnumerator();
+  
+            result = new Map(Types::String, Types::Container);
+
+            while (keysEnumerator.MoveNext())
+            {
+                key = keysEnumerator.get_Current();
+                value = deserializedCollection.get_Item(key);
+
+                packedValue = TFMJsonHelper::convertCLRObjectToContainer(value);
+                result.insert(key, packedValue);
+            }
+
+            return result;
+        }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

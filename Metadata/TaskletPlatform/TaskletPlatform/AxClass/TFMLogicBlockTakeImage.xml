@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicBlockTakeImage</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic Block to create attachment of images to records
+/// </summary>
+class TFMLogicBlockTakeImage extends TFMLogicBlock implements TFMLogicBlockDataCollectionInterface
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {        
+        return components.getHeaders();        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        components.addComponent(new TFMLogicComponentDataContext());
+        categories.add("@TFM:Image");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        TFMRegistrationCollectors               ret = TFMRegistrationCollectors::Construct();
+        TFMRegistrationCollectorImageCapture    colImg = new TFMRegistrationCollectorImageCapture(20,extendedTypeStr(ImageDataString), "@TFM:Takeimage", "@TFM:Takeimage", "@TFM:Takeimage");
+        
+        ret.addCollector(colImg);
+        return ret;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Used if online steps are required
+    /// </summary>
+    /// <param name = "_request"></param>
+    /// <returns></returns>
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        TFMLogicComponentDataContext    dataContext     = components.getComponent(classStr(TFMLogicComponentDataContext));
+        Common                          dataToAttachTo  = dataContext.getData(request ? request : new TFMRequestBasicElement());
+
+        //TODO: If no data is in variable, but there are tables in the context object, prompt the user for which table to attach to
+
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData             postElement     = TFMPostResponseData::Construct();        
+        TFMLogicComponentDataContext    dataContext     = components.getComponent(classStr(TFMLogicComponentDataContext));
+        Common                          dataToAttachTo  = dataContext.getData(request);
+        str                             mediaIDs        = request.getFieldValue(extendedTypeStr(ImageDataString));
+        
+        if (mediaIDs && dataToAttachTo)
+        {
+            TFMMediaQueue::AddMap2Queue(dataToAttachTo, TFMMediaQueue::separateIDsAndComments(mediaIDs), request.parmdeviceID());
+        }
+        postElement.parmResponseText(strFmt("@TFM:ImageAttachedto", TFMHelper::descriptionFromCommon(dataToAttachTo)));
+        
+        return postElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMCamera);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

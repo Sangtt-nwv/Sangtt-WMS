@@ -1,0 +1,12 @@
+<script src="/resources/scripts/TFMHtmlButtonCtrl.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link href="/resources/styles/TFMHtmlButtonCtrl.css" rel="stylesheet" type="text/css" />
+
+<div id="TFMHtmlButtonCtrl" data-dyn-bind="sizing: { height: $data.Height, width: $data.Width }, visible: $data.Visible">
+    <a href="javascript:void(0);" data-dyn-bind="css: {mobbutton: true, mobbuttonactive: $data.activelayout}, click: $data.click">
+        <span data-dyn-bind="text: $data.text"></span>
+        <span class="mobbutton-icon">
+            <i data-dyn-bind="attr: {class: $data.faicon}"></i> <!-- class="fa fa-wrench"-->
+        </span>
+    </a>
+</div>

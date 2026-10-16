@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>TFM.TFMobile</Name>
+	<Customizations />
+	<Elements>
+		<AxMenuExtensionElement xmlns="">
+			<Parent>TFMInquiries</Parent>
+			<MenuElement xmlns=""
+				i:type="AxMenuElementMenuItem">
+				<Name>MobToteOverview</Name>
+				<MenuItemName>MobToteOverview</MenuItemName>
+			</MenuElement>
+		</AxMenuExtensionElement>
+		<AxMenuExtensionElement xmlns="">
+			<Parent>Customizations</Parent>
+			<MenuElement xmlns=""
+				i:type="AxMenuElementMenuItem">
+				<Name>MobPostOrderPromptOverride</Name>
+				<MenuItemName>MobPostOrderPromptOverride</MenuItemName>
+			</MenuElement>
+		</AxMenuExtensionElement>
+		<AxMenuExtensionElement xmlns="">
+			<Parent>TFMPeriodic</Parent>
+			<MenuElement xmlns=""
+				i:type="AxMenuElementMenuItem">
+				<Name>MobConsolidatePickingRoutes</Name>
+				<MenuItemName>MobConsolidatePickingRoutes</MenuItemName>
+			</MenuElement>
+		</AxMenuExtensionElement>
+		<AxMenuExtensionElement xmlns="">
+			<Parent>BaseData</Parent>
+			<MenuElement xmlns=""
+				i:type="AxMenuElementMenuItem">
+				<Name>MobInventLocationSetup</Name>
+				<MenuItemName>MobInventLocationSetup</MenuItemName>
+			</MenuElement>
+		</AxMenuExtensionElement>
+		<AxMenuExtensionElement xmlns="">
+			<Parent>BaseData</Parent>
+			<MenuElement xmlns=""
+				i:type="AxMenuElementMenuItem">
+				<Name>MobPackingStation</Name>
+				<MenuItemName>MobPackingStation</MenuItemName>
+			</MenuElement>
+		</AxMenuExtensionElement>
+		<AxMenuExtensionElement xmlns="">
+			<Parent>BaseData</Parent>
+			<MenuElement xmlns=""
+				i:type="AxMenuElementMenuItem">
+				<Name>MobCarts</Name>
+				<MenuItemName>MobCarts</MenuItemName>
+			</MenuElement>
+		</AxMenuExtensionElement>
+		<AxMenuExtensionElement xmlns="">
+			<Parent>BaseData</Parent>
+			<MenuElement xmlns=""
+				i:type="AxMenuElementMenuItem">
+				<Name>MobInventAdjustmentCauses</Name>
+				<MenuItemName>MobInventAdjustmentCauses</MenuItemName>
+			</MenuElement>
+		</AxMenuExtensionElement>
+		<AxMenuExtensionElement xmlns="">
+			<Parent>ImportExport</Parent>
+			<MenuElement xmlns=""
+				i:type="AxMenuElementMenuItem">
+				<Name>MobDataMigratorPlatformModelSetup</Name>
+				<MenuItemName>MobDataMigratorPlatformModelSetup</MenuItemName>
+				<MenuItemType>Action</MenuItemType>
+			</MenuElement>
+		</AxMenuExtensionElement>
+	</Elements>
+	<MenuElementModifications />
+	<PropertyModifications />
+</AxMenuExtension>

@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentQueueCleanup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class used to clean up in the Document Queue
+/// </summary>
+class TFMDocumentQueueCleanup extends RunBaseBatch
+{
+    DialogField   fieldChoice;
+    QueryRun      queryRun;
+    int           historyLimit;
+    DialogField   dialogHistoryLimit;
+
+    #define.CurrentVersion(2)
+    #localmacro.CurrentList
+        historyLimit
+    #endmacro
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase dlg                = super();
+        
+        dialogHistoryLimit = dlg.addField(extendedTypeStr(Days), "@SYS69354", "@TFM:TFM71");
+        dialogHistoryLimit.value(historyLimit);
+        return dlg;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Indicate whether or not the class can run in new session or not.
+    /// </summary>
+    /// <returns>True if the class can run in new session. Otherwise false.</returns>
+    protected boolean canRunInNewSession()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        historyLimit = dialogHistoryLimit.value();
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    public void initParmDefault()
+    {
+        historyLimit = 10;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMDocumentQueueCleanup Construct()
+    {
+        return new TFMDocumentQueueCleanup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        queryRun = new QueryRun(querystr(TFMDocumentQueue));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion,queryRun.pack(),#CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryRun</Name>
+				<Source><![CDATA[
+    public QueryRun queryRun()
+    {
+        return queryRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        #OCCRetryCount
+        try
+        {
+            if (DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone()) - dateNull() <= historyLimit)
+            {
+                return;
+            }
+    
+
+            ttsbegin;
+            this.progressInit("@SYS57265", 0, #AviFileDelR);
+
+            this.doCleanup(historyLimit);
+    
+            ttscommit;
+        }
+        catch (Exception::Deadlock)
+        {
+            retry;
+        }
+        catch (Exception::UpdateConflict)
+        {
+            if (appl.ttsLevel() == 0)
+            {
+                if (xSession::currentRetryCount() >= #RetryNum)
+                {
+                    throw Exception::UpdateConflictNotRecovered;
+                }
+                else
+                {
+                    retry;
+                }
+            }
+            else
+            {
+                throw Exception::UpdateConflict;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>doCleanup</Name>
+				<Source><![CDATA[
+    public void doCleanup(int _historyLimit)
+    {
+        TFMDocumentQueue        mobDocumentQueue;
+        TFMXMLTable				xmlTable;
+
+        delete_from mobDocumentQueue where mobDocumentQueue.CreatedDateTime < DateTimeUtil::addDays(DateTimeUtil::getSystemDateTime(), - _historyLimit);
+
+        delete_from xmlTable
+                where xmlTable.RefTableId == mobDocumentQueue.TableId
+            notexists join mobDocumentQueue
+                where mobDocumentQueue.RecId == xmlTable.RefRecId;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Integer         version        = RunBase::getVersion(_packedClass);
+        container       packedQuery;
+    
+        switch (version)
+        {
+            case 1:
+                [version,packedQuery] = _packedClass;
+                if (packedQuery)
+                {
+                    queryRun = new QueryRun(packedQuery);
+                }
+                this.initParmDefault();
+                break;
+    
+            case #CurrentVersion:
+                [version,packedQuery, #currentList] = _packedClass;
+                if (packedQuery)
+                {
+                    queryRun = new QueryRun(packedQuery);
+                }
+                break;
+    
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public static ClassDescription description()
+    {
+        return "@TFM:TFM72";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        TFMDocumentQueueCleanup mobDocumentQueueCleanup;
+        mobDocumentQueueCleanup = new TFMDocumentQueueCleanup();
+    
+        if (mobDocumentQueueCleanup.prompt())
+        {
+            mobDocumentQueueCleanup.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

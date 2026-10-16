@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMParameters_TFMobile_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(formStr(TFMParameters))]
+final class TFMParameters_TFMobile_Extension
+{
+
+    [DataSource]
+    class InventLocation_1
+    {
+        display NoYes hasConfig(InventLocation invLoc)
+        {
+            return MobInventLocationsPickReceiveTypes::find( invLoc.InventLocationId).RecId  != 0;
+        }
+
+        public int active()
+        {
+            int ret;
+            ret = super();
+            element.UpdateOverwrites();
+            return ret;
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        public void init()
+        {
+            QueryBuildDataSource inventLocationQueryBuilder;
+            super();
+
+            inventLocationQueryBuilder = this.query().dataSourceTable(tableNum(InventLocation));
+            inventLocationQueryBuilder.addRange(fieldnum(InventLocation, WHSEnabled)).value(queryValue(NoYes::No));
+        }
+
+    }
+}
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+</AxClass>

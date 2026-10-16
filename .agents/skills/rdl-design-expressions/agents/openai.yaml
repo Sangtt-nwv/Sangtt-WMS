@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO RDL Report Expressions"
+  short_description: "Write RDL Fields!/Parameters! expressions and aggregates"
+  default_prompt: "Use $rdl-design-expressions to write or fix an SSRS RDL expression for this D365FO change."

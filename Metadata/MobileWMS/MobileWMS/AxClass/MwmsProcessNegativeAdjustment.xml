@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsProcessNegativeAdjustment</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Process definition for Negative Adjustments
+/// </summary>
+class MwmsProcessNegativeAdjustment extends TFMProcess
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        MwmsLogicBlockCreateProfitLossJournal       jourBlock = MwmsLogicBlockCreateProfitLossJournal::Construct();
+        MwmsLogicBlockCreateProfitLossJournalLine   lineBlock = MwmsLogicBlockCreateProfitLossJournalLine::Construct();
+        MwmsLogicBlockPostInventoryJournal          postBlock = MwmsLogicBlockPostInventoryJournal::Construct();
+        processName = TFMConstants::NegativeAdjustment();
+        description = "@TaskletMobileWMS:ProcessdefinitionforNegativeAdju";
+        super();
+        this.blockCollection().addBlockAddon(lineBlock, new MwmsLogicBlockAddonNegativeQuantity());
+        this.addBlock(jourBlock);
+        this.addBlock(lineBlock);
+        this.addBlock(postBlock);
+
+        this.linkBlocks(jourBlock,lineBlock,'1','1');
+        this.linkBlocks(lineBlock, postBlock,'1','1');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

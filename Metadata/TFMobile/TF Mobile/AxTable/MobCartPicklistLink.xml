@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobCartPicklistLink</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobCartPicklistLink extends common
+{
+   
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addLink</Name>
+				<Source><![CDATA[
+    public static void addLink(RefRecId _recId, MobCartID _cartId, InventQty _qty)
+    {
+        MobCartPicklistLink link;
+
+        link.CartID			= _cartId;
+        link.RefRecId		= _recId;
+        link.InventQty		= _qty;
+        link.insert();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exists</Name>
+				<Source><![CDATA[
+    public static boolean exists(RefRecId _recId, MobCartID _cartId)
+    {
+        MobCartPicklistLink link;
+
+        select firstonly link where link.RefRecId == _recId && link.CartID == _cartId;
+
+        return link.recid;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeLinks</Name>
+				<Source><![CDATA[
+    public static void removeLinks(MobCartID _cartId)
+    {
+        MobCartPicklistLink link;
+
+        delete_from link
+            where link.CartID == _cartId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>totalQty</Name>
+				<Source><![CDATA[
+    public static InventQty totalQty(RefRecId _recId, MobCartID _cartId)
+    {
+        WMSOrderTrans			accOrderTrans;
+        MobCartPicklistLink		link;
+        InventQty				qtyRet;
+        InventDimId				orgDimID;
+        ItemId					orgItemId;
+        boolean					isReserved;
+
+        select firstonly accOrderTrans where accOrderTrans.RecId == _recId;
+        orgDimID	= accOrderTrans.inventDimId;
+        orgItemId	= accOrderTrans.itemId;
+        isReserved	= accOrderTrans.isReserved;
+        //select sum(InventQty) from link where link.RefRecId == _recId && link.CartID == _cartId;
+
+        while select link where link.CartID == _cartId
+            join accOrderTrans where link.refRecID == accOrderTrans.RecId && accOrderTrans.inventDimId == orgDimID && accOrderTrans.itemId == orgItemId && (!isReserved || accOrderTrans.RecId == _recId)
+        {
+            qtyRet += link.InventQty;
+        }
+        return qtyRet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>totalQtyBOM</Name>
+				<Source><![CDATA[
+    public static InventQty totalQtyBOM(RefRecId _recId, MobCartID _cartId)
+    {
+        ProdJournalBOM			accOrderTrans;
+        MobCartPicklistLink		link;
+        InventQty				qtyRet;
+        InventDimId				orgDimID;
+        ItemId					orgItemId;
+        boolean					isReserved;
+
+        select firstonly accOrderTrans where accOrderTrans.RecId == _recId;
+        orgDimID	= accOrderTrans.inventDimId;
+        orgItemId	= accOrderTrans.itemId;
+        //select sum(InventQty) from link where link.RefRecId == _recId && link.CartID == _cartId;
+
+        while select link where link.CartID == _cartId
+            join accOrderTrans where link.refRecID == accOrderTrans.RecId && accOrderTrans.inventDimId == orgDimID && accOrderTrans.itemId == orgItemId && accOrderTrans.RecId == _recId
+        {
+            qtyRet += link.InventQty;
+        }
+        return qtyRet;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@MobileWMS:CartPickListLink</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Staging</TableGroup>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CartID</Name>
+			<ExtendedDataType>MobCartID</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>refRecID</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>InventQty</Name>
+			<ExtendedDataType>InventQty</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

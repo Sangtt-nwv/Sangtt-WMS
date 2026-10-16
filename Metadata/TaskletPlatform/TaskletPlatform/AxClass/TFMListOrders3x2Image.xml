@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListOrders3x2Image</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMListOrders3x2Image extends TFMList
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        listName = 'Orders3x2Image';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+    public TFMListConfiguration getList()
+    {
+        TFMListConfiguration				listConfig	= TFMListConfiguration::Construct(listName);
+        TFMListRow							row			= listConfig.addRow();
+        TFMListColumn						column		= row.makeColumn(90);
+        TFMListImageElement					img;
+
+        listConfig.parmDisplayStatus(true);
+
+        column.addElement(TFMListTextElement::ConstructTextElement('{Headline_Label}: {Headline}',TFMFonts::FindOrCreateFromProperties('headlineFont',TFMFontSizes::large,true,false,'').id));
+        column		= row.makeColumn(7);
+        img = TFMListImageElement::ConstructImageElement('','Status',7,7);
+        img.addValueElement('1','unlocked');
+        img.addValueElement('2',resourceStr(TFMLocked));
+        column.addElement(img);
+        
+        column		= row.makeColumn(5);
+        column.addElement(TFMListImageElement::ConstructImageElement('{attachmentImage}','',5,5,SysChartHorizontalAlignment::Right,TFMVerticalAlignment::Bottom));
+        row			= listConfig.addRow();        
+        TFMList::makeColumnsInRowElement(row,2,3,75);
+
+        column		= row.makeColumn(25);
+        column.addElement(TFMListImageElement::ConstructImageElement('{imageId}','',25,0));
+        
+        return listConfig;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

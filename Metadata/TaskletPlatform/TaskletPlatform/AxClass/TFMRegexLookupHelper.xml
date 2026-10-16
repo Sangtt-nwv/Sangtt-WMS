@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegexLookupHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegexLookupHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getAIRegexSuggestion</Name>
+				<Source><![CDATA[
+    public static str getAIRegexSuggestion(str _regexDescription, str _contextDescription = '')
+    {
+        str								url					= TFMConstants::accountAddress();
+        System.Net.WebRequest			request				= System.Net.WebRequest::Create(url);
+        System.Net.WebHeaderCollection	headers				= request.Headers;
+        System.String					headerKey			= 'api-key';
+        System.IO.Stream				outStream, retStream;
+        System.IO.StreamWriter			streamWriter;
+        System.Net.HttpWebResponse	    webResponse;
+        TFMAIResultContract             AIResult;
+        TFMAIResultChoicesContract      choice;
+        ListEnumerator                  lEnum;        
+        str                             messageForAI        = 'Please see the following description for a regular expression needed: \\"' + _regexDescription + '\\".';
+ 
+        messageForAI += ' Only answer with a regular expression, and nothing else. If that is not possible, given the description, only answer with \\"Can\'t create expression\\"';
+        if (_contextDescription)
+        {
+            messageForAI += ' Further context for the expression is: ' + _contextDescription + '.';
+        }
+        headers.Add(headerKey, TFMConstants::accountKey());
+        request.Method		= 'POST';
+        request.ContentType = 'application/json';
+        outStream			= request.GetRequestStream();
+        streamWriter		= new System.IO.StreamWriter(outStream);
+        streamWriter.Write('{'+'\r'+'"messages": [ { "role": "user", "content": "'+messageForAI+'"' +
+            '}],' +
+                '"temperature": 0.7,' +
+                '"top_p": 0.95,' +
+                '"frequency_penalty": 0,' +
+                '"presence_penalty": 0,' +
+                '"max_tokens": 800,' +
+                '"stop": null}');
+        streamWriter.Flush();
+        streamWriter.Close();
+        streamWriter.Dispose();
+        webResponse			= request.GetResponse();
+        if(webResponse.StatusCode == System.Net.HttpStatusCode::OK)
+        {
+            retStream			= webResponse.GetResponseStream();
+ 
+            System.IO.StreamReader streamReader = new System.IO.StreamReader(retStream, System.Text.Encoding::UTF8);
+            System.String retStr = streamReader.ReadToEnd();
+
+            AIResult = FormJsonSerializer::deserializeObjectStrict(classNum(TFMAIResultContract), retstr);
+            lEnum = AIResult.parmChoices().getEnumerator();
+
+            while (lEnum.moveNext())
+            {
+                choice = lEnum.current();
+                return choice.parmMessage().parmContent();
+            }
+
+            return retStr;
+        }
+        return '';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentHandlers</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDocumentHandlers
+{
+    Set handlers;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        handlers = new Set(Types::Class);
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDocHandler</Name>
+				<Source><![CDATA[
+    public void addDocHandler(TFMDocumentHandler _docHandler)
+    {
+        handlers.add(_docHandler);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocHandlersSet</Name>
+				<Source><![CDATA[
+    public Set getDocHandlersSet()
+    {
+        return handlers;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDocHandlersSet</Name>
+				<Source><![CDATA[
+    public void setDocHandlersSet(Set _handlers)
+    {
+        handlers = _handlers;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocHandlersEnumerator</Name>
+				<Source><![CDATA[
+    public SetEnumerator getDocHandlersEnumerator()
+    {
+        return handlers.getEnumerator();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

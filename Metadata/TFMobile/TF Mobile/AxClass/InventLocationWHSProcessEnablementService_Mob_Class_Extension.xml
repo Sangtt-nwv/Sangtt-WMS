@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>InventLocationWHSProcessEnablementService_Mob_Class_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Post event handler enableWarehouseProcesses in the InventLocationWHSProcessEnablementService class
+/// </summary>
+[ExtensionOf(classStr(InventLocationWHSProcessEnablementService))]
+final class     InventLocationWHSProcessEnablementService_Mob_Class_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>InventLocationWHSProcessEnablementService_Post_enableWarehouseProcesses</Name>
+				<Source><![CDATA[
+    [PostHandlerFor(classStr(InventLocationWHSProcessEnablementService), methodStr(InventLocationWHSProcessEnablementService, enableWarehouseProcesses))]
+    public static void InventLocationWHSProcessEnablementService_Post_enableWarehouseProcesses(XppPrePostArgs args)
+    {
+        InventLocationWHSProcessEnablementContract contract = args.getArg(identifierStr(_dataContract)) as InventLocationWHSProcessEnablementContract;
+  
+        container queryContainer = SysOperationHelper::base64Decode(contract.whsProcessEnablementRequestQuery());
+
+        if (!queryContainer)
+        {
+            throw error(Error::wrongUseOfFunction(funcName()));
+        }
+
+        QueryRun queryRun = new QueryRun(new Query(queryContainer));
+
+        while (queryRun.next())
+        {
+            InventLocationWHSProcessEnablementRequest enablementRequest = queryRun.get(tableNum(InventLocationWHSProcessEnablementRequest));
+
+            InventLocation inventLocation = InventLocation::find(enablementRequest.InventLocationId);
+            if(inventLocation.WHSEnabled)
+            {
+                MobInventLocationsPickReceiveTypes pickReceiveInfo = MobInventLocationsPickReceiveTypes::find(enablementRequest.InventLocationId, true);
+                if(pickReceiveInfo)
+                {
+                    pickReceiveInfo.delete();
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

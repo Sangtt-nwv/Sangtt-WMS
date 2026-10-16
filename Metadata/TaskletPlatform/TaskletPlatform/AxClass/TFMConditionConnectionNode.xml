@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMConditionConnectionNode</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMConditionConnectionNode
+{
+    List            tolinks, fromLinks;
+    str             data;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmData</Name>
+				<Source><![CDATA[
+    public str parmData(str _data = data)
+    {
+        data = _data;
+        return data;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getToLinks</Name>
+				<Source><![CDATA[
+    public List getToLinks()
+    {
+        if (tolinks == null)
+        {
+            tolinks = new List(Types::Class);
+        }
+        return tolinks;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addToLink</Name>
+				<Source><![CDATA[
+    public void addToLink(Object _node)
+    {
+        if (tolinks == null)
+        {
+            tolinks = new List(Types::Class);
+        }
+        tolinks.addEnd(_node);
+        _node.addFromLink(this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromLinks</Name>
+				<Source><![CDATA[
+    public List getFromLinks()
+    {
+        if (fromLinks == null)
+        {
+            fromLinks = new List(Types::Class);
+        }
+        return fromLinks;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addFromLink</Name>
+				<Source><![CDATA[
+    protected void addFromLink(Object _node)
+    {
+        if (fromLinks == null)
+        {
+            fromLinks = new List(Types::Class);
+        }
+        fromLinks.addEnd(_node);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findStartingNodes</Name>
+				<Source><![CDATA[
+    public void findStartingNodes(List _startingNodes)
+    {
+        ListEnumerator          lEnum;
+        TFMBlockConnectionNode  node;
+        if (!fromLinks || !fromLinks.elements())
+        {
+            _startingNodes.addEnd(this);
+        }
+        else
+        {
+            lEnum = fromLinks.getEnumerator();
+            while (lEnum.moveNext())
+            {
+                node = lEnum.Current();
+                node.findStartingNodes(_startingNodes);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>hasCycle</Name>
+				<Source><![CDATA[
+    public boolean hasCycle()
+    {
+        Set setVisited = new Set(Types::Class);
+        Set setStack = new Set(Types::Class);
+        return this.dfs(setVisited, setStack);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dfs</Name>
+				<Source><![CDATA[
+    private boolean dfs(Set _setVisited, Set _setStack)
+    {
+        ListEnumerator          lEnum = tolinks.getEnumerator();
+        TFMConditionConnectionNode  node;
+        _setVisited.add(this);
+        _setStack.add(this);
+
+        while (lEnum.moveNext())
+        {
+            node = lEnum.Current();
+            if (!_setVisited.in(node))
+            {
+                if (node.dfs(_setVisited, _setStack))
+                    return true;
+            }
+            else if (_setStack.in(node))
+            {
+                return true;
+            }
+        }
+
+        _setStack.remove(this);
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDescriptionAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The TFMDescriptionAttribute class is an attribute to register with your classes, that describes their purpose
+/// </summary>
+public class TFMDescriptionAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    Description255       description;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(Description255       _description)
+    {
+        super();
+ 
+        description = _description;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    ///<summary>
+    /// Returns the key used for storing cached data for this attribute.
+    /// </summary>
+    /// <returns>
+    /// A string representing the cache key.
+    /// </returns>
+    public str parmCacheKey()
+    {
+        return classStr(TFMDescriptionAttribute)+';'+description;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDescription</Name>
+				<Source><![CDATA[
+    public Description255 parmDescription(Description255 _description = description)
+    {
+        description = _description;
+ 
+        return description;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    ///<summary>
+    /// Determines if the same instance should be returned by the extension framework.
+    /// </summary>
+    /// <returns>
+    /// true if the same instance should be returned; otherwise false.
+    /// </returns>
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

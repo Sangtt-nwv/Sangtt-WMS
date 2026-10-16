@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowBlockStyle</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDrawFlowBlockStyle
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>styleProvidedForThisClass</Name>
+				<Source><![CDATA[
+	public ClassName styleProvidedForThisClass()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>htmlForClass</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Default implementation if no other class provides a s style for this class.
+    /// </summary>
+    /// <param name = "_object"></param>
+    /// <param name = "_addtionalText"></param>
+    /// <param name = "_boxText"></param>
+    /// <returns></returns>
+    public str htmlForClass(Object _object)
+    {
+        resourceNode rn = new resourceNode(resourceStr(TFMStateError));
+
+        str imgStr = TFMDocGetMedia::getURLFromIconName(rn.filename());
+
+        str html = '<div><div class="title-box"><img src="'+ imgStr + '" ><b>' + classId2Name(classIdGet(_object)) + '</b></div>'
+            + '<div class="boxType"></div></div>';
+        return html;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findStyleClass</Name>
+				<Source><![CDATA[
+    public static TFMDrawFlowBlockStyle findStyleClass(ClassName _className)
+    {
+        ListEnumerator  le = new SysDictClass(classNum(TFMDrawFlowBlockStyle)).extendedBy().getEnumerator();
+        SysDictClass    sdc;
+        TFMDrawFlowBlockStyle styleClass;
+        while (le.moveNext())
+        {
+            sdc = new SysDictClass(le.current());
+            styleClass =  sdc.makeObject();
+            if(styleClass.styleProvidedForThisClass() == _className)
+            {
+                return styleClass;
+            }
+        }
+        return new TFMDrawFlowBlockStyle();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

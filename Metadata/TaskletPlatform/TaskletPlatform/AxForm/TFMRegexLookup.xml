@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMRegexLookup</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMRegexLookup extends FormRun
+{
+    boolean                 okButtonClicked;
+    Map                     idx2text;
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>closeSelect</Name>
+				<Source><![CDATA[
+    public void closeSelect(str _selectString)
+    {
+        if(okButtonClicked)
+        {
+            super(_selectString);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        
+		okButtonClicked = false;
+        super();
+        idx2text = new Map(Types::Integer, Types::String);
+        idx2text.insert(ListView.add('Match to given value'), 'Make a regular expression that can match the value \'TFSD-10000\', where the last five digits are variable.');
+        idx2text.insert(ListView.add('Match to description'), 'Make a regular expression that can match against a value consisting of four alphanumeric characters, then a dash, and then a number of varying length');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>ListView</Name>
+				<Type>ListView</Type>
+				<Methods>
+					<Method>
+						<Name>selectionChanged</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name = "_Idx"></param>
+        /// <param name = "_Data"></param>
+        public void selectionChanged(int _Idx, anytype _Data)
+        {
+            super(_Idx, _Data);
+            InputField.text(idx2text.lookup(_Idx));
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>SendToAI</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            suggestedRegex.text(TFMRegexLookupHelper::getAIRegexSuggestion(InputField.text()));
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>OK</Name>
+				<Type>CommandButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            okButtonClicked = true;
+
+            element.closeSelect(suggestedRegex.text());
+
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<HeightMode xmlns="">SizeToContent</HeightMode>
+		<Pattern xmlns="">LookupPreview</Pattern>
+		<PatternVersion xmlns="">1.0</PatternVersion>
+		<Style xmlns="">Lookup</Style>
+		<WidthMode xmlns="">SizeToAvailable</WidthMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FilterGroup</Name>
+				<ElementPosition>1789569705</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Pattern>CustomFilters</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Top>0</Top>
+				<Type>Group</Type>
+				<VerticalSpacingMode>Fixed</VerticalSpacingMode>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+				<AlignChildren>No</AlignChildren>
+				<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+				<BottomMargin>5</BottomMargin>
+				<BottomMarginMode>Fixed</BottomMarginMode>
+				<LeftMargin>5</LeftMargin>
+				<LeftMarginMode>Fixed</LeftMarginMode>
+				<RightMargin>5</RightMargin>
+				<RightMarginMode>Fixed</RightMarginMode>
+				<TopMargin>5</TopMargin>
+				<TopMarginMode>Fixed</TopMarginMode>
+				<BackStyle>Opaque</BackStyle>
+				<FrameType>None</FrameType>
+				<Style>CustomFilter</Style>
+				<ViewEditMode>Edit</ViewEditMode>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>Content</Name>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormListViewControl">
+						<Name>ListView</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>ListView</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<ViewType>List</ViewType>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>VerticalSplitter</Name>
+						<Type>Group</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls />
+						<Style>SplitterVerticalContainer</Style>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>Preview</Name>
+						<Type>Group</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>InputField</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Height>200</Height>
+								<HeightMode>Manual</HeightMode>
+								<Type>String</Type>
+								<Width>300</Width>
+								<WidthMode>Manual</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@SYS13491</Label>
+								<MultiLine>Yes</MultiLine>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>SendToAI</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@TFM:SuggestRegularExpression</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>suggestedRegex</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>String</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@TFM:Suggestion</Label>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+				<Columns>3</Columns>
+				<FrameType>None</FrameType>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>SelectArea</Name>
+				<ElementPosition>1431655764</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Group</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>ButtonGroup</Name>
+						<ElementPosition>1879048190</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<Left>0</Left>
+						<Type>ButtonGroup</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormCommandButtonControl">
+								<Name>OK</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>CommandButton</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<ButtonDisplay>TextOnly</ButtonDisplay>
+								<Command>Enter</Command>
+								<DefaultButton>Yes</DefaultButton>
+								<MultiSelect>No</MultiSelect>
+								<SaveRecord>No</SaveRecord>
+								<Text>@SYS11584</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormCommandButtonControl">
+								<Name>Cancel</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1610612734</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>CommandButton</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<ButtonDisplay>TextOnly</ButtonDisplay>
+								<Command>Cancel</Command>
+								<Text>@SYS301993</Text>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>HorizontalRight</ArrangeMethod>
+						<Columnspace>5</Columnspace>
+						<ColumnspaceMode>Fixed</ColumnspaceMode>
+						<Style>DialogCommitContainer</Style>
+					</AxFormControl>
+				</Controls>
+				<BackStyle>Opaque</BackStyle>
+				<FrameType>None</FrameType>
+				<Style>DialogCommit</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

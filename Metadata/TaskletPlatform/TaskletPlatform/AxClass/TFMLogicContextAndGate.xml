@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContextAndGate</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic Class used for an and Gate logic
+/// </summary>
+[TFMDescription("AND Gate takes 2 boolean, and if both are true, so is the output")]
+class TFMLogicContextAndGate extends TFMLogicContextTools
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        inputTypes.add(TFMLogicContextTypes::Boolean);
+        outputType = TFMLogicContextTypes::Boolean;
+        noOfInput = 2;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Name</Name>
+				<Source><![CDATA[
+    public Name Name()
+    {
+        return "@TFM:ANDGate";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public Object process()
+    {
+        Object ret;
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>icon</Name>
+				<Source><![CDATA[
+    public ResourceName icon()
+    {
+        return resourceStr(TFMOperatorANDGate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>evaluate</Name>
+				<Source><![CDATA[
+    public anytype evaluate(TFMLogicContext _context)
+    {
+        anytype         ret = true;
+        SetEnumerator   sEnum;
+        TFMCondition    condition;
+        if (children == null)
+        {
+            return ret;
+        }        
+        sEnum = children.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            condition = sEnum.current();
+            ret = ret && condition.evaluate(_context);
+            if (!ret)
+            {
+                return ret;
+            }
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

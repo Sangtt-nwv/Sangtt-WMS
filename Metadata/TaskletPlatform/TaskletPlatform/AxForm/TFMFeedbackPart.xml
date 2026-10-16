@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMFeedbackPart</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMFeedbackPart extends FormRun
+{
+
+    public GlobalObjectCacheScope feedBackCacheScope = 'FormPartCacheTest';
+    protected SysGlobalObjectCache sgoc;
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void run()
+    {
+        super();
+        if(!sgoc)
+        {
+            sgoc = new SysGlobalObjectCache();
+        }
+        
+        container cacheValue = sgoc.find(element.feedBackCacheScope, ['cacheValueKey']);
+        if(!cacheValue)
+        {
+            sgoc.insert(element.feedBackCacheScope, ['cacheValueKey'], [10]);
+        }
+
+        element.design().viewEditMode(ViewEditMode::Edit);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FormDisplayOperationMode</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public display str FormDisplayOperationMode()
+    {
+        TFMPageOrderListConfiguration conf = TFMPagesProvider::getAllPages().getPage('Receive').getConfiguration();
+        str value = enum2Str(conf.parmOperationMode());
+
+        value = value + ' ' + int2Str(DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone()));
+        return value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FormDisplayAutomaticAcceptOnOpen</Name>
+				<Source><![CDATA[
+    public display str FormDisplayAutomaticAcceptOnOpen()
+    {
+        TFMPageOrderListConfiguration conf = TFMPagesProvider::getAllPages().getPage('Receive').getConfiguration();
+        str value = conf.parmAutomaticAcceptOnOpen() ? 't' : 'f';
+        value = value + ' ' + int2Str(DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone()));
+        return value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FormDisplayCacheValue</Name>
+				<Source><![CDATA[
+    public display str FormDisplayCacheValue()
+    {
+        if(!sgoc)
+        {
+            sgoc = new SysGlobalObjectCache();
+        }
+        container cacheValue = sgoc.find(element.feedBackCacheScope, ['cacheValueKey']);
+        str value = conPeek(cacheValue, 1);
+        value = value + ' ' + int2Str(DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone()));
+        return value;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>SendButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            Map parms = new Map(Types::String, Types::String);
+            str callerName= element.args().callerName();
+            //TFMTestFeedback	helpEnum = TFMHelper::EnumSymbol2Value(enumNum(TFMTestFeedback),feedbacktype.getText(FeedbackType.selection()));
+            
+            super();
+            parms.insert('reportType',FeedbackType.valueStr());
+            parms.insert('message',FeedbackText.text());
+            parms.insert('occurred',strFmt('%1',DateTimeUtil::utcNow()));
+            parms.insert('formName',callerName);
+            parms.insert('user',curUserId());
+            SysEmailTable::sendMail('Alert', 'en-us', 'gl@taskletfactory.com',parms);
+            SysEmailTable::sendMail('Alert', 'en-us', 'pb@taskletfactory.com',parms);
+            FeedbackText.text('');
+            Info('Tak for hjælpen');
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonControl1</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            TFMProvider::invalidateProviders();
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonControl2</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            if (Box::okCancel("@TFM:Areyousureyouwanttodeleteallthes",DialogButton::Cancel) != DialogButton::Ok)
+            {
+                return;
+            }
+            Map                         models = TFMExportSetup::getTables();
+            MapEnumerator				mEnum = models.getEnumerator();
+            Map							tables;
+            MapEnumerator				tEnum;
+            TableName					tName;
+            Common						common;
+            super();
+
+			while (Menum.moveNext())
+            {
+                tables = mEnum.currentValue();
+                tEnum = tables.getEnumerator();
+                while (tEnum.moveNext())
+                {
+                    tName = tEnum.currentKey();
+                    common = new SysDictTable(TableName2id(tName)).makeRecord();
+                    common.skipDataMethods(true);
+                    delete_from common;
+                }
+            }
+
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonControlIncrement</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            if(!sgoc)
+            {
+                sgoc = new SysGlobalObjectCache();
+            }
+            container cacheValue = sgoc.find(element.feedBackCacheScope, ['cacheValueKey']);
+            if(!cacheValue)
+            {
+                sgoc.insert(element.feedBackCacheScope, ['cacheValueKey'], [10]);
+            } 
+            else
+            {
+                int value = str2Int(conPeek(cacheValue, 1));
+                value++;
+                sgoc.insert(element.feedBackCacheScope, ['cacheValueKey'], [value]);
+            }
+            FormStringControlCacheValue.update();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonControlClearCache</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            if(!sgoc)
+            {
+                sgoc = new SysGlobalObjectCache();
+            }
+            sgoc.clear(feedBackCacheScope);
+            FormStringControlCacheValue.update();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonControlRefreshValues</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            FormStringControlCacheValue.update();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<ArrangeMethod xmlns="">HorizontalWrap</ArrangeMethod>
+		<Caption xmlns="">@SYS22522</Caption>
+		<Style xmlns="">FormPart</Style>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>htmlGroup</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormRadioButtonControl">
+						<Name>FeedbackType</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>RadioButton</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<EnumType>TFMTestFeedback</EnumType>
+						<Items />
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>FeedbackText</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Label>@WAX234</Label>
+						<MultiLine>Yes</MultiLine>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonControl">
+						<Name>SendButton</Name>
+						<Type>Button</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Text>@TFM:Send</Text>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonControl">
+						<Name>FormButtonControl1</Name>
+						<Type>Button</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Text>@TFM:ResetCache</Text>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonControl">
+						<Name>FormButtonControl2</Name>
+						<Type>Button</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Text>@TFM:TaskletFactoryReset</Text>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FormGroupControlCacheTest</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>FormStringControlOperationMode</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<CacheDataMethod>No</CacheDataMethod>
+						<DataMethod>FormDisplayOperationMode</DataMethod>
+						<Label>@TFM:OperationMode</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>FormStringControlAutoAcceptOnOpen</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<CacheDataMethod>No</CacheDataMethod>
+						<DataMethod>FormDisplayAutomaticAcceptOnOpen</DataMethod>
+						<Label>@TFM:Automaticacceptonopen</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>FormStringControlCacheValue</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<CacheDataMethod>No</CacheDataMethod>
+						<DataMethod>FormDisplayCacheValue</DataMethod>
+						<Label>@TFM:Cachevalue</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>FormButtonGroupControl1</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>FormButtonControlIncrement</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@TFM:Incrementcachevalue</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>FormButtonControlClearCache</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@TFM:Clearcache</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>FormButtonControlRefreshValues</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@TFM:Refresh</Text>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

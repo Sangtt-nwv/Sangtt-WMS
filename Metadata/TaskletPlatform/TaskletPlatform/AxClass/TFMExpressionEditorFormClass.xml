@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMExpressionEditorFormClass</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMExpressionEditorFormClass
+{
+    FormGroupControl	parmGroup;
+    FormListBoxControl	primaryParmBox;
+    str					latestCommand;
+    FormStringControl	firstParmText;
+    str					Currentexpression;
+    FormStringControl	currentExpStrControl;
+    TFMHtmlViewerCtrl	htmlHelp;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(FormGroupControl _fgc, FormListBoxControl	_primaryParmBox, FormStringControl _firstParmText, FormStringControl _currentExpStrControl,TFMHtmlViewerCtrl _htmlHelp)
+    {
+        parmGroup = _fgc;
+        primaryParmBox = _primaryParmBox;
+        firstParmText = _firstParmText;
+        currentExpStrControl = _currentExpStrControl;
+        htmlHelp = _htmlHelp;
+        firstParmText.registerOverrideMethod(methodStr(FormStringControl,Modified),methodStr(TFMExpressionEditorFormClass,modifiedStr),this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifiedStr</Name>
+				<Source><![CDATA[
+    public boolean modifiedStr(FormStringControl _control)
+    {
+        this.updateExpression();
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateParmGroup</Name>
+				<Source><![CDATA[
+    public void updateParmGroup(str _expression, str _expressionParms)
+    {
+        SysDictClass			dc = TFMExpressions::getDictClassFromName(_expression);
+        SysDictMethod			sdm;
+        FormStringControl		fsc;
+        int						i;
+        str						expressionParms = _expressionParms;
+        container				parmList = conDel(TFMHelper::strSplit(expressionParms,'|').pack(),1,3);
+        TFMDescriptionAttribute	descAttr = dc ? dc.getAttribute(classStr(TFMDescriptionAttribute)) : null;
+        Description255			description = descAttr ? descAttr.parmDescription() :  _expression;
+		while (parmGroup.controlCount())
+        {
+            parmGroup.formRun().design().removeControl(parmGroup.controlNum(1).id());
+        }
+
+		if (dc == null)
+        {
+            return;
+        }
+
+        if (subStr(expressionParms,1,8) == '[record]')
+        {
+            sdm = new SysDictMethod(UtilElementType::ClassInstanceMethod,dc.id(),methodStr(TFMExpressions,processExpressionCommon));
+        }
+		else
+        {
+            sdm = new SysDictMethod(UtilElementType::ClassInstanceMethod,dc.id(),methodStr(TFMExpressions,processExpressionValue));
+			
+        }
+        for (i = 2; i <= sdm.parameterCnt(); i++)
+        {
+            fsc = parmGroup.addControl(FormControlType::String,sdm.parameterName(i));
+            fsc.label(TFMHelper::convertCamelCaseToNiceText(strReplace(sdm.parameterName(i),'_','')));
+            fsc.text(conPeek(parmList,i));
+            fsc.extendedDataType(extendedTypeName2Id(sdm.parameterTypeName(i)));
+            fsc.registerOverrideMethod(methodStr(FormStringControl,Modified),methodStr(TFMExpressionEditorFormClass,modifiedStr),this);
+        }
+        htmlHelp.parmHtml(description);
+        /*sdm = new SysDictMethod(UtilElementType::ClassInstanceMethod, classNum(TFMDocumentConnector),methodStr(TFMDocumentConnector,submitCil));
+        SysMethodInfo mi = new SysMethodInfo(UtilElementType::ClassInstanceMethod, classNum(TFMDocumentConnector),methodStr(TFMDocumentConnector,submitCil));
+		
+        if (sdm.xmlDocumentationExists())// && sdm.xmlDocumentationIsWellFormed())
+        {
+            htmlHelp.parmHtml(TFMFormXMLFormatter::htmlColorXML(sdm.xmlDocumentation()));
+        }
+        DictMethod dm  = new DictMethod(UtilElementType::ClassInstanceMethod, classNum(TFMDocumentConnector),methodStr(TFMDocumentConnector,submitCil));
+        Microsoft.Dynamics.AX.Metadata.MetaModel.AxClass cls = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::GetClass(classStr(TFMDocumentConnector));
+        
+
+        Microsoft.Dynamics.AX.Metadata.MetaModel.AxMethod meth = cls.GetMethod(0);
+
+        str xml =meth.XMLDocumentation;
+		
+        xml = mi.xmlDocumentation();
+        xml = sdm.xmlDocumentationAutomated();
+        i = sdm.xmlDocumentationParameterCount();*/
+        expressionParms = conPeek(parmList,1);
+
+        firstParmText.text(expressionParms);
+        firstParmText.visible(false);
+        if (subStr(expressionParms,1,8) != '[record]' && subStr(expressionParms,1,7) != '[value]')
+        {
+			firstParmText.visible(true);
+            firstParmText.text(expressionParms);
+            expressionParms = 'Text';
+        }
+        
+
+        primaryParmBox.selectText(expressionParms);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>commandBoxChanged</Name>
+				<Source><![CDATA[
+    public void commandBoxChanged(FormListBoxControl _commandBox)
+    {
+        //int				ret;
+        SetEnumerator	retMeths;
+        SysDictMethod	sdm;
+        str				ParmName;
+        latestCommand = _commandBox.getText(_commandBox.selection());
+
+		if (latestCommand == 'None' ||latestCommand == '[value]')
+        {
+            htmlHelp.parentControl().visible(false);
+            return;
+        }
+        htmlHelp.parentControl().visible(true);
+        retMeths = TFMExpressions::getPossibleMethodsFromName(latestCommand).getEnumerator();
+        
+        primaryParmBox.clear();
+
+        while (retMeths.moveNext())
+        {
+            sdm = retmeths.current();
+            ParmName = sdm.name();
+            ParmName = strReplace(ParmName, methodStr(TFMExpressions,processExpressionCommon), '[record]');
+            ParmName = strReplace(ParmName, methodStr(TFMExpressions,processExpressionValue), '[value]');
+            primaryParmBox.add(ParmName);
+        }
+        primaryParmBox.add('Text');
+        this.parmGroupSelectionChanged();        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmGroupSelectionChanged</Name>
+				<Source><![CDATA[
+    public void parmGroupSelectionChanged()
+    {
+        this.updateParmGroup(latestCommand, primaryParmBox.getText(primaryParmBox.selection()) + this.getAllParameters(true));
+        this.updateExpression();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateExpression</Name>
+				<Source><![CDATA[
+    public void updateExpression()
+    {
+        str command = strReplace(latestCommand,'None','');
+        str parameterStr = this.getAllParameters();
+        Currentexpression = command + ((command && command != '[value]') ? '(' + parameterStr + ')' : '');
+        currentExpStrControl.text(Currentexpression);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllParameters</Name>
+				<Source><![CDATA[
+    public str getAllParameters(boolean notfirst = false)
+    {
+        str returnParm = notfirst ? '' : FirstParmText.text();
+        int	i;
+        FormStringControl parmControlStr;
+
+        for (i = 1; i <= parmGroup.controlCount(); i++ )
+        {
+            parmControlStr = parmGroup.controlNum(i);
+            returnParm += '|' + parmControlStr.text() + '';
+        }
+
+        return returnParm;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>currentExpression</Name>
+				<Source><![CDATA[
+    public str currentExpression()
+    {
+        return Currentexpression;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

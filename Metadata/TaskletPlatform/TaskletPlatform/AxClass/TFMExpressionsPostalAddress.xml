@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMExpressionsPostalAddress</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDescription("An Expression used to get the logistics postal address")]
+class TFMExpressionsPostalAddress extends TFMExpressions
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processExpressionCommon</Name>
+				<Source><![CDATA[
+    public str processExpressionCommon(Common _common)
+    {
+        DictTable dt = new DictTable(_common.tableId);
+        FieldId   fieldId  = (dt != null ? dt.fieldName2Id(identifierStr(LogisticsPostalAddressRecId)) : 0);
+
+        return this.processExpressionValue(fieldId ? _common.(fieldId) : '');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processExpressionValue</Name>
+				<Source><![CDATA[
+    public str processExpressionValue(str _value)
+    {
+        return DirUtility::replaceAddressTokenLanguage(LogisticsPostalAddress::findRecId(str2Int64(_value)),'en-us');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

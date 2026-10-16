@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowLogicBlockConnectionContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContract]
+class TFMDrawFlowLogicBlockConnectionContract
+{
+    str node;
+    str output;
+    str input;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmNode</Name>
+				<Source><![CDATA[
+    [DataMember('node')]
+    public str parmNode(str _node = node)
+    {
+        node = _node;
+        return node;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOutput</Name>
+				<Source><![CDATA[
+    [DataMember('output')]
+    public str parmOutput(str _output = output)
+    {
+        output = _output;
+        return output;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInput</Name>
+				<Source><![CDATA[
+    [DataMember('input')]
+    public str parmInput(str _input = input)
+    {
+        input = _input;
+        return input;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMDrawFlowLogicBlockConnectionContract Construct(str _node, str _output, str _input)
+    {
+        TFMDrawFlowLogicBlockConnectionContract contract = new TFMDrawFlowLogicBlockConnectionContract();
+        contract.parmNode(_node);
+        contract.parmOutput(_output);
+        contract.parmInput(_input);
+
+        return contract;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

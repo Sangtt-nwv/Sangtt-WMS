@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Testing & Quality"
+  short_description: "Write SysTestCase tests and run offline validation gates"
+  default_prompt: "Use $testing-and-quality to add tests or run quality gates for this D365FO change."

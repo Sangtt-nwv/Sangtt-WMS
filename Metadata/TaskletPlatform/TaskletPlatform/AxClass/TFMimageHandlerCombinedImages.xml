@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMimageHandlerCombinedImages</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMimageHandlerCombinedImages extends TFMImageHandler
+{
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public str process(str _imageId)
+    {
+        str				ret;
+        SysDictClass	DC;
+
+        if (SysTest::hasMethod(this,_imageId))
+        {
+            DC = new SysDictClass(classIdGet(this));
+
+            return DC.callObject(_imageId,this);
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>workLog</Name>
+				<Source><![CDATA[
+	public str workLog()
+    {
+        str						base64;
+
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(TFMPickIcon),50,50,100,100,false);
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(TFMStopWatch),80,75,40,40,true);
+        
+        return base64;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

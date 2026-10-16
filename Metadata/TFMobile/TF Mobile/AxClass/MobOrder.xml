@@ -1,0 +1,502 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The MobOrder class is an abstract parent class that all orders and order lines, that should be made available in the Mobile WMS, must inherit from.
+/// </summary>
+abstract class MobOrder implements TFMBackendIDInterface
+{
+    TFMDocumentMessageID    messageID;
+    XMLDocument             resultXML;
+    TFMPostResponseData		responseData;
+    TableName               tblName;
+    str                     orderId;
+    str                     orderType;
+    boolean                 skipRouteActivation;
+    
+    #tfm
+        
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmTableName</Name>
+				<Source><![CDATA[
+    public TableName parmTableName(TableName _tblName = tblName)
+    {
+        tblName = _tblName;
+        return tblName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOrderId</Name>
+				<Source><![CDATA[
+    public str parmOrderId(str _orderId = orderId)
+    {
+        orderId = _orderId;
+        return orderId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOrderType</Name>
+				<Source><![CDATA[
+    public str parmOrderType(str _orderType = orderType)
+    {
+        orderType = _orderType;
+        return orderType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSkipRouteActivation</Name>
+				<Source><![CDATA[
+    public boolean parmSkipRouteActivation(boolean _skipRouteActivation = skipRouteActivation)
+    {
+        skipRouteActivation = _skipRouteActivation;
+        return skipRouteActivation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaderRecords</Name>
+				<Source><![CDATA[
+    abstract public Map getHeaderRecords(TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLineRecords</Name>
+				<Source><![CDATA[
+    abstract public Map getLineRecords(TFMRequestGetOrderLinesElement _request)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postRequest</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method that will be called each time a posting is taking place from the device.
+    /// </summary>
+    /// <param name = "_orderElement">An XMLElement containing all the lines that has been registered on the device, and should be posted.</param>
+    /// <returns>The result as a string.</returns>
+    public str postRequest(TFMRequestOrdersElement _orderElement)
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>enrichResponseXML</Name>
+				<Source><![CDATA[
+    public void enrichResponseXML()
+    {
+        XmlElement					registrationCollectorConfigurationElement;
+        XmlElement					stepsElement;
+        MapEnumerator				mEnum;
+        TFMRegistrationCollector	collector;
+        
+        if (resultXml == null)
+        {
+            resultXml = new XMLDocument();
+        }
+        // Create the registrationCollectorConfiguration element
+        registrationCollectorConfigurationElement = resultXml.createElement(TFMConstants::registrationCollectorConfiguration());
+      
+        // Create the steps element
+        stepsElement = resultXml.createElement(TFMConstants::steps());
+        registrationCollectorConfigurationElement.appendChild(stepsElement);
+        mEnum = responseData.getCollectors().collectorMap().getEnumerator();
+        while (mEnum.moveNext())
+        {
+            collector = mEnum.currentValue();
+            collector.appendToXml(stepsElement);
+            
+        }
+        resultXml.appendChild(registrationCollectorConfigurationElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmResultXML</Name>
+				<Source><![CDATA[
+    public XMLDocument parmResultXML(XMLDocument _resultXML = resultXML)
+    {
+        resultXML = _resultXML;
+
+        if (responseData != null)
+        {
+            this.enrichResponseXML();
+        }
+
+        return resultXML;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postDocumentRequest</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method that will be called each time a posting is taking place from the device.
+    /// </summary>
+    /// <param name = "_orderElement">An XMLElement containing all the lines that has been registered on the device, and should be posted.</param>
+    /// <returns>The result as a string.</returns>
+    public str postDocumentRequest(TFMRequestOrdersElement _orderElement)
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResponseData</Name>
+				<Source><![CDATA[
+    public TFMPostResponseData getResponseData()
+    {
+        return responseData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postPromptExtraStepsExecution</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method is called after the order has been posted. This can be extended per order type.
+    /// </summary>
+    /// <param name = "_postPromptAttributes">A Map containing the data received from the device in the post process.</param>
+    public void postPromptExtraStepsExecution(Map _postPromptAttributes)
+    {
+        MobPostOrderPromptOverride::FindAndExecute(this,_postPromptAttributes);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResultTable</Name>
+				<Source><![CDATA[
+    public Common getResultTable()
+    {
+        return TFMHelper::getBuffer('',this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllAttributes</Name>
+				<Source><![CDATA[
+    public static Map getAllAttributes(XmlElement _orderElement)
+    {
+        XmlNamedNodeMap attributes = _orderElement.attributes();
+        Map             attributeMap = new Map(Types::String, Types::String);
+        int             i;
+        for ( i = 0; i < attributes.length(); i++)
+        {
+            attributeMap.insert(attributes.item(i).name(),attributes.item(i).innerText());
+        }
+        return attributeMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getExtraInfoLineSteps</Name>
+				<Source><![CDATA[
+    public Map getExtraInfoLineSteps()
+    {
+        //Map(int, class (collectors)
+        return new Map(Types::String, Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getOrderId</Name>
+				<Source><![CDATA[
+    public static str getOrderId(str _backendID)
+    {
+        return conPeek(TFMHelper::strSplit(_backendID,'/').pack(),6);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPostPromptCollectors</Name>
+				<Source><![CDATA[
+    public Map getPostPromptCollectors(str _backendID)
+    {
+        return new Map(Types::String, Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMessageID</Name>
+				<Source><![CDATA[
+    public TFMDocumentMessageID parmMessageID(TFMDocumentMessageID _messageID = messageID)
+    {
+        messageID = _messageID;
+        return messageID;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parameterMap</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// A method providing parameters for the document handler, if there are any this document handler should add to the system.
+    /// </summary>
+    /// <returns>A Map containing the parameters to be used by the document handler.</returns>
+    public Map parameterMap()
+    {
+        return new Map(Types::String,Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBackendID</Name>
+				<Source><![CDATA[
+    public str getBackendID(Common _common)
+    {
+        //This should never happen
+        return classStr(MobOrder) +'/'+ funcName();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructFromTableName</Name>
+				<Source><![CDATA[
+    public static MobOrder constructFromTableName(TableName _tableName, TFMOrderTypes _orderType = '')
+    {
+        MobOrder ret;
+        TFMTableNameAttribute    tableNameAttribute = new TFMTableNameAttribute(_tableName,_orderType);
+
+        if (!tableNameAttribute)
+        {
+            tableNameAttribute = new TFMTableNameAttribute(_tableName);
+        }
+ 
+        ret = SysExtensionAppClassFactory::getClassFromSysAttribute(classStr(MobOrder), tableNameAttribute);
+
+        if (ret == null)
+        {
+            ret = SysExtensionAppClassFactory::getClassFromSysAttribute(classStr(MobOrder), new TFMTableNameAttribute(_tableName));
+        }
+
+        if(ret)
+        {
+            ret.parmTableName(_tableName);
+        }
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructFromBackendID</Name>
+				<Source><![CDATA[
+    public static MobOrder constructFromBackendID(str _backendID)
+    {
+        MobOrder  mobOrder;
+        TableName tblName = subStr(_backendID,1,strScan(_backendID,'/',1,strLen(_backendID)) - 1);
+        container backendIDcon = TFMHelper::strSplit(_backendID,'/').pack();
+        str orderType = conLen(backendIDcon) == 7 ? conPeek(backendIDcon,7) : '';
+        mobOrder = MobOrder::constructFromTableName(tblName, orderType);
+        if(mobOrder)
+        {
+            mobOrder.parmTableName(tblName);
+            mobOrder.parmOrderType(orderType);
+            mobOrder.parmOrderId(MobOrder::getOrderId(_backendID));
+        }
+        return mobOrder;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSubTypeTableNames</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to get all the Order classes returning table names, that belongs to a specific area.
+    /// </summary>
+    /// <param name = "_type">A TFMOrderTypes string with the area name of Mobile WMS</param>
+    /// <returns>A set of table names relevant for the area.</returns>
+    public static Set getSubTypeTableNames(TFMOrderTypes _type)
+    {
+        ListEnumerator          classes = new SysDictClass(classNum(TFMOrderTypeInterface)).implementedBy(true).getEnumerator();
+        TFMOrderTypeInterface   orderTypeInterface;
+        SysDictClass            sdc;
+        MobOrder                orderCls;
+        TFMTableNameAttribute   tblName;
+        Set                     retSet = new Set(Types::String);
+        while (classes.moveNext())
+        {
+            sdc = new SysDictClass(classes.current());
+            if (sdc.isAbstract() || sdc.isInterface())
+            {
+                continue;
+            }
+            
+            orderCls = sdc.makeObject();
+            orderTypeInterface = orderCls as TFMOrderTypeInterface;
+            if (orderTypeInterface.OrderType() != _type )
+            {
+                continue;
+            }
+            tblName = sdc.getAttribute(classStr(TFMTableNameAttribute));
+            if (!tblName)
+            {
+                continue;
+            }
+            retSet.add(tblName.parmTableName()+(tblName.parmOrderType() ? ';'+tblName.parmOrderType() : ''));
+        }
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lineTableId</Name>
+				<Source><![CDATA[
+    public tableId lineTableId()
+    {
+        return 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPostPromptCollectors</Name>
+				<Source><![CDATA[
+    public static server void addPostPromptCollectors(Map _collectors, XmlElement _parentElement, Map _additionalValues = new Map(Types::String, Types::String))
+    {
+        MapEnumerator           mEnum = _collectors.getEnumerator();
+        XmlElement              registrationCollectorConfigurationElement;
+        XmlElement              stepsElement;
+        XmlElement              addStep;
+        str						name;
+        
+        if (_collectors == null || !_collectors.elements())
+        {
+            return;
+        }
+
+        // Ask the user to enter the packing slip
+        // Create the registrationCollectorConfiguration element
+        registrationCollectorConfigurationElement = _parentElement.ownerDocument().createElement(TFMConstants::registrationCollectorConfiguration());
+    
+        // Create the steps element
+        stepsElement = _parentElement.ownerDocument().createElement(TFMConstants::steps());
+        registrationCollectorConfigurationElement.appendChild(stepsElement);
+        while (mEnum.moveNext())
+        {
+            name = TFMConstants::add();
+            if ('typeAndQuantity' == mEnum.currentValue().lookup('inputType'))
+            {
+                name = 'typeAndQuantity';
+            }
+            TFMRegistrationCollector::addGenericRegistrationStep(stepsElement,name,mEnum.currentValue());
+        }
+        
+        //AdditionalValues
+        stepsElement = _parentElement.ownerDocument().createElement('additionalValues');
+        registrationCollectorConfigurationElement.appendChild(stepsElement);
+        mEnum = _additionalValues.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            addStep = _parentElement.ownerDocument().createElement('additionalValue');
+            addStep.setAttribute('name',mEnum.currentKey());
+            addStep.setAttribute('value',mEnum.currentValue());
+            stepsElement.appendChild(addStep);
+        }
+        
+        // Add the registration collector configuration to the orders element
+        _parentElement.appendChild(registrationCollectorConfigurationElement);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExtraInfoData</Name>
+				<Source><![CDATA[
+    public static TFMDocumentNodes ExtraInfoData(ClassName _className)
+    {
+        ListEnumerator      lEnum           = new DictClass(className2Id(_className)).extendedBy(true).getEnumerator();
+        MobOrder            typeCls;
+        MapEnumerator       mEnum;
+        
+        DictClass           dc;
+        TFMDocumentNodes    nodes;
+        Map                 returnMap = new Map(Types::string, Types::Class);
+        Map                 collectorsMap;
+        MapEnumerator       collectorEnum;
+        TFMDocumentNode     confignode;//  = nodes.getRoot();
+        TFMDocumentNode     KeyNode;//  = nodes.makeChild(confignode,'Key');
+        TFMDocumentNode     valueNode;// = nodes.makeChild(configNode,'Value');
+        XmlElement          linesHeader;
+        boolean             firstTime = true;
+        while (lEnum.moveNext())
+        {
+            dc = new DictClass(lEnum.current());
+            if (dc == null)
+            {
+                continue;
+            }
+            typeCls = dc.makeObject() as MobOrder;
+            
+            returnMap.insert(dc.name(),typeCls.getExtraInfoLineSteps());
+        }
+        mEnum = returnMap.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            
+            collectorsMap = MobPostOrderPromptOverride::addToCollectors(mEnum.currentValue(),className2Id(mEnum.currentKey()),'',false);
+            if (!collectorsMap.elements())
+            {
+                continue;
+            }
+            if (firstTime)
+            {
+                nodes = TFMDocumentNodes::Construct('Configuration');
+            }
+            
+            confignode  = firstTime ? nodes.getRoot() : nodes.makeRootSibling('Configuration');
+            KeyNode     = nodes.makeChild(confignode,'Key');
+            valueNode   = nodes.makeChild(configNode,'Value');
+            KeyNode.parmValue(mEnum.currentKey() +'_extraInfo');
+            linesHeader = TFMGetReferenceData::createHeaderAndLine(true);
+            collectorEnum = collectorsMap.getEnumerator();
+            while (collectorEnum.moveNext())
+            {
+                TFMRegistrationCollector::addGenericRegistrationStep(linesHeader,TFMConstants::add(),collectorEnum.currentValue());
+            }
+            valueNode.setCDataXml(linesHeader.parentNode().xml());
+            firstTime = false;
+        }
+        return nodes;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

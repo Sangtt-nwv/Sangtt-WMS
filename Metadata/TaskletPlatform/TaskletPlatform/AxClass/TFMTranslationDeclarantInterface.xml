@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMTranslationDeclarantInterface</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+interface TFMTranslationDeclarantInterface
+{
+}
+
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations(){}
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

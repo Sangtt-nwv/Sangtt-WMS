@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocumentNodes</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The MobDocumentNodes class contains a hierarchy of nodes, that can be exported to XML.
+/// </summary>
+class MobDocumentNodes extends TFMDocumentNodes
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    Public static MobDocumentNodes Construct(str _root)
+    {
+        return new MobDocumentNodes(_root);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(str _rootName)
+    {
+        MobDocumentNode root = MobDocumentNode::Construct(0,null, this);
+        root.parmName(_rootName);
+        nodes = new Map(Types::int64, Types::Class);
+        rootLevelNodes = new Set(Types::Int64);
+        rootLevelNodes.add(0);
+        nodes.insert(0,root);
+        //return root;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

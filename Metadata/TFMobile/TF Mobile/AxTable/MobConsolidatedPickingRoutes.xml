@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobConsolidatedPickingRoutes</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobConsolidatedPickingRoutes extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Exists</Name>
+				<Source><![CDATA[
+    public static boolean Exists(MobConsolidatedPickingRouteId _routeId)
+    {
+        MobConsolidatedPickingRoutes	routeOrders;
+        select firstonly RecId,ConsolidatedPickingRouteId from routeOrders where routeOrders.ConsolidatedPickingRouteId == _routeId;
+        return routeOrders.RecId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Find</Name>
+				<Source><![CDATA[
+    public static MobConsolidatedPickingRoutes Find(MobConsolidatedPickingRouteId _routeId, boolean _selectForUpdate = false)
+    {
+        MobConsolidatedPickingRoutes	routeOrders;
+        routeOrders.selectForUpdate(_selectForUpdate);
+        select firstonly routeOrders where routeOrders.ConsolidatedPickingRouteId == _routeId;
+        return routeOrders;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@MobileWMS:MobConsolidatedPickingRoutesDeveloperDocumentation</DeveloperDocumentation>
+	<Label>@MobileWMS:Consolidatedpickingroutes</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>ConsolidatedPickingRouteId</TitleField1>
+	<TitleField2>Description</TitleField2>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ConsolidatedPickingRouteId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Accumulate</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ConsolidatedPickingRouteId</Name>
+			<ExtendedDataType>MobConsolidatedPickingRouteId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Description</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Accumulate</Name>
+			<ExtendedDataType>MobAccumulateByVendor</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>GroupToteFields</Name>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>PickRouteIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ConsolidatedPickingRouteId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

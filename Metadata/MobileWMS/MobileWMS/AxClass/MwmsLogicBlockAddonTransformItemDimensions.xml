@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockAddonTransformItemDimensions</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MwmsLogicBlockAddonTransformItemDimensions extends TFMLogicBlockAddon
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addonName</Name>
+				<Source><![CDATA[
+    public Name addonName()
+    {
+        return "@TaskletMobileWMS:Transformitemdimensions";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>compatibleWithBlock</Name>
+				<Source><![CDATA[
+    public boolean compatibleWithBlock(TFMLogicBlock _block)
+    {
+        return classIdGet(_block) == classNum(MwmsLogicBlockMoveInvent);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addonDescription</Name>
+				<Source><![CDATA[
+    public Description255 addonDescription()
+    {
+        return "@TaskletMobileWMS:ModifierforUnplannedMoveenablest";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRegistrationCollectors</Name>
+				<Source><![CDATA[
+    public void modifyRegistrationCollectors(TFMRegistrationCollectors _collectors)
+    {
+        //Add to dimensions for all fields
+        TFMRegistrationCollectors   collectors  = TFMInventDimHelper::enabledInventDimCollectors('',false, false, false);
+        MapEnumerator               mEnum       = collectors.collectorMap().getEnumerator();
+        TFMRegistrationCollector    col;
+        super(_collectors);
+        while (mEnum.moveNext())
+        {
+            col = mEnum.currentValue();
+            col.parmName('to'+col.parmName());
+            col.parmHeader(col.parmHeader() + '('+"To"+')');
+        }
+        _collectors.mergeCollectors(collectors);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

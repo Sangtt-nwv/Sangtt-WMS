@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMXmlFormatLookupWorklog</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableName(tableStr(TFMDocumentQueue))]
+class TFMXmlFormatLookupWorklog extends TFMXMLFormatLookup
+{
+
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        TFMDocumentQueue queue = common;
+        XmlDocument xmlDoc = XmlDocument::newXml(queue.AnswerXML());
+        XmlElement	response = xmlDoc.getNamedElement('response');
+        XmlElement	description,responseData,image;
+        container   parmCon = TFMHelper::strSplit(queue.ResultXML,'|').pack();
+        str htmlText;
+        super();
+        description = response ? response.getNamedElement('description') : null;
+        htmlText = description ? description.innerText() : '';
+        fieldsToAdd.insert('Header',queue.DocumentType);
+        fieldsToAdd.insert('Footer',htmlText);
+        fieldsToAdd.insert('Parameters', conPeek(parmCon,4));
+        fieldsToAdd.insert('Values', conPeek(parmCon,5));
+        fieldsToAdd.insert('trafficLightStatus', 'trafficlight_pct_'+(queue.Status == TFMDocumentQueueStatus::Completed ? '100' : '0') +'%');
+        //fieldsToAdd.insert('logTime', time2Str(DateTimeUtil::time(queue.CreatedDateTime),TimeSeparator::Auto, TimeSeparator::Auto));
+        displayLine2 = queue.AnswerXML + (htmlText ? TFMConstants::lineBreak() + htmlText : '');
+        imageID = queue.RequestXML;
+        //sorting = queue.AnswerXML;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectorMultiLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegistrationCollectorMultiLine extends TFMRegistrationCollector
+{
+    
+    /// <summary>
+    /// Creates a collector for multiline text steps
+    /// </summary>
+    /// <param name="_id">Collector ID</param>
+    /// <param name="_name">Name Attribute</param>
+    /// <param name="_header">Header attribute</param>
+    /// <param name="_label">Label attribute</param>
+    /// <param name="_helpLabel">HelpLabel attribute</param>
+    /// <param name="_defaultValue">Common text field that can strech over several lines</param>
+    /// <param name="_length">length of text field, default is 0 (meaning no limit)</param>
+    /// <param name = _GS1valueId_Multi>identifiers for GS1-barcode prefixes</param>
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>MultiLineStepMap</Name>
+				<Source><![CDATA[
+    public server static Map MultiLineStepMap(
+                                                    int _id,
+                                                    str _name,
+                                                    str _header,
+                                                    str _label,
+                                                    str _helpLabel,
+                                                    str _defaultValue,
+                                                    int _length = 0,
+                                                    str _GS1valueId_Multi = '')
+    {
+        Map stepMap = new Map(Types::String, Types::String);
+        stepMap.insert(TFMConstants::AttributeId(),int2str(_id));
+        stepMap.insert(TFMConstants::AttributeName(),_name);
+        stepMap.insert(TFMConstants::AttributeInputType(), enum2Symbol(enumNum(TFMInputTypes),TFMInputTypes::MultiLineText));
+        stepMap.insert(TFMConstants::AttributeHeader(),_header);
+        stepMap.insert(TFMConstants::AttributeLabel(),_label);
+        stepMap.insert(TFMConstants::AttributeHelpLabel(),_helpLabel);
+        stepMap.insert(TFMConstants::AttributeDefaultValue(), _defaultValue);
+        stepMap.insert(TFMConstants::AttributeEanAi(), _GS1valueId_Multi);
+        if (_length != 0)
+        {
+            stepMap.insert(TFMConstants::AttributeLength(), int2str(_length));
+        }
+        return stepMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dataTypeIcon</Name>
+				<Source><![CDATA[
+    public ResourceName dataTypeIcon()
+    {
+        return resourceStr(TFMDatatypeMultiline);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_BatchOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for receive batch order lines.
+/// </summary>
+[TFMTableNameAttribute(tableStr(ProdTable),'BatchOrder')]
+class MobXMLFormatOrderLines_BatchOrder extends MobXMLFormatOrderLines_Receive
+{
+    ProdTable               prod;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        UnitOfMeasureSymbol inventUnit;
+        super();
+        prod                    = common;
+        inventDim               = prod.inventDim();
+        this.setInventDim(prod.ItemId);
+
+        orderBackendId          = MobOrder::constructFromTableName(tableStr(ProdTable),orderType).getBackendID(Prod);//#ReceivePurchOrderPrefix + purchLine.PurchId;
+        lineNumber              = prod.InventTransId;
+        itemNumber              = prod.ItemId;
+        description             = InventTable::find(prod.itemId).productName(new xInfo().language());
+        registeredQuantity      = MobConstants::NotUsed0();
+        inventUnit              = InventTable::find(prod.ItemId).inventUnitId();
+        unitOfMeasure           = inventUnit; /*purchLine.PurchUnit;*/
+        quantity                = MobHelper::formatItemQty(prod.QtyStUp - prod.reportedFinishedGood(), prod.inventTable().BOMUnitId);
+        
+        this.addBarcode(prod.ItemId);
+        status                  = MobConstants::NotUsed0();
+        displayLine2            = prod.ItemId;
+        displayLine1            = InventTable::find(prod.itemId).productName(new xInfo().language());
+        displayLine3            = strFmt("@SYS76498","@SYS3794",inventDim.wMSLocationId);
+
+        underDeliveryValidation = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),TFMUnderDeliveryValidation::None);//MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),PurchParameters::find().SubDelivery ? TFMUnderDeliveryValidation::None : TFMUnderDeliveryValidation::Block); //Must be able to handle partial receipt
+        overDeliveryValidation  = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),TFMOverDeliveryValidation::None);//MobHelper::enumName(enumnum(TFMOverDeliveryValidation),PurchParameters::find().OverDelivery ? TFMOverDeliveryValidation::None : TFMOverDeliveryValidation::Block); //Must be able to handle partial receipt
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

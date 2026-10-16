@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPinnableValues</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMPinnableValues extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>populateConfigurationXMLWithPinnableValues</Name>
+				<Source><![CDATA[
+    public static void populateConfigurationXMLWithPinnableValues(XmlElement _configNode, TFMPage _page)
+    {
+        TFMPinnableValues   pinValues;
+        XmlElement          pinnableRegistrationValues = _configNode.ownerDocument().createElement('pinnableRegistrationValues');
+        
+        while select pinValues where pinValues.PageID == _page.parmId()
+        {
+            TFMPinnableValues::AddFormatElements(pinValues,pinnableRegistrationValues);
+        }
+        if (pinnableRegistrationValues.hasChildNodes())
+        {
+            _configNode.appendChild(pinnableRegistrationValues);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddFormatElements</Name>
+				<Source><![CDATA[
+    public static void AddFormatElements(TFMPinnableValues _pinValue, XmlElement _pinnableRegistrationValues)
+    {
+        TFMGS1AISetup GS1Setup;
+        
+        if (_pinValue.RegularExpression)
+        {
+            TFMPinnableValues::AddFormatElement(_pinnableRegistrationValues, 'pinnableByFormat', '', _pinValue.RegularExpression, _pinValue.Name, _pinValue.DisplayName,_pinValue.Icon);            
+        }
+        if (_pinValue.GS1Name)
+        {
+            while select GS1Setup where GS1Setup.Name == _pinValue.GS1Name
+            {
+                TFMPinnableValues::AddFormatElement(_pinnableRegistrationValues, 'pinnableByAi', int2Str(GS1Setup.GS1AI), '', _pinValue.Name, _pinValue.DisplayName,_pinValue.Icon);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddFormatElement</Name>
+				<Source><![CDATA[
+    public static void AddFormatElement(XmlElement _pinnableRegistrationValues, Name _elementName, Name _attrGS1AI, TFMRegularExpression _format, Name _attrName, TFMLocalizedStringEDT _attrDisplayName, TFMImageName _attrIcon)
+    {
+        XmlElement          pinByElement = _pinnableRegistrationValues.ownerDocument().createElement(_elementName);
+        pinByElement.setAttribute('name', _attrName);
+        pinByElement.setAttribute('displayLabel',_attrDisplayName);        
+        pinByElement.setAttribute('icon',_attrIcon);
+        if (_format)
+        {
+            pinByElement.setAttribute('format', _format);
+        }
+        else if (_attrGS1AI)
+        {
+            pinByElement.setAttribute('eanAi',_attrGS1AI);
+        }
+        _pinnableRegistrationValues.appendChild(pinByElement);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:TFMPinnableValuesDeveloperDocumentation</DeveloperDocumentation>
+	<Label>@TFM:PinnableValues</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>PageID</TitleField1>
+	<TitleField2>Name</TitleField2>
+	<AllowRowVersionChangeTracking>No</AllowRowVersionChangeTracking>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS104287</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>PageID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>GS1Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RegularExpression</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DisplayName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Icon</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>PageID</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMPageID</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>RegularExpression</Name>
+			<ExtendedDataType>TFMRegularExpression</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>GS1Name</Name>
+			<ExtendedDataType>TFMGS1Name</ExtendedDataType>
+			<Label>@TFM:GS1AI</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Name</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DisplayName</Name>
+			<ExtendedDataType>TFMLocalizedStringEDT</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Icon</Name>
+			<ExtendedDataType>TFMImageName</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>uniqueIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>PageID</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>RegularExpression</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>GS1Name</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>TFMGS1Table</Name>
+			<RelatedTable>TFMGS1Table</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>GS1Name</Name>
+					<Field>GS1Name</Field>
+					<RelatedField>Name</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

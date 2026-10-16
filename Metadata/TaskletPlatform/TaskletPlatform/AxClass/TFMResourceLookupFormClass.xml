@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMResourceLookupFormClass</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMResourceLookupFormClass
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setupTempTable</Name>
+				<Source><![CDATA[
+    public void setupTempTable(TFMDocumentTmpHandlerLookup resourcesTmp)
+    {
+        TFMDocumentTmpHandlerLookup	localTmp;
+        MapEnumerator				classImages = TFMDocGetMedia::classImages().getEnumerator();
+        TFMImageTable				imgTable;
+        TFMImageAggregate			imgAggr;
+        
+        localTmp.setTmp();
+
+        // inserting empty value to set to nothing.
+        localTmp.Description = '';
+        localTmp.ClassName = '';
+        localTmp.insert();
+
+        while (classImages.moveNext())
+        {
+            if(classImages.currentKey())
+            {
+                localTmp.Description = classImages.currentKey();
+                localTmp.ClassName = classImages.currentValue();
+                localTmp.insert();
+            }
+        }
+        while select imgTable
+        {
+            if(imgTable.ImageName)
+            {
+                localTmp.Description = imgTable.ImageName;
+                localTmp.ClassName = imgTable.ImageName;
+                localTmp.insert();
+            }
+        }
+
+        while select imgAggr
+        {
+            if(imgAggr.IconID)
+            {
+                localTmp.Description = imgAggr.IconID;
+                localTmp.ClassName = imgAggr.IconID;
+                localTmp.insert();
+            }
+        }
+
+        resourcesTmp.setTmpData(localTmp);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

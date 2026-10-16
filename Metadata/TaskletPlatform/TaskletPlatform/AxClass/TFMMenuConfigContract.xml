@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMenuConfigContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+public class TFMMenuConfigContract
+{
+    str            pageId;
+    str            title;
+    str            iconName;
+    boolean        standard;
+    boolean        mandatory;
+    boolean        offline;
+    boolean        pageOffline;
+    boolean        hide;
+    boolean        promoted;
+    int            updated;
+    
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmPageId</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public str parmPageId(str _pageId = pageId)
+    {
+        pageId = _pageId;
+        return pageId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTitle</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public str parmTitle(str _title = title)
+    {
+        title = _title;
+        return title;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIconName</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public str parmIconName(str _iconName = iconName)
+    {
+        iconName = _iconName;
+        return iconName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsStandard</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public boolean parmIsStandard(boolean _standard = standard)
+    {
+        standard = _standard;
+        return standard;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsMandatory</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public boolean parmIsMandatory(boolean _mandatory = mandatory)
+    {
+        mandatory = _mandatory;
+        return mandatory;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsHide</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public boolean parmIsHide(boolean _hide = hide)
+    {
+        hide = _hide;
+        return hide;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsOffline</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public boolean parmIsOffline(boolean _offline = offline)
+    {
+        offline = _offline;
+        return offline;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPageIsSetupForOffline</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public boolean parmPageIsSetupForOffline(boolean _pageOffline = pageOffline)
+    {
+        pageOffline = _pageOffline;
+        return pageOffline;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPromoted</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public boolean parmPromoted(boolean _promoted = promoted)
+    {
+        promoted = _promoted;
+        return promoted;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUpdated</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public int parmUpdated(int _updated = updated)
+    {
+        updated = _updated;
+        return updated;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

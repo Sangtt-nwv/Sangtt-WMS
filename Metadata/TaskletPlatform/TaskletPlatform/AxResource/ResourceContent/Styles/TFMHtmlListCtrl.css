@@ -1,0 +1,144 @@
+.listitemloader {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 320px;
+}
+
+    .listitemloader img {
+        z-index: 100;
+        position: absolute;
+        margin-top: 20px;
+        width: 98%;
+    } 
+
+#listitem-grid *{
+    box-sizing: revert;
+}
+
+.grayed {
+    filter: grayscale(1);
+}
+
+.square-section {
+    background-color: rgb(255, 255, 255, 0.5);
+}
+
+.center {
+    padding: 5px;
+    text-align: center;
+    position: relative;
+}
+
+.items_right_area {
+    padding-bottom: 2px;
+    min-height: 2em;
+    width: 225px;
+    max-width: 225px;
+    overflow-wrap: break-word;
+    overflow-y: hidden;
+}
+
+.items_title {
+    font-size: 1.1em;
+    font-weight: bold;
+    width: 225px;
+    max-width: 225px;
+}
+
+.items_line {
+    display: block;
+}
+
+.items_line2 {
+}
+
+.items_line3 {
+}
+
+.items_line4 {
+    font-size: 8px;
+    float: right;  
+}
+
+.items_green {
+    color: green;
+}
+
+.items_blue {
+    color: darkslateblue;
+}
+
+.item-grid-square {
+    height: 60px;
+    border-radius: 5px;
+    border-color: #C8EBFB;
+    border-style: solid;
+    border-width: 1px;
+    display: flex;
+    padding: 5px;
+    overflow-wrap: break-word;
+    flex-wrap: nowrap;
+    -webkit-appearance: button;
+    margin-top: 5px;
+    margin-left: 2px;
+    transition: 1.3s;
+}
+
+    .item-grid-square:hover {
+        background-color: #C8EBFB;
+    }
+
+
+
+.item-col-promoted {
+    margin-right: 20px;
+    padding: 6px;
+    border-radius: 5px;
+    border: solid #5fadd0 1.4px !important;
+    display: inline-table;
+    width: 460px;
+}
+
+.selected {
+    background-color: #f9c7c8;
+    border: solid red 1px !important;
+    z-index: 1 !important;
+}
+
+.highlight {
+    background-color: #5fadd0;
+}
+
+.items_icon {
+    height: 60px;
+    float: left;
+}
+
+.items_icon_div {
+    float: left;
+    padding: 3px;
+    width: 75px;
+}
+
+.itemrow {
+    padding: 10px;
+}
+
+.transform-active {
+    background-color: #c9daff;
+}
+
+.hide
+{
+    animation: fade-out 0.3s forwards;
+}
+
+@keyframes fade-out {
+    100% {
+        opacity: 0;
+        display: none;
+    }
+}
+
+

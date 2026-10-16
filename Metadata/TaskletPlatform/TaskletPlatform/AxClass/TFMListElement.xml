@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMListElement extends TFMListBase
+{
+    TFMListXAlign horizontalAlignment;
+    TFMListYAlign verticalAlignment;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void new()
+    {
+        super();
+        horizontalAlignment = SysChartHorizontalAlignment::Left;
+        verticalAlignment = TFMVerticalAlignment::Top;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHorizontalAlignment</Name>
+				<Source><![CDATA[
+    [TFMParameter(SysChartHorizontalAlignment::Left,'','')]
+    public TFMListXAlign parmHorizontalAlignment(TFMListXAlign _horizontalAlignment = horizontalAlignment)
+    {
+        horizontalAlignment = _horizontalAlignment;
+        return horizontalAlignment;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmVerticalAlignment</Name>
+				<Source><![CDATA[
+    [TFMParameter(TFMVerticalAlignment::Top,'','')]
+    public TFMListYAlign parmVerticalAlignment(TFMListYAlign _verticalAlignment = verticalAlignment)
+    {
+        verticalAlignment = _verticalAlignment;
+        return verticalAlignment;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

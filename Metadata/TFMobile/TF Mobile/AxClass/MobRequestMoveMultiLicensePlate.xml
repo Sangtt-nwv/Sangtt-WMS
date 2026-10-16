@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobRequestMoveMultiLicensePlate</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType(classStr(TFMLookup), 'MoveMultiLicensePlatesLookup')]
+class MobRequestMoveMultiLicensePlate extends TFMRequestBasicElement
+{
+    WHSLicensePlateId LP;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmWHSLicensePlateId</Name>
+				<Source><![CDATA[
+    public WHSLicensePlateId parmWHSLicensePlateId(WHSLicensePlateId _lp = LP)
+    {
+        LP = _lp;
+        return LP;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

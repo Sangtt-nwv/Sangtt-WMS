@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMMenuConfig</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMMenuConfig extends FormRun
+{
+
+    TFMMenuConfigurator                 configurator;
+    TFMPageId pageId;
+    FormCommandButtonControl saveButton;
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init(){
+         #SysSystemDefinedButtons
+
+        super();
+
+        saveButton= this.control(this.controlId(#SystemDefinedSaveButton)) as FormCommandButtonControl;
+        saveButton.Caption('');
+        saveButton.enabled(true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+   /// <summary>
+    ///
+    /// </summary>
+    public void run()
+    {
+
+        URLUtility urlUtil = new URLUtility();
+        TFMPage     page;
+
+        if (element.args().caller() && element.args().caller().name() == formStr(TFMPageOverview))
+        {
+            page = element.args().caller().getCurrentPage();
+            pageId = page.parmId();
+        }
+        else
+        {
+            pageId = urlUtil.getQueryParamValue('PageId');
+        }
+
+        super();
+        element.dataHelper().Saving += eventhandler(element.onSave);
+        
+        
+        configurator = TFMMenuConfigurator::Construct(Categories, MenuMakerCtrl);
+        configurator.setDS(UserGroupInfo_ds);
+        configurator.setSelectedGroup(pageId);
+        //Info (strFmt('%1 %2', classId2Name(arr.value(1)) , classId2Name(arr.value(2))));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>onSave</Name>
+				<Source><![CDATA[
+    public void onSave(FormRunServiceArgs _cancellableArgs)
+    {
+        configurator.requestSaveMenuSetup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateUserGroupEx</Name>
+				<Source><![CDATA[
+    public void updateUserGroupEx(AsyncTaskResult _result)
+    {
+        configurator.updateUserGroup(/*UserGroupInfo.id*/);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>UserGroupInfo</Name>
+				<Methods>
+					<Method>
+						<Name>init</Name>
+						<Source><![CDATA[
+        public void init()
+        {
+            super();
+        
+            UserGroupInfo_ds.query().dataSourceTable(tablenum(UserGroupInfo)).addSortField(fieldnum(UserGroupInfo,id));
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        int active()
+        {
+            int ret;
+        
+            ret = super();
+            
+            configurator.notifyUpdating();
+            element.setTimeoutEx(formMethodStr(TFMMenuConfig, updateUserGroupEx), conNull(), 0);
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>Categories</Name>
+				<Type>ComboBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public boolean modified()
+        {
+            boolean ret;
+    
+            ret = super();
+            configurator.notifyUpdating();
+            element.setTimeoutEx(formMethodStr(TFMMenuConfig, updateUserGroupEx), conNull(), 0);
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonControlSaveSetup</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            configurator.requestSaveMenuSetup();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>UserGroupInfo</Name>
+			<Table>UserGroupInfo</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>id</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>name</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@SYS28214</Caption>
+		<Columns xmlns="">2</Columns>
+		<DefaultAction xmlns="">FormButtonControlSaveSetup</DefaultAction>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>FormActionPaneControl1</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>FormButtonGroupControl1</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>TFMMenuGroups</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MenuItemName>TFMMenuGroups</MenuItemName>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGridControl">
+				<Name>Grid</Name>
+				<AllowEdit>No</AllowEdit>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<ElementPosition>1431655764</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Grid</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>SizeToContent</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>Group_</Name>
+						<ElementPosition>1431655764</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>Group</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>UserGroupInfo_1_id</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>String</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>id</DataField>
+								<DataSource>UserGroupInfo</DataSource>
+								<Label> </Label>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>UserGroupInfo_1_name</Name>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>String</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>name</DataField>
+								<DataSource>UserGroupInfo</DataSource>
+							</AxFormControl>
+						</Controls>
+						<BackgroundColor>WindowBackground</BackgroundColor>
+						<Caption>@TFM:Caption</Caption>
+						<DataSource>UserGroupInfo</DataSource>
+					</AxFormControl>
+				</Controls>
+				<DataSource>UserGroupInfo</DataSource>
+				<MultiSelect>No</MultiSelect>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>RightGroup</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>FormGroupControl</Name>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>Group</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormComboBoxControl">
+								<Name>Categories</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>ComboBox</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@SYS21667</Label>
+								<Items />
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>FormButtonControlSaveSetup</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@TFM:Savegroupsetup</Text>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormContainerControl">
+						<Name>MenuMakerCtrl</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>Container</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension>
+							<Name>TFMMenuMakerCtrl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties />
+						</FormControlExtension>
+						<Controls />
+						<HideIfEmpty>No</HideIfEmpty>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

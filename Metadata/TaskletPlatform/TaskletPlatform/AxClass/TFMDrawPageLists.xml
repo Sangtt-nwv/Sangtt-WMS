@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawPageLists</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('OrderLines', "Order Lines"),
+TFMPageType('OrderList', "Order List"),
+    TFMPageType('Lookup', "Lookup")]
+class TFMDrawPageLists extends TFMDrawPage
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>DrawPage</Name>
+				<Source><![CDATA[
+    public void DrawPage(TFMPage _page, TFMHtmlViewerCtrl _htmlViewer)
+    {
+        Map								menuItemsMap;
+        TFMListId						listId = _page.getListId();
+        TFMPageDatasources				ds;
+        Map                             translations = TFMTranslationProvider::getAllTranslationsForCurrentUserLanguage();
+        str                             title;
+        TFMPages                        pages = TFMPagesProvider::getAllPages();
+
+        menuItemsMap = this.getMenuItemButtons(_page.parmId(), pages);
+
+        if (listId)
+        {
+            select firstonly ds where ds.PageID == _page.parmId();
+            title = TFMListVisualization::getMenuTitle(_page.parmTitle());
+            TFMListVisualization::DrawList(_htmlViewer,listId,TFMListsVersion::newestVersion(listId, false),false,true,ds,0.4,title,_page.parmIcon(),menuItemsMap,null);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

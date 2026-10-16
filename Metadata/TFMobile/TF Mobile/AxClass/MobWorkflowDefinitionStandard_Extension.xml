@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobWorkflowDefinitionStandard_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classStr(TFMWorkflowDefinitionStandard))]
+final class MobWorkflowDefinitionStandard_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>makeWorkflow</Name>
+				<Source><![CDATA[
+    public void makeWorkflow()
+    {
+        TFMWorkflowsTable wfTable = TFMWorkflowsTable::Find(TFMConstants::WorkflowStandard());
+
+        next makeWorkflow();
+
+        if (wfTable) // Don't add if the workflow already existed
+        {
+            return;
+        }
+        wfTable = TFMWorkflowsTable::Find(TFMConstants::WorkflowStandard());
+
+        wftable.addOnlineValidation(methodStr(MobOnlineValidator,GetSerialNumberInformation), MobConstants::Pick(), enum2Symbol(enumNum(MobWorkflowValidationTypes), MobWorkflowValidationTypes::serialNumberValidation));
+        wftable.addOnlineValidation(methodStr(MobOnlineValidator,LocationValidation), MobConstants::Pick(), enum2Symbol(enumNum(MobWorkflowValidationTypes), MobWorkflowValidationTypes::fromBinValidation));
+        wftable.addOnlineValidation(methodStr(MobOnlineValidator,quantityValidation), MobConstants::Pick(), enum2Symbol(enumNum(MobWorkflowValidationTypes), MobWorkflowValidationTypes::quantityValidation));
+        wftable.addOnlineValidation(methodStr(MobOnlineValidator,ValidateBatchNumber), MobConstants::Pick(), enum2Symbol(enumNum(MobWorkflowValidationTypes), MobWorkflowValidationTypes::lotNumberValidation));
+        wftable.addOnlineValidation(methodStr(MobOnlineValidator,toteValidation), MobConstants::Pick(), enum2Symbol(enumNum(MobWorkflowValidationTypes), MobWorkflowValidationTypes::toteValidation));
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

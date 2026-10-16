@@ -1,0 +1,23 @@
+[agents]
+max_threads = 6
+max_depth = 1
+
+[mcp_servers.mslearn]
+url = "https://learn.microsoft.com/api/mcp"
+enabled = true
+required = false
+startup_timeout_sec = 20
+tool_timeout_sec = 90
+
+# The repository expects this server, but it is disabled until `d365fo-mcp`
+# is installed and available on PATH.
+[mcp_servers.d365fo]
+command = "d365fo-mcp"
+args = []
+enabled = false
+required = false
+startup_timeout_sec = 30
+tool_timeout_sec = 120
+
+[mcp_servers.d365fo.env]
+D365FO_ENV_URL = "https://usnconeboxax1aos.cloud.onebox.dynamics.com"

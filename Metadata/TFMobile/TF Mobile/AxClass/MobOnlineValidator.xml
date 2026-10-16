@@ -1,0 +1,811 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobOnlineValidator</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The Document handler for the online validation aspect of the mobile WMS.
+/// </summary>
+[TFMValidationDocumentType(methodStr(MobOnlineValidator,GetSerialNumberInformation) , methodStr(MobOnlineValidator,GetSerialNumberInformation)),
+    TFMValidationDocumentType(methodStr(MobOnlineValidator,LineSelectionFromBarcode) , methodStr(MobOnlineValidator,LineSelectionFromBarcode)),
+    TFMValidationDocumentType(methodStr(MobOnlineValidator,ValidateBatchNumber) , methodStr(MobOnlineValidator,ValidateBatchNumber)),
+    TFMValidationDocumentType(methodStr(MobOnlineValidator,LocationValidation) , methodStr(MobOnlineValidator,LocationValidation)),
+    TFMValidationDocumentType(methodStr(MobOnlineValidator,quantityValidation) , methodStr(MobOnlineValidator,quantityValidation)),
+    TFMValidationDocumentType(methodStr(MobOnlineValidator,toteValidation) , methodStr(MobOnlineValidator,toteValidation)),
+    TFMValidationDocumentType(methodStr(MobOnlineValidator,validateSerialNumberReceipt), methodStr(MobOnlineValidator,validateSerialNumberReceipt)),
+    TFMValidationDocumentType(methodStr(MobOnlineValidator,toteTypeValidation) , methodStr(MobOnlineValidator,toteTypeValidation)),
+    TFMValidationDocumentType(methodStr(MobOnlineValidator,LicensePlateValidation), methodStr(MobOnlineValidator,LicensePlateValidation))
+    ]
+class MobOnlineValidator extends TFMDocumentHandler
+{    
+
+    #define.AttributeBin('bin')
+    MobRequestValidationElement			validationRequest;
+    
+    TFMValueInteractionPermission		valueInteractionPermissionBatch;
+    NoYes								updateBatchQuantity;
+    TFMValueInteractionPermission		valueInteractionPermissionSerial;
+    NoYes								updateSerialQuantity;
+    NoYes                               promptForContainerType;
+
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return "@TFM:OnlineValidator";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUpdateBatchQuantity</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@SYS1511", "@SYS53635")]
+    public TFMPromptForUnit parmUpdateBatchQuantity(TFMPromptForUnit _updateBatchQuantity = updateBatchQuantity)
+    {
+        updateBatchQuantity = _updateBatchQuantity;
+        return updateBatchQuantity;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmValueInteractionPermissionBatch</Name>
+				<Source><![CDATA[
+    [TFMParameter(0, "@TFM:ValueInteractionPermission","@SYS53635")]
+    public TFMValueInteractionPermissionEnum parmValueInteractionPermissionBatch(TFMValueInteractionPermissionEnum _valueInteractionPermissionBatch = valueInteractionPermissionBatch)
+    {
+        valueInteractionPermissionBatch = _valueInteractionPermissionBatch;
+        return valueInteractionPermissionBatch;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUpdateSerialQuantity</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@SYS1511", "@SYS477")]
+    public TFMPromptForUnit parmUpdateSerialQuantity(TFMPromptForUnit _updateSerialQuantity = updateSerialQuantity)
+    {
+        updateSerialQuantity = _updateSerialQuantity;
+        return updateSerialQuantity;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmValueInteractionPermissionSerial</Name>
+				<Source><![CDATA[
+    [TFMParameter(0, "@TFM:ValueInteractionPermission","@SYS477")]
+    public TFMValueInteractionPermissionEnum parmValueInteractionPermissionSerial(TFMValueInteractionPermissionEnum _valueInteractionPermissionSerial = valueInteractionPermissionSerial)
+    {
+        valueInteractionPermissionSerial = _valueInteractionPermissionSerial;
+        return valueInteractionPermissionSerial;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPromptForContainerType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Parm Method to enable/disable whether or not the tote validation asks for additional info on the container type
+    /// </summary>
+    /// <param name = "_promptForContainerType">A NoYes indicating if user should be prompted</param>
+    /// <returns>Yes, if user should be prompted. Otherwise No.</returns>
+    [TFMParameter(NoYes::No,"@WAX:WHSMobileAppStepContainerType_InputNotFilled", "@TFM:Outboundlicenseplates")]
+    public TFMPromptForUnit parmPromptForContainerType(TFMPromptForUnit _promptForContainerType = promptForContainerType)
+    {
+        promptForContainerType = _promptForContainerType;
+        return promptForContainerType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    public Set getDocumentTypes()
+    {
+        Set retMap = new Set(Types::String);
+        retMap.add(methodStr(MobOnlineValidator,GetSerialNumberInformation));
+        retMap.add(methodStr(MobOnlineValidator,LineSelectionFromBarcode));
+        retMap.add(methodStr(MobOnlineValidator,ValidateBatchNumber));
+        retMap.add(methodStr(MobOnlineValidator,LicensePlateValidation));
+        retMap.add(methodStr(MobOnlineValidator,LocationValidation));
+        retMap.add(methodStr(MobOnlineValidator,quantityValidation));
+        retMap.add(methodStr(MobOnlineValidator,validateSerialNumberReceipt));
+        retMap.add(methodStr(MobOnlineValidator,toteValidation));
+        retMap.add(methodStr(MobOnlineValidator,toteTypeValidation));
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getReferenceDataMethods</Name>
+				<Source><![CDATA[
+    public Set getReferenceDataMethods()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preProcess</Name>
+				<Source><![CDATA[
+    public boolean preProcess()
+    {
+        boolean ret = super();
+        if (classIdGet(request) == classNum(MobRequestValidationElement))
+        {
+            validationRequest = request;
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLatestWMSLocation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// If the Storage Dimension for location is not active then this method will return and empty string.
+    /// Else it will get the latest WMSLocation from the document queue.
+    /// </summary>
+    /// <param name = "_itemId"></param>
+    /// <returns></returns>
+    public str getLatestWMSLocation(ItemId _itemId)
+    {
+        TFMDocumentQueue dQueue;
+        Xml         xml;
+        MobRequestValidationElement locVal;
+        WMSlocationID location;
+
+        if(TFMInventDimHelper::isStorageDimensionForWMSLocationNotActive(_itemId))
+        {
+            return '';
+        }
+
+        location = TFMConstants::All();
+
+        select firstonly RequestXML, DeviceId, DocumentType, RecID from dQueue order by CreatedDateTime desc
+            where dQueue.DeviceId == validationRequest.parmdeviceID() && dQueue.DocumentType == methodStr(MobOnlineValidator,LocationValidation);
+        if (dQueue.RecId)
+        {
+            //xmlDoc = XmlDocument::newXml(dQueue.RequestXML);
+            xml = dQueue.RequestXML();
+            if (!XML)
+            {
+                return '';
+            }
+            locVal = TFMXMLDeserializer::DeserializeRequestString(xml);
+            Location = locVal.parmBin();//xmlDoc.root().getNamedElement(#requestData).getNamedElement(#AttributeBin).innerText();
+        }
+        return location;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLatestBatchID</Name>
+				<Source><![CDATA[
+    public InventBatchID getLatestBatchID()
+    {
+        
+        if (validationRequest.getFieldMap().exists(TFMConstants::LotNumber()))
+        {
+            return validationRequest.parmLotNumber();
+        }
+        else
+        {
+            return '';
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LocationValidation</Name>
+				<Source><![CDATA[
+    public void LocationValidation()
+    {
+        str                 orderType           = validationRequest.parmOrderType();//requestXml.root().getNamedElement(#requestData).getNamedElement(#AttributeOrderType).innerText();
+        InventLocationId    latestInventLocation= validationRequest.parmInventlocationid(); // TODO: consider if this needs to be reintroduced: validationRequest.parmInventlocationid() ? validationRequest.parmInventlocationid() : TFMOnlineValidator::getLatestLocation(orderType,validationRequest.parmdeviceID());
+        str					wmsID               = validationRequest.parmBin();//requestXml.root().getNamedElement(#requestData).getNamedElement(#AttributeBin).innerText();
+        WMSLocation         wmsLocation;
+
+        select firstonly wmsLocation where wmsLocation.wMSLocationId == wmsID && (wmsLocation.inventLocationId == latestInventLocation || latestInventLocation == TFMConstants::All());
+
+        if (wmsLocation.RecId == 0)
+        {
+            if (!WHSLicensePlate::exist(wmsID))
+            {
+                throw Error("@TFM:LocationDoesNotExist");
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>quantityValidation</Name>
+				<Source><![CDATA[
+    public void quantityValidation()
+    {
+        str                         backendid       = validationRequest.parmBackendID();//requestXml.root().getNamedElement(#requestData).getNamedElement(#AttributeOrderBackendId).innerText();
+        ItemID                      item			= validationRequest.parmItemId();//requestXml.root().getNamedElement(#requestData).getNamedElement(#AttributeItemNumber).innerText();
+        str                         LineNumber      = validationRequest.parmLineNumber();//requestXml.root().getNamedElement(#requestData).getNamedElement(#AttributeLineNumber).innerText();
+
+        str							latestLoc		= validationRequest.parmFromLocation() ? validationRequest.parmFromLocation() : (validationRequest.parmwmsLocationId() ? validationRequest.parmwmsLocationId() : this.getLatestWMSLocation(item));
+        WmsLocationId				locID			= TFMInventDimSetup::Construct(InventTable::find(item)).registerLicensePlate() ? '' : latestLoc;
+        WHSLicensePlateId			licensePlate	= TFMInventDimSetup::Construct(InventTable::find(item)).registerLicensePlate() ? latestLoc : '';
+        InventLocationId			inventLocationId= validationRequest.parmInventlocationid();
+        InventSum                   inventSum;
+        InventDim                   inventDim;
+        InventQty                   qtyNeeded       = validationRequest.parmQuantity();//TFMHelper::floatParse(requestXml.root().getNamedElement(#requestData).getNamedElement(#AttributeQuantity).innerText());
+        InventQty                   qtyReserved;
+        Common						lineToValidate  = this.getLine(backendid,LineNumber);
+        InventBatchId               batchID			= this.getLatestBatchID();
+
+        UnitOfMeasureSymbol			unit			= this.getUnit(lineToValidate);
+        UnitOfMeasureSymbol			unitFrom;
+        
+        inventDim = this.getInventDimfromLine(lineToValidate);
+
+        if ( MobPackingStation::FindByLocation(inventDim.InventLocationId, inventDim.wMSLocationId))
+        {
+            locID = inventDim.wMSLocationId;
+        }
+        inventDim.clear();
+        inventDim.wMSLocationId = locID;
+        inventDim.LicensePlateId = licensePlate;
+        InventDim.inventBatchId = batchID;
+        InventDim.InventLocationId = inventLocationId ? inventLocationId : InventDim.InventLocationId;
+
+        //Confirm if item is batch controlled.
+        if (!TFMInventDimSetup::Construct(InventTable::find(item)).registerBatchID())
+        {
+            batchID = '';
+        }
+
+        qtyReserved = this.getReservedQuantity(this.getInventTransIDfromLine(lineToValidate),inventDim);
+        
+        select sum(AvailPhysical) from inventSum where !InventSum.ClosedQty && (InventSum.ItemId == item || !item)
+            join InventDim where (InventDim.wmsLocationId == locID || !locID)
+            && (inventDim.InventLocationId == inventLocationId || !inventLocationId)
+            && (inventDim.LicensePlateId == licensePlate || !licensePlate)
+            && (inventDim.inventBatchId == batchID || !batchID)
+            && InventSum.InventDimId == InventDim.inventDimId;
+
+        //qtyNeeded = this.getQuantity(this.getLine(backendid,str2Int64(LineNumber)));
+
+        
+        
+
+        if (unit)
+        {
+            UnitFrom = InventTable::find(item).inventUnitId();
+            qtyReserved             = UnitOfMeasureConverter::convert(  qtyReserved,
+                                                                UnitOfMeasure::findBySymbol( UnitFrom).RecId,
+                                                                UnitOfMeasure::findBySymbol( Unit ).RecId,
+                                                                true,
+                                                                InventTable::find(item).Product);
+            InventSum.AvailPhysical             = UnitOfMeasureConverter::convert(  InventSum.AvailPhysical,
+                                                                UnitOfMeasure::findBySymbol( UnitFrom).RecId,
+                                                                UnitOfMeasure::findBySymbol( Unit ).RecId,
+                                                                true,
+                                                                InventTable::find(item).Product);
+        }
+
+        if (InventSum.AvailPhysical + qtyReserved < qtyNeeded)
+        {
+            throw Error(strFmt("@TFM:BatchNotAvailable",InventSum.AvailPhysical,locID,qtyNeeded, qtyReserved, batchID == '' ? "@SYS312888" : "@SYS14462"));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ValidateBatchNumber</Name>
+				<Source><![CDATA[
+    public void ValidateBatchNumber()
+    {
+        InventBatch                             batch;
+        TFMBackendId							backendid       = validationRequest.parmBackendID();
+        str										LineNumber      = validationRequest.parmLineNumber();
+        ItemID                                  item    = validationRequest.parmItemId();
+        InventBatchId                           batchID = validationRequest.parmLotNumber();
+        InventQty								qty;
+        InventSum								iSum;
+        InventDim								iDim;
+        WMSLocationId							wmsLocId = validationRequest.parmFromLocation() ? validationRequest.parmFromLocation() : this.getLatestWMSLocation(item);
+
+        InventLocationId                        inventLocationId = validationRequest.parmInventlocationid();
+        InventDim                               inventDimRequest = validationRequest.parmInventDim();
+
+        XmlElement								OuterElement;
+        XmlElement								PermissionElement;
+        XmlElement								QuantityElement;
+  
+        select firstonly batch where batch.inventBatchId == batchID && batch.itemId == item;
+        if (!batch)
+        {
+            throw Error(strFmt("@TFM:BatchDoesNotExistOnItem",batchID, item));
+        }
+        if (batch.expDate && batch.expDate < TFMHelper::today())
+        {
+            throw Error("@TFM:BatchHasExpired");
+        }
+
+        select firstonly iSum
+            where   iSum.ItemId == item
+            &&      iSum.PhysicalInvent
+            join    iDim
+            where   iDim.inventDimId ==         iSum.InventDimId
+            &&      iDim.wMSLocationId ==       wmsLocId
+            &&      iDim.inventBatchId ==       batchID
+            &&      iDim.InventLocationId ==    inventLocationId
+            &&      iDim.InventSizeId ==        inventDimRequest.InventSizeId
+            &&      iDim.InventColorId ==       inventDimRequest.InventColorId
+            &&      iDim.InventStyleId ==       inventDimRequest.InventStyleId
+            &&      (iDim.InventStatusId ==     inventDimRequest.InventStatusId || !inventDimRequest.InventStatusId)
+            &&      iDim.InventVersionId ==     inventDimRequest.InventVersionId;
+
+        qty = min(iSum.PhysicalInvent,this.getQuantity(this.getLine(backendid,LineNumber)));
+        if (!updateBatchQuantity)
+        {
+            return;
+        }
+        resultXml = new XmlDocument();
+        OuterElement = resultXml.createElement('LotNumberInformation');
+        PermissionElement = resultXml.createElement('ValueInteractionPermission');
+        QuantityElement = resultXml.createElement('Quantity');
+  
+        PermissionElement.innerText(enum2Symbol(enumNum(TFMValueInteractionPermission),valueInteractionPermissionBatch));
+        QuantityElement.innerText(strFmt('%1',qty));
+
+        resultXml.appendChild(OuterElement);
+        OuterElement.appendChild(PermissionElement);
+        OuterElement.appendChild(QuantityElement);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getUnit</Name>
+				<Source><![CDATA[
+    public UnitOfMeasureSymbol getUnit(Common _common)
+    {
+        SysDictTable	dT = new SysDictTable(_common.tableID);
+        SysDictField	dF;
+        SetEnumerator	sEnum;
+        FieldId			fieldId;
+        FieldName		fn;
+  
+        if (dT.fieldName2Id('UnitId'))
+        {
+            fieldId = dT.fieldName2Id('UnitId');
+        }
+        else
+        {
+            sEnum = dT.fields().getEnumerator();
+            while (sEnum.moveNext())
+            {
+                dF = sEnum.current();
+                fn = dF.name();
+                if (dF.typeId() == extendedTypeNum(UnitOfMeasureSymbol))
+                {
+                    fieldId = dF.id();
+                    break;
+                }
+            }
+        }
+        
+        if (!fieldId)
+        {
+            return '';
+        }
+
+        return _common.(fieldId);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LineSelectionFromBarcode</Name>
+				<Source><![CDATA[
+    public TFMLineSelectionResponseElement LineSelectionFromBarcode()
+    {
+        str             backendid		= validationRequest.parmBackendID();
+        str             orderType       = validationRequest.parmOrderType();
+        str             barcodeScanned  = validationRequest.parmSerialNumber(); // the scanned barcode is in the serial number field but it not necessary a serial number.
+        InventSum       inventSum;
+        TFMLineSelectionResponseElement lineSelectionElement;
+
+        inventSum = MobInventSumHelper::findInventSum(barcodeScanned);
+            
+        lineSelectionElement = TFMLineSelectionResponseElement::Construct(methodStr(MobOnlineValidator,LineSelectionFromBarcode));
+        lineSelectionElement.addResponse(inventSum);
+        
+        return lineSelectionElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetSerialNumberInformation</Name>
+				<Source><![CDATA[
+    public void GetSerialNumberInformation()
+    {
+        str                                     backendid				= validationRequest.parmBackendID();
+        str                                     LineNumber              = validationRequest.parmLineNumber();
+        str                                     orderType               = validationRequest.parmOrderType();
+        Common                                  lineToValidate          = this.getLine(backendid, LineNumber);
+        ItemId                                  itemID                  = this.getItemIDfromLine(lineToValidate);
+        InventSerialId                          serialNumber            = TFMInventDimHelper::SerialNumberIsactiveInSalesOnly(itemID) ? '' : validationRequest.parmSerialNumber();
+        InventLocationId                        inventLocationID        = validationRequest.parmInventlocationid();
+        WMSlocationID                           locID                   = validationRequest.parmFromLocation() ;
+        InventSum                               inventSum;
+        InventDim                               inventDim;
+        InventQty                               qtyReserved, qty;
+        InventDimGroupSetup                     inventDimGroupSetup;
+        EcoResTrackingDimensionGroupFldSetup    trackingInventSerialIdFldSetup;
+
+        InventDim.InventLocationId = inventLocationID;
+        InventDim.InventSiteId = InventLocation::find(inventLocationID).InventSiteId;
+        InventDim                               inventDimRequest = validationRequest.parmInventDim();
+
+        XmlElement								OuterElement;
+        XmlElement								PermissionElement;
+        XmlElement								QuantityElement;
+
+        inventDim = this.getInventDimfromLine(lineToValidate);
+        if ( MobPackingStation::FindByLocation(inventDim.InventLocationId, inventDim.wMSLocationId))
+        {
+            locID = inventDim.wMSLocationId;
+        }
+
+        inventDim.clear();
+        inventDim.wMSLocationId = locID;
+        InventDim.inventSerialId = serialNumber;
+        InventDim.InventLocationId = inventLocationID;
+        InventDim.InventSiteId = InventLocation::find(inventLocationID).InventSiteId;
+        /*backendElement = requestXml.root().getNamedElement(#requestData).getNamedElement(#BackendId);
+        if ( backendElement == null)
+        {
+            backendElement = requestXml.root().getNamedElement(#requestData).getNamedElement(#AttributeOrderBackendId);
+        }*/
+        
+        inventDimGroupSetup = InventDimGroupSetup::newInventTable(InventTable::find(itemId));
+        trackingInventSerialIdFldSetup =  EcoResTrackingDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getTrackingDimensionGroup(),fieldNum(InventDim,inventSerialId));
+
+        if (!serialNumber && trackingInventSerialIdFldSetup.IsAllowBlankReceiptEnabled)
+        {
+            resultXml = MobOnlineValidator::setSerialNumberInformation(new XmlDocument(), TFMValueInteractionPermission::AllowEdit, this.getQuantity(this.getLine(backendid,LineNumber)));
+            return;
+        }
+
+        qtyReserved = this.getReservedQuantity(this.getInventTransIDfromLine(this.getLine(backendid,LineNumber)),inventDim);
+
+        select firstonly InventDim
+            where   InventDim.inventSerialId ==     serialNumber
+            &&      InventDim.InventLocationId ==   inventLocationID
+            &&      InventDim.InventSizeId ==       inventDimRequest.InventSizeId
+            &&      InventDim.InventColorId ==      inventDimRequest.InventColorId
+            &&      InventDim.InventStyleId ==      inventDimRequest.InventStyleId
+            &&      InventDim.InventStatusId ==     inventDimRequest.InventStatusId
+            &&      InventDim.InventVersionId ==    inventDimRequest.InventVersionId
+            &&      (!locID || InventDim.wmsLocationId == locID)
+            join InventSum
+            where InventSum.InventDimId == InventDim.inventDimId
+            && !InventSum.ClosedQty
+            && (InventSum.ItemId == ItemId || !itemID);
+
+        if (InventSum.AvailPhysical + qtyReserved < 1.0 && !updateSerialQuantity)
+        {
+            throw Error("@TFM:SerialNotAvailable");
+        }
+        qty = min(InventSum.PhysicalInvent,this.getQuantity(this.getLine(backendid,LineNumber)));
+        if (!updateSerialQuantity)
+        {
+            return;
+        }
+        
+        resultXml = MobOnlineValidator::setSerialNumberInformation(new XmlDocument(), valueInteractionPermissionSerial, qty);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateSerialNumberReceipt</Name>
+				<Source><![CDATA[
+    public void validateSerialNumberReceipt()
+    {
+        InventSerialId                          serialNumber                    = validationRequest.parmSerialNumber();
+        str                                     backendid				        = validationRequest.parmBackendID();
+        ItemId                                  itemID;
+        InventDimGroupSetup                     inventDimGroupSetup;
+        EcoResTrackingDimensionGroupFldSetup    trackingInventSerialIdFldSetup;
+        str                                     LineNumber                      = validationRequest.parmLineNumber();
+        Common									lineToValidate                  = this.getLine(backendid,LineNumber);
+        
+        itemID              = this.getItemIDfromLine(lineToValidate);
+        inventDimGroupSetup = InventDimGroupSetup::newInventTable(InventTable::find(itemId));
+        trackingInventSerialIdFldSetup =  EcoResTrackingDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getTrackingDimensionGroup(),fieldNum(InventDim,inventSerialId));
+
+        if (!serialNumber && trackingInventSerialIdFldSetup.IsAllowBlankReceiptEnabled)
+        {
+            resultXml = MobOnlineValidator::setSerialNumberInformation(new XmlDocument(), TFMValueInteractionPermission::AllowEdit, this.getQuantity(this.getLine(backendid, LineNumber)));
+        }
+        else if (!serialNumber && !trackingInventSerialIdFldSetup.IsAllowBlankReceiptEnabled)
+        {
+            throw Error("@TFDevice:ValidationStringEmpty");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setSerialNumberInformation</Name>
+				<Source><![CDATA[
+    protected static XmlDocument setSerialNumberInformation(XmlDocument _resultXml, TFMValueInteractionPermission _valueInteractionPermission, InventQty _qty)
+    {
+        XmlElement outerElement = _resultXml.createElement('SerialNumberInformation');
+        XmlElement permissionElement = _resultXml.createElement('ValueInteractionPermission');
+        XmlElement quantityElement = _resultXml.createElement('Quantity');
+  
+        permissionElement.innerText(enum2Symbol(enumNum(TFMValueInteractionPermission),_valueInteractionPermission));
+        quantityElement.innerText(strFmt('%1',_qty));
+
+        _resultXml.appendChild(outerElement);
+        OuterElement.appendChild(permissionElement);
+        OuterElement.appendChild(quantityElement);
+
+        return _resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getQuantity</Name>
+				<Source><![CDATA[
+    public inventQty getQuantity(Common _record)
+    {
+        inventQty       retQty;
+        prodJournalBom  prodJournalBom;
+        switch (_record.TableId)
+        {
+            case tableNum(WMSOrderTrans) :
+                
+                retQty = _record.(fieldNum(WMSOrderTrans, qty));
+                break;
+            case tableNum(SalesLine) :
+                retQty = _record.(fieldNum(SalesLine, RemainSalesPhysical));
+                break;
+            case tableNum(ProdJournalBom) :
+                prodJournalBom = _record;
+                retQty = prodJournalBom.prodBOM().RemainBOMPhysical;
+                break;
+            case tableNum(InventTransferLine) :
+                retQty = _record.(fieldNum(inventTransferLine,QtyRemainShip));
+                break;
+        }
+
+        return retQty;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLine</Name>
+				<Source><![CDATA[
+    public Common getLine(str _backendid, str _ID)
+    {
+        DictTable   dT;
+        Common      record;
+        MobOrder    mobOrder = MobOrder::constructFromBackendID(_backendid);
+        TableId     tableID = mobOrder.lineTableId();
+
+        if (!tableID)
+        {
+            return null;
+        }
+        dT = new DictTable(tableID);
+        record = dT.makeRecord();
+        select firstonly record where record.RecId == str2Int64(_ID);
+
+        if (!record && dT.fieldName2Id(extendedTypeStr(InventTransId)))
+        {
+            //Try with InventTrans
+            select firstonly record where record.(dT.fieldName2Id(extendedTypeStr(InventTransId))) == _ID;
+        }
+
+        return record;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getItemIDfromLine</Name>
+				<Source><![CDATA[
+    public ItemId getItemIDfromLine(Common _record)
+    {
+        DictTable dt;
+        if (_record == null)
+        {
+            return '';
+        }
+        dt = new DictTable(_record.TableId);
+        return _record.(dt.fieldName2Id(extendedTypeStr(ItemId)));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getReservedQuantity</Name>
+				<Source><![CDATA[
+    public inventQty getReservedQuantity(InventTransId _inventTransId, InventDim _inventDim)
+    {
+        InventTrans         inventTrans;
+        InventTransOrigin   inventTransOrigin;
+        InventDim           inventDim;
+        InventDimParm       dimParm;
+
+        dimParm.initFromInventDim(_inventDim);
+
+        select sum (qty) from inventTrans where inventTrans.StatusIssue == StatusIssue::ReservPhysical
+            join inventTransOrigin where InventTransOrigin.RecId == inventTrans.inventTransOrigin && InventTransOrigin.InventTransId == _inventTransId
+            join inventDim where inventTrans.inventDimId == inventDim.inventDimId && #InventDimRanges(inventDim,_inventDim,dimParm,dimParm);
+
+        return -InventTrans.qty;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventTransIDfromLine</Name>
+				<Source><![CDATA[
+    protected InventTransId getInventTransIDfromLine(Common _record)
+    {
+        DictTable dt;
+        if (_record == null)
+        {
+            return '';
+        }
+        dt = new DictTable(_record.TableId);
+        return _record.(dt.fieldName2Id(extendedTypeStr(InventTransId)));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventDimfromLine</Name>
+				<Source><![CDATA[
+    protected InventDim getInventDimfromLine(Common _record)
+    {
+        DictTable dt;
+        if (_record == null)
+        {
+            return null;
+        }
+        dt = new DictTable(_record.TableId);
+
+        return InventDim::find(_record.(dt.fieldName2Id(extendedTypeStr(InventDimId))));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>WHSContainerList</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod]
+    /// <summary>
+    /// Method to add Container Type reference data.
+    /// </summary>
+    /// <returns>A filter list instance with the data for the reference data.</returns>
+    public TFMReferenceDataFilterList WHSContainerList()
+    {
+        WHSContainerType conTypes;
+        TFMReferenceDataFilterList filterlist = new TFMReferenceDataFilterList();
+        filterlist.parmFilterIdName(extendedTypeStr(WHSContainerTypeCode));
+        filterlist.parmFilterValueName(extendedTypeStr(Name));
+
+        while select conTypes order by RecId
+        {
+            filterlist.addValue(conTypes.ContainerTypeCode,conTypes.Description);
+        }
+
+        return filterlist;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>toteTypeValidation</Name>
+				<Source><![CDATA[
+     //<summary>
+     //The validation method for the container type, that creates the record in the tote/outbound LP table
+     //</summary>
+     //<returns>A TFMPostResponseData object with no steps.</returns>
+    public TFMPostResponseData toteTypeValidation()
+    {
+        TFMPostResponseData             postResponse    = TFMPostResponseData::Construct();
+        WHSContainerId                  toteId;
+        MobToteTable                    toteTable;
+        toteId = validationRequest ? validationRequest.parmToteId() : request.getFieldValue('toteId');
+        ttsBegin;
+        toteTable = MobToteTable::FindOrCreate(toteId,null,true);
+        toteTable.PackingType= validationRequest ? validationRequest.parmWHSContainerTypeCode() : request.getFieldValue(extendedTypeStr(WHSContainerTypeCode));
+        toteTable.update();
+        ttsCommit;
+        return postResponse;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>toteValidation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Validation method for tote validation in planned flows
+    /// </summary>
+    /// <returns>a TFMPostResponseData object, containing steps, if users are to be prompted for the type of the container they are packing</returns>
+    public TFMPostResponseData toteValidation()
+    {
+        TFMPostResponseData             postResponse    = TFMPostResponseData::Construct();
+        TFMRegistrationCollectorList    regCol          = new TFMRegistrationCollectorList(1,extendedTypeStr(WHSContainerTypeCode),"@WAX2110","@WAX2110","@WAX2110");
+        WHSContainerTypeCode            toteId;
+
+
+        regCol.parmDataTable(methodStr(MobOnlineValidator, WHSContainerList));
+        regCol.parmDataKeyColumn(extendedTypeStr(WHSContainerTypeCode));
+        regCol.parmDataDisplayColumn(extendedtypestr(Name));
+
+        regCol.setOnlineValidationDocument(methodStr(MobOnlineValidator, toteTypeValidation));
+
+        toteId = validationRequest.parmToteId();
+        if (!MobToteTable::Exists(toteId) && promptForContainerType)
+        {
+            postResponse.addCollector(regCol);
+        }
+        return postResponse;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LicensePlateValidation</Name>
+				<Source><![CDATA[
+    public TFMPostResponseData LicensePlateValidation()
+    {
+        str						licensePlate	= request.getFieldValue(extendedTypeStr(WHSLicensePlateId));
+        TFMPostResponseData		postResponseElement = TFMPostResponseData::Construct();
+        //Validate if LP is valid
+
+        if (!WHSLicensePlate::exist(licensePlate))
+        {
+            throw Error (strFmt("@WAX363",licensePlate));
+        }
+
+        postResponseElement.addField('TypeKey',licensePlate);
+        postResponseElement.addField('TypeDisplay', 'LP:'+licensePlate);
+
+        return postResponseElement;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

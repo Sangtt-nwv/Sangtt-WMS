@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockCreateTagCountingJournalLicensePlateLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic block that can create tag counting journal lines for a license plates content
+/// </summary>
+class MwmsLogicBlockCreateTagCountingJournalLicensePlateLine extends MwmsLogicBlockJournalLinesCommon implements TFMLogicBlockDataCollectionInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicBlockCreateTagCountingJournalLicensePlateLine Construct()
+    {
+        return new MwmsLogicBlockCreateTagCountingJournalLicensePlateLine();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        
+        categories.add("@SYS6437");
+        categories.add("@WAX67");
+        components.addComponent(MwmsLogicComponentInventoryJournalLicensePlates::Construct());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method provides the header fields, that are needed to find out which data should be collected.
+    /// </summary>
+    /// <returns>A MobReferenceDataConfiguration object, containing registration collectors for the header.</returns>
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        refConf = this.lockWarehouseInHeader(components.getHeaders());
+        
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method gives you the registration collectors for this data collection block.
+    /// </summary>
+    /// <returns>A collection of registration collectors.</returns>
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        TFMRegistrationCollectors   collectors = TFMRegistrationCollectors::Construct();
+        SysDictType                 dictType = new SysDictType(extendedTypeNum(WMSLocationId));
+        //License plate, ask for to location
+        collectors.addCollector(TFMRegistrationCollectorText::TextStep(false,30,'To' + extendedTypeStr(WMSLocationId),"@MobileWMS:MEL44","@SYS50351","@MobileWMS:MEL45",dictType.stringLen()));
+        return collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method is called before the post method, and gives the option to add extra registration collectors for the user to be prompted for before the post method is executed.
+    /// </summary>
+    /// <returns>Returns a MobRegistrationCollectors object if the user must be further prompted, otherwise it returns null</returns>
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method executed when all data has been collected, and contains the posting logic.
+    /// </summary>
+    /// <returns>A MobPostResponseData object.</returns>
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData                 response = TFMPostResponseData::Construct();
+        TFMRequestItemAndDimensionElement   docRequest = request.convertToOtherRequestType(classStr(TFMRequestItemAndDimensionElement));
+
+        inventJournalTable = InventJournalTable::find(docRequest.parmJournalId(),true);
+        if (createOrUpdate == AddUpdate::Add)
+        {
+            MobPostHelper::AddMoveLicensePlateToJournal(inventJournalTable, docRequest.parmLicensePlateId(),docRequest.parmToInventLocationId(), docRequest.parmToWMSLocationId());
+        }
+        else
+        {
+            this.updateToLocationOnTransferJournalLicensePlateLines(docRequest.parmJournalId(), docRequest.parmLicensePlateId(), docRequest.parmToWMSLocationId());
+        }
+        MobPostHelper::validateInventJournalTransfer(inventJournalTable);
+        
+        response.parmResponseText("@MobileWMS:MEL47");
+
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateToLocationOnTransferJournalLicensePlateLines</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Function made to update journal lines with a new to location
+    /// </summary>
+    /// <param name = "_journalId">Journal ID the lines to change is on</param>
+    /// <param name = "_licensePlateId">The License plate associated with the lines that should be changed</param>
+    /// <param name = "_toWmsLocationId">the Location to change to</param>
+    protected void updateToLocationOnTransferJournalLicensePlateLines(JournalId _journalId, WHSLicensePlateId _licensePlateId, WmsLocationId _toWmsLocationId)
+    {
+        InventJournalTrans  iTrans;
+        InventDim           iDim;
+        ttsbegin;
+        while select forupdate iTrans where iTrans.JournalId == _journalId
+        {
+            iDim = iTrans.toInventDim();
+            if (iDim.LicensePlateId != _licensePlateId)
+            {
+                continue;
+            }
+            iDim.wMSLocationId = _toWmsLocationId;
+            iDim = InventDim::findOrCreate(iDim);
+            iTrans.ToInventDimId = iDim.inventDimId;
+            iTrans.update();
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMUnplannedTagCountIcon);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

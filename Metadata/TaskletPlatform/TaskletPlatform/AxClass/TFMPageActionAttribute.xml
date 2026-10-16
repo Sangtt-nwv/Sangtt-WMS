@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageActionAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMPageActionAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    boolean             hide;
+    boolean             promoted;
+    boolean             mandatory;
+    boolean             visibleWhenNoData;
+    ResourceName        icon;
+    TFMPageMenuItemType menuItemType;
+    real                sortingValue; //less is more and only used for initial and suggested menu item creation.
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+        void new(TFMPageMenuItemType _menuItemType = TFMPageMenuItemTypes::PageMenuItem, str _icon ='', boolean _promoted = false, boolean _hide = false, real _placement = -1, boolean _visibleWhenNoData = false)
+    {        
+        super();
+        hide = _hide;
+        promoted = _promoted;
+        icon = _icon;
+        menuItemType = _menuItemType;
+        sortingValue = _placement;
+        visibleWhenNoData = _visibleWhenNoData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMPageActionAttribute) + ';' + any2Str(hide)  + ';' + any2Str(promoted) + ';' + icon + ';' + enum2Str(menuItemType);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMandatory</Name>
+				<Source><![CDATA[
+    public boolean parmMandatory(boolean _mandatory = mandatory)
+    {
+        mandatory = _mandatory;
+        return mandatory;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHide</Name>
+				<Source><![CDATA[
+    public boolean parmHide(boolean _hide = hide)
+    {
+        hide = _hide;
+        return hide;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPromoted</Name>
+				<Source><![CDATA[
+    public boolean parmPromoted(boolean _promoted = promoted)
+    {
+        promoted = _promoted;
+        return promoted;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSortingValue</Name>
+				<Source><![CDATA[
+    public real parmSortingValue(real _sortingValue = sortingValue)
+    {
+        sortingValue = _sortingValue;
+        return sortingValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMenuItemType</Name>
+				<Source><![CDATA[
+    public TFMPageMenuItemType parmMenuItemType(TFMPageMenuItemType _menuItemType = menuItemType)
+    {
+        menuItemType = _menuItemType;
+        return menuItemType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIcon</Name>
+				<Source><![CDATA[
+    public str parmIcon(str _icon = icon)
+    {
+        icon = _icon;
+        return icon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmVisibleWhenNoData</Name>
+				<Source><![CDATA[
+    public boolean parmVisibleWhenNoData(boolean _visibleWhenNoData = visibleWhenNoData)
+    {
+        visibleWhenNoData = _visibleWhenNoData;
+        return visibleWhenNoData;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

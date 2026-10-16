@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocCountOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The document handler for all count orders, both header, lines and posting.
+/// </summary>
+[TFMMenu('Count',"@SYS62581","@MobileWMS:MobileWMS160",resourceStr(MobCountIcon),true,true,['Warehouse', 'MainMenu'],true)]
+class MobDocCountOrder extends TFMDocumentHandler
+{
+    XML							returningXML;
+    MobDocumentContentSubject	content;
+    NoYes						qtyByScan;
+    NoYes						QtyBarcode;
+    Common						common;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getCommonTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(Common))]
+    public Common getCommonTable()
+    {
+        return common;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages						ret = new TFMPages();
+        TFMPageOrderList				listPage = new TFMPageOrderList();
+        TFMPageOrderLines				linesPage = new TFMPageOrderLines();
+        TFMPageOrderListConfiguration	listConfig;
+        TFMPageOrderLinesConfiguration	linesConfig;
+
+        listPage.parmId(MobConstants::Count());
+        listPage.parmFilter(methodStr(MobDocCountOrder, CountOrderFilters));
+        listPage.parmIcon('mainmenucount');
+        listPage.parmTitle('PageCountOrderListTitle');
+        listConfig = listPage.getConfiguration();
+        listConfig.parmNavigateTo('CountLines');
+        listConfig.parmFilterEnabled(false);
+        listConfig.parmWorkflowName(MobConstants::Count());
+        listConfig.parmLineCompletedDefinition(TFMLineCompletedDefinitionTypes::AnyRegistration);
+
+        ret.addPage(listPage);
+
+        linesPage = listPage.createLinesPage();
+        linesPage.addAction('AddCountLine');
+        linesPage.setListId(classStr(TFMListCountOrderLines));
+        linesConfig = linesPage.getConfiguration();
+        linesConfig.parmSuggestQuantity(false);
+        ret.addPage(linesPage);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CountOrderFilters</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The filter for the count order page.
+    /// </summary>
+    /// <returns>An XML formatted string containing the filter fields.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceData CountOrderFilters()
+    {
+        TFMReferenceDataConfiguration   refData = new TFMReferenceDataConfiguration();
+        TFMReferenceDataConfiguration   inlineRef;
+        TFMRegistrationCollectorList    regCollectorList = new TFMRegistrationCollectorList(5,MobConstants::Warehouse(),"@SYS6437","@SYS6437","@SYS6437");
+
+        regCollectorList.parmDataTable(methodStr(TFMGetReferenceData,WarehouseFilterList));
+        regCollectorList.parmDataKeyColumn(extendedtypestr(InventLocationId));
+        regCollectorList.parmDataDisplayColumn(extendedtypestr(Name));
+
+        refData.addCollector(regCollectorList);
+
+        return refData;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmQtyByScan</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@MobileWMS:EnableRegisterQuantityByScan")]
+    public MobPromptForUnit parmQtyByScan(MobPromptForUnit _QtyByScan = qtyByScan)
+    {
+        qtyByScan = _QtyByScan;
+        return qtyByScan;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmQtyBarcode</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@MobileWMS:EnableBarcodeQuantity")]
+    public MobPromptForUnit parmQtyBarcode(MobPromptForUnit _QtyBarcode = QtyBarcode)
+    {
+        QtyBarcode = _QtyBarcode;
+        return QtyBarcode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentContentSubject</Name>
+				<Source><![CDATA[
+    public MobDocumentContentSubject getDocumentContentSubject()
+    {
+        return content;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExtraInfoData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to add extra line steps in the flow.
+    /// </summary>
+    /// <returns>A MobDocumentNodes object with the extra required steps, if any.</returns>
+    [TFMReferenceDataMethod]
+    public TFMDocumentNodes ExtraInfoData()
+    {
+        return MobOrder::ExtraInfoData(classStr(MobCountOrderType));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public TFMDocumentHandlerDescription description()
+    {
+        TFMDocumentHandlerDescription ret;
+
+        ret = "@MobileWMS:CountOrderHandler";
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public Set getDocumentTypes()
+    {
+        Set ret = new Set(Types::String);
+
+        ret.add(methodStr(MobDocCountOrder,GetCountOrders));
+        ret.add(methodStr(MobDocCountOrder,GetCountOrderLines));
+        ret.add(methodStr(MobDocCountOrder,PostCountOrder));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerMenu</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public container registerMenu()
+    {
+        container ret;
+
+        ret = [['Count', "@MobileWMS:MobileWMS160", true, resourceStr(MobCountIcon)]];
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetCountOrders</Name>
+				<Source><![CDATA[
+    private TFMOrderListResponseElement GetCountOrders()
+    {        
+        TFMRequestGetOrdersElement  orderRequest = request;
+        TFMRequestFiltersElement    filters = orderRequest.parmFilters();
+        str                         scannedValue;
+        
+        if (filters != null)
+        {
+            scannedValue = filters.getFieldValue(MobConstants::ScannedValue());
+            
+            if(filters.parmInitFromParmFilter())
+            {
+                filters.parmWarehouse(MobConstants::All());
+            }
+        }
+		
+        return MobCountOrderType::generateResponse(filters,scannedValue);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetCountOrderLines</Name>
+				<Source><![CDATA[
+    private TFMOrderLinesResponseElement GetCountOrderLines()
+    {
+        XmlElement                      ordersElement;
+        MobOrder                        mobOrder;
+        TFMRequestGetOrderLinesElement  OrderLinesRequest = request;
+        TFMOrderLinesResponseElement	response = TFMOrderLinesResponseElement::Construct('CountLines');
+        str                             backendid = OrderLinesRequest.parmBackendID();//requestXml.root().getNamedElement(#requestData).childNodes().item(0).innerText();
+        MapEnumerator                   returnedRecords;
+        int                             i;
+        Map                             postPromptCollectors;
+        Map                             additionalValues = new Map(Types::String, Types::String);
+        container                       backendIDcon = MobHelper::strSplit(backendID,'/').pack();
+        MobOrderTypes                   type = conLen(backendIDcon) == 7 ? conPeek(backendIDcon,7) : '';
+        TFMXMLFormat					xmlFormat;
+    
+        resultXml   = new XmlDocument();
+        ordersElement = resultXml.appendChild(resultXml.createElement(MobConstants::OrderLines()));
+        
+        mobOrder = MobOrder::constructFromBackendID(backendid);
+
+        postPromptCollectors = mobOrder.getPostPromptCollectors(backendid);
+        postPromptCollectors = MobPostOrderPromptOverride::addToCollectors(postPromptCollectors,classIdGet(mobOrder),'',true, additionalValues);
+        MobOrder::addPostPromptCollectors(postPromptCollectors,ordersElement,additionalValues);
+
+        returnedRecords = MobOrder.getLineRecords(request).getEnumerator();
+        
+        while (returnedRecords.moveNext())
+        {
+
+            response.addRecord(returnedRecords.currentValue(),type);
+        }
+        return response;               
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResult</Name>
+				<Source><![CDATA[
+    public XML getResult()
+    {
+        if (resultXml)
+        {
+            return resultXml.xml();
+        }
+    
+        return returningXML;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PostCountOrder</Name>
+				<Source><![CDATA[
+    private str PostCountOrder()
+    {
+        //XmlNode                         rootNode;
+        //XmlElement                      orderElement;
+        str                             backendId;
+        MobOrder                        mobOrder;
+        UserConnection                  uc;
+        TFMRequestBasicElement          root = request as TFMRequestBasicElement;
+        //rootNode        = requestXml.root();
+        //orderElement    = rootNode.getNamedElement(#requestData).getNamedElement(#Order);
+        
+        //BackendId       = orderElement.getAttribute(#AttributeBackendId);
+        backendId       = root.parmOrder().parmBackendID();
+    
+        mobOrder = MobOrder::constructFromBackendID(backendid);
+        ttsbegin;
+        //resultStr = MobOrder.post(backendid,orderElement);
+        resultStr = MobOrder.postRequest(root.parmOrder());
+        ttscommit;
+        content = strFmt("@MobileWMS:OrderPosted" ,mobOrder.parmOrderId());
+        uc = new UserConnection();
+        uc.ttsbegin();
+        mobOrder.postPromptExtraStepsExecution(root.parmOrder().getFieldMap());//TFMOrder::getAllAttributes(orderElement));
+        uc.ttscommit();
+        common = mobOrder.getResultTable();
+        resultXml = mobOrder.parmResultXML();
+        return ResultStr;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

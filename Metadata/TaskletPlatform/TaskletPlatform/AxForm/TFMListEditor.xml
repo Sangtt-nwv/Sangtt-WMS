@@ -1,0 +1,855 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMListEditor</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMListEditor extends FormRun
+{
+    TFMListEditorTree	listTree;
+    TFMList			    currentList;
+    TFMListsVersion		currentListVersion;
+
+    Map				list2Pages;
+    QueryBuildRange qbrPageId;
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateVisual</Name>
+				<Source><![CDATA[
+    public void updateVisual()
+    {
+        TFMListVisualization::DrawList(PreviewWindow,currentList.parmListName(),currentListVersion,DrawCells.value(),DrawDevice.value(),UseDataset.value() ? TFMPageDatasources : null);
+        element.refreshXmlOutput();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+
+        super();
+
+        TFMLists = element.args().record();
+        listTree = TFMListEditorTree::Construct(DesignTree,attributeGroup,TreenodeButtons, element, TFMPageDatasources);
+        currentList = TFMListsProvider::getAllLists().getList(TFMLists.ListId);
+        TFMLists_TFMListId.text(currentList.parmListName());
+        TFMLists_TFMListId.modified();
+
+        if(currentList.parmDeltaLevel() == TFMDeltaLevel::Code)
+        {
+            TFMListConfiguration listConf = currentList.getList(); // since it is coming from code we call the getList directly.
+            TFMListsVersion_displayStatus.dataSource(null);
+            TFMListsVersion_useSingleSelection.dataSource(null);
+            TFMListsVersion_useSingleSelection.value(listConf.parmUseSingleSelection());
+            TFMListsVersion_displayStatus.value(listConf.parmDisplayStatus());
+
+            //disable the buttons because they can only be changed when a version exists.
+            TFMListsVersion_displayStatus.enabled(false);
+            TFMListsVersion_useSingleSelection.enabled(false);
+
+        }
+        
+        element.updateDataSource();
+        this.updateVisual();
+
+        TabXML.visible(TFMParameters::find().DeveloperMode);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateDataSource</Name>
+				<Source><![CDATA[
+    public void updateDataSource()
+    {
+        MapEnumerator	pageMap;
+        TFMPages		pages;
+        TFMPage			page;
+        TFMListId		listId;
+
+        list2Pages = new Map(Types::String, Types::String);
+
+        pageMap = TFMPagesProvider::getAllPages().getPages().getEnumerator();
+        while (pageMap.moveNext())
+        {
+            page = pageMap.currentValue();
+            listId = page.getListId();
+            if (listId)
+            {
+                list2Pages.insert(listId,(list2Pages.exists(listId) ? list2Pages.lookup(listId) + ',' : '') + page.parmId());
+            }
+        }
+        qbrPageId = TFMPageDatasources_DS.queryBuildDataSource().addRange(fieldNum(TFMPageDatasources,Pageid));
+        qbrPageId.value(list2Pages.exists(currentList.parmListName()) ? list2Pages.lookup(currentList.parmListName()) : 'nonExistingPage');
+        TFMPageDatasources_ds.executeQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateTFMVersionsDatasource</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Updates the datasource used for the TFMListVerion datasource. The verison is provided because it might change with the versions combobox.
+    /// </summary>
+    /// <param name = "_version"></param>
+    protected void updateTFMVersionsDatasource(Version _version)
+    {
+        if(currentList.parmDeltaLevel() == TFMDeltaLevel::Code)
+        {
+            TFMListsVersionDS_DS.allowCreate(false);
+            TFMListsVersionDS_DS.allowEdit(false);
+            TFMListsVersionDS_DS.allowDelete(false);
+            return;
+        }
+        QueryBuildRange qbrVersion;
+        qbrVersion = TFMListsVersionDS_ds.queryBuildDataSource().addRange(fieldNum(TFMListsVersion, ListId));
+        qbrVersion.value(currentList.parmListName());
+        
+        qbrVersion = TFMListsVersionDS_ds.queryBuildDataSource().addRange(fieldNum(TFMListsVersion, Version));
+        qbrVersion.value(VersionsAvailable.valueStr() ? VersionsAvailable.valueStr() : '0');
+
+        TFMListsVersionDS_DS.executeQuery();
+
+        currentListVersion = TFMListsVersionDS;
+
+        if(TFMListsVersionDS.Locked)
+        {
+            TFMListsVersionDS_DS.allowCreate(false);
+            TFMListsVersionDS_DS.allowEdit(false);
+        }
+        
+        TFMListsVersionDS_DS.allowDelete(false); // never delete
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateListTree</Name>
+				<Source><![CDATA[
+    public void updateListTree(str _version, int _curListIdx)
+    {
+        RecId selectedRecId = listTree.currentSelectedRecId();
+
+        TFMListID currentListId = currentList.parmListName();
+        DesignTree.deleteAll();
+        int currentListVer = str2Int(_version);
+        
+        listTree.buildTree(currentListId, currentListVer);
+        if(_curListIdx > 0)
+        {
+            listTree.setSelection(selectedRecId);
+        }
+
+
+   }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>refreshXmlOutput</Name>
+				<Source><![CDATA[
+    protected void refreshXmlOutput()
+    {
+        if(!XmlViewer.isVisible() )
+        {
+            return;
+        }
+        XML outputXmlStr;
+        XmlElement outputElement;
+            
+        outputElement = XmlDocument::newBlank().createElement('output');
+
+        currentList.appendToXML(outputElement, currentListVersion, !FormCheckBoxControl_ShowExportFormat.value());
+            
+        XmlViewer.parmFormatAsXml('Yes');
+        XmlViewer.parmHtml(TFMFormXMLFormatter::htmlColorXML( outputElement.xml()));
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>TFMListsVersionDS</Name>
+				<Methods>
+					<Method>
+						<Name>write</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void write()
+        {
+            if(TFMListsVersionDS_DS.allowEdit())
+            {
+                RecId curRecId = listTree.currentSelectedRecId();
+                super();
+                element.updateListTree(VersionsAvailable.valueStr(), curRecId);
+            }
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>refresh</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void refresh()
+        {
+            RecId curRecId = listTree.currentSelectedRecId();
+            super();
+            element.updateListTree(VersionsAvailable.valueStr(), curRecId);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret = super();
+            if (UseDataset.value())
+            {
+                element.updateVisual();
+            }
+
+            
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>delete</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void delete()
+        {
+
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>TFMPageDatasources</Name>
+				<Methods>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret = super();
+            if (UseDataset.value())
+            {
+                element.updateVisual();
+            }
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>DesignTree</Name>
+				<Type>Tree</Type>
+				<Methods>
+					<Method>
+						<Name>selectionChanged</Name>
+						<Source><![CDATA[
+        public void selectionChanged(FormTreeItem _OldItem, FormTreeItem _NewItem, FormTreeSelect _how)
+        {
+            super(_OldItem, _NewItem, _how);
+            listTree.selectionChanged(_OldItem, _NewItem, _how);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TFMLists_TFMListId</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+            TFMListsVersion versions;
+            ret = super();
+			
+            TFMListID currentListId = this.text();
+            currentList = TFMListsProvider::getAllLists().getList(currentListId);
+            currentListVersion = TFMListsVersion::newestVersion(currentListId, false);
+            VersionsAvailable.clear();
+            while select versions order by Version desc where versions.ListId == currentListId
+            {
+                VersionsAvailable.add(int2Str(versions.Version));
+            }
+            element.updateTFMVersionsDatasource(currentListVersion.Version);
+            element.updateListTree(VersionsAvailable.valueStr(), 0);
+            element.updateVisual();
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>VersionsAvailable</Name>
+				<Type>ComboBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+    
+            ret = super();
+
+            currentListVersion = TFMListsVersion::Find(currentList.parmListName(), str2Int(this.valueStr()) );
+            element.updateTFMVersionsDatasource(currentListVersion.Version);
+            element.updateListTree(this.valueStr(), 0);
+            element.updateVisual();
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>DrawCells</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret = super();
+            element.updateVisual();    
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>DrawDevice</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret = super();
+            element.updateVisual();
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>UseDataset</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret = super();
+            element.updateVisual();
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TabXML</Name>
+				<Type>TabPage</Type>
+				<Methods>
+					<Method>
+						<Name>pageActivated</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void pageActivated()
+        {
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormCheckBoxControl_ShowExportFormat</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public boolean modified()
+        {
+            boolean ret;
+    
+            ret = super();
+
+            element.refreshXmlOutput();
+    
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>TFMLists</Name>
+			<Table>TFMLists</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisplayStatus</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TFMListId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>useSingleSelection</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>TFMListsVersionDS</Name>
+			<Table>TFMListsVersion</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisplayStatus</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ListId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Locked</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>useSingleSelection</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Version</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>TFMPageDatasources</Name>
+			<Table>TFMPageDatasources</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OrderType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PageID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableName</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@TFM:Lists</Caption>
+		<DataSource xmlns="">TFMListsVersionDS</DataSource>
+		<Style xmlns="">SimpleListDetails</Style>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>TreeNodeButtons</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls />
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>Navigation</Name>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<Type>Group</Type>
+				<Width>300</Width>
+				<WidthMode>Manual</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTreeControl">
+						<Name>DesignTree</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>Tree</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<TrackSelect>Yes</TrackSelect>
+					</AxFormControl>
+				</Controls>
+				<FrameType>None</FrameType>
+				<Style>SidePanel</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>VerticalSplitter</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+				<Style>SplitterVerticalContainer</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>DetailsHeader</Name>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>TFMLists_TFMListId</Name>
+						<AllowEdit>No</AllowEdit>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<ExtendedDataType>TFMListId</ExtendedDataType>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>VersionsAvailable</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>ComboBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Label>@SYS15847</Label>
+						<Items />
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormCheckBoxControl">
+						<Name>TFMListsVersion_DisplayStatus</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>CheckBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>DisplayStatus</DataField>
+						<DataSource>TFMListsVersionDS</DataSource>
+						<Label>@TFM:DisplayStatus</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormCheckBoxControl">
+						<Name>TFMListsVersion_useSingleSelection</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<HelpText>Select this if the user only needs to tap the list item once to activate it.</HelpText>
+						<Type>CheckBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>useSingleSelection</DataField>
+						<DataSource>TFMListsVersionDS</DataSource>
+						<Label>@TFM:UseSingleselection</Label>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+				<FrameType>None</FrameType>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Attributes</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>AttributeGroup</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls />
+								<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+								<HideIfEmpty>No</HideIfEmpty>
+							</AxFormControl>
+						</Controls>
+						<HideIfEmpty>No</HideIfEmpty>
+						<Caption>@SYS31826</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>PreviewTab</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>UIControls</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>DrawCells</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@TFM:DrawCells</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>DrawDevice</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@TFM:DrawMobileDevice</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>UseDataset</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@TFM:UseDataset</Label>
+										<Value>1</Value>
+									</AxFormControl>
+								</Controls>
+								<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+							</AxFormControl>
+							<AxFormControl>
+								<Name>PreviewWindow</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension>
+									<Name>TFMHtmlViewerCtrl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties>
+										<AxFormControlExtensionProperty>
+											<Name>htmlField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>addCopyLinkField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>formatAsXmlField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+									</ExtensionProperties>
+								</FormControlExtension>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS54744</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Dataset</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>DatasetGrid</Name>
+								<Type>Grid</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>DatasetGrid_TableName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>TableName</DataField>
+										<DataSource>TFMPageDatasources</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>DatasetGrid_OrderType</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>OrderType</DataField>
+										<DataSource>TFMPageDatasources</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>Overview</DataGroup>
+								<DataSource>TFMPageDatasources</DataSource>
+							</AxFormControl>
+						</Controls>
+						<Caption>@TFM:DataSources</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TabXML</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormCheckBoxControl">
+								<Name>FormCheckBoxControl_ShowExportFormat</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>CheckBox</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@TFM:Showexportformat</Label>
+								<Style>Toggle</Style>
+							</AxFormControl>
+							<AxFormControl>
+								<Name>XmlViewer</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<FormControlExtension>
+									<Name>TFMHtmlViewerCtrl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties>
+										<AxFormControlExtensionProperty>
+											<Name>htmlField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>addCopyLinkField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>formatAsXmlField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+									</ExtensionProperties>
+								</FormControlExtension>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS98689</Caption>
+						<FastTabExpanded>Yes</FastTabExpanded>
+					</AxFormControl>
+				</Controls>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

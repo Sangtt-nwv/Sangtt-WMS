@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMImageHandlerMenuItemGroup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMMenuGroupingIcon('MenuItemGroup')]
+class TFMImageHandlerMenuItemGroup extends TFMImageHandler
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to take a grouping image, and collect the menu icons in a grouped image
+    /// </summary>
+    /// <param name = "_imageId">Id of the Menu group</param>
+    /// <returns>Base64 string if applicable</returns>
+    public str process(str _imageId)
+    {
+        str                 ret;
+        int                 folderPos = strScan(_imageId, '_MenuItemGroup',1,100);
+        str                 imageName = TFMDocGetMedia::doesClassHaveImage(folderPos ? subStr(_imageId,1,folderPos-1) : _imageId);
+        TFMImageAggregate   imgAggr;
+        str                 base64Img;
+        TFMMenuGroups       groups;
+        TFMMenuGroupId      groupId = folderPos ? subStr(_imageId,1,folderPos-1) : _imageId;
+        TFMMenuPermissions  perms;
+        int                 NoOfIcons = 2;
+
+        UserGroupList       userGroupList;
+        UserGroupId         userGroupsStr = '';
+
+        groups = TFMMenuGroups::Find(groupId);
+
+        if (groups)
+        {
+            imageName = groups.Icon;
+            imageName = TFMDocGetMedia::doesClassHaveImage(imageName);
+            imageName = imageName? imageName : groups.Icon;
+        }
+
+        if (strScan(_imageId, TFMConstants::pageIcon(),1,1000))
+        {
+            str classImage = TFMDocGetMedia::doesClassHaveImage(imageName);
+            base64Img = TFMImageHelper::resource2Base64(classImage ? classImage : imageName);
+            if (base64Img)
+            {
+                return base64Img;
+            }
+        }
+
+        select firstonly userGroupList where userGroupList.UserId  == curUserId() join perms where perms.UserGroupId == userGroupList.groupId;
+        
+        userGroupsStr = userGroupList.groupId;
+        
+        if (!userGroupsStr)
+        {
+            userGroupsStr = TFMConstants::TFMUser();
+        }
+
+        if(folderPos)
+        {
+            System.Drawing.Image folderImg		= TFMImageHelper::base64ToImage(TFMImageHelper::resource2Base64(resourceStr(TFMTransparentGroupBackground)));
+            System.Drawing.Image iconImage;
+            System.Drawing.Graphics graphics	= System.Drawing.Graphics::FromImage(folderImg);
+
+            graphics.DrawImage(folderImg,new System.Drawing.Rectangle(0,0,folderImg.Width, folderImg.Height));
+
+            if (!imageName)
+            {
+                imgAggr = TFMImageAggregate::Find(folderPos ? subStr(_imageId,1,folderPos-1) : _imageId);
+                if(imgAggr)
+                {
+                    base64Img = imgAggr.getImage();
+                }
+                else if (TFMImageTable::Find(folderPos ? subStr(_imageId,1,folderPos-1) : _imageId))
+                {
+
+                    base64Img = TFMImageHelper::Image2Base64(TFMImageHelper::ExifRotateImage(TFMHelper::getAttachmentAsImage(TFMHelper::findImageDocuRef(TFMImageTable::Find(folderPos ? subStr(_imageId,1,folderPos-1) : _imageId)))));
+                }
+                else
+                {
+                    base64Img = TFMImageHelper::resource2Base64(resourceStr(TFMTaskletLogo));
+                }
+            }
+            else
+            {
+                base64Img = TFMImageHelper::resource2Base64(imageName);
+            }
+            int i = 0;
+            int j = 0;
+
+            real iconWidth = folderImg.Width / (NoOfIcons+1);
+            real iconHeight= folderImg.Height/ (NoOfIcons+1);
+
+            while select perms order by MenuLineNumber where perms.MenuGroup == groupId && perms.UserGroupId == userGroupsStr
+            {
+                str iconName = TFMPagesProvider::getAllPages().getPage(perms.menu).parmIcon();
+                iconImage			= TFMImageHelper::base64ToImage(TFMDocGetMedia::getBase64FromName(iconName));
+
+                graphics.DrawImage(iconImage,new System.Drawing.Rectangle((iconWidth/(NoOfIcons+1)+iconWidth)*i + iconWidth/(NoOfIcons+1),iconHeight/(NoOfIcons+1) + (iconHeight+iconHeight/(NoOfIcons+1))*j,iconWidth, iconHeight));
+                i++;
+                if (i >= NoOfIcons)
+                {
+                    i = 0;
+                    j++;
+                }
+
+                if (j==NoOfIcons)
+                {
+                    break;
+                }
+            }
+            base64Img = TFMImageHelper::Image2Base64(folderImg);
+            TFMMediaProvider::instance().setMedia(_imageId, base64Img, null);
+            return base64Img;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

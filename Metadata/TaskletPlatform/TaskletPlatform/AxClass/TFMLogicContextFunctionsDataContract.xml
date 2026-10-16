@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContextFunctionsDataContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute('data')]
+class TFMLogicContextFunctionsDataContract extends TFMLogicContextDataContract
+{
+    str keyName;
+    container parameters;
+    container parameterNames;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>contractObject</Name>
+				<Source><![CDATA[
+    protected TFMLogicContextObject contractObject()
+    {
+        SysDictClass    sdc;
+        if (!obj)
+        {
+            sdc = new SysDictClass(className2Id(logicContextCls));
+            obj = sdc.makeObject();
+            obj.parmDataContract(this);
+        }
+        return obj;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLogicContextClass</Name>
+				<Source><![CDATA[
+    public ClassName parmLogicContextClass(ClassName _logicContextCls = logicContextCls)
+    {
+        ClassName       logicContextClass = super(_logicContextCls);
+        SysDictMethod    sdm;
+        int             i;
+        boolean		    initParm = parameters == conNull();
+        parameterNames = conNull();
+        if (obj)
+        {
+            sdm = new SysDictMethod(UtilElementType::ClassInstanceMethod, classIdGet(obj), methodStr(TFMLogicContextFunctions, process));
+            i = 0;
+            while (i < sdm.parameterCnt())
+            {
+                parameterNames += sdm.parameterName(i+1);
+                if (initParm)
+                {
+                    parameters += '';
+                }
+                i++;
+            }
+        }
+
+        return logicContextClass;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmParameters</Name>
+				<Source><![CDATA[
+    public container parmParameters(container _parameters = parameters)
+    {
+        parameters = _parameters;
+        
+        return parameters;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmKeyName</Name>
+				<Source><![CDATA[
+    public str parmKeyName(str _keyName = keyName)
+    {
+        keyName = _keyName;
+        
+        return keyName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>detailsValue</Name>
+				<Source><![CDATA[
+    public str detailsValue()
+    {
+        str ret;
+        int cnt;
+        ret = this.alternateHeadline();
+        if (ret)
+        {
+            return ret;
+        }
+        ret = super() + '<br/>';
+        ret += '<u><b>' + "@TFM:Parameters" + '</b></u><br/>';
+        
+        for (cnt = 1; cnt <= max(conLen(parameters), conLen(parameterNames)); cnt++)
+        {
+            str output = '<u>%1:</u><i>%2</i><br/>';
+            output = strFmt(output, conpeek(parameterNames, (conLen(parameterNames) >= cnt ? cnt : 0)), conpeek(parameters, (conLen(parameters) >= cnt ? cnt : 0)));
+            ret += output;
+        }
+        
+        ret += '<u><b>' + "@TFM:Key" + '</b></u>';
+        ret += keyName;
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>alternateHeadline</Name>
+				<Source><![CDATA[
+    public str alternateHeadline()
+    {
+        str alternateHeadline;
+        if (!obj)
+        {
+            return '';
+        }
+        
+        alternateHeadline = obj.alternateName(parameters, keyName);
+        
+        return alternateHeadline;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

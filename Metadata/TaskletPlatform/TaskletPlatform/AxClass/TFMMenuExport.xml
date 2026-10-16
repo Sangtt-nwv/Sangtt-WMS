@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMenuExport</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.Xml.Linq;
+class TFMMenuExport
+{
+    Map                     menuItems;
+    Map                     folders;
+    Map                     mainmenuItemMap;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Main</Name>
+				<Source><![CDATA[
+    public static void Main(Args _args)
+    {
+        new TFMMenuExport().process();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public void process()
+    {
+        XmlDocument							xmlDoc;
+        str									fileXml;
+        XDocument							xDoc;
+        
+        Dialog								dialog;
+        dialog = new dialog();
+        
+        dialog.run();
+
+        if(!dialog.closedOk())
+        {
+            return;
+        }
+
+        fileXml = xmlDoc.xml(1);
+
+        xDoc = XDocument::Parse(fileXml);
+        fileXml = '<?xml version="1.0" encoding="utf-8"?>' + "@TFM:lineBreak"+ xDoc.ToString();
+
+        this.sendFileToUser(fileXml);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendFileToUser</Name>
+				<Source><![CDATA[
+    private void sendFileToUser(str _output)
+    {
+        str fileName = 'application-SubMenuTweak';
+        str contentType = 'application/xml';
+        str fileExtension = '.cfg';
+        #if.isAX6
+        System.IO.StreamWriter sw;
+        str filePath = WinAPI::getSaveFileName(0,['Tasklet Factory device configuration','*'+fileExtension],'',"@SYS56237",fileExtension,fileName);
+        InteropPermission perm = new InteropPermission(InteropKind::ClrInterop);
+        perm.assert();
+
+        sw = new System.IO.StreamWriter(filePath);
+        sw.Write(_output);
+        sw.Flush();
+        sw.Close();
+        sw.Dispose();
+
+        CodeAccessPermission::revertAssert();
+
+
+        #endif
+        #ifnot.IsAX6 //365
+        System.IO.MemoryStream stream = new System.IO.MemoryStream();
+        System.IO.StreamWriter writer = new System.IO.StreamWriter(stream,System.Text.Encoding::GetEncoding(1252));
+        writer.Write(_output);
+        writer.Flush();
+
+        stream.Position = 0;
+        FileUploadTemporaryStorageStrategy fileUploadStrategy = new FileUploadTemporaryStorageStrategy();
+        FileUploadTemporaryStorageResult fileUploadResult = fileUploadStrategy.uploadFile(stream, fileName + fileExtension, contentType , fileExtension);
+        Browser br = new Browser();
+        br.navigate(fileUploadResult.getDownloadUrl(),false, false);
+        #endif
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

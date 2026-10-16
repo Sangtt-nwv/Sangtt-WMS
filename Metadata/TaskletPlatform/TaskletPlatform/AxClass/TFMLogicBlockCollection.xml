@@ -1,0 +1,1571 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicBlockCollection</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// A collection Class for Logic Blocks, used to find the common Header and steps across multiple blocks
+/// </summary>
+class TFMLogicBlockCollection
+{
+    Map                             hash2CollectorIds;
+    Map               				blocks;
+    Map               				blockNodes;
+    Map               				hash2BlockName;
+    Set                             headerCollectors;
+    Map                             trackXs;
+    Map                             tracks;
+    Map                             trackDataInheritance;
+    Map                             inheritanceBlocksData;
+    Map                             blockCollectorMap;
+    Map                             blockHeaderMap;
+    TFMLogicBlockAddonCollection    blockAddons;
+    TFMProcess                      process;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    protected void new()
+    {
+        blocks = new Map(Types::String, Types::Class);
+        blockNodes = new Map(Types::String, Types::Class);
+        hash2BlockName = new Map (Types::Integer, Types::String);
+        hash2CollectorIds = new Map(Types::Integer, Types::Class);
+        trackDataInheritance = new Map(Types::Integer, Types::Class);
+        inheritanceBlocksData = new Map(Types::String, Types::String); //Perhaps save per block instead, if same name is in different branches
+        blockCollectorMap = new Map (Types::Integer, Types::Class);
+        blockHeaderMap = new Map(Types::Integer, Types::Class);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>inheritanceFromStepName</Name>
+				<Source><![CDATA[
+    public str inheritanceFromStepName(str _name)
+    {
+        return inheritanceBlocksData.exists(_name) ? inheritanceBlocksData.lookup(_name) : '';
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setProcess</Name>
+				<Source><![CDATA[
+    public void setProcess(TFMProcess _process)
+    {
+        process = _process;
+        if (blockAddons == null)
+        {
+            blockAddons     = TFMLogicBlockAddonCollection::Construct(process);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProcess</Name>
+				<Source><![CDATA[
+    public TFMProcess getProcess()
+    {
+        return process;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBlockDatasources</Name>
+				<Source><![CDATA[
+    public Map getBlockDatasources()
+    {
+        Map                             dataset = new Map(Types::String, Types::Class);
+        MapEnumerator                   blockEnum = blocks.getEnumerator();
+        MapEnumerator                   methods;
+        TFMLogicBlock                   block;
+        Set                             tables;
+        TFMOrderPostDataSetAttribute    attribute;
+        while (blockEnum.moveNext())
+        {
+            block = blockEnum.currentValue();
+            methods = TFMFormLookupHelper::getMethodsFromAttribute(classIdGet(block),classStr(TFMOrderPostDataSetAttribute)).getEnumerator();
+            tables = new Set(Types::String);
+            while (methods.moveNext())
+            {
+                attribute = methods.currentValue();
+                tables.add(attribute.name());
+            }
+            dataset.insert(block.blockName(),tables);
+        }
+
+        return dataset;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBlockCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to provide the data collectors for a specific block. All queires for data collectors must go through this method, as the instance is cached.
+    /// </summary>
+    /// <param name = "_block">The block to get the collectors for</param>
+    /// <returns>A TFMRegistrationCollectors object containing all the data collectors the block requires to be able to post.</returns>
+    public TFMRegistrationCollectors getBlockCollectors(TFMLogicBlock _block)
+    {
+        TFMLogicBlockDataCollectionInterface    dataInterface;
+        SetEnumerator                           sEnum;
+        TFMRegistrationCollector                collector;
+        TFMRegistrationCollectors               collectors;
+        TFMRegistrationCollectors               baseCollectors;
+        Set                                     dependencies;
+        
+        if (_block is TFMLogicBlockDataCollectionInterface)
+        {            
+            
+            dataInterface = _block as TFMLogicBlockDataCollectionInterface;
+            dependencies = new Set(Types::String);
+            sEnum = this.getBlockHeaders(_block).getCollectors().getEnumerator();
+            while (sEnum.moveNext())
+            {
+                collector = sEnum.current();
+                dependencies.add(collector.parmName());
+            }
+            collectors = dataInterface.registrationCollectors();
+            blockAddons.modifyBlockCollectors(_block, collectors);
+            if (collectors)
+            {
+                collectors.addDependenciesToCollectors(dependencies);
+                collectors.applyDeltaLayer(process.parmProcessName(), process.parmVersion());
+            }
+            else    
+            {
+                collectors = TFMRegistrationCollectors::Construct();
+            }
+            baseCollectors = blockCollectorMap.exists(_block.getInstanceID()) ? blockCollectorMap.lookup(_block.getInstanceID()) : null;
+
+            this.copyInheritance(baseCollectors, collectors);
+
+            return collectors;
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>copyInheritance</Name>
+				<Source><![CDATA[
+    protected void copyInheritance(TFMRegistrationCollectors _fromCollectors, TFMRegistrationCollectors _toCollectors)
+    {
+        MapEnumerator               mEnum;
+        TFMRegistrationCollector    collFrom;
+        TFMRegistrationCollector    collTo;
+        if (!_fromCollectors)
+        {
+            return;
+        }
+
+        mEnum = _fromCollectors.collectorMap().getEnumerator();
+        while (mEnum.moveNext())
+        {
+            collFrom    = mEnum.currentValue();
+            collTo      = _toCollectors.getCollector(collFrom.parmName());
+
+            collTo.parmLogicBlockDataSource(collFrom.parmLogicBlockDataSource());
+            collTo.parmLogicBlockConnected(collFrom.parmLogicBlockConnected());
+            collTo.parmDisableMatchedSource(collFrom.parmDisableMatchedSource());
+            collTo.parmOptionalInventDimIdFieldToUse(collFrom.parmOptionalInventDimIdFieldToUse());
+            collTo.mergeOrigin(collFrom.origins());
+            collTo.parmConditions(collFrom.parmConditions());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBlockHeaders</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to provide The header fields for a specific block. All queires for headers must go through this method, as the instance is cached.
+    /// </summary>
+    /// <param name = "_block">The block to get the headers for</param>
+    /// <returns>A TFMReferenceDataConfiguration object containing all the header fields the block requires to provide data collectors</returns>
+    public TFMReferenceDataConfiguration getBlockHeaders(TFMLogicBlock _block)
+    {
+        TFMLogicBlockDataCollectionInterface    dataInterface;
+        TFMReferenceDataConfiguration           refConf;
+        
+
+        if (_block is TFMLogicBlockDataCollectionInterface)
+        {
+            
+            if (!blockHeaderMap.exists(_block.getInstanceID()))
+            {
+                dataInterface = _block as TFMLogicBlockDataCollectionInterface;
+                refConf = dataInterface.headerFieldsNeeded();
+                refConf.setOriginBlockName(_block.blockName());
+                
+                blockHeaderMap.insert(_block.getInstanceID(), refConf);
+            }
+            refConf = blockHeaderMap.lookup(_block.getInstanceID());
+            refConf.setParentBlocks(_block.inheritedValues().getPreviousBlocks());
+
+            blockAddons.modifyBlockHeaders(_block, refconf);
+
+            return refConf;
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBlockHeadersAndFields</Name>
+				<Source><![CDATA[
+    public Set getBlockHeadersAndFields()
+    {
+        SetEnumerator                           sEnum               = this.getHeaders().getCollectors().getEnumerator();
+        TFMRegistrationCollector                regCol;
+        Set                                     headerAndFieldNames = new Set(Types::String);
+        TFMProcessCombinedFields                combinedFields;
+        
+        while (sEnum.moveNext())
+        {
+            regCol = sEnum.current();
+            headerAndFieldNames.add(regCol.parmName());
+        }
+        //TODO: Take programmatically combined fields into context
+        while select combinedFields where combinedFields.ProcessID == process.parmProcessName() && combinedFields.Version == process.parmVersion()
+        {
+            headerAndFieldNames.add(combinedFields.CombinedFieldName);
+        }
+        
+        headerAndFieldNames = Set::union(headerAndFieldNames, this.getRawCollectors());
+        return headerAndFieldNames;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRawCollectors</Name>
+				<Source><![CDATA[
+    public Set getRawCollectors()
+    {
+        Set                                     fieldNames = new Set(Types::String);
+        MapEnumerator                           mEnum               = blocks.getEnumerator();
+        TFMLogicBlock                           block;
+        TFMLogicBlockDataCollectionInterface    dataInterface;
+        MapEnumerator                           collectors;
+        TFMRegistrationCollector                regCol;
+
+        while (mEnum.moveNext())
+        {
+            block = mEnum.currentValue();
+            if (block is TFMLogicBlockDataCollectionInterface)
+            {
+                dataInterface = block as TFMLogicBlockDataCollectionInterface;
+                collectors = this.getBlockCollectors(block).collectorMap().getEnumerator();
+                while (collectors.moveNext())
+                {
+                    regCol = collectors.currentValue();
+                    fieldNames.add(regCol.parmName());
+                }
+            }
+            
+        }
+        return fieldNames;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBlocksVariables</Name>
+				<Source><![CDATA[
+    public Set getBlocksVariables()
+    {
+        MapEnumerator       mEnum               = blocks.getEnumerator();
+        Set                 vars = new Set(Types::String);
+        TFMLogicBlock       block;
+        MapEnumerator       components;
+        TFMLogicComponent   component;
+
+        while (mEnum.moveNext())
+        {
+            block = mEnum.currentValue();
+            vars = Set::union(this.getObjectVariables(Block), vars);
+            //Find subcomponents parameters
+            components = block.components().componentSet().getEnumerator();
+
+            while (components.moveNext())
+            {
+                component = components.currentValue();
+                vars = Set::union(this.getObjectVariables(component), vars);
+            }   
+        }
+        return vars;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getObjectVariables</Name>
+				<Source><![CDATA[
+    protected Set getObjectVariables(Object _class)
+    {
+        Set vars = new Set(Types::String);
+        MapEnumerator   methods = TFMFormLookupHelper::getMethodsFromAttribute(classIdGet(_class),classStr(TFMParameterAttribute),true).getEnumerator();
+        SysDictClass    sdc = new SysDictClass(classIdGet(_class));
+        str             methodName;
+        DictMethod      DM;
+        while (methods.moveNext())
+        {
+            DM = methods.currentValue();
+            if (DM.returnTypeName() == extendedTypeStr(TFMFlowVariableName))
+            {
+                vars.add(sdc.callObject(DM.name(),_class));
+            }
+        }
+
+        return vars;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Public constructor
+    /// </summary>
+    /// <returns>An initialized TFMLogicBlockCollection object.</returns>
+    public static TFMLogicBlockCollection Construct(TFMProcess _process)
+    {
+        TFMLogicBlockCollection blockCollection = new TFMLogicBlockCollection();
+        blockCollection.setProcess(_process);
+        return blockCollection;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeBlocksToData</Name>
+				<Source><![CDATA[
+    public void writeBlocksToData(Version _newVersion)
+    {
+        MapEnumerator               blocksEnum = blocks.getEnumerator();
+        TFMLogicBlock               block;
+        TFMProcessBlocks            blockTbl;
+        TFMProcessBlockchainLinks   link;
+        Map                         BlockName2RecID = new Map(Types::String, Types::Int64);
+        TFMBlockConnectionNode      fromNode, toNode;
+        ListEnumerator              toNodes;
+
+        while (blocksEnum.moveNext())
+        {
+            block = blocksEnum.currentValue();
+            blockTbl.BlockClass = classId2Name(classIdGet(block));
+            blockTbl.BlockName  = Block.parmName();
+            blockTbl.Version    = _newVersion;
+            blockTbl.ProcessID  = process.parmProcessName();
+            blockTbl.insert();
+
+            BlockName2RecID.insert(blocksEnum.currentKey(), blockTbl.RecId);
+        }
+
+        blocksEnum = blockNodes.getEnumerator();
+        while (blocksEnum.moveNext())
+        {
+            fromNode = blocksEnum.currentValue();
+            toNodes = fromNode.getToLinks().getEnumerator();
+            while (toNodes.moveNext() && BlockName2RecID.exists(fromNode.parmBlock().parmName()))
+            {
+                toNode = toNodes.current();
+                if (BlockName2RecID.exists(toNode.parmBlock().parmName()))
+                {
+                    link.FromBlock = BlockName2RecID.lookup(fromNode.parmBlock().parmName());
+                    link.ToBlock = BlockName2RecID.lookup(toNode.parmBlock().parmName());
+                    link.doInsert();
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addBlock</Name>
+				<Source><![CDATA[
+    public void addBlock(TFMLogicBlock _block)
+    {
+        Name                                    name = classId2Name(classIdGet(_block));
+        TFMBlockConnectionNode                  node;
+        str                                     nameAdd;
+        int                                     i;
+        TFMLogicBlockDataCollectionInterface    dataInterface;
+        while (blocks.exists(_block.parmName() ? _block.parmName() : (name + nameAdd)))
+        {
+            i++;
+            nameAdd = int2str(i);
+        }
+        _block.parmName(_block.parmName() ? _block.parmName() : (name + nameAdd));
+
+        //Update Parm methods
+        _block.initBlock(process);
+
+        blocks.insert(_block.parmName(),_block);
+        node = new TFMBlockConnectionNode();
+        node.parmData(_block.parmName());
+        node.parmBlock(_block);
+        blockNodes.insert(_block.parmName(),node);
+        hash2BlockName.insert(_block.getInstanceID(),_block.parmName());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>copyBlock</Name>
+				<Source><![CDATA[
+    protected TFMLogicBlock copyBlock(TFMLogicBlock _fromBlock)
+    {
+        
+        TFMLogicBlock                           toBlock;
+        SetEnumerator                           parmMethods;
+        SysDictClass                            sdc;
+        TFMBlockConnectionNode                  node;
+        MapEnumerator                           subComponents;
+        TFMLogicComponent                       subComponentFrom;
+        TFMLogicComponent                       subComponentTo;
+
+        sdc = new SysDictClass(classIdGet(_fromBlock));
+        toBlock = sdc.makeObject();
+        parmMethods = TFMFormLookupHelper::parmMethodsOnClass(sdc.id()).getEnumerator();
+        while (parmMethods.moveNext())
+        {
+            sdc.callObject(parmMethods.current(),toBlock,sdc.callObject(parmMethods.current(),_fromBlock));
+        }
+        //copy sub components parm methods
+        subComponents = _fromBlock.components().componentSet().getEnumerator();
+        while (subComponents.moveNext())
+        {
+            subComponentFrom = subComponents.currentValue();
+            subComponentTo = toBlock.components().getComponent(classId2Name(classIdget(subComponents.currentValue())));
+            sdc = new SysDictClass(classIdGet(subComponentFrom));
+            parmMethods = TFMFormLookupHelper::parmMethodsOnClass(sdc.id()).getEnumerator();
+            while (parmMethods.moveNext())
+            {
+                sdc.callObject(parmMethods.current(),subComponentTo,sdc.callObject(parmMethods.current(),subComponentFrom));
+            }
+        }
+        toBlock.initBlock(process);
+        toBlock.setInstanceID(_fromBlock.getInstanceID());
+
+        return toBlock;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockFromHash</Name>
+				<Source><![CDATA[
+    public TFMLogicBlock blockFromHash(int _hash)
+    {
+        return hash2BlockName.exists(_hash) ? blocks.lookup(hash2BlockName.lookup(_hash)) : null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockFromName</Name>
+				<Source><![CDATA[
+    public TFMLogicBlock blockFromName(str _blockName)
+    {
+        return blocks.exists(_blockName) ? blocks.lookup(_blockName) : null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addLink</Name>
+				<Source><![CDATA[
+    public void addLink(TFMLogicBlock _fromBlock, TFMLogicBlock _toBlock, Name _fromConnectionName, Name _toConnectionName)
+    {
+        TFMBlockConnectionNode      nodeFrom = blockNodes.lookup(_fromBlock.parmName());
+        TFMBlockConnectionNode      nodeTo = blockNodes.lookup(_toBlock.parmName());
+        nodeFrom.addToLink(nodeTo,_fromConnectionName, _toConnectionName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaders</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration getHeaders()
+    {
+        TFMReferenceDataConfiguration           refCon = new TFMReferenceDataConfiguration();
+        TFMReferenceDataConfiguration           componentRefCon;
+        TFMLogicBlock                           block;
+        TFMLogicBlockDataCollectionInterface    dataInterface;
+        MapEnumerator                           blockEnum = blocks.getEnumerator();
+        while (blockEnum.moveNext())
+        {
+            block = blockEnum.currentValue();
+            if (block is TFMLogicBlockDataCollectionInterface)
+            {
+                dataInterface = block as TFMLogicBlockDataCollectionInterface;
+            }
+            else
+            {
+                continue;
+            }
+            componentRefCon = this.getBlockHeaders(Block);
+            if (componentRefCon == null)
+            {
+                continue;
+            }
+            //Make sure first is always used, to ensure inheritance Is cohesive
+            refCon.mergeCollectors(componentRefCon);
+        }
+        refCon.updateParmsFromOverride(TFMProcessBlocksParametersEdit::GetProcessKeyForGenericParms(process));
+        return refCon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeSequence</Name>
+				<Source><![CDATA[
+    public void makeSequence(TFMBlockConnectionNode _node, Map _sequenceMap)
+    {
+        ListEnumerator          lEnum = _node.getToLinks().getEnumerator();
+        
+        TFMBlockConnectionNode  childNode;
+        TFMLogicBlock           block = _node.parmBlock();
+
+        //block.outputs().addBlockAtConnection
+        while (lEnum.moveNext())
+        {
+            childNode = lEnum.current();
+            _sequenceMap.insert(childNode.parmData(),childNode.parmBlock());
+            this.makeSequence(childNode, _sequenceMap);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getStartNode</Name>
+				<Source><![CDATA[
+    public TFMBlockConnectionNode getStartNode()
+    {
+        MapEnumerator                           mEnum = blockNodes.getEnumerator();
+        TFMBlockConnectionNode                  node;
+        List                                    startingNodes = new List(Types::Class);
+        ListEnumerator                          lEnum;
+        if(mEnum.moveNext())
+        {
+        
+            node = mEnum.currentValue();
+            node.findStartingNodes(startingNodes);
+            lEnum = startingNodes.getEnumerator();
+
+            if (lEnum.moveNext())
+            {
+                node = lEnum.current();
+            }
+        }
+        return node;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setStepIDs</Name>
+				<Source><![CDATA[
+    public void setStepIDs()
+    {
+        SetEnumerator                   sEnum;
+        TFMRegistrationCollector        collector;
+        headerCollectors        = new Set(Types::string);
+        trackXs                 = new Map(Types::Integer, Types::Integer);
+        tracks                  = new Map(Types::Integer, Types::Class);
+        trackDataInheritance    = new Map(Types::Integer, Types::Class);
+        trackDataInheritance.insert(1,this.baseInheritance());
+        TFMBlockConnectionNode startNode = this.getStartNode();
+
+        if(startNode)
+        {
+            this.buildBlockNodeGraph(startNode,1);
+        }
+
+        sEnum = this.getHeaders().getCollectors().getEnumerator();
+        while (sEnum.moveNext())
+        {
+            collector = sEnum.current();
+            headerCollectors.add(collector.parmName());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>baseInheritance</Name>
+				<Source><![CDATA[
+    protected TFMLogicBlockDataInheritanceHandler baseInheritance()
+    {
+        TFMLogicBlockDataInheritanceHandler     inheritance = TFMLogicBlockDataInheritanceHandler::Construct();
+        //May be needed to reinstate later
+        
+        TFMReferenceDataConfiguration           refConf = this.process.getHeaders();
+        Map                                     tableNames;
+        MapEnumerator                           mEnum;
+        SetEnumerator                           sEnum;
+        TFMRegistrationCollector                collector;
+        tableNames = refConf.dataOrigin();
+        if (tableNames.elements())
+        {
+            mEnum = tableNames.getEnumerator();
+            while (mEnum.moveNext())
+            {
+                inheritance.AddPrePostDataSourcesAvailable(mEnum.currentValue(), mEnum.currentKey(),'');
+            }
+        }
+
+        sEnum = refConf.getCollectors().getEnumerator();
+        while (sEnum.moveNext())
+        {
+            collector = sEnum.current();
+            inheritance.addFieldName(collector.parmName());
+        }
+
+        return inheritance;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildBlockNodeGraph</Name>
+				<Source><![CDATA[
+    protected void buildBlockNodeGraph(TFMBlockConnectionNode _node, int _trackNo = 0, int _trackStart = 0)
+    {
+        ListEnumerator                          lEnum       = _node.getToLinks().getEnumerator();
+        int                                     trackCount  = _trackNo;
+        TFMBlockConnectionNode                  childNode;
+        int                                     trackStart;
+        int                                     childCount  = 0;
+        TFMLogicBlockDataInheritanceHandler     inheritance = trackDataInheritance.lookup(_trackNo);
+
+        inheritance = inheritance.makeClone(); //to inherit in branches shooting off from this point.
+        this.updateBlockNode(_node,_trackNo, _trackStart);
+        trackStart = trackXs.exists(_trackNo) ? trackXs.lookup(_trackNo) : (trackXs.exists(_trackNo-1) ? trackXs.lookup(_trackNo-1) : _trackStart);
+        while (lEnum.moveNext())
+        {
+            childNode = lEnum.current();
+            trackCount = tracks.elements() + childCount;
+            if (childCount)
+            {
+                //If childCount is positive, a new branch has been created
+                trackDataInheritance.insert(trackCount, inheritance);
+            }
+            this.buildBlockNodeGraph(childNode, trackCount, trackStart);
+            childCount++;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateBlockNode</Name>
+				<Source><![CDATA[
+    protected void updateBlockNode(TFMBlockConnectionNode _node, int _trackNo, int _trackStart = 0)
+    {        
+        TFMLogicBlock                           block               = _node.parmBlock();
+        TFMLogicBlockDataCollectionInterface    dataInterface;
+        MapEnumerator                           mEnum;
+        TFMRegistrationCollector                collector;
+        int							            stepCount           = 0;
+        int                                     trackX              = _trackStart;
+        int                                     overrideId;
+        Map                                     collectorName2IDs   = new Map(Types::String, Types::Integer);
+
+        if (block is TFMLogicBlockDataCollectionInterface)
+        {
+            dataInterface = block as TFMLogicBlockDataCollectionInterface;
+            mEnum = this.getBlockCollectors(block).collectorMap().getEnumerator();
+
+            while (mEnum.moveNext())
+            {
+                collector = mEnum.currentValue();
+                if (headerCollectors.in(collector.parmName()))
+                {
+                    continue;
+                }
+                overrideId = TFMProcessCollectorDeviations::collectorOverrideID(collector.parmName(), process, _trackNo);
+                collector.parmId(overrideId ? overrideId : str2Int(int2Str(_trackNo) + strRFix(int2Str(trackX+stepCount),3,'0') + '00'));
+                collectorName2IDs.insert(collector.parmName(), collector.parmId());
+                trackXs.insert(_trackNo,trackX + stepCount);
+                stepCount++;
+                
+            }
+            hash2CollectorIds.insert(block.getInstanceID(), collectorName2IDs);
+        }
+
+        //set Blocks inherited values, and update for blocks current track
+        this.updateBlockInheritance(block, _trackNo);
+
+        trackXs.insert(_trackNo,trackX + stepCount);
+        tracks.insert(_trackNo, new Set(Types::String));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateBlockInheritance</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// If multiple blocks are connected, this connects the data available from previous blocks to connected blocks
+    /// </summary>
+    /// <param name = "_block">The Block to update the inheritance for.</param>
+    /// <param name = "_trackNo">The Blocks current Track.</param>
+    protected void updateBlockInheritance(TFMLogicBlock _block, int _trackNo)
+    {
+        TFMOrderPostDataSetAttribute            attribute;
+        MapEnumerator                           methods = TFMFormLookupHelper::getAllMethodsFromAttribute(classIdGet(_block), classStr(TFMOrderPostDataSetAttribute)).getEnumerator();
+        TFMLogicBlockDataInheritanceHandler     inheritance = trackDataInheritance.lookup(_trackNo); //Should always be present, as when new tracks are created, a new Inheritance clone is created
+        SetEnumerator                           sEnum;
+        MapEnumerator                           mEnum;
+        TFMRegistrationCollector                collector;
+        TFMReferenceDataConfiguration           refConf;
+        Map                                     tableNames;
+        Object                                  variableContextClass;
+
+        if (_block is TFMLogicBlockDataCollectionInterface)
+        {
+            refConf = this.getBlockHeaders(_block);
+
+            tableNames = refConf.dataOrigin();
+            if (tableNames.elements())
+            {
+                mEnum = tableNames.getEnumerator();
+                while (mEnum.moveNext())
+                {
+                    inheritance.AddPrePostDataSourcesAvailable(mEnum.currentValue(), mEnum.currentKey(),_block.parmName());
+                }
+            }
+
+            sEnum = refConf.getCollectors().getEnumerator();
+            while (sEnum.moveNext())
+            {
+                collector = sEnum.current();
+                inheritance.addFieldName(collector.parmName());
+            }
+        }
+
+        //Clone current inheritance in block track
+        _block.setInheritance(inheritance);
+        
+        inheritance = inheritance.makeClone();
+        inheritance.addBlock(_block.parmName());
+        //Update new clone with current blocks values for inheritance
+        while (methods.moveNext())
+        {
+            attribute = methods.currentValue();
+            inheritance.addAvailableDataSource(attribute.name(), _block.parmName());
+        }
+
+        if (_block is TFMLogicBlockProvideTableNamesInterface)
+        {
+            TFMLogicBlockProvideTableNamesInterface provideTables = _block as TFMLogicBlockProvideTableNamesInterface;
+            sEnum = provideTables.tablesProvided().getEnumerator();
+            while(sEnum.moveNext())
+            {
+                inheritance.addAvailableDataSource(sEnum.current(), _block.parmName());
+            }
+        }
+
+        if (_block is TFMLogicBlockDataCollectionInterface)
+        {
+            mEnum = this.getBlockCollectors(_block).collectorMap().getEnumerator();
+            while (mEnum.moveNext())
+            {   
+                collector = mEnum.currentValue();
+                inheritance.addFieldName(collector.parmName());
+            }
+        }
+        if (_block is TFMLogicStepOperatorVariableContextLookupInterface)
+        {
+            variableContextClass = _block as TFMLogicStepOperatorVariableContextLookupInterface;
+            inheritance.addVariableLookup(variableContextClass.parmVariableName(), classId2Name(classIdGet(variableContextClass)));
+        }
+        this.updateVariables(_block, inheritance);
+        this.applyInheritedValues(_block, inheritanceBlocksData); //Needed to ensure header fields already known, are suppressed
+        //variables should be added too
+
+        trackDataInheritance.insert(_trackNo,inheritance); //Update track inheritance with updated instance
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateVariables</Name>
+				<Source><![CDATA[
+    protected void updateVariables(TFMLogicBlock _block, TFMLogicBlockDataInheritanceHandler     _inheritance)
+    {
+        SetEnumerator                   sEnum = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(_block),false, Types::Class).getEnumerator();
+        DictMethod						DM;
+        SysDictClass                    blockSysDictClass = new SysDictClass(classIdGet(_block));
+
+        while (sEnum.moveNext())
+        {
+            DM = sEnum.current();
+            if (DM.returnTypeName() == extendedTypeStr(TFMFlowVariableName))
+            {
+                _inheritance.addVariableName(blockSysDictClass.callObject(DM.name(),_block));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>applyInheritedValues</Name>
+				<Source><![CDATA[
+    protected void applyInheritedValues(TFMLogicBlock _block, Map _inheritData)
+    {
+        TFMLogicBlockDataCollectionInterface    dataInterface;        
+        SetEnumerator                           sEnum;
+        MapEnumerator                           mEnum;
+        TFMRegistrationCollector                collector;
+        TFMRegistrationCollectors               blockCollectors;
+        str                                     stepInheritField;
+        /*
+        str                                     parseStr = "@TFM:InventQOrderinventDimId-InventDi";
+        TFMTableRelationHierarchyElement        relation = TFMTableRelationHierarchyElement::ParseSuperCondensed(parseStr);
+        */
+        if (!(_block is TFMLogicBlockDataCollectionInterface))
+        {
+            return;
+        }
+        dataInterface = _block as TFMLogicBlockDataCollectionInterface;
+        sEnum = this.getBlockHeaders(_block).getCollectors().getEnumerator();
+        while (sEnum.moveNext())
+        {
+            collector = sEnum.current();
+            stepInheritField = _block.inheritedValues().applyInheritanceToStep(collector);
+            if (stepInheritField)
+            {
+                _inheritData.insert(collector.parmName(),stepInheritField);
+            }
+        }
+        blockCollectors = this.getBlockCollectors(_block);
+        mEnum = blockCollectors.collectorMap().getEnumerator();
+        while (mEnum.moveNext())
+        {
+            collector = mEnum.currentValue();
+            stepInheritField = _block.inheritedValues().applyInheritanceToStep(collector);
+            if (stepInheritField)
+            {
+                _inheritData.insert(collector.parmName(),stepInheritField);
+            }            
+        }
+        // Save inheritance for later
+        blockCollectorMap.insert(_block.getInstanceID(), blockCollectors);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors getCollectors(TFMRequestElement _request)
+    {
+        TFMRegistrationCollectors               collectors = TFMRegistrationCollectors::Construct();
+        TFMLogicBlock                           block;
+        TFMBlockConnectionNode                  node;
+        
+        // Add blocks in linked sequence.
+        node = this.getStartNode();        
+        block = node.parmBlock();
+        
+        collectors = this.iterateTree(block, _request);
+
+        return collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>iterateTree</Name>
+				<Source><![CDATA[
+    protected TFMRegistrationCollectors iterateTree(TFMLogicBlock _startBlock, TFMRequestElement _request, boolean _onlineBlocksToPost = false)
+    {
+        TFMLogicBlock                           block = _startBlock;        
+        TFMBlockConnectionNode                  node;
+        TFMLogicBlockDataCollectionInterface    dataInterface;
+        TFMRegistrationCollectors               blockCollectors;
+        TFMRegistrationCollectors               collectors = TFMRegistrationCollectors::Construct();
+        str                                     nextBlockConnectionName;
+        TFMRegistrationCollector                collector;                
+        str                                     activatedBlocks = _request.getFieldValue(TFMConstants::blocksToPost());
+        TFMLogicStepOperatorInterface           logicStep;
+        MapEnumerator                           mEnum;
+        TFMReferenceDataConfiguration           headers = this.getHeaders();
+        SetEnumerator                           sEnum = headers.getCollectors().getEnumerator();
+        Map                                     collectorName2IDs;
+        Map                                     inheritValuesFromBlock = new Map(Types::String, Types::String);
+        str                                     value;
+        boolean                                 furtherStepsNeededAfterCurrentSection;
+        
+        //Must ask each block for which child to continue with. Use no Enumerator!
+        while (block != null)
+        {           
+            
+            //this.applyInheritedValues(block, inheritValuesFromBlock); // linking known data to compatible steps, effectively removing them from the flow
+            this.addKnownDataToCollectors(block,_request);
+            if (block is TFMLogicBlockDataCollectionInterface)
+            {
+                dataInterface = block as TFMLogicBlockDataCollectionInterface;
+                blockCollectors = this.getBlockCollectors(block);
+                collectors.mergeCollectors(blockCollectors);
+                nextBlockConnectionName = ''; // Blank, as collection blocks should not have multiple paths, but activate next block
+                //block = sequenceList.exists(block.parmName()) ? sequenceList.lookup(block.parmName()) : null;//Find Next Block in succession
+                activatedBlocks += (activatedBlocks ? ';' : '') + block.parmName();
+                collectorName2IDs = hash2CollectorIds.exists(block.getInstanceID()) ? hash2CollectorIds.lookup(block.getInstanceID()) : null;
+                mEnum = blockCollectors.collectorMap().getEnumerator();
+                while (collectorName2IDs!= null && mEnum.moveNext())
+                {
+                    collector = mEnum.currentValue();
+                    if (headerCollectors.in(collector.parmName()) || !collectorName2IDs.exists(collector.parmName()))
+                    {
+                        continue;
+                    }
+                    collector.parmId(collectorName2IDs.lookup(collector.parmName()));
+                    //Check if steps are dependent on data not available yet, and if so, convert these to online steps.
+                    if (collector.getFieldDependancy().elements())
+                    {
+                        //Are dependant data available for step yet?
+                        //coll
+                    }
+                }
+
+                if (block is TFMLogicBlockPrePostDataCollectionInterface)
+                {
+                    // Logic is after collector steps, break here, the rest must be added as online step, after these steps has been collected in the next post
+
+                    // Insert validation method on last visible step
+                    furtherStepsNeededAfterCurrentSection = true;
+                }
+            }
+            else if (block is TFMLogicStepOperatorInterface && !collectors.collectorMap().elements())
+            {
+                //Logic, but no steps generated yet.
+                //run logic
+                logicStep = block as TFMLogicStepOperatorInterface;
+                nextBlockConnectionName = logicStep.runLogic(_request);
+            }
+            else if (block is TFMLogicStepOperatorInterface || block is TFMLogicBlockPrePostDataCollectionInterface)
+            {
+                // Logic is after collector steps, break here, the rest must be added as online step, after these steps has been collected in the next post
+
+                // Insert validation method on last visible step
+                furtherStepsNeededAfterCurrentSection = true;
+                break;
+            }
+            else if (block is TFMLogicBlockPostAdhocRegistrationInterface)
+            {
+                activatedBlocks += (activatedBlocks ? ';' : '') + block.parmName();
+            }
+            
+            block = this.getNextBlockInFlow(block,nextBlockConnectionName);
+            
+            
+        }
+
+        if (activatedBlocks && !collectors.collectorMap().elements() && _request.parmDocumentType() ==  TFMConstants::getNextStepsInProcess())
+        {
+            // make sure the activated blocks are sent even if no data collection is needed
+            
+
+            Map newMap = Map::create(_request.getFieldMap().pack());
+            newMap.remove(TFMConstants::blocksToPost());
+            newMap.remove(extendedTypeStr(TFMProcessID));
+            newMap.remove(extendedTypeStr(Version));
+            newMap.remove(TFMConstants::processSessionID());
+            newMap.remove(TFMConstants::variables());
+            newMap.remove(TFMConstants::dataSources());
+            newMap.remove(TFMConstants::CollectorMapFieldPrefix());
+            newMap.remove(TFMConstants::RegistrationType());
+            newMap.remove(extendedTypeStr(name));
+            collector = new TFMRegistrationCollectorInformation(555000000, 'summary',"Summary","Summary",TFMHtmlHelper::requestmap2HtmlList(newMap));
+            collectors.addCollector(collector);
+        }
+
+        if (!_request || (_request.parmDocumentType() ==  TFMConstants::getNextStepsInProcess() && !collectors.collectorMap().elements()))
+        {
+            return null; // No further steps needed
+
+        }
+        while (sEnum.moveNext())
+        {
+            //Ensure fields picked up in header are not repeated in input flow
+            collector = sEnum.current();
+            collectors.removeCollector(collector.parmName());
+        }
+        
+        //apply _request data, run conditions.
+        collectors.runConditionsOnCollectors(_request);
+
+        str processSessionId= _request.getFieldValue(TFMConstants::processSessionID());
+
+        collectors.addAdditionalValue(TFMConstants::blocksToPost(), activatedBlocks);
+        if (!processSessionId)
+        {            
+            collectors.addAdditionalValue(TFMConstants::RegistrationType(),process.parmProcessName());
+            collectors.addAdditionalValue(extendedTypeStr(TFMProcessID), process.parmProcessName());
+            collectors.addAdditionalValue(extendedTypeStr(Version), int2Str(process.parmVersion()));
+            processSessionId = strReplace(strReplace(guid2Str(newGuid()),'{',''),'}','');
+        }
+        
+        collectors.addAdditionalValue(TFMConstants::processSessionID(), processSessionId); //Used for tracking/matching which requests belong together.
+        collectors.addAdditionalValue(TFMConstants::variables(),_request.logicContext().getValuesToTransfer());
+        collectors.addAdditionalValue(TFMConstants::dataSources(),_request.logicContext().getDataSourcesToTransfer());
+        
+
+        if (furtherStepsNeededAfterCurrentSection)
+        {
+            // Add validation to last step.
+            collectors.addOnlineStepValidationToLastStep(TFMConstants::getNextStepsInProcess());
+        }
+        mEnum = inheritanceBlocksData.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            value = this.replaceStringWithData(mEnum.currentValue(), _request.logicContext());
+            if (!value && _request.getFieldMap().exists(mEnum.currentKey()))
+            {
+                value = _request.getFieldValue(mEnum.currentKey());
+            }
+            
+            if (!value)
+            {
+                continue;
+            }
+            collectors.addAdditionalValue(mEnum.currentKey(), value);
+        }
+        return collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>replaceStringWithData</Name>
+				<Source><![CDATA[
+    protected str replaceStringWithData(str _relationString, TFMLogicContext _context)
+    {
+        str                                 regexPattern = '\\[(.*?)\\]';
+
+        str                                 blockName   = conPeek(TFMHelper::matchRegexSet(_relationString, regexPattern).pack(),4);
+        TFMTableRelationHierarchyElement    relation    = TFMTableRelationCollection::ParseSuperCondensed(strReplace(_relationString,'['+blockName+']', ''));
+        Common                              buffer      = _context.getDataContext(relation.parmTableName(),blockName);
+        str                                 value       = buffer ? strFmt('%1', relation.findValue(buffer)) : '';
+
+        return value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addKnownDataToCollectors</Name>
+				<Source><![CDATA[
+    protected void addKnownDataToCollectors(TFMLogicBlock _block, TFMRequestElement _request)
+    {
+        TFMLogicContext             context = _request ? _request.logicContext() : null;
+        SetEnumerator               sEnum;
+        TFMRegistrationCollector    coll;
+        str                         value;
+
+        if (!_request)
+        {
+            return;
+        }
+        //Initialize data in context object
+        _block.inheritedValues().updateContextPreDataCollection(_request);
+        if (!(_block is TFMLogicBlockDataCollectionInterface))
+        {
+            return;
+        }
+        sEnum = this.getBlockHeaders(_block).getCollectors().getEnumerator();
+        //Fill in potential Header values from Context
+        while (sEnum.moveNext())
+        {
+            coll = sEnum.current();
+            if (!coll.parmDisableMatchedSource() && coll.parmLogicBlockDataSource())
+            {
+                // Add value from matched source
+                value = _block.inheritedValues().valueFromSource(_request,coll.parmLogicBlockConnected(), coll.parmLogicBlockDataSource(), coll.parmOptionalInventDimIdFieldToUse());
+                if (!value && _request.getFieldMap().exists(coll.parmName()))
+                {
+                    value = _request.getFieldValue(coll.parmName());
+                }
+                if (!value && _request.getFieldMap().exists(coll.parmOptionalInventDimIdFieldToUse()))
+                {
+                    value = _request.getFieldValue(coll.parmOptionalInventDimIdFieldToUse());
+                } 
+                context.addFieldContent(coll.parmName(),value,true);
+                _request.addField(coll.parmName(), context.getFieldContent(coll.parmName()),true);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nextOnlineStepTag</Name>
+				<Source><![CDATA[
+    protected str nextOnlineStepTag(TFMRequestElement _request)
+    {
+        int onlineStepCounter = 1;        
+        while (_request.getFieldMap().exists(TFMConstants::onlineStepBlocksToPost() + int2Str(onlineStepCounter)))
+        {            
+            onlineStepCounter++;
+        }
+
+        return TFMConstants::onlineStepBlocksToPost() + int2Str(onlineStepCounter);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nextVariableStepTag</Name>
+				<Source><![CDATA[
+    protected str nextVariableStepTag(TFMRequestElement _request)
+    {
+        int variablesCounter = 1;
+        while (_request.getFieldMap().exists(TFMConstants::variables() + int2Str(variablesCounter)))
+        {
+            variablesCounter++;
+        }
+
+        return TFMConstants::variables() + int2Str(variablesCounter);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nextDataSourcesStepTag</Name>
+				<Source><![CDATA[
+    protected str nextDataSourcesStepTag(TFMRequestElement _request)
+    {
+        int dataSourcesCounter = 1;
+        while (_request.getFieldMap().exists(TFMConstants::dataSources() + int2Str(dataSourcesCounter)))
+        {
+            dataSourcesCounter++;
+        }
+
+        return TFMConstants::dataSources() + int2Str(dataSourcesCounter);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getNextBlockInFlow</Name>
+				<Source><![CDATA[
+    protected TFMLogicBlock getNextBlockInFlow(TFMLogicBlock _block, str _nextBlockConnectionName)
+    {
+        if(!_block)
+        {
+            return null;
+        }
+
+        //If blank or invalid connection Name, it will use first connection
+        TFMBlockConnectionNode                  node = blockNodes.lookup(_block.parmName());
+        Name                                    nextBlockName;
+        int                                     nextBlockHash = node.getBlockIdFromConnectionName(_nextBlockConnectionName);
+        TFMBlockConnectionNode                  nextBlockNode;
+        if (!hash2BlockName.exists(nextBlockHash))
+        {
+            return null;
+        }
+        nextBlockName = hash2BlockName.lookup(nextBlockHash);
+        nextBlockNode = blockNodes.lookup(nextBlockName);
+        return nextBlockNode.parmBlock();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors prePostCollectors(TFMRequestElement _request)
+    {
+        ListEnumerator                          lEnum = _request.getBlocksToPost().getEnumerator();
+        TFMLogicBlock                           block;
+        TFMLogicBlockPrePostDataCollectionInterface    collectBlock;
+        TFMRegistrationCollectors               collectors, blockCollector;
+        collectors = TFMRegistrationCollectors::Construct();
+        while (lEnum.moveNext())
+        {
+            if(blocks.exists(lEnum.current()))
+            {
+                block = blocks.lookup(lEnum.current());
+                if ( block is TFMLogicBlockPrePostDataCollectionInterface )
+                {
+                    collectBlock = block as TFMLogicBlockPrePostDataCollectionInterface;
+                    blockCollector = collectBlock.prePostRegistrationCollectors();
+                    collectors.mergeCollectors(blockCollector ? blockCollector : TFMRegistrationCollectors::Construct());
+                }
+            }
+        }
+        collectors.runConditionsOnCollectors(_request);
+
+        return collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getNextSectionBlocks</Name>
+				<Source><![CDATA[
+    public TFMRegistrationConfigurationResponseElement getNextSectionBlocks(TFMRequestElement _request)
+    {
+        TFMRegistrationConfigurationResponseElement response    = new TFMRegistrationConfigurationResponseElement();
+        ListEnumerator                              lEnum = _request.getBlocksToPost().getEnumerator();
+        TFMLogicBlock                               block;
+        TFMRegistrationCollectors                   collectors;
+        
+        // run through blocks in linked sequence.
+        while (lEnum.moveNext())
+        {
+            //Iterate to last posting block
+            block = blocks.lookup(lEnum.current());
+        }
+        //Find next block, if exists
+        block = this.getNextBlockInFlow(block,'');
+
+        if (!block)
+        {
+            // no more blocks in this branch
+            return null;
+        }
+        _request.logicContext().transferValuesAndData(_request);
+        collectors = this.iterateTree(block, _request,true);
+
+        if (collectors && collectors.collectorMap().elements())
+        {
+            response.setCollectors(collectors);
+            return response;
+        }
+
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postBlocks</Name>
+				<Source><![CDATA[
+    public TFMResponseElement postBlocks(TFMRequestElement _request)
+    {
+        //Run through each block in order. For each block, add result data to context object.
+        TFMLogicBlock                           block, copyBlock;
+        object                                  collectBlock;
+        MapEnumerator                           mEnum, methods;        
+        ListEnumerator                          lEnum               = _request.getBlocksToPost().getEnumerator();
+        TFMPostResponseData                     response            = TFMPostResponseData::Construct(), blockResponse;
+        Map                                     responseElements    = new Map(Types::String, Types::Class);
+        Map                                     blockNames          = new Map(Types::String, Types::String);
+        Common                                  dataContextBuffer;
+        // run through blocks in linked sequence.
+
+        
+        _request.makeLogEntry('Start posting blocks');
+        while (lEnum.moveNext())
+        {
+            block = blocks.lookup(lEnum.current());
+            blockAddons.modifyRequestBeforePost(block, _request);
+            _request.makeLogEntry('Copying block '+block.blockName());
+            copyBlock = this.copyBlock(block);
+            _request.makeLogEntry('Block copied');
+            this.resetTablesinBlock(copyBlock);
+            copyBlock.parmRequest(_request);
+            _request.makeLogEntry('Block tables reset and request set');
+            copyBlock.parmLogicContext(_request.logicContext());
+            _request.makeLogEntry('transferred logic context');
+            copyBlock.parmFieldMap(_request.getFieldMap());
+            _request.makeLogEntry('transferred field map');
+            this.transferValuesToBlock(copyBlock);
+            
+            if ( copyBlock is TFMLogicBlockDataCollectionInterface || copyBlock is TFMLogicBlockPostAdhocRegistrationInterface)
+            {
+                collectBlock = copyBlock as TFMLogicBlockDataCollectionInterface;
+                
+                _request.makeLogEntry('Posting block '+block.blockName());
+                collectBlock = copyBlock;
+                if (copyBlock is TFMLogicBlockPrePostDataModifyInterface)
+                {
+                    collectBlock.preparePost();
+                    _request.makeLogEntry('Block post preparation done');
+                    blockAddons.modifyDataBeforePost(collectBlock);
+                }
+                
+                blockResponse = collectBlock.post();
+                _request.makeLogEntry('Block posted');
+                responseElements.insert(copyBlock.parmName(), blockResponse);
+                blockNames.insert(copyBlock.parmName(),copyBlock.blockName());
+            }
+            //Update logicContext with new data
+            methods = TFMFormLookupHelper::getAllMethodsFromAttribute(classIdGet(block),classStr(TFMOrderPostDataSetAttribute)).getEnumerator();
+            while (methods.moveNext())
+            {
+                dataContextBuffer = new SysDictClass(classIdGet(block)).callObject(methods.currentKey(),copyBlock);
+                _request.logicContext().addDataContext(dataContextBuffer,copyBlock.parmName());
+                if (_request.getFieldValue(TFMConstants::processSessionID()))
+                {
+                    TFMProcessSessionsDataCollected::addBuffer(_request.getFieldValue(TFMConstants::processSessionID()), dataContextBuffer);
+                }
+            }
+        }
+        _request.makeLogEntry('Ended posting blocks');
+        mEnum = responseElements.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            blockResponse = mEnum.currentValue();
+            if (!blockResponse)
+            {
+                continue;
+            }
+            response.parmResponseText(response.parmResponseText() + (response.parmResponseText() ? TFMConstants::lineBreak() : '') + (responseElements.elements() > 1 ? blockNames.lookup(mEnum.currentKey()) +': ' : '' ) + blockResponse.parmResponseText());
+            response.mergePrintOutput(blockResponse.printOutputEnumerator());
+        }
+
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resetTablesinBlock</Name>
+				<Source><![CDATA[
+    protected void resetTablesinBlock(TFMLogicBlock _block)
+    {
+        MapEnumerator                   methods = TFMFormLookupHelper::getMethodsFromAttribute(classIdGet(_block), classStr(TFMOrderPostDataSetAttribute)).getEnumerator();
+        SysDictClass                    DC;
+        Common                          common;
+        SysDictTable                    sdt;
+
+        DC = new SysDictClass(classIdGet(_block));
+        while (methods.moveNext())
+        {
+            common = DC.callObject(methods.currentKey(),_block);
+            common = null;
+            common.clear();
+            sdt = new SysDictTable(common.TableId);
+            common = sdt.makeRecord();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>transferValuesToBlock</Name>
+				<Source><![CDATA[
+    protected void transferValuesToBlock(TFMLogicBlock _block)
+    {
+        Set                             parmMethods = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(_block));
+        MapEnumerator                   mEnum;
+        SysDictClass                    dc          = new SysDictClass(classIdGet(_block));
+        SetEnumerator                   sEnum;
+        TFMRegistrationCollector        coll;
+        TFMReferenceDataConfiguration   headerConfig = this.getBlockHeaders(_block);
+        TFMRequestElement               blockRequest = _block.parmRequest();
+        str                             value;
+        
+        sEnum = headerConfig && headerConfig.getCollectors() ? headerConfig.getCollectors().getEnumerator() : null;
+        while (sEnum && sEnum.moveNext())
+        {
+            coll = sEnum.current();
+            if (!blockRequest.getFieldMap().exists(coll.parmName()) && blockRequest.logicContext().getFieldContent(coll.parmName()))
+            {
+                blockRequest.addField(coll.parmName(), blockRequest.logicContext().getFieldContent(coll.parmName()),true);
+            }
+            if (blockRequest.getFieldMap().exists(coll.parmName()) &&
+                !blockRequest.getFieldMap().lookup(coll.parmName()) &&
+                coll.parmLogicBlockDataSource() && 
+                
+                !coll.parmDisableMatchedSource())
+            {   
+                
+                value = _block.inheritedValues().valueFromSource(blockRequest,coll.parmLogicBlockConnected(), coll.parmLogicBlockDataSource(), coll.parmOptionalInventDimIdFieldToUse());
+                if (value)
+                {
+                    blockRequest.addField(coll.parmName(),value,true);
+                }
+            }
+
+        }
+        _block.parmFieldMap(blockRequest.getFieldMap());
+        mEnum       = _block.parmFieldMap().getEnumerator();
+        while (mEnum.moveNext())
+        {
+            if(mEnum.currentKey() != TFMConstants::Name()) //ParmName on block is a reserved key.
+            {
+                TFMHelper::addValueToParmMethod(mEnum.currentKey(),_block,mEnum.currentValue(),dc,parmMethods);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRequest</Name>
+				<Source><![CDATA[
+    public TFMRequestElement modifyRequest(TFMRequestElement _request)
+    {
+        TFMLogicBlock                           block;
+        boolean                                 addBlocksToRequest;
+        str                                     activatedBlocks;
+        TFMRequestElement                       request             = _request;
+        MapEnumerator                           blockEnum           = blocks.getEnumerator();
+        
+        while (blockEnum.moveNext())
+        {
+            block = blockEnum.currentValue();
+            activatedBlocks += (activatedBlocks ? ';' : '') + block.parmName();            
+            blockAddons.modifyRequest(block, _request);
+            request = block.modifyRequest(request);
+        }
+       
+        addBlocksToRequest  = !this.getCollectors(_request).collectorMap().elements() && this.getHeaders() && _request.parmDocumentType() == TFMConstants::PostAdhocRegistration();
+
+        if (addBlocksToRequest)
+        {
+            _request.addField(TFMConstants::blocksToPost(), activatedBlocks,true);
+            _request.addField(extendedTypeStr(TFMProcessID), process.parmProcessName(), true);
+            _request.addField(extendedTypeStr(Version), int2Str(process.parmVersion()), true);
+            _request.addField(TFMConstants::processSessionID(), guid2Str(newGuid()),true); // Perhaps add process session id to session table
+        }
+        _request.logicContext().transferValuesAndData(_request); //Logic Context updated with variables adn data
+
+        return request;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blocksSet</Name>
+				<Source><![CDATA[
+    public Map blocksSet()
+    {
+        return blocks;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockNodes</Name>
+				<Source><![CDATA[
+    public Map blockNodes()
+    {
+        return blockNodes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>loadDeltaConditions</Name>
+				<Source><![CDATA[
+    public void loadDeltaConditions()
+    {
+        TFMLogicBlock                   block;
+        MapEnumerator                   mEnum;
+        TFMRegistrationCollectors       collectors;
+        
+        mEnum = blocks.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            block= mEnum.currentValue();
+            //collectors = this.getBlockCollectors(block);
+            collectors = blockCollectorMap.exists(block.getInstanceID()) ? blockCollectorMap.lookup(block.getInstanceID()) : null;
+            if (collectors)
+            {
+                collectors.loadDeltaConditions(TFMProcess::getProcessDomain(), process.parmProcessName(), process.parmVersion());
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockAddons</Name>
+				<Source><![CDATA[
+    public Map blockAddons(TFMLogicBlock _block)
+    {
+        return blockAddons.blockAddons(_block);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertAddonsFromCodeToDelta</Name>
+				<Source><![CDATA[
+    public void convertAddonsFromCodeToDelta(Version _newVersion)
+    {
+        
+        MapEnumerator                   blockEnum = blocks.getEnumerator();        
+        MapEnumerator                   addonsEnum;
+        TFMLogicBlock                   block;
+        TFMLogicBlockAddonCollection    localAddons;
+        process.parmVersion(_newVersion);
+        localAddons= TFMLogicBlockAddonCollection::Construct(process);
+        while (blockEnum.moveNext())
+        {
+            block = blockEnum.currentValue();
+            addonsEnum = blockAddons.blockAddons(block).getEnumerator();
+            while (addonsEnum.moveNext())
+            {
+                localAddons.addBlockAddon(block, addonsEnum.currentValue());
+            }
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addGUI</Name>
+				<Source><![CDATA[
+    public void addGUI(TFMLogicBlock _block, FormGroupControl _fgc, TFMProcess _process, int _latestBlockId)
+    {
+        blockAddons.addGUI(_block, _fgc, _process, _latestBlockId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addBlockAddon</Name>
+				<Source><![CDATA[
+    public void addBlockAddon(TFMLogicBlock _block, TFMLogicBlockAddon _addon)
+    {
+        blockAddons.addBlockAddon(_block, _addon);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeBlockAddon</Name>
+				<Source><![CDATA[
+    public void removeBlockAddon(TFMLogicBlock _block, TFMLogicBlockAddon _addon)
+    {
+        blockAddons.removeBlockAddon(_block, _addon);        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

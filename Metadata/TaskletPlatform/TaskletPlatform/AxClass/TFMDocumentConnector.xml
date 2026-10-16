@@ -1,0 +1,769 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentConnector</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// This class is the entry point for outside calls to the Mobile WMS business logic.
+/// </summary>
+public class TFMDocumentConnector
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>logDocumentQueue</Name>
+				<Source><![CDATA[
+    protected void logDocumentQueue(str _xml, guid _messageId, str _deviceId = '', TFMDocumentTypeId _documentTypeId = '', TFMDocumentQueueStatus _status = TFMDocumentQueueStatus::NewDocument)
+    {
+        TFMDocumentQueue                documentQueue;
+        UserConnection                  connection = new UserConnection();
+    
+        documentQueue.clear();
+        documentQueue.setConnection(connection);
+        connection.ttsbegin();
+    
+        documentQueue.MessageId     = _messageId;
+        documentQueue.RequestXML    = _xml;
+        documentQueue.UserId        = curUserId();
+        documentQueue.DeviceId      = _deviceId;
+        documentQueue.Status        = _status;
+        documentQueue.DocumentType  = _documentTypeId;
+        documentQueue.insert();
+        
+        connection.ttscommit();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cleanEmptyXmlTags</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// due to the fact that some mobile platforms have issues with empty tags in XML, we need to clean those before processing the documents. This method uses regex to find empty tags and remove them from the XML. It also removes any tags that end with "_label" since those are only used for display purposes on the mobile client and are not needed for processing the document.
+    /// </summary>
+    /// <param name = "_xml">XML to be cleansed</param>
+    /// <returns>Cleaned XML</returns>
+    public static str cleanEmptyXmlTags(str _xml)
+    {
+        str cleanedXml = _xml;
+    
+        // pattern:
+        // <               : Start tag
+        // ([^\s/>]+)      : Group 1: Tag-name (untill space or close-tag)
+        // (?!\s+[^>]+)    : Negative lookahead: Ensures it's not followed by space or attributes
+        // >               : End of start-tag
+        // \s* : whitespace/newlines between tags
+        // </\1>           : end-tag matching Group 1
+        // |               : OR
+        // <([^\s/>]+)\s/> : a selfclosing tag without attributes (e.g. <Test/>)
+        str pattern = @"<([^\s/>]+)(?!\s+[^>]+)>\s*</\1>|<([^\s/>]+)\s*/>";
+
+        cleanedXml = System.Text.RegularExpressions.Regex::Replace(cleanedXml, pattern, "");
+        cleanedXml = TFMDocumentConnector::removeLabelTags(cleanedXml);
+        return cleanedXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeLabelTags</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Label tags are used on the mobile client for display purposes, but they are not needed for processing the document. This method uses regex to find and remove any tags that end with "_label".
+    /// </summary>
+    /// <param name = "_xml">Input XML</param>
+    /// <returns>output XML</returns>
+    public static str removeLabelTags(str _xml)
+    {
+        str cleanedXml = _xml;
+
+        str pattern = @"<([^\s/>]+_label)[^>]*>.*?</\1>|<[^\s/>]+_label[^>]*/>";
+
+        cleanedXml = System.Text.RegularExpressions.Regex::Replace(
+        cleanedXml,
+        pattern,
+        "",
+        System.Text.RegularExpressions.RegexOptions::IgnoreCase);
+
+        return cleanedXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>submit</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method, that is being called from the outside, when documents are being sent in.
+    /// </summary>
+    /// <param name = "_xml">The request XML from the mobile device.</param>
+    /// <param name = "_messageId">Message ID from the mobile device. Used to track, that no duplicate documents are being processed</param>
+    /// <param name = "_deviceId">Id of the mobile device</param>
+    /// <returns>A response XML, to answer whether the request was successful or not</returns>    
+    public str submit(str _xml, guid _messageId, str _deviceId = '')
+    {
+        #OCCRetryCount
+        TFMDocumentTypeId               documentTypeId;
+        TFMDocumentQueue                documentQueue;
+        TFMInputHandler                 documentHandler;
+        Counter                         infoLogCounter;
+        str                             xmlStr;
+        str                             errorTxt;
+        str                             additionalInfoText;
+        CLRObject                       exception;
+        CLRObject                       exceptionMessage;
+        CLRObject                       innerException;
+        InteropPermission               permission;
+        UserConnection                  connection;
+        boolean                         preProcessOK = false;
+        TFMRequestElement               request;
+        str							    cleanedXml = TFMDocumentConnector::cleanEmptyXmlTags(_xml);
+        XmlDocument                     xmlDoc = XmlDocument::newXml(cleanedXml);
+		System.Diagnostics.Stopwatch    stopwatch = new System.Diagnostics.Stopwatch();
+		
+        xmlDoc = TFMDocumentConnector::addDeviceID(xmlDoc,_deviceId,_messageId);
+    
+        if (!_messageId)
+        {
+            throw error("@TFM:TFM28");
+        }
+        // get xml string
+        xmlStr = xmlDoc.xml();
+        // Idempotency check
+        // If same message id is received at the same time in two threads the idem potency check will not find the
+        // other one (if it's not inserted yet). Instead the insert of the second record will fail. This is ok since the second insert
+        // will fail and throw an error, and when resubmitted from the device the idempotency check will find record 1 and return that.
+        documentQueue = TFMDocumentQueue::find(_messageId);
+        if (documentQueue)
+        {
+            if (documentQueue.UserId == curUserId() &&
+                documentQueue.RequestXMLOriginal() == xmlStr)
+            {
+                // If we do not have answer XML throw a "come back later" exception since we have nothing to tell yet.
+                if (documentQueue.AnswerXML())
+                {
+                    return documentQueue.AnswerXML();
+                }
+
+                throw error(TFMHelper::StrFmt("@TFM:TFM126", [_messageId]));
+            }
+    
+            throw error("@TFM:TFM18");
+        }
+    
+        try
+        {
+            // Find the document type
+            documentTypeId = TFMDocumentConnector::getDocumentType(xmlDoc);
+        }
+        catch (Exception::Error)
+        {
+            this.logDocumentQueue(xmlStr, _messageId, _deviceId, documentTypeId, TFMDocumentQueueStatus::Error);
+            throw;
+        }
+        
+        this.logDocumentQueue(xmlStr, _messageId, _deviceId, documentTypeId);
+    
+        // Start performance timer
+        stopwatch.Start();
+
+        //
+        // No throw error after this point. Return Error XML instead.
+        //
+        try
+        {
+            request = TFMXmlDeserializer::DeserializeRequest(xmlDoc);
+
+            if (request && (request.parmDocumentType() == TFMConstants::GetRegistrationConfiguration() || request.parmDocumentType() == TFMConstants::PostAdhocRegistration() || request.parmDocumentType() == TFMConstants::getNextStepsInProcess()) && TFMProcessProvider::GetAllProcessesImpl().processExists(request.ContentType()))
+            {
+                documentHandler = new TFMProcessHandler();
+            }
+            else
+            {
+                documentHandler = TFMDocumentTypeProvider::handler(documentTypeId);
+            }
+            if (!documentHandler)
+            {
+                return TFMDocumentQueue::updateStatusError(_messageId, strfmt("@TFM:TFM19",documentTypeId));
+            }
+    
+            documentHandler.parmMessageId(_messageId);
+            documentHandler.setRequest(request);
+            documentHandler.setRequestXml(xmlDoc);
+    
+            // Update record with status "processing"
+            connection = new UserConnection();
+            documentQueue.setConnection(connection);
+            ttsBegin;
+            documentQueue                   = TFMDocumentQueue::find(_messageId,true);
+            documentQueue.Status            = TFMDocumentQueueStatus::Processing;
+            documentQueue.msProccessingStart = stopwatch.ElapsedMilliseconds; 
+            documentQueue.update();
+            ttsCommit;
+    
+            // Update the content subject
+            connection = new UserConnection();
+            documentQueue.setConnection(connection);
+            ttsBegin;
+            preProcessOK                    = documentHandler.preProcess();
+            documentQueue                   = TFMDocumentQueue::find(_messageId,true);
+            documentQueue.ContentSubject    = documentHandler.getDocumentContentSubject();
+            this.updateSessionLink(xmlDoc, _messageId, documentQueue.ContentSubject, strScan(documentQueue.DocumentType,'post',1,30), request.parmdeviceID());
+            documentQueue.update();
+            ttsCommit;
+    
+    
+            infoLogCounter                  = Global::infologLine();
+
+            boolean ttsRequired = documentHandler.getTTSHandlingRequired();
+            if(ttsRequired)
+            {
+                ttsBegin;
+            }
+            //documentHandler.unpack(documentType.Parameters); //PB: Uncommented because it was not in develop
+            documentQueue                   = TFMDocumentQueue::find(_messageId,true);
+            
+            documentHandler.run();
+
+            if (infoLogCounter < Global::infologLine())
+            {
+                additionalInfoText    = TFMDocumentConnector::infoCon2String(infoLogCounter);
+            }
+            
+            if(!ttsRequired)
+            {
+                ttsBegin;
+            }
+            documentQueue                   = TFMDocumentQueue::find(_messageId,true);
+            documentQueue.RefRecId			= documentHandler.getResultTable().RecId;
+            documentQueue.RefTableId		= documentHandler.getResultTable().tableId;
+            documentQueue.Status            = TFMDocumentQueueStatus::Completed;
+            documentQueue.AnswerXML         = TFMDocumentConnector::Add2ReturnXml(documentHandler, documentQueue.MessageId, TFMDocumentQueueStatus::Completed, additionalInfoText);
+            documentQueue.ResultXML         = documentQueue.AnswerXML;
+            documentQueue.AnswerDateTime    = DateTimeUtil::getSystemDateTime();
+            documentQueue.ContentSubject    = documentHandler.getDocumentContentSubject();
+            documentQueue.msProccessingEnd  = stopwatch.ElapsedMilliseconds;
+            
+            this.updateSessionLink(XmlDocument::newXml(documentQueue.AnswerXML), _messageId, documentQueue.ContentSubject, strScan(documentQueue.DocumentType,'post',1,30), request.parmdeviceID());
+            documentQueue.update();
+            ttsCommit;
+            return documentQueue.ResultXML();
+        }
+        catch (Exception::Error)
+        {
+            // If anything in the infolog, save this. Otherwise try to get stack trace information from session object
+            if (infoLogCounter < Global::infologLine())
+            {
+                errorTxt    = TFMDocumentConnector::infoCon2String(infoLogCounter);
+            }
+            else
+            {
+                errorTxt    = TFMDocumentConnector::stackCon2Str();
+            }
+            infoLog.clear(infologCounter);
+            if (request != null)
+            {
+                errorTxt = TFMDocumentConnector::FindandReplaceTextBetweenBraces(errorTxt, request);
+            }
+
+            return TFMDocumentQueue::updateStatusError(_messageId, errorTxt);
+        }
+        catch (Exception::Deadlock)
+        {
+            retry;
+        }
+        catch (Exception::UpdateConflict)
+        {
+            if (appl.ttsLevel() == 0)
+            {
+                if (xSession::currentRetryCount() >= #RetryNum)
+                {
+                    throw Exception::UpdateConflictNotRecovered;
+                }
+                else
+                {
+                    retry;
+                }
+            }
+            else
+            {
+                throw Exception::UpdateConflict;
+            }
+        }
+    
+        catch (Exception::CLRError)
+        {
+            permission = new InteropPermission(InteropKind::ClrInterop);
+            permission.assert();
+    
+            // BP deviation documented
+            exception = CLRInterop::getLastException();
+            if(exception)
+            {
+                exceptionMessage    = exception.get_Message();
+                innerException      = exception.get_InnerException();
+    
+                while(innerException)
+                {
+                    exceptionMessage   = innerException.get_Message();
+                    innerException     = innerException.get_InnerException();
+                }
+            }
+    
+    
+            // BP deviation documented
+            errorTxt = CLRInterop::getAnyTypeForObject(exceptionMessage);
+            if (request != null)
+            {
+                errorTxt = TFMDocumentConnector::FindandReplaceTextBetweenBraces(errorTxt, request);
+            }
+
+            return TFMDocumentQueue::updateStatusError(_messageId, errorTxt);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateSessionLink</Name>
+				<Source><![CDATA[
+    protected void updateSessionLink(XmlDocument _xml, guid _messageId, TFMDocumentContentSubject _content, boolean _posted, TFMDocumentDeviceId _device)
+    {
+        str                             xmlStr = _xml.xml();
+        TFMProcessSessionID             sessionID;
+        
+        sessionID = strReplace(strReplace(TFMHelper::matchRegex(xmlStr,'(?<=name="processSessionID" value="\s*)[^<]+(?=\s*" /)'),'{',''),'}','');
+        if (!sessionID)
+        {
+            sessionID = strReplace(strReplace(TFMHelper::matchRegex(xmlStr,'(?<=<processSessionID>\s*)[^<]+(?=\s*</processSessionID>)'),'{',''),'}','');
+        }
+            
+        if (sessionID)
+        {
+            TFMDocumentQueueSessionLink::addLink(_messageId, sessionId, _content, _posted, _device);
+        }
+        
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Add2ReturnXml</Name>
+				<Source><![CDATA[
+    public server static XML Add2ReturnXml(TFMInputHandler _documentHandler, guid _messageId, TFMDocumentQueueStatus _status, str _additionalInfoText = '')
+    {
+        str description = '';
+        str innerXML = '';
+        XmlDocument xmlDoc;
+        TFMRequestElement originalRequest;
+
+        if (_documentHandler)
+        {
+            description = _documentHandler.getResponseElement().parmResponseText();
+            xmlDoc	= _documentHandler.getResponseElement().getXML();
+            innerXML	= xmlDoc.root().innerXml();
+            originalRequest = _documentHandler.getResponseElement().parmOriginalRequest();
+            if (originalRequest != null)
+            {
+                innerXML = TFMDocumentConnector::FindandReplaceTextBetweenBraces(innerXML, originalRequest);
+            }
+        }
+
+        return TFMDocumentConnector::createReturnXml(description, innerXML,_messageId,_status, _additionalInfoText);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindandReplaceTextBetweenBraces</Name>
+				<Source><![CDATA[
+    public static str FindandReplaceTextBetweenBraces(str _text, TFMRequestElement _originalRequest)
+    {
+        str pattern = @'\{([^}]+)\}';
+        System.Text.RegularExpressions.Regex regex;
+        System.Text.RegularExpressions.MatchCollection matches;
+        System.Text.RegularExpressions.Match match;
+        int i;
+        str retXML = _text;
+        str foundStr;
+
+        regex = new System.Text.RegularExpressions.Regex(pattern);
+        matches = regex.Matches(_text);
+
+        if (_originalRequest.getFieldMap().exists(extendedTypeStr(ItemId)) && !_originalRequest.getFieldMap().exists(TFMConstants::ItemNumber()))
+        {
+            _originalRequest.getFieldMap().insert(TFMConstants::ItemNumber(), _originalRequest.getFieldMap().lookup(extendedTypeStr(ItemId)));
+        }
+        else if (_originalRequest.logicContext() && _originalRequest.logicContext().getFieldContent(extendedTypeStr(ItemId)) && !_originalRequest.getFieldMap().exists(TFMConstants::ItemNumber()))
+        {
+            _originalRequest.getFieldMap().insert(TFMConstants::ItemNumber(), _originalRequest.logicContext().getFieldContent(extendedTypeStr(ItemId)));
+        }
+
+        for (i = 0; i < matches.get_Count(); i++)
+        {
+            match = matches.get_Item(i);
+            foundStr = match.get_Groups().get_Item(1).get_Value();
+            if (_originalRequest.getFieldMap().exists(foundStr))
+            {
+                retXML = strReplace(retXML,'{' + foundStr + '}', _originalRequest.getFieldValue(foundStr));
+            }
+            else if (_originalRequest.logicContext() != null && _originalRequest.logicContext().getFieldContent(foundStr))
+            {
+                retXML = strReplace(retXML,'{' + foundStr + '}', _originalRequest.logicContext().getFieldContent(foundStr));
+            }
+            
+        }
+        return retXML;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createReturnXml</Name>
+				<Source><![CDATA[
+    public server static XML createReturnXml(str _description, str _innerXml, guid _messageId, TFMDocumentQueueStatus _status, str _additionalInfoText = '')
+    {
+        
+        XmlTextWriter   writer;
+        XML             result;
+        str             description = _description;
+        if (_additionalInfoText)
+        {
+            description = (description ? description + TFMConstants::lineBreak() : '') + _additionalInfoText;
+        }
+        writer = XmlTextWriter::newXml();
+        writer.formatting(XmlFormatting::Indented);
+        writer.writeProcessingInstruction('xml',strfmt('version="1.0" encoding="%1"', System.Text.Encoding::UTF8.BodyName));
+        
+        writer.writeStartElement2('response', TFMConstants::RequestResponseNamespace());
+        writer.writeAttributeString('messageid', guid2str(_messageid));
+    
+        switch (_status)
+        {
+            case TFMDocumentQueueStatus::Completed:
+                writer.writeAttributeString('status', 'Completed');
+                break;
+    
+            case TFMDocumentQueueStatus::Error:
+                writer.writeAttributeString('status', 'Error');
+                break;
+    
+            case TFMDocumentQueueStatus::NewDocument, TFMDocumentQueueStatus::ReadyForProcessing:
+                writer.writeAttributeString('status', 'Received');
+                break;
+        }
+       
+
+        
+        writer.writeStartElement('description');
+        writer.writeString((description == '' && _status == TFMDocumentQueueStatus::Error) ?  "@SYS78886" : description);
+        writer.writeEndElement();
+        
+        writer.writeStartElement('responseData');
+        writer.writeRaw(_innerXml);
+        writer.writeEndElement();
+
+        writer.writeEndElement();
+    
+        result = writer.writeToString();
+
+        writer.close();
+  
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDeviceID</Name>
+				<Source><![CDATA[
+    public static XmlDocument addDeviceID(XmlDocument _xml, str _deviceID, TFMDocumentMessageID _messageID)
+    {
+        XmlDocument       document;
+        
+        document = _xml;
+        if (document.root().name() != 'request')
+        {
+            throw error("@TFM:TFM17");
+        }
+    
+        document.root().setAttribute('deviceID',_deviceID);
+        document.root().setAttribute('messageID',guid2Str(_messageID));
+        
+        return document;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMessageID</Name>
+				<Source><![CDATA[
+    public static TFMDocumentMessageId getMessageID(XmlDocument _xmlDocument)
+    {
+        XmlDocument       document;
+        XmlNode           messageId;
+        
+        document = _xmlDocument;
+        if (document.root().name() != 'request')
+        {
+            throw error("@TFM:TFM17");
+        }
+    
+        messageId = document.root().attributes().getNamedItem('messageID');
+        if (!messageId)
+        {
+            throw error("@TFM:MessageIDNotFound");
+        }
+
+        return str2Guid(messageId.value());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDeviceID</Name>
+				<Source><![CDATA[
+    public static TFMDocumentDeviceId getDeviceID(XmlDocument _xmlDocument)
+    {
+        XmlDocument       document;
+        XmlNode           deviceId;
+
+        document = _xmlDocument;
+        if (document.root().name() != 'request')
+        {
+            throw error("@TFM:TFM17");
+        }
+
+        deviceId = document.root().attributes().getNamedItem('deviceID');
+        if (!deviceId)
+        {
+            throw error("@TFM:DeviceIDNotFound");
+        }
+
+        return deviceId.value();        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentType</Name>
+				<Source><![CDATA[
+    public static TFMDocumentTypeId getDocumentType(XmlDocument _xmlDocument)
+    {
+        XmlDocument       document;
+        XmlNode           documentTypeIdNode;
+        TFMDocumentTypeId documentTypeId;
+
+        document = _xmlDocument;
+        if (document.root().name() != 'request')
+        {
+            throw error("@TFM:TFM17");
+        }
+    
+        documentTypeIdNode = document.root().attributes().getNamedItem('name');
+        if (!documentTypeIdNode)
+        {
+            throw error("@TFM:TFM17");
+        }
+        documentTypeId = documentTypeIdNode.value();
+        
+        if (!documentTypeId)
+        {
+            throw error("@TFM:TFM17");
+        }
+    
+        return documentTypeId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>infoCon2Str</Name>
+				<Source><![CDATA[
+    public server static str infoCon2Str(container _c)
+    {
+        str                     s;
+        SysInfologEnumerator    enum = SysInfologEnumerator::newData(_c);
+    
+        while (enum.moveNext())
+        {
+            s+= TFMHelper::strfmt('%1', [strReplace(strlrtrim(enum.currentMessage()), '\t', '\r\n')]);
+        }
+        return s;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>infoCon2String</Name>
+				<Source><![CDATA[
+    public server static str infoCon2String(int _infoLogCounter)
+    {
+        int						i;
+        str						innerResult;
+        str						result;
+        str						tmpStr;
+        List					resList;
+        ListEnumerator			le;
+        int						levelMax;
+        Map						currentLevels = new Map(Types::Integer, Types::String);
+        int						level;
+        str						textStyle;
+        str						headline;
+        str						resName;
+
+        if(Global::infologLine() > _infoLogCounter)
+        {
+            for (i = _infoLogCounter+1; i<=infolog.num();i++)
+            {
+                tmpStr = infolog.text(i);
+                resList = TFMHelper::strSplit(tmpStr,'\t');
+                levelMax = max(levelMax,resList.elements()-1);
+            }
+        }
+        
+        if(Global::infologLine() > _infoLogCounter)
+        {
+            for (i = _infoLogCounter+1; i<=infolog.num();i++)
+            {
+                tmpStr = infolog.text(i);
+                resList = TFMHelper::strSplit(tmpStr,'\t');
+                le = resList.getEnumerator();
+                level = 0;
+                while (le.moveNext())
+                {
+                    if (currentLevels.exists(level) && currentLevels.lookup(level) == le.current() || (!level && !headline))
+                    {
+                        if (!level && !headline)
+                        {
+                            currentLevels.insert(level,le.current());
+                            headline = le.current();
+                        }
+                        level++;
+                        continue;
+                    }
+                    if (level == resList.elements() - 1)
+                    {
+                        resName   = infolog.level(i) == Exception::Error ? '❌' : (infolog.level(i) == Exception::Warning ? '⚠️' : 'ℹ️');
+                    }
+					else
+                    {
+                        resName = '❧';
+                    }
+                    textStyle = resName +le.current();
+                    innerResult+= strRFix(textStyle,strLen(textStyle)+ level, ' ') +TFMConstants::lineBreak();
+                    currentLevels.insert(level,le.current());
+
+                    level++;
+                }
+                //remove levels from map
+    
+            }
+        }
+        result = headline+TFMConstants::lineBreak()+ innerResult;
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>infoCon2html</Name>
+				<Source><![CDATA[
+    public server static str infoCon2html(int _infoLogCounter)
+    {
+        int						i;
+        str						innerResult;        
+        str						result;
+        str						tmpStr;
+        List					resList;
+        ListEnumerator			le;
+        int						levelMax;
+        Map						currentLevels = new Map(Types::Integer, Types::String);
+        int						level;
+        str						iconStr;
+        str						textStyle;
+        str						headline;
+        str						resName;
+
+        if(Global::infologLine() > _infoLogCounter)
+        {
+            for (i = _infoLogCounter+1; i<=infolog.num();i++)
+            {
+                tmpStr = infolog.text(i);
+                resList = TFMHelper::strSplit(tmpStr,'\t');                
+                levelMax = max(levelMax,resList.elements()-1);
+            }
+        }
+        
+        if(Global::infologLine() > _infoLogCounter)
+        {
+            for (i = _infoLogCounter+1; i<=infolog.num();i++)
+            {
+                tmpStr = infolog.text(i);
+                resList = TFMHelper::strSplit(tmpStr,'\t');
+                le = resList.getEnumerator();
+                level = 0;
+                while (le.moveNext())
+                {
+                    if (currentLevels.exists(level) && currentLevels.lookup(level) == le.current() || (!level && !headline))
+                    {
+                        if (!level && !headline)
+                        {
+                            currentLevels.insert(level,le.current());
+                            headline = le.current();
+                        }
+                        level++;
+                        continue;
+                    }
+                    iconStr = '';
+                    textStyle = level == 0 ? 'b' : 'i';
+					
+                    if (level == resList.elements() - 1)
+                    {       
+                        textStyle = 'p';
+                        resName   = infolog.level(i) == Exception::Error ? resourceStr(TFMInfologError) : (infolog.level(i) == Exception::Warning ? resourceStr(TFMInfologWarning) : resourceStr(TFMInfologInfo));
+                        iconStr = '<img height="16px" width="16px" src="data:image/png;base64, '+ TFMImageHelper::resource2Base64(resName) +'" alt="'+resName+'" />';
+                    }
+					else
+                    {
+                        iconStr = '<img height="8px" width="8px" src="data:image/png;base64, '+ TFMImageHelper::resource2Base64(resourceStr(TFMPaperHole)) +'" alt="'+resourceStr(TFMPaperHole)+'" />';
+                    }
+                    innerResult+= strfmt('<tr><td colspan="%1" align="right">%2</td><td colspan="%3"><%4>%5</%4></td></tr>', level-1,iconStr,levelMax - (level-1),textStyle,le.current());
+                    currentLevels.insert(level,le.current());
+
+                    level++;
+                }  
+            }
+        }
+        result = '<html><body><h4>'+headline+'</h4><table>'+ innerResult + '</table></body></html>';
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>stackCon2Str</Name>
+				<Source><![CDATA[
+    public server static str stackCon2Str()
+    {
+        str                     s;
+        container               stack = xSession::xppCallStack();
+        int                     i;
+        s += "@TFM:TFM101" + '\n';
+        s += "@TFM:TFM102" + '\n';
+    
+        for (i = 1; i<=conlen(stack); i+=2)
+        {
+            s+= TFMHelper::strfmt("@TFM:TFM103", [conpeek(stack, i), conpeek(stack, i+1)]) + '\n';
+        }
+    
+        return s;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

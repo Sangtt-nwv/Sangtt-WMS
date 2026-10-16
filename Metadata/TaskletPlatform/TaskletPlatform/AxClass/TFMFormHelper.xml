@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMFormHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMFormHelper
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>type2FormControl</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Adds a control to the _fgc FormGroupControl based on the provided type of the field (The ExtendedTypeId).
+    /// </summary>
+    /// <param name = "_fgc">The FormGroupControl to add the control to</param>
+    /// <param name = "_edtId">The ExtendedTypeID of the control that should be added.</param>
+    /// <param name = "_methodName">The methodName is the name of the control that will be added.</param>
+    /// <param name = "_value">The value of the the control e.g. the value that the field already has</param>
+    /// <param name = "_labelStringOverride">A possibility to override the label that will be set on the control.</param>
+    /// <param name = "_methodOverride">The name of the method to call when the control is modified.</param>
+    /// <param name = "_class">The class where the method defined by the _methodOverride is.</param>
+    /// <param name = "Calling class">The ClassName of the configuration class calling the type2FormControl</param>
+    /// <param name = "_helpTextOverride">The helpText that will be added to the control.</param>
+    /// <returns></returns>
+    public static FormControl type2FormControl(FormGroupControl _fgc, Types _returnType, ExtendedTypeId _edtId, MethodName _methodName, str _value, labelString _labelStringOverride = '', MethodName _methodOverride = '', Object _class = null, str configkey = '', HelpTxt _helpTextOverride = '', List valueElements = null)
+    {
+        FormStringControl           formStringControl;
+        FormInt64Control            formInt64Control;
+        FormIntControl              formIntControl;
+        FormComboBoxControl         formComboBoxControl;
+        FormCheckBoxControl         formCheckBoxControl;
+        FormTimeControl             formTimeControl;
+        FormDateControl             formDateControl;
+        FormGuidControl             formGuidControl;
+        FormDateTimeControl         formDateTimeControl;
+        FormRealControl             formRealControl;
+        FormSegmentedEntryControl   formSegmentedEntryControl;
+        FormReferenceGroupControl   formReferenceGroupControl;
+        FormControl                 retControl;
+        Types                       baseType;
+        SysDictType                 sdt;
+        ListEnumerator              lEnum;
+
+        if(valueElements)
+        {
+            formComboBoxControl = _fgc.addControl(FormControlType::ComboBox, _methodName);
+            formComboBoxControl.extendedDataType(_edtId);
+            formComboBoxControl.label(TFMHelper::convertCamelCaseToNiceText (_labelStringOverride ? _labelStringOverride : sdt.label()));
+            lEnum = valueElements.getEnumerator();
+            while (lEnum.moveNext())
+            {
+                formComboBoxControl.add(conPeek(TFMHelper::strSplit(lEnum.current(),'¤').pack(),4));
+            }
+            formComboBoxControl.selection(formComboBoxControl.find(_value));
+            if (_methodOverride && _class)
+            {
+                formComboBoxControl.registerOverrideMethod(methodstr(formComboBoxControl, modified),_methodOverride,_class);
+            }
+            retControl = formComboBoxControl;
+        }
+        
+        if(!retControl)
+        {
+            if(_edtId)
+            {
+                sdt = new SysDictType(_edtId);
+                baseType = sdt.baseType();
+            }
+            else
+            {
+                baseType = _returnType;
+            }
+    
+            switch(baseType)
+            {
+                case Types::String:
+                case Types::RString:
+                case Types::VarString:
+                    formStringControl = _fgc.addControl(FormControlType::String,_methodName);
+                    formStringControl.extendedDataType(_edtId);
+                    formStringControl.label(TFMHelper::convertCamelCaseToNiceText (_labelStringOverride ? _labelStringOverride : sdt.label()));
+                    formStringControl.displayHeightMode(0);
+                    formStringControl.displayHeightValue(1);
+                    formStringControl.text(_value);
+                    if (_methodOverride && _class)
+                    {
+                        formStringControl.registerOverrideMethod(methodstr(formStringControl, modified),_methodOverride,_class);
+                    }
+                    retControl = formStringControl;
+                    break;
+
+                case Types::Integer:
+
+                if (Global::isTypeTime(extendedTypeId2name(_edtId)))
+                    {
+                        formTimeControl = _fgc.addControl(FormControlType::Time,_methodName);
+                        formTimeControl.extendedDataType(_edtId);
+                        formTimeControl.value(str2Int(_value));//TFMDocumentParameters::getValue(currentClass,_methodName));
+                        formTimeControl.label(TFMHelper::convertCamelCaseToNiceText (_labelStringOverride ? _labelStringOverride : sdt.label()));
+                        if (_methodOverride && _class)
+                        {
+                            formTimeControl.registerOverrideMethod(methodstr(FormTimeControl, modified),_methodOverride,_class);
+                        }
+                        retControl = formTimeControl;
+                    }
+                    else
+                    {
+                        formIntControl = _fgc.addControl(FormControlType::Integer,_methodName);
+                        formIntControl.extendedDataType(_edtId);
+                        formIntControl.value(str2Int(_value));//TFMDocumentParameters::getValue(currentClass,_methodName));
+                        formIntControl.label(TFMHelper::convertCamelCaseToNiceText (_labelStringOverride ? _labelStringOverride : sdt.label()));
+                        if (_methodOverride && _class)
+                        {
+                            formIntControl.registerOverrideMethod(methodstr(formIntControl, modified),_methodOverride,_class);
+                        }
+                        retControl = formIntControl;
+                    }
+                    break;
+
+                case Types::Int64:
+                    // Reference Controls are created by default for surrogate foreign keys. However, the raw 64-bit
+                    // integer should always be displayed. Force all Int64 type fields to use an Int64 Control.
+                    retControl = _fgc.addControl(FormControlType::Int64,_methodName);
+
+                    formInt64Control = retControl as formInt64Control;
+                    if (formInt64Control != null)
+                    {
+                        formInt64Control.extendedDataType(_edtId);
+                        formInt64Control.label(TFMHelper::convertCamelCaseToNiceText (_labelStringOverride ? _labelStringOverride : sdt.label()));
+                        formInt64Control.value(str2Int64(_value));
+                        if (_methodOverride && _class)
+                        {
+                            formInt64Control.registerOverrideMethod(methodstr(formInt64Control, modified),_methodOverride,_class);
+                        }
+                        retControl = formInt64Control;
+                    }
+                    else
+                    {
+                        formReferenceGroupControl = retControl as FormReferenceGroupControl;
+                        if (formReferenceGroupControl != null)
+                        {
+                            formReferenceGroupControl.extendedDataType(_edtId);
+                            formReferenceGroupControl.label(TFMHelper::convertCamelCaseToNiceText (_labelStringOverride ? _labelStringOverride : sdt.label()));
+                            retControl = formReferenceGroupControl;
+                        }
+                        else
+                        {
+                            formSegmentedEntryControl = retControl as formSegmentedEntryControl;
+                            if (formSegmentedEntryControl != null)
+                            {
+                                formSegmentedEntryControl.extendedDataType(_edtId);
+                                formSegmentedEntryControl.label(TFMHelper::convertCamelCaseToNiceText (_labelStringOverride ? _labelStringOverride : sdt.label()));
+                                retControl = formSegmentedEntryControl;
+                            }
+                        }
+                    }
+
+                    break;
+
+                case Types::Enum:
+
+                if (sdt.enumId() == enumNum(NoYes))
+                    {
+                        formCheckBoxControl = _fgc.addControl(FormControlType::CheckBox,_methodName);
+                    
+                        formCheckBoxControl.label(TFMHelper::convertCamelCaseToNiceText (_labelStringOverride ? _labelStringOverride : sdt.label()));
+                        str lwValue = strLwr(_value);
+                        formCheckBoxControl.checked(lwValue == 'yes' || lwValue == 'true' || lwValue == '1');
+                        if (_methodOverride && _class)
+                        {
+                            formCheckBoxControl.registerOverrideMethod(methodstr(formCheckBoxControl, modified),_methodOverride,_class);
+                        }
+                        retControl = formCheckBoxControl;
+                    }
+                    else
+                    {
+                        formComboBoxControl = _fgc.addControl(FormControlType::ComboBox, _methodName);
+                        formComboBoxControl.extendedDataType(_edtId);
+                        formComboBoxControl.label(TFMHelper::convertCamelCaseToNiceText (_labelStringOverride ? _labelStringOverride : sdt.label()));
+                        int indx = formComboBoxControl.find(_value) ? formComboBoxControl.find(_value) : str2Int(_value);
+                        formComboBoxControl.selection(indx);
+                        if (_methodOverride && _class)
+                        {
+                            formComboBoxControl.registerOverrideMethod(methodstr(formComboBoxControl, modified),_methodOverride,_class);
+                        }
+                        retControl = formComboBoxControl;
+                    }
+                
+                    break;
+
+                case Types::Real:
+                    formRealControl = _fgc.addControl(FormControlType::Real, _methodName);
+                    formRealControl.extendedDataType(_edtId);
+                    formRealControl.label(TFMHelper::convertCamelCaseToNiceText (_labelStringOverride ? _labelStringOverride : sdt.label()));
+                    formRealControl.realValue(str2Num(_value));
+                    if (_methodOverride && _class)
+                    {
+                        formRealControl.registerOverrideMethod(methodstr(formRealControl, modified),_methodOverride,_class);
+                    }
+                    retControl = formRealControl;
+                
+                    break;
+
+                case Types::Guid:
+                    formGuidControl = _fgc.addControl(FormControlType::Guid, _methodName);
+                    formGuidControl.extendedDataType(_edtId);
+                    formGuidControl.label(TFMHelper::convertCamelCaseToNiceText (_labelStringOverride ? _labelStringOverride : sdt.label()));
+                    formGuidControl.value(str2Guid(_value));
+                    retControl = formGuidControl;
+
+                    break;
+
+                case Types::Date:
+                    formDateControl = _fgc.addControl(FormControlType::Date, _methodName);
+                    formDateControl.extendedDataType(_edtId);
+                    formDateControl.label(TFMHelper::convertCamelCaseToNiceText (_labelStringOverride ? _labelStringOverride : sdt.label()));
+                    formDateControl.dateValue(str2Date(_value,123));
+                    if (_methodOverride && _class)
+                    {
+                        formDateControl.registerOverrideMethod(methodstr(formDateControl, modified),_methodOverride,_class);
+                    }
+                    retControl = formDateControl;
+                    break;
+
+                case Types::UtcDateTime:
+                    formDateTimeControl = _fgc.addControl(FormControlType::DateTime, _methodName);
+                    formDateTimeControl.extendedDataType(_edtId);
+                    formDateTimeControl.label(TFMHelper::convertCamelCaseToNiceText (_labelStringOverride ? _labelStringOverride : sdt.label()));
+                    formDateTimeControl.dateTimeValue(str2Datetime(_value,123));
+                    retControl = formDateTimeControl;
+
+                    break;
+            }
+        }
+        if (retControl)
+        {
+            retControl.helpText(_helpTextOverride ? _helpTextOverride : (sdt) ? sdt.help() : '');
+        }
+        return retControl;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getParameterParmMethods</Name>
+				<Source><![CDATA[
+    public static Map getParameterParmMethods(Object _class)
+    {
+        SysDictClass					DC;
+        int								i, j;
+        DictMethod						DM;
+        TFMParameterAttribute			parmAttr;
+        Array							array;
+		Map								retMethods = new Map(Types::Class,Types::Class);
+        DC = new SysDictClass(classIdGet(_class));
+		
+		while (DC)
+        {
+            for (i = 1; i <= DC.objectMethodCnt(); i++)
+            {
+                DM = DC.objectMethodObject(i);
+                array = DM.getAttributes(classstr(TFMParameterAttribute));
+                if (array != null)
+                {
+                    for (j = 1; j <= array.lastIndex(); j++)
+                    {
+                        parmAttr = array.value(j);
+                        retMethods.insert(DM,parmAttr);
+                    }
+                }
+            }
+            DC = new SysDictClass (DC.extend());
+        }
+        return retMethods;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertXsdStringTypeToTypes</Name>
+				<Source><![CDATA[
+    public static container convertXsdStringTypeToTypes(str xsdTypeString)
+    {
+        Types t;
+        ExtendedTypeId edt;
+        if(strScan(xsdTypeString,'string',1,1000))
+        {
+            t = Types::String;
+        }
+        else if(strScan(xsdTypeString,'boolean',1,1000))
+        {
+            edt = extendedTypeNum(NoYesId);
+            t = Types::Enum;
+        }
+        else if(strScan(xsdTypeString,'enum',1,1000))
+        {
+            t = Types::Enum;
+        }
+        return [t, edt];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLastPartOfPath</Name>
+				<Source><![CDATA[
+    public static str getLastPartOfPath(str xPathStr)
+    {
+        str lastPartOfXPath;
+        ListIterator    iterator;
+        List strlist = new List(Types::String);
+        strList = strSplit(xPathStr,'/');
+        iterator = new ListIterator(strlist);
+        while(iterator.more())
+        {
+            lastPartOfXPath = iterator.value();
+            iterator.next();
+        }
+        return lastPartOfXPath;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

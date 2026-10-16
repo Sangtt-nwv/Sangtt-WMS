@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListsProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMListsProvider extends TFMCachedProvider
+{
+    Map languageListsMap;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getEntity</Name>
+				<Source><![CDATA[
+    public anytype getEntity()
+    {
+        return languageListsMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setEntity</Name>
+				<Source><![CDATA[
+    public void setEntity(anytype _entity)
+    {
+        this.languageListsMap = _entity;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructEntityImpl</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates the language list Map
+    /// </summary>
+    /// <returns></returns>
+    public anytype constructEntityImpl()
+    {
+        this.languageListsMap = new Map(Types::String, Types::Class);
+        return this.languageListsMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createListsForLanguage</Name>
+				<Source><![CDATA[
+    protected TFMListsCollection createListsForLanguage(LanguageId _languageId)
+    {
+        ListEnumerator	lEnum = new SysDictClass(classNum(TFMList)).extendedBy(true).getEnumerator();
+        TFMList			listClass;
+        TFMLists		ListsTable;
+        TFMListsCollection lists = new TFMListsCollection();
+        while (lEnum.moveNext())
+        {
+            listClass = new SysDictClass(lEnum.current()).makeObject();
+            listClass.parmDeltaLevel(TFMDeltaLevel::Code);
+            lists.addList(listClass);
+        }
+		while select ListsTable
+        {
+            if(lists.listMap().exists(ListsTable.ListId))
+            {
+                listClass = lists.listMap().lookup(ListsTable.ListId);
+                listClass.parmDeltaLevel(TFMDeltaLevel::Overridden);
+            } 
+            else
+            {
+                listClass = TFMList::Construct(ListsTable);
+                listClass.parmDeltaLevel(TFMDeltaLevel::Custom);
+            }
+            lists.addList(listClass);
+        }
+
+       return lists;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>instance</Name>
+				<Source><![CDATA[
+     public static TFMListsProvider instance()
+    {
+        TFMListsProvider   provider;
+        provider = TFMCachedProvider::getProviderInstance(classStr(TFMListsProvider));
+        return provider;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllLists</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Static helper method to get All lists.
+    /// </summary>
+    /// <returns>All lists in the system.</returns>
+    public static TFMListsCollection getAllLists(LanguageId _languageId = currentUserLanguage())
+    {
+        TFMListsProvider provider = TFMListsProvider::instance();
+        
+        Map langLists = provider.getEntityImpl();
+        TFMListsCollection lists;
+        if(langLists.exists(_languageId))
+        {
+            lists = langLists.lookup(_languageId);
+        }
+        else
+        {
+            lists = provider.createListsForLanguage(_languageId);
+            langLists.add(_languageId, lists);
+        }
+        return lists;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllListsXML</Name>
+				<Source><![CDATA[
+	public static XML getAllListsXML()
+    {
+        XML				xml = '';
+        MapEnumerator	listEnum = TFMListsProvider::getAllLists().listMap().getEnumerator();
+        TFMList			list;
+        TFMListsVersion newestLockedListVersion;
+        TFMListsVersion listVersion;
+        XmlDocument		tweakDoc	= XmlDocument::newXml('<?xml version="1.0" encoding="utf-8"?><application></application>');
+        XmlElement		listsElement = tweakDoc.createElement('lists');
+        listsElement.setAttribute('tweak', 'append');
+
+		while (listEnum.moveNext())
+        {
+            list = listEnum.currentValue();
+            newestLockedListVersion = TFMListsVersion::newestVersion(list.parmListName());
+            if(list.parmDeltaLevel() == TFMDeltaLevel::Code || (newestLockedListVersion && newestLockedListVersion.Locked))
+            {
+                list.appendToXML(listsElement, newestLockedListVersion);
+            } 
+            else 
+            {
+                listVersion = TFMListsVersion::newestVersion(list.parmListName(), false);
+                if (list.parmDeltaLevel() == TFMDeltaLevel::Overridden && (listVersion && !listVersion.Locked && listVersion.Version == 1))
+                {
+                    list.appendToXML(listsElement, null); // if the list has an unapproved version but exists in code the we add the non-data version.
+                }
+            }
+        }
+
+        return listsElement.xml(4);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>version</Name>
+				<Source><![CDATA[
+    public str version()
+    {
+        TFMListNode nodes;
+        TFMListAttribute attributes;
+
+        select maxof(ModifiedDateTime) from nodes;
+        select maxof(ModifiedDateTime) from attributes;
+
+        return strFmt('L%1.%2',nodes.RecId,attributes.RecId);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

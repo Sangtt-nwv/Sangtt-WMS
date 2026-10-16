@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMUnlockOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Document Handler to unlock orders.
+/// </summary>
+[TFMDocumentType(staticMethodStr(TFMConstants, UnlockOrder))]
+public class TFMUnlockOrder extends TFMDocumentHandler
+{
+    TFMOrderTypes         type;
+    Str         backendId;
+    Num         backendNum;
+    Str         backendType;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return TFMConstants::UnlockOrder();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentContentSubject</Name>
+				<Source><![CDATA[
+    public TFMDocumentContentSubject getDocumentContentSubject()
+    {
+        TFMDocumentContentSubject ret;    
+        ret = strFmt('%1 %2 (%3)', type, backendNum, backendType);    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public void process()
+    {
+        TFMLockedOrders         TFMLockedOrders;
+        TFMBackendIDInstance    backendInstance;
+        backendId = request.getFieldValue('BackendId');
+        backendInstance = TFMBackendIDInstance::Construct(backendId);
+        backendNum = backendInstance.parmFieldValue();
+        backendType = backendInstance.parmType();
+        if (backendId)
+        {
+    
+            TFMLockedOrders = TFMLockedOrders::find(backendId, type);
+            if(TFMLockedOrders)
+            {
+                // Delete
+                TFMLockedOrders = TFMLockedOrders::find(backendId, type,true);
+                TFMLockedOrders.delete();
+                resultStr = "@TFM:MEL9";
+            }
+            else
+            {
+                // None (not found)
+                throw error(strfmt("@TFM:MEL10",backendId, type));
+            }
+        }
+        else
+        {
+            throw error(strfmt("@TFM:MEL11", TFMConstants::BackendID(), TFMConstants::Type()));
+        }
+    
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicStepOperatorTransferDataToField</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The Operator Transfers a peace of data to a certain field. Eg. the value of a combined header {ItemIdWHSLicensePlateId} to ItemId. 
+/// </summary>
+class TFMLogicStepOperatorTransferDataToField extends TFMLogicBlock implements TFMLogicStepOperatorInterface
+{
+    str                                 inputValue;
+    str                                 outputField;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        outputs = TFMLogicInputOutputContainer::Construct();        
+        outputs.addConnectionName('');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        str blockName = "Transfer Value to Field";
+        str valueSetName = "Transfer %1 to %2";
+        return inputValue ? strFmt(valueSetName, inputValue, outputField) : blockName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMBlockTransferToField);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInputValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets or sets the left-side (input) value.
+    /// </summary>
+    /// <param name="_inputValue">The value to set.</param>
+    /// <returns>The current value.</returns>
+    [TFMParameter('', "Input value")]
+    public TFMFlowVariableContextLookupField parmInputValue(TFMFlowVariableContextLookupField _inputValue = inputValue)
+    {
+        inputValue = _inputValue;
+        
+        return inputValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOutputField</Name>
+				<Source><![CDATA[
+    [TFMParameter('', "Output field")]
+    public str parmOutputField(str _outputField = outputField)
+    {
+        outputField = _outputField;
+
+        return outputField;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runLogic</Name>
+				<Source><![CDATA[
+    public str runLogic ( TFMRequestElement _request )
+    {
+        str replacedValue = _request.replaceWithValue(inputValue);
+        _request.addField(outputField, replacedValue, true);
+        
+        _request.makeLogEntry (strFmt('Added field %1 with the value "%2"', outputField, inputValue));
+        return '';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

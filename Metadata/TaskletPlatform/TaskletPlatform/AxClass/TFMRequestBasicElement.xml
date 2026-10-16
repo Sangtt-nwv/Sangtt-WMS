@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestBasicElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRequestBasicElement extends TFMRequestElement
+{
+    
+    TFMRequestOrdersElement  theOrder;
+    //TFMRequestLineElement   line;
+    
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmOrder</Name>
+				<Source><![CDATA[
+    public TFMRequestOrdersElement parmOrder(TFMRequestOrdersElement _order = theOrder)
+    {
+        theOrder = _order;
+        return theOrder;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

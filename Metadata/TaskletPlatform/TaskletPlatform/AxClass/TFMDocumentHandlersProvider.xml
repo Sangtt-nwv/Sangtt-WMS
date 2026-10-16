@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentHandlersProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDocumentHandlersProvider
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getDocumentHandlers</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Fetches all documents handlers
+    /// The pages will 
+    /// </summary>
+    /// <returns></returns>
+    public static TFMDocumentHandlers getDocumentHandlers()
+    {
+        DictClass           dc = new DictClass(classnum(TFMDocumentHandler));
+        DictClass           subClass;
+        List                extendingClasses = dc.extendedBy(true);
+        ListEnumerator      lEnum = extendingClasses.getEnumerator();
+        Object              docHand;
+        TFMDocumentHandlers docHandlers = new TFMDocumentHandlers();
+        
+        while (lEnum.moveNext())
+        {
+            subClass = new DictClass(lEnum.current());
+            if (subClass == null || subClass.isAbstract())
+            {
+                continue;
+            }
+
+            // add the pages return from the pages() method.
+            docHand = subClass.makeObject() as TFMDocumentHandler;
+            docHandlers.addDocHandler(docHand);
+        }
+        return docHandlers;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>visitDocumentHandlers</Name>
+				<Source><![CDATA[
+    public static void visitDocumentHandlers(TFMIDocumentHandlerVisitor visitor)
+    {
+        DictClass           dc = new DictClass(classnum(TFMDocumentHandler));
+        DictClass           subClass;
+        List                extendingClasses = dc.extendedBy(true);
+        ListEnumerator      lEnum = extendingClasses.getEnumerator();
+        Object              docHand;
+
+        while (lEnum.moveNext())
+        {
+            subClass = new DictClass(lEnum.current());
+            if (subClass == null || subClass.isAbstract())
+            {
+                continue;
+            }
+
+            docHand = subClass.makeObject() as TFMDocumentHandler;
+
+            visitor.visitDocumentHandler(subClass, docHand);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

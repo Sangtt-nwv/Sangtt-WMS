@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_PlannedMove</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for inventory counting.
+/// </summary>
+[TFMTableNameAttribute(tableStr(InventJournalTable), 'Transfer')]
+class MobXMLFormatOrders_PlannedMove extends TFMXMLFormatOrders
+{
+    InventJournalTable  inventJournalTable;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        super();
+    
+        inventJournalTable              = common;
+    
+        displayLine1            = new DictField(tablenum(InventJournalTable), fieldnum(InventJournalTable, JournalId)).Label() + ': ' + inventJournalTable.JournalId;
+        displayLine2            = new DictField(tablenum(InventJournalTable), fieldnum(InventJournalTable, JournalNameId)).label() + ': ' + inventJournalTable.JournalNameId;
+        displayLine3            = "@SYS25589" + ': ' + inventJournalTable.Description;
+        headerLabel1            = new DictField(tablenum(InventJournalTable), fieldnum(InventJournalTable, JournalId)).Label();
+        headerLabel2            = new DictField(tablenum(InventJournalTable), fieldnum(InventJournalTable, JournalNameId)).label();
+        headerValue1            = inventJournalTable.JournalId;
+        headerValue2            = inventJournalTable.JournalNameId;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

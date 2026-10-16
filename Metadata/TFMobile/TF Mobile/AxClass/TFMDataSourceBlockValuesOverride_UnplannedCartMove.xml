@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDataSourceBlockValuesOverride_UnplannedCartMove</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDataSourceBlockValuesOverride_UnplannedCartMove extends TFMDataSourceBlockValuesOverride
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>hasModifications</Name>
+				<Source><![CDATA[
+    public boolean hasModifications(TFMDataSourceBlock _blockToModify)
+    {
+        
+        return _blockToModify.getDataSource().PageID == 'CartContent';
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getClassName</Name>
+				<Source><![CDATA[
+    public ClassName getClassName()
+    {
+        return classStr(TFMDataSourceBlockLockOrderList);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyValuesBeforeDelta</Name>
+				<Source><![CDATA[
+    public void modifyValuesBeforeDelta(TFMDataSourceBlock _blockToModify, Common _common = null)
+    {
+        TFMDataSourceBlockLockOrderList cartSetup = _blockToModify as TFMDataSourceBlockLockOrderList;
+        
+        cartSetup.parmLockingLevel(TFMLockingLevel::Never);
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

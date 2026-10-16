@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocRegisterGenericImage</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Document Handler class for the generic function to attach an image to a given record.
+/// </summary>
+[TFMMenu('RegisterImage', "@TFM:AttachImage", "@TFM:AttachImage", resourceStr(TFMCamera), false, true),
+	TFMDocumentType(classStr(TFMGetRegistrationConfiguration),'RegisterImage', methodStr(TFMDocRegisterGenericImage, AttachImageRegistrationCollectors)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration),'RegisterImage', methodStr(TFMDocRegisterGenericImage, postRecordImage))]
+class TFMDocRegisterGenericImage extends TFMDocumentHandler
+{
+    Common                      record;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getRecord</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSetAttribute(tableStr(Common))]
+    public Common getRecord()
+    {
+        return record;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPageUnplannedItemRegistrationConfiguration configuration;
+        TFMPages ret = super();
+        TFMPage page;
+        
+        page = ret.getPage(TFMConstants::MenuItemRegisterImage());
+        if(page)
+        {
+            page.parmIsMandatoryContextMenu(true);
+            page.parmAvailableForMenuPages(false);
+            configuration = page.getConfiguration();
+            configuration.parmClose(true);
+            
+            page.parmAlwaysIncludeInOutput(true);
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret = new Map(Types::String, Types::String);
+
+        ret.insert('RegisterImage', "@TFM:AttachImage");
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public TFMDocumentHandlerDescription description()
+    {
+        TFMDocumentHandlerDescription ret;
+
+        ret = "@TFM:ImageCollector";
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ReferenceHeader_attachImage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The header filter for the attach image page.
+    /// </summary>
+    /// <returns>The header filter for the attach image page.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration ReferenceHeader_attachImage()
+    {
+        TFMReferenceDataConfiguration refCon = new TFMReferenceDataConfiguration();
+        refCon.addCollector(TFMGetReferenceData::defaultReferenceIdentity());
+        return refCon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttachImageRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to return the collectors used in the Attach Ímage flow
+    /// </summary>
+    /// <returns>The collectors used in the Attach Ímage flow as a Map Object.</returns>    
+    public Map AttachImageRegistrationCollectors()
+    {
+        Map returnMap = new Map(Types::Integer, Types::Class);
+        
+        returnMap.insert(1, TFMRegistrationCollectorImageCapture::ImageCaptureStepMap(1,extendedTypeStr(ImageDataString),"@SYS59132","@SYS59132",''));
+
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postRecordImage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to post Item Image registrations.
+    /// </summary>
+    /// <returns>Message whether the operation ended in success or error.</returns>
+    [TFMPostMethod(tableStr(Common))]
+    protected str postRecordImage()
+    {
+        str                         mediaIDs = request.getFieldValue(extendedTypeStr(ImageDataString));
+        str                         refRecord   = request.parmReferenceIdentity();
+        int64                       refid;
+        container                   refCon;
+        
+        //resultXml = null;
+        if (refRecord)
+        {
+            refCon      = strSplit(refRecord,';').pack();
+            record          = new DictTable(tableName2Id(conPeek(refCon ,4))).makeRecord();
+            refid           = str2Int64(conPeek(refCon ,5));
+            select firstonly record where record.RecId == refid;
+        }
+        
+        if (mediaIDs && record)
+        {
+            TFMMediaQueue::AddMap2Queue(record, TFMMediaQueue::separateIDsAndComments(mediaIDs), request.parmdeviceID());
+        }
+        resultStr = strFmt("@TFM:ImageAttachedto", TFMHelper::descriptionFromCommon(record));
+        return resultStr;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

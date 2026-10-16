@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Table Scaffolding"
+  short_description: "Create and extend D365FO tables safely"
+  default_prompt: "Use $table-scaffolding to scaffold or extend a D365FO table."

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPagePendingRegistrationsConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('PendingRegistrations', "PendingRegistrations")]
+class TFMPagePendingRegistrationsConfiguration extends TFMListPageConfiguration
+{
+    boolean     allRegistrationTypes;
+    boolean     deleteRegistrationEnabled;
+    boolean     postAllRegistrationsEnabled;
+    TFMPageTitleString				deleteRegistrationTitle;
+    TFMPageTitleString				postAllRegistrationsTitle;
+    boolean     resubmitRegistrationEnabled;
+    TFMPageTitleString				resubmitRegistrationTitle;
+    boolean     viewErrorMessageEnabled;
+    TFMPageTitleString				viewErrorMessageTitle;
+    TFMListId	listId;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmAllRegistrationTypes</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(false,'','allRegistrationTypes',true)]
+    public boolean parmAllRegistrationTypes(boolean _allRegistrationTypes = allRegistrationTypes)
+    {
+        allRegistrationTypes = _allRegistrationTypes;
+        return allRegistrationTypes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmListId</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(classStr(TFMListPendingAdhocRegistrationsList),'list','',true)]
+    public TFMListId parmListId(TFMListId _listId = listId)
+    {
+        TFMList			listCls;
+        listId = _listId;
+        if (className2Id(listId))
+        {
+            listCls = new SysDictClass(className2Id(listId)).makeObject();
+            listId = listCls.parmListName();
+        }
+        return listId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDeleteRegistrationTitle</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('DeleteRegistration','deleteRegistration','title',true),TFMPageAction]
+    public TFMPageTitleString parmDeleteRegistrationTitle(TFMPageTitleString _viewRegistrationTitle = deleteRegistrationTitle)
+    {
+        deleteRegistrationTitle = _viewRegistrationTitle;
+        return deleteRegistrationTitle;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDeleteRegistrationEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'deleteRegistration','enabled',true),TFMPageAction]
+    public boolean parmDeleteRegistrationEnabled(boolean _viewRegistrationsEnabled = deleteRegistrationEnabled)
+    {
+        deleteRegistrationEnabled = _viewRegistrationsEnabled;
+        return deleteRegistrationEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPostAllRegistrationsTitle</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('PostAllRegistrations','postAllRegistrations','title',true),TFMPageAction]
+    public TFMPageTitleString parmPostAllRegistrationsTitle(TFMPageTitleString _postAllRegistrationsTitle = postAllRegistrationsTitle)
+    {
+        postAllRegistrationsTitle = _postAllRegistrationsTitle;
+        return postAllRegistrationsTitle;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPostAllRegistrationsEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'postAllRegistrations','enabled',true),TFMPageAction]
+    public boolean parmPostAllRegistrationsEnabled(boolean _postAllRegistrationsEnabled = postAllRegistrationsEnabled)
+    {
+        postAllRegistrationsEnabled = _postAllRegistrationsEnabled;
+        return postAllRegistrationsEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmResubmitRegistrationTitle</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('ResubmitRegistration','resubmitRegistration','title',true),TFMPageAction]
+    public TFMPageTitleString parmResubmitRegistrationTitle(TFMPageTitleString _resubmitRegistrationTitle = resubmitRegistrationTitle)
+    {
+        resubmitRegistrationTitle = _resubmitRegistrationTitle;
+        return resubmitRegistrationTitle;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmResubmitRegistrationEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'resubmitRegistration','enabled',true),TFMPageAction]
+    public boolean parmResubmitRegistrationEnabled(boolean _resubmitRegistrationEnabled = resubmitRegistrationEnabled)
+    {
+        resubmitRegistrationEnabled = _resubmitRegistrationEnabled;
+        return resubmitRegistrationEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmViewErrorMessageTitle</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('ViewErrorMessage','viewErrorMessage','title',true),TFMPageAction]
+    public TFMPageTitleString parmViewErrorMessageTitle(TFMPageTitleString _viewErrorMessageTitle = viewErrorMessageTitle)
+    {
+        viewErrorMessageTitle = _viewErrorMessageTitle;
+        return viewErrorMessageTitle;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmViewErrorMessageEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'viewErrorMessage','enabled',true),TFMPageAction]
+    public boolean parmViewErrorMessageEnabled(boolean _viewErrorMessageEnabled = viewErrorMessageEnabled)
+    {
+        viewErrorMessageEnabled = _viewErrorMessageEnabled;
+        return viewErrorMessageEnabled;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

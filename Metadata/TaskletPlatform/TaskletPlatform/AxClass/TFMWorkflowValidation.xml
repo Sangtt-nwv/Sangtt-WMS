@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMWorkflowValidation</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMWorkflowValidation
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>validationType</Name>
+				<Source><![CDATA[
+	public abstract TFMWorkflowValidationType validationType()
+    {
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>label</Name>
+				<Source><![CDATA[
+	public abstract LabelString label()
+    {
+	
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isValidationLevelAllowed</Name>
+				<Source><![CDATA[
+	public boolean isValidationLevelAllowed()
+    {
+        return false;
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isValidateEmptyValueAllowed</Name>
+				<Source><![CDATA[
+    public boolean isValidateEmptyValueAllowed()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindValidationClass</Name>
+				<Source><![CDATA[
+    public static TFMWorkflowValidation FindValidationClass(TFMWorkflowValidationType _validationType)
+    {
+        ListEnumerator			lEnum = new SysDictClass(classNum(TFMWorkflowValidation)).extendedBy().getEnumerator();
+        TFMWorkflowValidation	validationClass;
+        SysDictClass			sdc;
+
+		while (lEnum.moveNext())
+        {
+            sdc = new SysDictClass(lEnum.current());
+            if (!sdc.allowMakeObject())
+            {
+                continue;
+            }
+            validationClass = sdc.makeObject();
+            if (validationClass.validationType() == _validationType)
+            {
+                return validationClass;
+            }
+		}
+        return null;
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>allowValidationLevel</Name>
+				<Source><![CDATA[
+    public static boolean allowValidationLevel(TFMWorkflowValidationType _validationType)
+    {        
+        TFMWorkflowValidation	validationClass = TFMWorkflowValidation::FindValidationClass(_validationType);
+        
+        if (validationClass)
+        {
+            return validationClass.isValidationLevelAllowed();
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>allowValidateEmptyValue</Name>
+				<Source><![CDATA[
+    public static boolean allowValidateEmptyValue(TFMWorkflowValidationType _validationType)
+    {
+        TFMWorkflowValidation	validationClass = TFMWorkflowValidation::FindValidationClass(_validationType);
+        
+        if (validationClass)
+        {
+            return validationClass.isValidateEmptyValueAllowed();
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

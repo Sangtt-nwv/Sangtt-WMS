@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute('drawflow')]
+class TFMDrawFlowContract
+{
+    TFMDrawFlowModuleContract moduleContract;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        moduleContract = TFMDrawFlowModuleContract::Construct();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMDrawFlowContract Construct()
+    {
+        return new TFMDrawFlowContract();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmModuleContract</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('drawflow')]
+    public TFMDrawFlowModuleContract parmModuleContract(TFMDrawFlowModuleContract _moduleContract = moduleContract)
+    {
+        moduleContract = _moduleContract;
+        return moduleContract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addBlockContract</Name>
+				<Source><![CDATA[
+    public void addBlockContract(TFMDrawFlowLogicBlockContract _contract)
+    {
+        moduleContract.parmDataContract().parmData().insert(_contract.parmId(),_contract);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBlocks</Name>
+				<Source><![CDATA[
+    public Map getBlocks()
+    {
+        return moduleContract.parmDataContract().parmData();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

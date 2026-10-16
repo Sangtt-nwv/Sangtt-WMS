@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocLocalization</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The TFMDocLocalization is the document handler for overriding translations on the mobile device.
+/// </summary>
+class TFMDocLocalization extends TFMDocumentHandler
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public TFMDocumentHandlerDescription description()
+    {
+        TFMDocumentHandlerDescription ret;
+
+        ret = "@TFM:TranslationService";
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslationToXml</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    
+    private void addTranslationToXml(TFMDocumentNodes _nodes, TFMDocumentNode _parent, str _name, str _value)
+    {
+        TFMDocumentNode     translation;
+        translation = _nodes.makeChild(_parent,'string');
+        translation.addAttribute('name',_name);
+        translation.parmValue(_value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public void process()
+    {
+        TFMDocumentNodes    nodes               = TFMDocumentNodes::Construct('localization');
+        TFMDocumentNode     localization        = nodes.getRoot();
+        TFMDocumentNode     langNode            = nodes.makeChild(localization,'language');
+        Map                 translationMap      = TFMTranslationProvider::getAllTranslationsForCurrentUserLanguage();
+        MapEnumerator       mEnum;
+        
+        langNode.addAttribute('code', TFMDocLocalization::getUserLanguage());
+       
+        mEnum = translationMap.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            this.addTranslationToXml(nodes,langNode,mEnum.currentKey(),mEnum.currentValue());
+        }
+        langNode.addAttribute('version', this.UserLanguageCustomizationVersion());
+        resultXml = nodes.makeXml();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public Set getDocumentTypes()
+    {
+        Set ret = new Set(Types::String);
+        ret.add(methodStr(TFMDocLocalization,GetLocalizationData));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetLocalizationData</Name>
+				<Source><![CDATA[
+    private str GetLocalizationData()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getReferenceDataMethods</Name>
+				<Source><![CDATA[
+    public Set getReferenceDataMethods()
+    {
+        Set ret = new Set(Types::String);
+
+        ret.add(methodStr(TFMDocLocalization, UserLanguageCustomizationVersion));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UserLanguageCustomizationVersion</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to provide the newest version of language customizations.
+    /// </summary>
+    /// <returns>The current version as a string</returns>
+    public XML UserLanguageCustomizationVersion()
+    {
+        return 'version.' + TFMDocLocalization::getUserLanguage() + '.' + TFMTranslationProvider::instance().version() + '.' + int2Str(TFMTranslationProvider::getAllTranslationsForCurrentUserLanguage().elements());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getUserLanguage</Name>
+				<Source><![CDATA[
+    /*public TFMDocumentNodes UserLanguageTest()
+    {
+        TFMDocumentNodes nodes = new TFMDocumentNodes('PrinterName');
+        TFMDocumentNode printNameNode  = nodes.getRoot();
+        TFMDocumentNode printIDNode  = nodes.makeChild(printNameNode,'printerId');
+        TFMDocumentNode nameNode = nodes.makeChild(printNameNode,'name');
+        printIDNode.parmValue('PrinterA');
+        nameNode.parmValue('Printer Hall A!!');
+
+
+        printNameNode  = nodes.makeRootSibling('PrinterName');
+        printIDNode  = nodes.makeChild(printNameNode,'printerId');
+        nameNode = nodes.makeChild(printNameNode,'name');
+        printIDNode.parmValue('Printer2');
+        nameNode.parmValue('Printer Hall 2!!');
+
+        return nodes;
+    }*/
+
+    public static str getUserLanguage()
+    {
+        UserInfo    userInfo;
+        str         language;
+    
+        select firstonly userInfo
+            where UserInfo.id == curUserId();
+    
+        language = strUpr(strLTrim(userInfo.language));
+    
+        // We have support for Dutch Belgian (Flemish)
+        if (language == 'NL-BE')
+        {
+            return language;
+        }
+
+        // Norway Bokmål does not follow the other iso language codes
+        if (language == 'NB-NO')
+        {
+            return 'NO';
+        }
+
+        // 'Always' just use the first two chars in the langauge code.
+        if(strLen(language) > 1)
+        {
+            return subStr(language, 0, 2);
+        }
+
+        // if no language then default to english
+        return 'EN';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

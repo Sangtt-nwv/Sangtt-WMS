@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMfieldFromNameCreator</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMfieldFromNameCreator
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>exists</Name>
+				<Source><![CDATA[
+	public static boolean exists(str _fieldName)
+    {
+        return TFMfieldFromNameCreator::find(_fieldName) != null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    public static TFMfieldFromNameCreator find(str _fieldName)
+    {
+        SysDictClass sdc = new SysDictClass(classNum(TFMfieldFromNameCreator));
+        ListEnumerator lEnum = sdc.extendedBy(true).getEnumerator();
+        TFMfieldFromNameCreator fieldHandler;
+        while (lEnum.moveNext())
+        {
+            fieldHandler = new SysDictClass(lEnum.current()).makeObject();
+            if (fieldHandler.fieldHandled(_fieldName))
+            {
+                return fieldHandler;
+            }
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldHandled</Name>
+				<Source><![CDATA[
+    public boolean fieldHandled(str _fieldName)
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleField</Name>
+				<Source><![CDATA[
+    public void handleField(str _value, FormGroupControl _fgc)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

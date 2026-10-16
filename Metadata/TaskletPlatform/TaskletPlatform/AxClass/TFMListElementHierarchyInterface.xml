@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListElementHierarchyInterface</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+interface TFMListElementHierarchyInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getChildren</Name>
+				<Source><![CDATA[
+	public Map getChildren()
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addChild</Name>
+				<Source><![CDATA[
+	public void addChild(Object _child)
+    {
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

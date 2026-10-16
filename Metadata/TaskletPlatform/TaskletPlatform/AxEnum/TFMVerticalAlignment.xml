@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMVerticalAlignment</Name>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>Top</Name>
+			<Label>@SYS26115</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Center</Name>
+			<Label>@TFM:Center</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Bottom</Name>
+			<Label>@TFM:Bottom</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

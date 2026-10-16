@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_Invent</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter super class for Inventory orders.
+/// </summary>
+class MobXMLFormatOrders_Invent extends TFMXMLFormatOrders
+{
+}
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+</AxClass>

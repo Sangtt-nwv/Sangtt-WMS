@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocPickOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The MobDocPickOrder class is the document handler for all pick orders that should be made available on the pick order page.
+/// </summary>
+[TFMMenu('Pick',"@SYS50416","@MobileWMS:MobileWMS159",resourceStr(MobPickIcon),true,true,['MainMenu', 'Outbound'], true),
+	TFMOrderListGetOrdersDocumentType('Pick',methodStr(MobDocPickOrder,GetPickOrders)),
+    TFMOrderListGetOrderLinesDocumentType('Pick',methodStr(MobDocPickOrder,GetPickOrderLines)),
+    TFMOrderListPostOrderDocumentType('Pick',methodStr(MobDocPickOrder,PostPickOrder))]
+class MobDocPickOrder extends TFMDocumentHandler
+{
+    XML							returningXML;
+    MobDocumentContentSubject	content;
+    NoYes						pickListOperatorWorker;
+    NoYes						pickListAccumulate;
+    NoYes						salesAccumulate;
+    NoYes						setCurrentDateWhenPostingFromDevice;
+    NoYes						prodAccumulate;
+    NoYes						prodCreateNew;
+    NoYes						prodOprSegregate;
+    NoYes						useTotePicking;
+    NoYes						FinishRoute;
+    NoYes						usePackingSlipForPickingList;
+    str							toteGroupingField;
+    WHSDefaultContainerTypeCode	defaultContainerType;
+    Common						common;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmSalesAccumulate</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@MobileWMS:Accumulatelines","@SYS4363")]
+    public MobPromptForUnit parmSalesAccumulate(MobPromptForUnit _salesAccumulate = salesAccumulate)
+    {
+        salesAccumulate = _salesAccumulate;
+        return salesAccumulate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUseTotePicking</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@MobileWMS:UseOutboundLicensePlateswhenpick","@SYS11791")]
+    public MobPromptForUnit parmUseTotePicking(MobPromptForUnit _useTotePicking = useTotePicking)
+    {
+        useTotePicking = _useTotePicking;
+        return useTotePicking;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUsePackingSlipForPickingList</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@MobileWMS:UsePackingSlipforPackinglist","@SYS11791")]
+    public MobPromptForUnit parmUsePackingSlipForPickingList(MobPromptForUnit _usePackingSlipForPickingList = usePackingSlipForPickingList)
+    {
+        usePackingSlipForPickingList = _usePackingSlipForPickingList;
+        return usePackingSlipForPickingList;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDefaultContainerType</Name>
+				<Source><![CDATA[
+    [TFMParameter('',"@MobileWMS:Defaultcontainer","@SYS11791")]
+    public WHSDefaultContainerTypeCode parmDefaultContainerType(WHSDefaultContainerTypeCode _defaultContainerType = defaultContainerType)
+    {
+        defaultContainerType = _defaultContainerType;
+        return defaultContainerType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmToteGroupingField</Name>
+				<Source><![CDATA[
+    [TFMParameter('DeliveryPostalAddress',"@MobileWMS:OutboundLicensePlatesGroupingFie","@SYS11791")]
+    public FieldName parmToteGroupingField(FieldName _toteGroupingField = toteGroupingField)
+    {
+        toteGroupingField = _toteGroupingField;
+        return toteGroupingField;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPickListOperatorWorker</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes,"@MobileWMS:FilteronOperator","@SYS11791")]
+    public MobPromptForUnit parmPickListOperatorWorker(MobPromptForUnit _pickListOperatorWorker = pickListOperatorWorker)
+    {
+        pickListOperatorWorker = _pickListOperatorWorker;
+        return pickListOperatorWorker;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPickListAccumulate</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@MobileWMS:Accumulatelines","@SYS11791")]
+    public MobPromptForUnit parmPickListAccumulate(MobPromptForUnit _pickListAccumulate = pickListAccumulate)
+    {
+        pickListAccumulate = _pickListAccumulate;
+        return pickListAccumulate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmProdAccumulate</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@MobileWMS:Accumulatelines","@MobileWMS:MEL17")]
+    public MobPromptForUnit parmProdAccumulate(MobPromptForUnit _prodAccumulate = prodAccumulate)
+    {
+        prodAccumulate = _prodAccumulate;
+        return prodAccumulate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSetCurrentDateWhenPostingFromDevice</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@MobileWMS:SetCurrentDateWhenPostingFromDevice","@MobileWMS:MEL17", "@MobileWMS:Whenpickingfromthedevice")]
+    public MobPromptForUnit parmSetCurrentDateWhenPostingFromDevice(MobPromptForUnit _setCurrentDateWhenPostingFromDevice = setCurrentDateWhenPostingFromDevice)
+    {
+        setCurrentDateWhenPostingFromDevice = _setCurrentDateWhenPostingFromDevice;
+        return setCurrentDateWhenPostingFromDevice;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmProdCreateNew</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes,"@MobileWMS:CreateNewJournal","@MobileWMS:MEL17")]
+    public MobPromptForUnit parmProdCreateNew(MobPromptForUnit _prodCreateNew = prodCreateNew)
+    {
+        prodCreateNew = _prodCreateNew;
+        return prodCreateNew;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmProdOprSegregate</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@MobileWMS:SegregateJournalsintoOperations","@MobileWMS:MEL17")]
+    public MobPromptForUnit parmProdOprSegregate(MobPromptForUnit _prodOprSegregate = prodOprSegregate)
+    {
+        prodOprSegregate = _prodOprSegregate;
+        return prodOprSegregate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages ret = new TFMPages();
+        TFMPageOrderList	listPage = this.makeOrderList();
+        TFMPageOrderLines	linesPage = new TFMPageOrderLines();
+        TFMPageOrderListConfiguration	Listconfig;
+
+        SetEnumerator       subTables = MobOrder::getSubTypeTableNames(TFMConstants::Pick()).getEnumerator();
+        ret.addPage(listPage);
+        linesPage = listPage.createLinesPage();        
+        ret.addPage(linesPage);
+
+        while (subTables.moveNext())
+        {
+            ret.addPage(this.makeOrderList(subTables.current()));
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeOrderList</Name>
+				<Source><![CDATA[
+    protected TFMPageOrderList makeOrderList(TFMOrderTypes _variantName = '')
+    {
+        TFMPageOrderList				listPage = new TFMPageOrderList();
+        TFMPageOrderListConfiguration	listConfig;
+        TFMMenuItemStateConfiguration	conf;
+        int                             pos = strScan(_variantName,';',1,100);
+        SysDictTable                    sdt = _variantName ? new SysDictTable(tableName2Id(pos ? subStr(_variantName,1,pos-1) : _variantName)) : null;
+        listPage.parmId(subStr(TFMConstants::Pick() + strReplace(_variantName,';',''),1,30));
+        listPage.parmFilter(methodStr(MobDocPickOrder,PickOrderFilters) + strReplace(_variantName,';',''));
+        listPage.parmIcon('mainmenupick');
+        listPage.parmTitle((sdt ? ' ' + sdt.label() : 'PagePickOrderListTitle'));
+        listConfig = listPage.getConfiguration();
+        listConfig.parmNavigateTo('PickLines');
+        conf = TFMMenuItemStateConfiguration::Construct(TFMConstants::CartOverview(),0.9,new TFMPageActionAttribute(TFMPageMenuItemTypes::OpenAction,methodStr(MobimageHandlerCombinedImages,attachListToCart ),true,false));
+        conf.parmTitle('@{AttachToCart}');
+        listConfig.parmId(MobConstants::Pick());
+        listPage.addActionClass(conf,0);
+        
+        return listPage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PickOrderFilters</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets up the filter used on the pick orders page.
+    /// </summary>
+    /// <returns>An XML string with the fields to be used for the filter.</returns>
+    [TFMReferenceDataMethodAttribute]
+    public TFMReferenceData PickOrderFilters()
+    {
+        TFMReferenceDataConfiguration   refData = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorList    regCollectorList = TFMGetReferenceData::createDefaultWarehouseReferenceData(1);
+        TFMRegistrationCollectorDate    regCollectorDate = TFMRegistrationCollector::collectorFromEDT(extendedtypestr(WMSDlvDate));
+        SetEnumerator                   subClasses = MobOrder::getSubTypeTableNames(MobConstants::Pick()).getEnumerator();
+        TFMReferenceDataConfiguration   inlineRef;
+        TFMRegistrationCollectorText    orderTypeField;
+
+        refData.addCollector(regCollectorList);
+
+        regCollectorDate.parmName(MobConstants::DeliveryDate());
+        regCollectorDate.isHeader(true);
+		
+        refData.addCollector(regCollectorDate);
+        refData.parmUseDynaFilter(true);
+
+        //Add Header variants
+        while (subClasses.moveNext())
+        {
+            inlineRef = new TFMReferenceDataConfiguration();
+            inlineRef.addCollector(regCollectorList);
+            inlineRef.addCollector(regCollectorDate);
+            orderTypeField = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(TFMOrderTypes));
+            orderTypeField.parmLocked(true);
+            orderTypeField.parmDefaultValue(subClasses.current());
+            inlineRef.addCollector(orderTypeField);
+            inlineRef.parmKey(methodStr(MobDocPickOrder, PickOrderFilters) + strReplace(subClasses.current(),';',''));
+            inlineRef.parmUseDynaFilter(true);
+            refData.addInlinedHeader(inlineRef);
+        }
+
+        return refData;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public TFMDocumentHandlerDescription description()
+    {
+        TFMDocumentHandlerDescription ret;
+
+        ret = "@MobileWMS:PickOrderHandler";
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetPickOrders</Name>
+				<Source><![CDATA[
+    protected TFMOrderListResponseElement GetPickOrders()
+    {
+        str                         scannedValue;        
+        TFMRequestGetOrdersElement  orderRequest = request;
+        TFMRequestFiltersElement    filters;        
+        InventLocationId			inventLocationId = MobConstants::All();
+        Date						deliveryDate;
+        
+        // Before the search for orders is performed we get the filter values entered on the mobile device
+        if (orderRequest.parmFilters() != null)
+        {
+            filters = orderRequest.parmFilters();            
+            inventLocationId = filters.parmWarehouse();
+            deliveryDate = filters.parmDeliveryDate();
+            scannedValue = filters.getFieldValue(MobConstants::ScannedValue());            
+        }
+        return MobPickOrderType::generateResponse(filters,scannedValue);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentContentSubject</Name>
+				<Source><![CDATA[
+    public MobDocumentContentSubject getDocumentContentSubject()
+    {
+        MobDocumentContentSubject ret;
+
+        ret = content;
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetPickOrderLines</Name>
+				<Source><![CDATA[
+    protected TFMOrderLinesResponseElement GetPickOrderLines()
+    {
+        XmlElement						ordersElement;
+        MobOrder						mobOrder;
+        TFMRequestGetOrderLinesElement	OrderLinesRequest = request;
+        TFMOrderLinesResponseElement	response = TFMOrderLinesResponseElement::Construct('PickLines');
+        str								backendid = OrderLinesRequest.parmBackendID();
+        MapEnumerator					returnedRecords;        
+        Map								postPromptCollectors;
+        Map								additionalValues = new Map(Types::String, Types::String);
+        container						backendIDcon = MobHelper::strSplit(backendID,'/').pack();
+        MobOrderTypes					type = conLen(backendIDcon) == 7 ? conPeek(backendIDcon,7) : '';
+        
+        mobOrder = MobOrder::constructFromBackendID(backendid);
+
+        returnedRecords = MobOrder.getLineRecords(request).getEnumerator();
+
+        while (returnedRecords.moveNext())
+        {
+            response.addRecord(returnedRecords.currentValue(),type);
+        }
+        return response;
+       }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResult</Name>
+				<Source><![CDATA[
+    public XML getResult()
+    {
+        if (resultXml)
+        {
+            return resultXml.xml();
+        }
+    
+        return returningXML;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PostPickOrder</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method used to execute the posting of the pick order, when called from the device.
+    /// </summary>
+    /// <returns>A string indicating how the process went. This string is returned to the device user, that executed the posting.</returns>
+    protected str PostPickOrder()
+    {
+        str                             BackendId;
+        MobOrder                        mobOrder;
+        UserConnection                  uc;
+        TFMRequestBasicElement          root = request as TFMRequestBasicElement;
+       
+        BackendId       = root.parmOrder().parmBackendID();
+    
+        mobOrder = MobOrder::constructFromBackendID(backendid);
+        
+        ttsbegin;
+        resultStr = mobOrder.postRequest(root.parmOrder());
+        ttscommit;
+        content = strFmt("@MobileWMS:OrderPosted", mobOrder.parmOrderId());
+        uc = new UserConnection();
+        uc.ttsbegin();
+        mobOrder.postPromptExtraStepsExecution(root.parmOrder().getFieldMap());
+        uc.ttscommit();
+        common = mobOrder.getResultTable();
+        resultXml = mobOrder.parmResultXML();
+        return ResultStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCommonTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(Common))]
+    public Common getCommonTable()
+    {
+        return common;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

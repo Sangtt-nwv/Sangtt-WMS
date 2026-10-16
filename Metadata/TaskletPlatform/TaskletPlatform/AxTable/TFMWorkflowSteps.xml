@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMWorkflowSteps</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMWorkflowSteps extends common
+{
+	
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    public void insert()
+    {
+        TFMWorkflowSteps steps;
+
+        select firstonly WorkflowStepId from steps order by WorkflowStepId desc where steps.WorkflowName == this.WorkflowName;
+
+        this.WorkflowStepId = steps.WorkflowStepId + 10;
+
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>stepName</Name>
+				<Source><![CDATA[
+    public edit Name stepName(boolean _set, Name _className)
+    {
+        ClassId				classId;
+        Name				ret = '';
+        
+
+		if (_set)
+        {
+            this.CallClass = _className;
+        }
+
+        classId = ClassName2Id(this.CallClass);
+		if (classId)
+        {
+            ret = subStr(this.CallClass,strLen(classStr(TFMWorkflowBlock))+1,1000);
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@TFM:CollectionSteps</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>WorkflowName</TitleField1>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<ReplacementKey>StepIdx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WorkflowName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>WorkflowStepId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>stepName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>WorkflowName</Name>
+			<ExtendedDataType>TFMWorkflowName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CallClass</Name>
+			<ExtendedDataType>ClassName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>WorkflowStepId</Name>
+			<ExtendedDataType>TFMWorkflowStepId</ExtendedDataType>
+			<Label>@TFM:WorkflowStepID</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>StepIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>WorkflowName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>WorkflowStepId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>TFMWorkflowsTable</Name>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>TFMWorkflowsTable</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>WorkflowName</Name>
+					<Field>WorkflowName</Field>
+					<RelatedField>WorkflowName</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

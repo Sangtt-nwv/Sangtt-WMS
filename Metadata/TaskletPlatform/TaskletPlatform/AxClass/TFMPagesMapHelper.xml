@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPagesMapHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPagesMapHelper
+{
+    TFMPages pages;
+    Map			pageMap;
+    Set			htmlGeneratedPages;
+    Map			imgUrls;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+	public void init()
+    {
+        pages = TFMPagesProvider::getAllPages();
+        imgUrls = new Map(Types::String, Types::String);
+		pageMap = new Map(Types::String,Types::Class);
+        htmlGeneratedPages = new Set(Types::String);
+		this.drillDownHierarchy('MainMenu');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drillDownHierarchy</Name>
+				<Source><![CDATA[
+	protected void drillDownHierarchy(TFMPageID _pageId)
+    {
+        TFMPage			pageSelected;
+        SetEnumerator	sEnum;
+        
+		if (pageMap.exists(_pageId) || !pages.getPage(_pageId))
+        {
+            return;
+        }
+
+        pageSelected = pages.getPage(_pageId);
+        pageMap.add(_pageId,pageSelected.referencedPages());
+        sEnum = pageSelected.referencedPages().getEnumerator();
+		while (sEnum.moveNext())
+        {
+            this.drillDownHierarchy(sEnum.current());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pagesReferenced</Name>
+				<Source><![CDATA[
+	public Map pagesReferenced()
+    {
+        return pageMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateHtml</Name>
+				<Source><![CDATA[
+	public str generateHtml(TFMPageID _pageId, int layer = 0)
+    {
+        str					hexColor = int2str(999999 - 50505*layer);
+        Set					subPages = pageMap.lookup(_pageId);
+        str					html = '<table cellspacing="3" bgcolor="#'+hexColor+'" border="0"><tr><th width="3"></th><th colspan="'+int2Str(max(1,subPages.elements()))+'" >%1</th><th width="3"></th></tr><tr><td width="3"></td>';
+        SetEnumerator		subPagesEnum = subPages.getEnumerator();
+        TFMPageID			pageId;
+        TFMPage				page = pages.getPage(_pageId);
+        Set					drilldownOnThisLayer = new Set(Types::String);
+        MapEnumerator		mEnum;
+        str					imgUrl = this.getImgURL(_pageId);
+
+        imgUrls.insert(_pageId,imgUrl);
+        html = strFmt(html,'<div id= "'+ _pageId +'"><img align="middle" src="'+imgUrl+'" alt="'+page.parmTitle()+'" width="100" height="100"></div>');
+        while (subPagesEnum.moveNext())
+        {
+			//Use breadth First Al Gore Rhythm
+            pageId = subPagesEnum.current();
+            if (!pages.getPage(pageId))
+            {
+                continue;
+            }
+            if (!htmlGeneratedPages.in(pageId))
+            {
+                drilldownOnThisLayer.add(pageId);
+            }
+            htmlGeneratedPages.add(pageId);
+        }
+        subPagesEnum = subPages.getEnumerator();
+        while (subPagesEnum.moveNext())
+        {
+            //Go to next Layer
+            pageId = subPagesEnum.current();
+            if (!pages.getPage(pageId))
+            {
+                
+                continue;
+            }
+            
+            html += '<td align="center">' + (drilldownOnThisLayer.in(pageId) ? this.generateHtml(pageId, layer +1) : '<a href="#'+pageId+'"><img align="middle" src="'+this.getImgURL(pageId) +'" alt="'+pageId+'" width="100" height="100"></a>') + '</td><td bgcolor="#'+hexColor+'"width="3">&nbsp;</td>';
+        }
+        
+        html += '<td width="3"></td></tr></table>';
+        if (layer == 0)
+        {
+            html += '<h3>'+"@TFM:Unreferencedpages"+'</h3>';
+            mEnum = pages.getPages().getEnumerator();
+            while (mEnum.moveNext())
+            {
+                if(!pageMap.exists(mEnum.currentKey()))
+                {
+                    html += '<img align="middle" src="'+this.getImgURL(mEnum.currentKey()) +'" alt="'+mEnum.currentKey()+'" width="100" height="100">';
+                }
+            }
+        }
+        return html;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getImgURL</Name>
+				<Source><![CDATA[
+	protected str getImgURL(TFMPageID _pageId)
+    {
+        TFMPage				page = pages.getPage(_pageId);
+        str imgURL = imgUrls.exists(_pageId) ? imgUrls.lookup(_pageId) : TFMGraphicsHelper::getImageURL(TFMMenuConfigurator::menuItemImage(page.parmIcon(),page.ParmId()));
+        imgUrls.insert(_pageId,imgUrl);
+        return imgURL;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobReceiveOrderType</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The parent class of all the classes to provide data for the receive order page.
+/// </summary>
+abstract class MobReceiveOrderType extends MobOrder implements TFMOrderTypeInterface
+{
+    InventDim       itemInventDim;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>OrderType</Name>
+				<Source><![CDATA[
+    public MobOrderTypes OrderType()
+    {
+        #mob
+        return MobConstants::Receive();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateResponse</Name>
+				<Source><![CDATA[
+    public static TFMOrderListResponseElement generateResponse(TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+        ListEnumerator				lEnum           = new DictClass(className2Id(classStr(MobReceiveOrderType))).extendedBy(true).getEnumerator();
+        MobReceiveOrderType			typeCls;
+        DictClass					dc;
+        Map							returnMap = new Map(Types::string, Types::Record);
+        MapEnumerator				mEnum;
+        int							i = 1;
+        TFMOrderTypes               orderType = _filters.parmTfmOrderTypes();
+        TFMTableNameAttribute       TableName;
+        TFMOrderListResponseElement	response = TFMOrderListResponseElement::Construct(MobConstants::Receive());
+        while (lEnum.moveNext())
+        {
+            
+            dc = new DictClass(lEnum.current());
+            if (dc == null)
+            {
+                continue;
+            }
+            TableName = dc.getAttribute(classStr(TFMTableNameAttribute));
+            if (orderType && orderType != TableName.parmTableName() + (TableName.parmOrderType() ? ';'+TableName.parmOrderType() : ''))
+            {
+                continue;
+            }
+            if (orderType)
+            {
+                response.parmPageId(subStr(MobConstants::Receive() + strReplace(orderType,';',''),1,30));
+            }
+            typeCls = dc.makeObject() as MobReceiveOrderType;
+            returnMap = MobHelper::mergeMaps(typeCls.getHeaderRecords(_filters, typeCls.processScannedValue(_scannedValue)), returnMap);
+            
+        }
+        response.mergeRecordMap(returnMap);
+
+        return response;
+  
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processScannedValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to parse the scanned value, and find the corresponding ID.
+    /// </summary>
+    /// <param name = "_scannedValue">The scanned value as a string.</param>
+    /// <returns>The corresponding ID as a string.</returns>
+    public ItemId processScannedValue(str _scannedValue)
+    {
+        // The scanned value is assumed to be an item number / barcode
+        // Change this code if you want to allow the user scan another value to filter the list of orders
+        ItemId              itemId;
+        InventItemGTIN      inventItemGTIN;
+        InventItemBarcode   inventItemBarcode = InventItemBarcode::findInputBarcode(_scannedValue);
+        if (inventItemBarcode && inventItemBarcode.itemId)
+        {
+            itemId = inventItemBarcode.itemId;
+            itemInventDim = inventItemBarcode.inventDim();
+        }
+        else
+        {
+            inventItemGTIN = InventItemGTIN::findGTIN(_scannedValue);
+    
+            if (inventItemGTIN && inventItemGTIN.itemId)
+            {
+                itemId = inventItemGTIN.itemId;
+                itemInventDim = InventDim::find(inventItemGTIN.inventDimId);
+            }
+            else if (InventTable::exist(_scannedValue))
+            {
+                itemId = InventTable::find(_scannedValue).ItemId;
+            }
+        }
+    
+        if (!itemId && _scannedValue)
+        {
+            throw error(strfmt(InventTable::txtNotExist(),_scannedValue));
+        }
+        return itemId;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

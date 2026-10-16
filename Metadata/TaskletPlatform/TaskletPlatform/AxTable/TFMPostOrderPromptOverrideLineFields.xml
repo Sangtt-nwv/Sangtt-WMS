@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPostOrderPromptOverrideLineFields</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMPostOrderPromptOverrideLineFields extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>createFromLinesRecord</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public static void createFromLinesRecord(TFMPostOrderPromptOverrideLines _lines)
+    {
+        TFMPostOrderPromptOverrideLineFields    fields;
+        MapEnumerator                           fieldsFromType = TFMPostOrderPromptOverrideLineFields::getMapFromType(_lines.InputType,0).getEnumerator();
+
+        delete_from fields where fields.LinesRecId == _lines.RecId;
+        while(fieldsFromType.moveNext())
+        {
+            
+            fields.FieldName = fieldsFromType.currentKey();
+            fields.Value = fieldsFromType.currentValue();
+            fields.LinesRecId = _lines.RecId;
+            if (fields.FieldName != 'id' && fields.FieldName != 'name' && fields.FieldName != 'inputType')
+            {
+                fields.insert();
+            }
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMapFromType</Name>
+				<Source><![CDATA[
+    public static Map getMapFromType(TFMInputTypes _inputTypes, int _id, str _name = 'name', str _header = 'header', str _label = 'label', str _helpText = 'helpText', str _defaultValue = 'Value1', str _steps = 'Value1;Value2;etc')
+    {
+        return TFMPostOrderPromptOverrideLineFields::getStepFromType(_inputTypes, _id, _name, _header, _label, _helpText, _defaultValue, _steps).getMap();        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getStepFromType</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollector getStepFromType(TFMInputTypes _inputTypes, int _id, str _name = 'name', str _header = 'header', str _label = 'label', str _helpText = 'helpText', str _defaultValue = 'Value1', str _steps = 'Value1;Value2;etc')
+    {
+        TFMRegistrationCollector ret;
+        switch ( _inputTypes)
+        {
+            case TFMInputTypes::Date :
+                ret = TFMRegistrationCollectorDate::DateStep(true,_id,_name,_header,_label,_helpText,dateNull(),dateMax());
+                break;
+            case TFMInputTypes::Decimal :
+                ret = TFMRegistrationCollectorDecimal::DecimalStep(_id,_name,_header,_label, _helpText);
+                break;
+            case TFMInputTypes::Image :
+                ret = new TFMRegistrationCollectorImage(_id,_name,_label,_header, _helpText);
+                break;
+            case TFMInputTypes::ImageCapture :
+                ret = new TFMRegistrationCollectorImageCapture(_id,_name,_label,_header,_helpText);
+                break;
+            case TFMInputTypes::Information :
+                ret = new TFMRegistrationCollectorInformation(_id,_name,_label,_header, _helpText);
+                break;
+            case TFMInputTypes::Integer :
+                ret = TFMRegistrationCollectorInteger::IntegerStep(_id,_name,_label,_header, _helpText);
+                break;
+            case TFMInputTypes::List :
+                ret = TFMRegistrationCollectorList::ListStep(true,_id,_name,_label,_header, _helpText,_steps);
+                break;
+            case TFMInputTypes::MultiLineText :
+                ret = new TFMRegistrationCollectorMultiLine(_id,_name,_label,_header, _helpText);
+                break;
+            case TFMInputTypes::MultiScan : 
+                ret = new TFMRegistrationCollectorMultiScan(_id,_name,_label,_header, _helpText);
+                break;
+            case TFMInputTypes::QuantityByScan :
+                ret = TFMRegistrationCollectorQuantityByScan::QtyByScanStep(_id,_name,_label,_header, _helpText,_steps);
+                break;
+            case TFMInputTypes::RadioButton :
+                ret = TFMRegistrationCollectorRadioButton::RadioButtonStep(_id,_name,_label,_header, _helpText,_defaultValue,_steps);
+                break;
+            case TFMInputTypes::Signature :
+                ret = TFMRegistrationCollectorSignature::SignatureStep(_id,_name,_label,_header, _helpText);
+                break;
+            case TFMInputTypes::Text :
+                ret = TFMRegistrationCollectorText::TextStep(true,_id,_name,_label,_header, _helpText,100);
+                break;
+            case TFMInputTypes::TypeAndQuantity : 
+                ret = TFMRegistrationCollectorTypeAndQuantity::TypeAndQuantity(_id,_name,_label,_header, _helpText);
+                break;
+        }
+        ret.parmDefaultValue(_defaultValue);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:PostPromptOverrideFieldsDevDesc</DeveloperDocumentation>
+	<Label>@SYS36590</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>FieldName</TitleField1>
+	<TitleField2>Value</TitleField2>
+	<ReplacementKey>NameIdx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>FieldName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Value</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>FieldName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LinesRecId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>FieldName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Value</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Reference</Name>
+			<Label>@SYS40441</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LinesRecId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FieldName</Name>
+			<ExtendedDataType>FieldNameShort</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Value</Name>
+			<ExtendedDataType>FileDataString</ExtendedDataType>
+			<Label>@SYS41043</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>LinesRecId</Name>
+			<ExtendedDataType>TFMPostOrderPromptOverrideLinesRecId</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>NameIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>FieldName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>LinesRecId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>TFMPostOrderPromptOverrideLines</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>TFMPostOrderPromptOverrideLines</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>LinesRecId</Name>
+					<Field>LinesRecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

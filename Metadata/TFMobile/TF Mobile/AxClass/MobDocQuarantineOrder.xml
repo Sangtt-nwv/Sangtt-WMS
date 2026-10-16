@@ -1,0 +1,682 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocQuarantineOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The MobDocQuarantineOrder class is the document handler for the quarantine order creation in Mobile Wms.
+/// </summary>
+[
+    TFMTableName(tableStr(InventQuarantineOrder)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(MobConstants,QuarantineOrders)),
+    TFMDocumentType(classStr(TFMLookup), staticMethodStr(MobConstants,QuarantineOrders)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration),staticMethodStr(MobConstants, CreateQuarantineOrders)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration),staticMethodStr(MobConstants, CreateQuarantineOrders)),
+    TFMMenu(staticMethodStr(MobConstants,QuarantineOrders),"@MobileWMS:MobileWMS170","@MobileWMS:MobileWMS170",resourceStr(MobQuarantineOrderIcon),true,true,['Warehouse', 'Miscellaneous']),
+    TFMMenu(staticMethodStr(MobConstants,CreateQuarantineOrders),"@MobileWMS:createQuarantineOrder","@MobileWMS:createQuarantineOrder",resourceStr(MobQuarantineOrderIcon),false,true,['Warehouse', 'Miscellaneous', 'Inbound'])
+]
+class MobDocQuarantineOrder extends TFMDocumentHandler
+{
+    InventTable                 inventTable;
+    InventDim                   inventDim;
+    InventQuarantineOrder       qOrder;
+    TFMRequestQuarantineElement QuarantineRequest;
+    boolean						showInfo;
+
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmShowInfo</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes, "@MobileWMS:ShowInfo")]
+    public MobPromptForUnit parmShowInfo(MobPromptForUnit _showInfo = showInfo)
+    {
+        showInfo = _showInfo;
+        return showInfo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages ret = super();
+        TFMPageLookup	lookupPage = ret.getPage(staticMethodStr(MobConstants,QuarantineOrders));
+        TFMPageLookupConfiguration		lookupConfig;
+        
+        //MobPage createQuanrantineOrderPage;
+
+        //lookupPage.parmId(staticMethodStr(MobConstants,QuarantineOrders));
+        //lookupPage.parmFilter(methodStr(MobDocQuarantineOrder,QuarantineOrdersCfgHeader));
+        lookupPage.parmIcon('mainmenuquarantineorders');
+        lookupPage.parmTitle('PageQuarantineOrdersTitle');
+        lookupPage.setListId(classStr(TFMListLookupNoSlash));
+ 
+        lookupConfig = lookupPage.getConfiguration();
+        lookupConfig.parmAutomaticAccept(TFMAutomaticAccept::OnOpen);
+        lookupConfig.parmRefreshOnSuccess(true);
+        
+
+        /*createQuanrantineOrderPage = ret.getPage(staticMethodStr(MobConstants,CreateQuarantineOrders));        
+        createQuanrantineOrderPage.parmAvailableForMenuPages(false);*/
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventQuarantineOrder</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSetAttribute(tableStr(InventQuarantineOrder))]
+    public InventQuarantineOrder getInventQuarantineOrder()
+    {
+        return qOrder;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preProcess</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public boolean preProcess()
+    {
+        QuarantineRequest = request;
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tag2Dimension</Name>
+				<Source><![CDATA[
+    private str tag2Dimension(str _tagname)
+    {
+        str returnStr = _tagname;
+        switch(_tagname)
+        {
+            case MobConstants::FromWarehouse() :
+                returnStr = extendedTypeStr(InventLocationId);
+                break;
+            case MobConstants::FromLocation() :
+                returnStr = extendedTypeStr(WMSLocationId);
+                break;
+        }
+        return returnStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupQuarantineOrders</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to return Quarantine Order elements to the mobile client.
+    /// </summary>
+    /// <returns>A MobLookupResponseElement instance containing the data needed for he lookup page on the mobile device.</returns>
+    [TFMLookupResponse(classStr(TFMLookup), staticMethodStr(MobConstants,QuarantineOrders))]
+    protected TFMLookupResponseElement lookupQuarantineOrders()
+    {
+        TFMLookupResponseElement    lookupResponse = TFMLookupResponseElement::Construct(classStr(TFMLookup), staticMethodStr(MobConstants,QuarantineOrders));
+        MobBackendId                backendId;
+        //XmlNode                     requestNode = requestXml.root().getNamedElement(#requestData);        
+        InventTransType         inventTransType;
+        InventTransRefId        inventTransRefId;
+        
+        // Get the reference type from the XML
+        // If the invent trans type is the special value "All" it is not used in the filter
+        // Get the shipment from the XML
+        QuarantineRequest = request;
+        inventTransRefId       = QuarantineRequest.parmInventTransRefId();// requestNode.getNamedElement(#InventTransRefId).innerText();
+    
+        while select qOrder
+            where (!inventTransType || qOrder.TransType == inventTransType) &&
+                  (!inventTransRefId || ( qOrder.TransRefId == inventTransRefId ||
+                  qOrder.QuarantineId == inventTransRefId ||
+                  qOrder.InventTransIdRef == inventTransRefId ||
+                  qOrder.ItemId == inventTransRefId)) &&
+                  qOrder.Status == InventQuarantineStatus::Started
+        {
+            backendId = tableStr(inventQuarantineOrder) + '/' + fieldStr(inventQuarantineOrder,QuarantineId) + '/' + qOrder.QuarantineId;//#PickProdOrderPrefix + prodJournalTable.JournalId;
+            
+            // Add the necessary steps for the quarantine order
+            lookupResponse.addResponse(qOrder, backendId,this);
+
+        }
+        return lookupResponse;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createQuarantineOrderRegConf</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create Quarantine Orders registration configuration
+    /// </summary>
+    [TFMCollectorMap(classStr(TFMLookup), staticMethodStr(MobConstants,QuarantineOrders))]
+    protected Map createQuarantineOrderRegConf()
+    {
+        Map returnMap = new Map(Types::String, Types::Class);
+        str html = MobHelper::makeDocurefHTML(qOrder);
+    
+        if (html)
+        {
+            returnMap.insert('info', TFMRegistrationCollectorInformation::InformationStepMap(10, 'info', qOrder.ItemId, '', html));
+        }
+        //if (!TFMInventDimSetup::Construct(inventTable::find(qOrder.itemId)).registerWMSPallet())
+        {
+            returnMap.insert('to'+extendedTypeStr(WMSLocationId), TFMRegistrationCollectorText::TextStepMap(false,20,'to'+extendedTypeStr(WMSLocationId),"@MobileWMS:MEL48","@SYS50351",'',100,false,qOrder.InventDim().wMSLocationId));
+        }
+        returnMap.insert(MobConstants::Quantity(), TFMRegistrationCollectorDecimal::DecimalStepMap(30,MobConstants::Quantity(),"@SYS59970","@SYS59970",'',false,'',0,10000000,14));
+        returnMap.insert(MobConstants::ScrapQuantity(), TFMRegistrationCollectorDecimal::DecimalStepMap(40,MobConstants::ScrapQuantity(),"@SYS39409","@SYS39409",'',false,'',0,10000000,14));
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postQuarantineOrderJournal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to post Quarantine Order journal.
+    /// </summary>
+    [TFMPostMethod(tableStr(InventQuarantineOrder)), TFMDocumentType(classStr(TFMPostAdhocRegistration), staticmethodStr(MobConstants,QuarantineOrders))]
+    protected void postQuarantineOrderJournal()
+    {
+        //XmlNode                             requestDataNode = requestXml.root().getNamedElement(#requestData);
+        InventQuarantineUpdStartUp          inventQuarantineUpdStartUp;
+        InventQuarantineUpdReportFinished   inventQuarantineUpdReportFinished;
+        InventParmQuarantineOrder           inventParmQuarantineOrder;
+        InventQuarantineOrder_Scrap         inventQuarantineOrder_Scrap;
+        InventQuarantineOrder_Split         inventQuarantineOrder_Split;
+        InventQuarantineUpdEnd              inventQuarantineUpdEnd;
+        InventQty                           qty;
+        InventQty                           scrapQty;
+        InventQuarantineId                  inventQuarantineId;        
+        InventDim                           quarantineInventDim;
+        InventDim                           inventDimReceipt;
+        
+        ItemId                              itemid;
+        EcoResItemConfigurationName         configId;
+        EcoResItemSizeName                  inventSizeId;
+        EcoResItemColorName                 inventColorId;
+        EcoResItemStyleName                 inventStyleId;
+        InventSiteId                        fromInventSiteId;
+        InventSiteId                        toInventSiteId;
+        InventLocationId                    fromInventLocationId;
+        InventLocationId                    toInventLocationId;
+        WMSLocationId                       fromWmsLocationId;
+        WmsLocationId                       toWmsLocationId;
+        InventBatchId                       inventBatchId;
+        InventSerialId                      inventSerialId;
+        WhsLicensePlateId                   lp;
+        
+        #if.isAX6
+        WMSPalletId                         wmsPalletId;
+        #endif
+        TFMInventDimSetup                   mobInventDimSetup;
+
+        Map									qtys = new Map(Types::String,Types::Real);
+        Map									itemIds = new Map(Types::String,Types::String);
+        Map									inventDimIssues = new Map(Types::String,Types::Record);
+        Map									inventDimReceipts = new Map(Types::String,Types::Record);
+        
+        // Get the registration values from the XML
+        
+        inventQuarantineId  = QuarantineRequest.parmInventQuarantineId();//requestDataNode.getNamedElement(extendedTypeStr(InventQuarantineId)).innerText();
+        qty                 = QuarantineRequest.parmQuantity();//MobHelper::convertStr2Num(requestDataNode.getNamedElement(#Quantity).innerText());
+        scrapQty            = QuarantineRequest.parmScrapQuantity();//MobHelper::convertStr2Num(requestDataNode.getNamedElement(#ScrapQuantity).innerText());
+    
+        // Find the quarantine order
+        select firstonly qOrder
+            where qOrder.QuarantineId == inventQuarantineId;
+    
+        // Get the values from the invent dim before we start updating the order
+        quarantineInventDim = InventDim::find(qOrder.InventDimIdQuarantine);
+        inventDim           = InventDim::find(qOrder.InventDimId);
+    
+        // Save the parameters needed to post the movement after posting the quarantine order
+        // In this scenario the item has been moved back to the originating location
+        // This means that the movement is from the original location to a new location specified on the mobile device
+        itemid                  = qOrder.ItemId;
+        configId                = inventDim.configId;
+        inventSizeId            = inventDim.InventSizeId;
+        inventColorId           = inventDim.InventColorId;
+        // The movement happens within the same site + warehouse
+        fromInventSiteId        = inventDim.InventSiteId;
+        toInventSiteId          = inventDim.InventSiteId;
+        fromInventLocationId    = inventDim.InventLocationId;
+        toInventLocationId      = inventDim.InventLocationId;
+        fromWmsLocationId       = inventDim.wMSLocationId;
+        toWmsLocationId         = QuarantineRequest.parmToWMSLocationId() ? QuarantineRequest.parmToWMSLocationId() : fromWmsLocationId;//requestDataNode.getNamedElement(#ToLocation) != null ? requestDataNode.getNamedElement(#ToLocation).innerText() : fromWmsLocationId;
+        // The toWmsLocationId is extracted from the XML in the beginning of the function
+        inventBatchId           = inventDim.inventBatchId;
+        inventSerialId          = inventDim.inventSerialId;
+        inventStyleId           = inventDim.inventStyleID;
+        lp                      = inventDim.LicensePlateId;
+        #if.isAX6
+        wmsPalletId             = inventDim.wMSPalletId;
+        #endif
+    
+        if (!qOrder)
+        {
+            throw error(strFmt(SysLabel::labelId2String2("@SYS58441"),inventQuarantineId));
+        }
+    
+        // Check if the order needs to be started
+        if (qOrder.Status == InventQuarantineStatus::Created)
+        {
+            inventParmQuarantineOrder.skipTTSCheck(true);
+            inventParmQuarantineOrder.ParmBuffer::initParmId();
+            inventParmQuarantineOrder.QuarantineId      = qOrder.QuarantineId;
+            inventParmQuarantineOrder.TransDate         = MobHelper::today();
+            inventParmQuarantineOrder.Type              = InventQuarantineStatus::Started;
+            inventParmQuarantineOrder.write();
+    
+            inventQuarantineUpdStartUp = InventQuarantineUpdStartUp::construct();
+            inventQuarantineUpdStartUp.parmParmBuffer(inventParmQuarantineOrder);
+    
+            inventQuarantineUpdStartUp.run();
+        }
+    
+        // Process:
+        // 1. Validate scrapped qty + qty must not exceed remaining qty
+        // 2. Handle the scrapped quantity
+        // 3. Split the line if necessary (if qty < remaining qty)
+        // 4. Report as finished
+        // 5. End the order
+        // 6. Update the location where the item is placed in the real warehouse (unplanned move)
+    
+        // Validate remaining quantity
+        if (qOrder.RemainQty < qty + scrapQty)
+        {
+            throw error("@MobileWMS:MEL84");
+        }
+    
+        // Handle scrapped quantity
+        if (scrapQty > 0)
+        {
+            inventQuarantineOrder_Scrap  = InventQuarantineOrder_Scrap::construct();
+            inventQuarantineOrder_Scrap.parmInventQuarantineId(inventQuarantineId);
+            inventQuarantineOrder_Scrap.parmScrapQty(scrapQty);
+            inventQuarantineOrder_Scrap.parmTransDate(MobHelper::today());
+            #ifnot.isAX6
+            inventQuarantineOrder_Scrap.runOperation();
+            #endif
+            #if.isAX6
+            inventQuarantineOrder_Scrap.run();
+            #endif
+            // Select the quarantine order againg to update the remaining quantity
+            select firstonly qOrder
+                where qOrder.QuarantineId == inventQuarantineId;
+        }
+    
+        // Only split, report as finished and end the order if the quantity is > 0
+        if (qty <= 0)
+        {
+            resultStr = "@MobileWMS:MEL81";
+            return;
+        }
+        // Split the line?
+        if (qty < qOrder.RemainQty)
+        {
+            inventQuarantineOrder_Split = InventQuarantineOrder_Split::construct();
+            inventQuarantineOrder_Split.parmInventQuarantineId(inventQuarantineId);
+            // The quantity to split must be calculated so the result is that the original line has the quantity to post
+            // The rest of the post process can then use the original order id
+            inventQuarantineOrder_Split.parmSplitQty(qOrder.RemainQty-qty);
+            #ifnot.isAX6
+            inventQuarantineOrder_Split.runOperation();
+            #endif
+            #if.isAX6
+            inventQuarantineOrder_Split.run();
+            #endif
+            
+        }
+    
+    
+        // Post the order
+        // First create the parameters
+        inventParmQuarantineOrder.clear();
+        inventParmQuarantineOrder.QuarantineId      = inventQuarantineId;
+        inventParmQuarantineOrder.TransDate         = MobHelper::today();
+        inventParmQuarantineOrder.Qty               = qty;
+        inventParmQuarantineOrder.Type              = InventQuarantineStatus::ReportedFinished;
+    
+        // Then run the class that reports the order as finished
+        inventQuarantineUpdReportFinished = inventQuarantineUpdReportFinished::newParmBuffer(inventParmQuarantineOrder);
+        inventQuarantineUpdReportFinished.run();
+    
+        // End the order
+        // Set the value on the parameter table
+        inventParmQuarantineOrder.clear();
+        inventParmQuarantineOrder.QuarantineId      = inventQuarantineId;
+        inventParmQuarantineOrder.TransDate         = MobHelper::today();
+        inventParmQuarantineOrder.Qty               = qty;
+        inventParmQuarantineOrder.Type              = InventQuarantineStatus::Ended;
+        inventQuarantineUpdEnd                      = InventQuarantineUpdEnd::newParmBuffer(inventParmQuarantineOrder);
+        inventQuarantineUpdEnd.run();
+
+        // Move location
+        // If the location received from the mobile device is different from the one specified on the quarantine order
+        // then we move the item using the unplanned move functionality
+    
+        if (fromWmsLocationId != toWmsLocationId)
+        {
+            // If the item is using pallet id the pallet must be moved with the MovePallet function
+            // Otherwise we move the item using the unplanned move
+
+            // Get the dimension setup for the item
+            mobInventDimSetup   = TFMInventDimSetup::Construct(inventTable::find(itemId));
+            
+            // Determine if a pallet id or location should be used
+            if (mobInventDimSetup.registerLicensePlate())
+            {
+                //WMSPalletDoMove::movePallet(wmsPalletId, fromInventLocationId, toWmsLocationId);
+                inventDimReceipt.data(inventDim);
+                inventDimReceipt.wmsLocationId = toWmsLocationId;
+                inventDimReceipt.inventLocationid = toInventLocationId;
+
+                inventDimReceipt = InventDim::findOrCreate(inventDimReceipt);
+                qtys.insert('1',qty);
+                itemIds.insert('1',itemid);
+                inventDimIssues.insert('1',inventDim);
+                inventDimReceipts.insert('1',inventDimReceipt);
+                MobPostHelper::inventJournalTransferMulti(qtys,itemIds,inventDimIssues, inventDimReceipts);
+                //TFMPostHelper::MoveLicensePlate(lp,toInventLocationId,toWmsLocationId,inventDim);
+            }
+            else            
+            {
+                inventDimReceipt.data(inventDim);
+                inventDimReceipt.wMSLocationId = toWmsLocationId;
+                inventDimReceipt = InventDim::findOrCreate(inventDimReceipt);
+                MobPostHelper::inventJournalTransfer(qty,itemid,inventDim, inventDimReceipt);
+
+            }
+        }
+    
+        resultStr = "@MobileWMS:MEL81";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postQuarantineOrder</Name>
+				<Source><![CDATA[
+    [TFMPostMethod(tableStr(InventQuarantineOrder)), 
+        TFMDocumentType(classStr(TFMPostAdhocRegistration),staticMethodStr(MobConstants, CreateQuarantineOrders))]
+    private str postQuarantineOrder()
+    {
+
+        InventQty               qty = QuarantineRequest.parmQuantity();
+        Map                     lpContent;
+        str                     mediaIDs = QuarantineRequest.getFieldValue(extendedTypeStr(ImageDataString));
+
+
+        inventDim = QuarantineRequest.createInventDim(inventDim);
+
+        if (inventDim.LicensePlateId)
+        { 
+            lpContent = MobInventDimHelper::LicensePlateContent(inventDim.LicensePlateId);
+            if (lpContent.elements() > 1 || (lpContent.exists(QuarantineRequest.parmItemId()) && lpContent.lookup(QuarantineRequest.parmItemId()) != Qty))
+            {
+                throw error("@MobileWMS:CompleteLicensePlateOnQOrder");
+            }
+        }
+        qOrder = MobDocQuarantineOrder::createQuarantineOrder(QuarantineRequest.parmItemId(), inventDim.inventDimId,Qty);
+
+        if (mediaIDs && qOrder != null)
+        {
+            TFMMediaQueue::AddMap2Queue(qOrder, TFMMediaQueue::separateIDsAndComments(mediaIDs), QuarantineRequest.parmdeviceID());
+        }
+
+        return strFmt("@MobileWMS:QuarantineOrderCreated", qOrder.QuarantineId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>QuarantineOrderRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method that returns the registration collectors for the create Quarantine order flow
+    /// </summary>
+    /// <returns>The registration collectors for the create Quarantine order flow</returns>
+    [TFMCollectorMap(classStr(TFMGetRegistrationConfiguration),staticMethodStr(MobConstants, CreateQuarantineOrders))]
+    public Map QuarantineOrderRegistrationCollectors()
+    {
+        Map                 returnMap;
+        TFMInventDimSetup   MobInventDimSetup   = TFMInventDimSetup::Construct(QuarantineRequest.parmInventTable());
+        Map                 replaceLabels = new Map(Types::String, Types::String);
+        
+        int                 add = 20;
+        str                 html = MobHelper::makeItemHTML(QuarantineRequest.parmInventTable());
+        InventDimParm       parm;
+        parm =  InventDimParm::activeDimFlag(InventDimGroupSetup::newInventTable(QuarantineRequest.parmInventTable()));
+        parm.InventSiteIdFlag = NoYes::No;
+        
+        #if.isAX6
+        parm.WMSPalletIdFlag = mobInventDimSetup.registerWMSPallet();
+        parm.WMSLocationIdFlag = !mobInventDimSetup.registerWMSPallet();
+        #endif
+        parm.InventSerialIdFlag = NoYes::Yes;
+        replaceLabels.insert(extendedTypeStr(WMSLocationId),"@MobileWMS:MEL37");
+        returnMap = MobInventDimHelper::GetInventDimCollectors(add,mobInventDimSetup,parm,replaceLabels);
+    
+        if (showInfo)
+        {
+			// Information step
+			returnMap.insert('info', TFMRegistrationCollectorInformation::InformationStepMap(10, 'info', QuarantineRequest.parmInventTable().ItemId, '', html));
+        }
+        returnMap.insert(extendedTypeStr(ImageDataString), TFMRegistrationCollectorImageCapture::ImageCaptureStepMap(add + returnMap.elements()*10 + 10,extendedTypeStr(ImageDataString),"@SYS59132","@SYS59132",''));
+        
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeQuarantineOrder</Name>
+				<Source><![CDATA[
+    private str makeQuarantineOrder()
+    {
+        /*ItemId                  itemId;
+        XmlNode                 requestNode = requestXml.root().getNamedElement(#requestData);
+        
+        ItemId                  itemIdTmp;        
+    
+        // The root node parameter contains the values that was registered on the header
+        // Get the production order number from the request
+        itemId = MobHelper::ExtractItemId_Raw(requestNode);
+    
+        inventTable = InventTable::find(itemId);
+    
+        if (!inventTable)
+        {
+            itemIdTmp = MobHelper::ExtractItemId(inventDim, requestNode);
+
+            if (!itemIdTmp)
+            {
+                throw error(strfmt(InventTable::txtNotExist(),itemId));
+            }
+    
+            itemId = itemIdTmp;
+            inventTable = InventTable::find(itemId);
+        }*/
+        this.addFunctionCollectors(funcName());
+        
+        return "@MobileWMS:MEL9";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public TFMDocumentHandlerDescription description()
+    {
+        TFMDocumentHandlerDescription ret;
+
+        ret = "@SYS58435";
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createQuarantineHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates the header (or filter) for the create Quarantine Order page.
+    /// </summary>
+    /// <returns>The header as an xml string.</returns>
+    [TFMReferenceDataMethod(staticMethodStr(MobConstants,CreateQuarantineOrders))]
+    public TFMReferenceDataConfiguration createQuarantineHeader()
+    {
+        TFMReferenceDataConfiguration refConf = new TFMReferenceDataConfiguration();
+        refConf.addCollector(TFMGetReferenceData::defaultItemIdCollector());
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>QuarantineOrdersCfgHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates the header (or filter) for the Quarantine orders page.
+    /// </summary>
+    /// <returns>The header as an XML formatted string.</returns>
+    [TFMReferenceDataMethod(staticMethodStr(MobConstants,QuarantineOrders))]
+    public TFMReferenceDataConfiguration QuarantineOrdersCfgHeader()
+    {
+        TFMReferenceDataConfiguration refConf = new TFMReferenceDataConfiguration();
+        // Reference number
+        refConf.addCollector(TFMGetReferenceData::defaultTransRefIdCollector());
+
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createQuarantineOrder</Name>
+				<Source><![CDATA[
+    static public server InventQuarantineOrder createQuarantineOrder(
+    ItemId                      _item,
+    InventDimId                 _inventDimId,
+    InventQty                   _qty
+    )
+    {
+        InventQuarantineOrder           inventQuarantineOrder;
+        InventDim                       inventDimQuarantine;
+        InventDim                       inventDimSpecified;
+        InventQuarantineUpdStartUp      startUp;
+        InventParmQuarantineOrder       inventParmQuarantineOrder;
+        InventTransType                 transType;
+        InventLocation                  inventLocationQuarantineOrder;
+        InventTable                     inventTable = InventTable::find(_item);
+
+        transType = InventQualityOrderTable::referenceType2TransType(InventTestReferenceType::Quarantine);
+        inventDimSpecified = InventDim::find(_inventDimId);
+        inventDimQuarantine.data(inventDimSpecified);
+
+        inventLocationQuarantineOrder = inventDimSpecified.inventLocation();
+        if (inventLocationQuarantineOrder.InventLocationType == InventLocationType::Quarantine)
+        {
+            // Items already at quarantine warehouse
+            return null;
+        }
+        ttsbegin;
+        inventQuarantineOrder.initValue();
+        inventQuarantineOrder.ItemId            = _item;
+        inventQuarantineOrder.initFromInventTable(inventTable);
+
+        inventQuarantineOrder.TransType                 = transType;
+        inventQuarantineOrder.RemainQty                 = _qty;
+        inventQuarantineOrder.Qty                       = _qty;
+
+        inventQuarantineOrder.setInventDimId(InventDim::findOrCreate(inventDimSpecified).inventDimId);
+
+        inventDimQuarantine.InventLocationId = inventLocationQuarantineOrder.InventLocationIdQuarantine;
+        inventDimQuarantine = MobDocQuarantineOrder::getQuarantineInventDimWithWMSLocation(inventDimQuarantine, inventQuarantineOrder.ItemId);
+        inventQuarantineOrder.InventDimIdQuarantine = inventDimQuarantine.InventDimId;
+        inventQuarantineOrder.Status = InventQuarantineStatus::Created;
+        
+        inventQuarantineOrder.TransType                 = transType;
+        inventQuarantineOrder.RemainQty                 = _qty;
+        inventQuarantineOrder.Qty                       = _qty;
+
+        inventQuarantineOrder.insert();
+        ttscommit;
+
+        if (inventQuarantineOrder.Status == InventQuarantineStatus::Created)
+        {
+            inventParmQuarantineOrder.QuarantineId  = inventQuarantineOrder.QuarantineId;
+            inventParmQuarantineOrder.TransDate     = inventQuarantineOrder.QuarantineDate;
+
+            startUp = InventQuarantineUpdStartUp::newParmBuffer(inventParmQuarantineOrder);
+            startUp.run();
+        }
+
+        return inventQuarantineOrder;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getQuarantineInventDimWithWMSLocation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns an <c>InventDim</c> record for the quarantine dimension with the <c>WMSLocationId</c> value set if possible.
+    /// </summary>
+    /// <param name="_inventDimQuarantine">
+    /// An <c></c> buffer used to create the returned record from.
+    /// </param>
+    /// <param name="_itemId">
+    /// The <c>ItemId</c> ID for the quarantine order.
+    /// </param>
+    /// <returns>
+    /// An <c>InventDim</c> record for the quarantine dimension with the <c>WMSLocationId</c> value set if possible.
+    /// </returns>
+    private static  InventDim getQuarantineInventDimWithWMSLocation(
+        InventDim _inventDimQuarantine,
+        ItemId    _itemId)
+    {
+        //Copied from inventQuarantineOrder table.
+        WMSLocation     defaultLocation;
+        InventDim       inventDimLocal;
+
+        //ensure that values and inventDimId match
+        inventDimLocal = InventDim::findOrCreate(_inventDimQuarantine);
+        defaultLocation = WMSLocation::defaultItemLocation(_itemId, InventDirection::Receipt, inventDimLocal);
+        // if a default location has been configured for the item at the quarantine warehouse this should be used instead.
+        if (defaultLocation.RecId)
+        {
+            inventDimLocal.wmsLocationId = defaultLocation.wmsLocationId;
+            inventDimLocal = InventDim::findOrCreate(inventDimLocal);
+        }
+
+        return inventDimLocal;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

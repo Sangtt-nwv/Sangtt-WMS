@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDeviceConnectionGuideFormClass</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDeviceConnectionGuideFormClass extends Object
+{
+    str baseUrl;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(str _baseUrl)
+    {
+        baseUrl = _baseUrl;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CreateNewClientID</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This function is used to create a new client ID in the SysAADClientTable.
+    /// It prompts the user to enter a client ID and a user ID through a dialog box.
+    /// If the client ID already exists in the table, it throws an error.
+    /// Otherwise, it creates a new record with the provided client ID and user ID.
+    /// </summary>
+    /// <returns>
+    /// The newly created client ID.
+    /// </returns>
+    /// <remarks>
+    /// Throws an error if the client ID or user ID is not provided.
+    /// Throws an error if the client ID already exists in the SysAADClientTable.
+    /// Catches and handles any exceptions of type Exception::Error that occur during the execution of the function.
+    /// </remarks>
+    public str CreateNewClientID()
+    {
+        SysAADClientTable sysADDClientTable;
+        str         clientId, userId = "";
+        Dialog      dlg = new Dialog("@TFM:CreateClientID");
+        DialogField dlgClientID = dlg.addField(extendedTypeStr(String255), "@TFM:ClientId");
+        DialogField dlgUserID = dlg.addField(extendedTypeStr(UserId), "@TFM:UserID");
+
+        // This prompts the dialog
+        if (dlg.run())
+        {
+            try
+            {
+                clientId = dlgClientID.value();
+                userId = dlgUserID.value();
+
+                if(!clientId || !userId)
+                {
+                    Error ("@TFM:Theclientidanduseridmustbeprovid");
+                }
+
+                select forupdate firstonly sysADDClientTable where sysADDClientTable.AADClientId == clientId ;
+                if(sysADDClientTable.RecId)
+                {
+                    Error ("@TFM:ClientIDalreadycreated");
+                }
+                else
+                {
+                    sysADDClientTable.AADClientId = clientId;
+                    sysADDClientTable.UserId = userId;
+                    sysADDClientTable.Name = TFMConstants::ClientIDName();
+                    sysADDClientTable.write();
+                }
+            }
+            catch(Exception::Error)
+            {
+                error("@TFM:AnerroroccurredPleasetryagain");
+            }
+        }
+        return clientId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setConfluencePageContentOnHtmlViewer</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the confluence page content on the htmlviewwer.
+    /// </summary>
+    /// <param name = "_htmlViewer"></param>
+    /// <param name = "_confluencePageId"></param>
+    public void setConfluencePageContentOnHtmlViewer(TFMHtmlViewerCtrl _htmlViewer, str _confluencePageId)
+    {
+        str jsonStr;
+        str pageUrl;
+        
+        try
+        {
+            pageUrl = 'https://taskletfactory.atlassian.net/wiki/rest/api/content/' + _confluencePageId + '?expand=body.view';
+                jsonStr = this.GetJsonBodyValueFrom(pageUrl);
+            jsonStr = strReplace(jsonStr, '\"','"');
+            jsonStr = strReplace(jsonStr, 'TFMService', classStr(TFMService)); // use the name of the TFMService here.
+            jsonStr = strReplace(jsonStr, 'https://YourLink-devaos.cloudax.dynamics.com', baseUrl);
+            _htmlViewer.parmHtml(jsonStr);
+        }
+        catch
+        {
+            _htmlViewer.parmHtml('Unable to retrieve the documentation at the moment go to https://taskletfactory.atlassian.net/wiki/spaces/TFSK/pages/78945591/Install+Guide+-+D365FO to see the guide.');
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetJsonBodyValueFrom</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the json body by deserializating the a confluence page.
+    /// </summary>
+    /// <param name = "_apiUrl">The url to fetch.</param>
+    /// <returns>Json content of the page.</returns>
+    public str GetJsonBodyValueFrom(str _apiUrl)
+    {
+        System.Net.WebRequest			request;
+        System.Net.WebHeaderCollection	headers;
+        System.IO.Stream				outStream, retStream;
+        System.IO.StreamWriter			streamWriter;
+        System.Net.WebResponse			webResponse;
+        System.IO.StreamReader			streamReader;
+        System.String					retStr;
+        
+        try
+        {
+            request				= System.Net.WebRequest::Create(_apiUrl);
+ 
+            request.Method		= 'GET';
+            request.ContentType = 'application/json';
+ 
+            webResponse			= request.GetResponse();
+            retStream			= webResponse.GetResponseStream();
+            streamReader = new System.IO.StreamReader(retStream, System.Text.Encoding::UTF8);
+            retStr = streamReader.ReadToEnd();
+
+            TFMConfluencePageContract confluencePage = FormJsonSerializer::deserializeObjectStrict(classnum(TFMConfluencePageContract), retStr);
+                
+            retStr = confluencePage.body().view().value();
+        }
+        catch (Exception::CLRError)
+        {
+        }
+        
+        return retStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateBarcode</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Updates the barcode for user login and for the configuration of the endpoint. It also sets the json.
+    /// </summary>
+    public void updateBarcode(TFMHtmlViewerCtrl _htmlViewerControl_userName, TFMHtmlViewerCtrl _htmlViewerControl_endpoint, FormStaticTextControl _jsonCtrl, str _userName, str _displayName, str _tenantID)
+    {
+        TFMParameters parms = TFMParameters::find();
+        str endpointId = strReplace(_displayName, ' ', '_');
+        str clientId = parms.SysAADClientId;
+        str json = '';
+        if(_tenantId)
+        {
+            json = TFM2DBarcodeGenerator::getEndPointJson(endpointId, _displayName, baseUrl, clientId, 'https://login.microsoftonline.com/' + _tenantId + '/oauth2/authorize');
+        }
+        else
+        {
+            json = TFM2DBarcodeGenerator::getEndPointJson(endpointId, _displayName, baseUrl, clientId);
+        }
+        
+        if(!_displayName || !clientId)
+        {
+            _htmlViewerControl_endpoint.parmHtml('<div style="height: 340px; line-height: 340px; text-align: center;">' + "@TFM:InformationismissingUnabletogene" + '</div>');
+        }
+        else
+        {
+            TFM2DBarcodeGenerator::showEndPointBarcode(_htmlViewerControl_endpoint, json);
+        }
+        
+        TFM2DBarcodeGenerator::showLoginUserNameBarcode(_htmlViewerControl_userName, _userName);
+        
+        _jsonCtrl.text(json);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

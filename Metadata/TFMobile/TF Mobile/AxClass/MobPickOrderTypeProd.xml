@@ -1,0 +1,574 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobPickOrderTypeProd</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The MobPickOrderTypeProd class handles the production picking list data and posting logic.
+/// </summary>
+[TFMTableNameAttribute(tableStr(ProdJournalTable))]
+class MobPickOrderTypeProd extends MobPickOrderType
+{
+    #mob
+    ProdJournalTable journalTable;
+    MobDocPickOrder  pickOrderDoc;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getProdJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSetAttribute(tableStr(ProdJournalTable))]
+    public ProdJournalTable getProdJournalTable()
+    {
+        return journalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaderRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_inventLocationID"></param>
+    /// <param name = "_deliveryDate"></param>
+    /// <param name = "_scannedValue"></param>
+    /// <returns></returns>
+    public Map getHeaderRecords(TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+        InventLocation  inventLocation;
+        Map             returnMap = new Map(Types::string, Types::Record);
+        Common			ref = _filters.getReferredRecord();
+		if ( ref.tableId == tableNum(MobPackingStation))
+        {
+            return returnMap;
+        }
+        
+        inventLocation = MobHelper::getAllowedInventLocations(curUserId());
+        while select inventLocation where (inventLocation.InventLocationId == _filters.parmWarehouse() || _filters.parmWarehouse() == MobConstants::all())
+        {
+            // Check if sales orders are enabled for this warehouse
+            if (MobHelper::IsProdPickJournalEnabled(inventLocation.InventLocationId))
+            {
+                // Use the warehouse from the current iteration
+                _filters.parmWarehouse(inventLocation.InventLocationId);
+                returnMap = MobHelper::mergeMaps(returnMap,this.getProdPickJournals(_filters,_scannedValue));
+                _filters.parmWarehouse(_filters.getFieldValue('warehouse'));
+            }
+        }
+        
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBackendID</Name>
+				<Source><![CDATA[
+    public str getBackendID(Common _common)
+    {
+        ProdJournalTable ProdJournalTable = _common;
+        return tableStr(ProdJournalTable) + '/' + fieldStr(ProdJournalTable,JournalId) + '/' + prodJournalTable.JournalId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_backendID"></param>
+    /// <param name = "_orderElement"></param>
+    /// <returns></returns>
+    public str post(str _backendID, XmlElement _orderElement)
+    {
+        str ret;
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postRequest</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_backendID"></param>
+    /// <param name = "_orderElement"></param>
+    /// <returns></returns>
+    public str postRequest(TFMRequestOrdersElement _orderElement)
+    {
+        str                             ret;
+        ProdJournalTable                prodJournalTable;
+        ProdJournalBOM                  prodJournalBOM;
+        ProdJournalTableData            journalTableData;
+        ProdJournalCheckPostBOM         journalCheckPost;
+        MobRegistrations                mobRegistrations;
+        MobRegistrations                mobRegistrationsSum;
+        CreatedTransactionId            transID;
+        boolean                         updateTotal;
+        JournalId                       journalId = this.getJournalId(_orderElement.parmBackendID());
+        MobParameters                   params = MobParameters::find();
+        InventTrans						iTrs;
+        InventTransOrigin				iOrg;
+        InventDim						InventDimcheck;
+        Set                             operations = new Set(Types::Integer);
+        pickOrderDoc = new MobDocPickOrder();
+        messageId = _orderElement.parmRoot().parmmessageId();
+    
+        if (!journalId || !ProdJournalTable::exist(journalId))
+        {
+            throw error(strfmt(ProdJournalTable::txtNotExist(),journalId));
+        }
+        transID = MobRegistrations::SaveRequest(_orderElement.Lines(), MobInventRefType::ProdLine, journalId).CreatedTransactionId; // Moved iteration/registration of xml here
+        prodJournalTable = ProdJournalTable::find(journalId,true);
+    
+        journalTableData = new ProdJournalTableData(prodJournalTable);
+    
+        journalTableData.updateBlock(JournalBlockLevel::None,JournalBlockLevel::System,false); // Lock
+    
+        while select forupdate prodJournalBOM
+                    where prodJournalBOM.JournalId == prodJournalTable.JournalId
+        {
+            prodJournalBOM.EndConsump = NoYes::No;
+            //prodJournalBOM.BOMConsump = 0;  TFS-107 Removed
+            prodJournalBOM.update();
+        }
+    
+        while select forupdate mobRegistrations
+                    index OrderLineNumIdx
+                    where mobRegistrations.InventRefType == MobInventRefType::ProdLine &&
+                          mobRegistrations.InventRefId   == journalId &&
+                          mobRegistrations.MessageId      == messageID &&
+                          mobRegistrations.CreatedTransactionId == transID &&
+                          mobRegistrations.Qty          >= 0 && //MIV addition
+                          mobRegistrations.handled       == NoYes::No
+        {
+            select sum(InventQty), sum(Qty) from mobRegistrationsSum
+                where mobRegistrationsSum.RefRecId == MobRegistrations.RefRecId
+                && mobRegistrationsSum.Handled == NoYes::No;
+
+            select firstonly forupdate prodJournalBOM
+                    where prodJournalBOM.JournalId == JournalId && ProdJournalBOM.RecId == mobRegistrations.RefRecId;
+            if (prodJournalBOM.RecId && params.OverDeliveryValidation != TFMOverDeliveryValidation::Block && mobRegistrationsSum.InventQty > prodJournalBOM.InventProposal) 
+            {       
+                prodJournalBOM.BOMConsump = mobRegistrationsSum.Qty;
+                prodJournalBOM.InventConsump = mobRegistrationsSum.InventQty;
+                operations.add( prodJournalBOM.OprNum);
+                prodJournalBOM.update();
+            }
+            else if (prodJournalBOM.RecId)
+            {
+                operations.add( prodJournalBOM.OprNum);
+            }
+            while select iTrs where iTrs.StatusIssue == StatusIssue::ReservPhysical && iTrs.TransChildRefId == prodJournalBOM.InventTransChildRefId
+                join iOrg where iOrg.RecId == iTrs.InventTransOrigin && iOrg.InventTransId == prodJournalBOM.InventTransId
+                    
+            {
+                MobPostHelper::reserveItemFromLine(prodJournalBOM,iTrs.inventDim(),-iTrs.Qty);
+            }            
+            mobRegistrations.pick();
+            mobRegistrations.handled = NoYes::Yes;
+            mobRegistrations.Update();
+        }
+    
+        this.adjustProdJournalBOM2Picked(journalTableData);
+    
+        prodJournalTable = ProdJournalTable::find(prodJournalTable.JournalId);
+        journalCheckPost = ProdJournalCheckPostBOM::newJournalCheckPost(false,true,JournalCheckPostType::Post,prodJournalTable.TableId,prodJournalTable.JournalId);
+        journalCheckPost.parmTransferErrors(true);
+        #ifnot.isAX6
+        journalCheckPost.runOperation();
+        #endif
+        #if.isAX6
+        journalCheckPost.run();
+        #endif
+        journalTable = ProdJournalTable::find(prodJournalTable.JournalId);
+        if (! journalTable.Posted)
+        {
+            //infolog.clear(0);
+
+            throw error("@SYS22330");
+        }
+        else
+        {
+            updateTotal = this.createNewProdJournalTableBOM(ProdJournalTable::find(prodJournalTable.JournalId), operations);
+        }
+    
+        journalTableData.updateBlock(JournalBlockLevel::System,JournalBlockLevel::None, updateTotal);
+        ret = SysLabel::labelId2String2("@MobileWMS:MEL26");
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>adjustProdJournalBOM2Picked</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to update a prodjournal BOM to correspond to what has been picked.
+    /// </summary>
+    /// <param name = "_journalTableData">A JournalTableData buffer.</param>
+    protected void adjustProdJournalBOM2Picked(JournalTableData    _journalTableData)
+    {
+        
+        ProdJournalTable    prodJournalTable;
+        ProdJournalBOM      prodJournalBOM;
+        TransDate           transDateUpdate;
+        
+        prodJournalTable    = _journalTableData.journalTable();
+
+        if(pickOrderDoc.parmSetCurrentDateWhenPostingFromDevice())
+        {
+            transDateUpdate = MobHelper::today();
+        }
+   
+        while select forupdate prodJournalBOM
+            where prodJournalBOM.JournalId   == prodJournalTable.JournalId
+        {
+            if (this.updateProdJournalBOM(prodJournalBOM, transDateUpdate))
+            {
+                prodJournalBOM.update();
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createNewProdJournalTableBOM</Name>
+				<Source><![CDATA[
+    /// <summary>Will create a remaining journal</summary>
+    /// <param name="prodJournalTable">The posted journal - to reuse data from</param>
+    /// <returns>True if a new journal is created and it contains lines.</returns>
+    protected boolean createNewProdJournalTableBOM(ProdJournalTable _prodJournalTable, Set _operations)
+    {
+        SetEnumerator   sEnum;
+        boolean         result;
+
+        if (!pickOrderDoc.parmProdCreateNew())
+        {
+            return false;
+        }
+
+        if (!pickOrderDoc.parmProdOprSegregate())
+        {
+            result = this.createNewProdJournalTableBOMForOpr(_prodJournalTable,_prodJournalTable.OprNum,_prodJournalTable.OprNum);
+        }
+        else
+        {
+            sEnum = _operations.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                result = result || this.createNewProdJournalTableBOMForOpr(_prodJournalTable,sEnum.current(),sEnum.current());
+            }
+        }
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createNewProdJournalTableBOMForOpr</Name>
+				<Source><![CDATA[
+    protected boolean createNewProdJournalTableBOMForOpr(ProdJournalTable _prodJournalTable, int _oprFrom, int _oprTo)
+    {
+        ProdJournalCreateBOM pjcb;
+        pjcb = ProdJournalCreateBOM::construct();
+        pjcb.parmJournalId(''); // create new
+        pjcb.parmTransDate(MobHelper::today());
+        pjcb.parmProdId( _prodJournalTable.ProdId );
+        pjcb.parmOprNumFrom(_oprFrom);
+        pjcb.parmOprNumTo(_oprTo);
+    
+        pjcb.parmJournalNameId( _prodJournalTable.JournalNameId );
+        pjcb.parmConsumpProposal( ProdBOMConsumpProposal::RemainQty );
+        pjcb.parmQtyCalc( ProdTable::find(_prodJournalTable.ProdId).QtyStUp );
+    
+        pjcb.parmBOMAutoConsump(BOMAutoConsump::Never);
+        pjcb.parmConsumpAsProposal(NoYes::Yes);
+        pjcb.parmDrawNegative(NoYes::Yes);
+        pjcb.parmSkipAccError(NoYes::Yes);
+        pjcb.parmEndUpdate(NoYes::No);
+    
+        pjcb.init();
+
+        #ifnot.isAX6
+        pjcb.runOperation();
+        #endif
+        #if.isAX6
+        pjcb.run();
+        #endif
+    
+        return (pjcb.usedProdJournalTable().NumOfLines > 0 ? true : false);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateProdJournalBOM</Name>
+				<Source><![CDATA[
+    private boolean updateProdJournalBOM(ProdJournalBOM _prodJournalBOM, TransDate _transdateOverride)
+    {
+        InventQty           qtyAdjust = 0;
+        inventTransOrigin   inventTransOrigin;
+        InventTrans         inventTrans;
+        boolean             ret = false;
+        
+        while select RecId from inventTransOrigin
+                where inventTransOrigin.InventTransId      == _prodJournalBOM.InventTransId
+                    && inventTransOrigin.ReferenceCategory == InventTransType::ProdLine
+            join Qty from inventTrans
+                where inventTrans.StatusIssue  == StatusIssue::Picked &&
+                    inventTransOrigin.RecId    == inventTrans.InventTransOrigin && 
+					inventTrans.TransChildRefId== _prodJournalBOM.InventTransChildRefId
+        {
+            qtyAdjust += inventTrans.Qty;
+        }
+    
+        qtyAdjust = -(qtyAdjust); // Flip sign
+
+        if (!qtyAdjust) //MIV/FE
+        {
+            // no picked inventTrans to match. will happen when MobRegistration is negative Qty
+            // attempt match against unhandled mobRegistration, if any exists
+            qtyAdjust = this.calcQtyAdjustFromMobRegistrations(_prodJournalBOM, true);  // true = mark as handled
+        }
+       
+        qtyAdjust = UnitOfMeasureConverter::convert(qtyAdjust,
+                                                    UnitOfMeasure::unitOfMeasureIdBySymbol(InventTable::find(_prodJournalBOM.ItemId).inventUnitId()),
+                                                    UnitOfMeasure::unitOfMeasureIdBySymbol(_prodJournalBOM.bomUnitId),
+                                                    NoYes::Yes,
+                                                    InventTable::itemProduct(_prodJournalBOM.ItemId));
+
+        if (qtyAdjust != _prodJournalBOM.BOMConsump)
+        {
+            _prodJournalBOM.BOMConsump = qtyAdjust;
+    
+            _prodJournalBOM.InventConsump = UnitOfMeasureConverter::convert(_prodJournalBOM.bomConsump,
+                                                                            UnitOfMeasure::unitOfMeasureIdBySymbol(_prodJournalBOM.bomUnitId),
+                                                                            UnitOfMeasure::unitOfMeasureIdBySymbol(InventTable::find(_prodJournalBOM.ItemId).inventUnitId()),
+                                                                            NoYes::Yes,
+                                                                            InventTable::itemProduct(_prodJournalBOM.ItemId));
+    
+            ret = true;
+        }
+
+        // if there is an update and the parameter has been set to update the transDate on the prodJournalBom then it is set here.
+        if(ret && _transdateOverride)
+        {
+            _prodJournalBOM.TransDate = _transdateOverride;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calcQtyAdjustFromMobRegistrations</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// attempt match ProdJournalBOM against unhandled MobRegistrations and mark as handled. Simple application with no split lines.
+    /// unhandled MobRegistrations can happen when ProdJournalBOM is negative qty (cannot ".pickLess()" when no original pick to deduct from exsits)
+    /// </summary>
+    /// <param name="prodJournalTable">
+    /// the ProdJournalBOM (single record) to match against
+    /// </param>
+    /// <returns>
+    /// qty to be adjusted at _prodJournalBOM
+    /// </returns>
+    private InventQty calcQtyAdjustFromMobRegistrations(ProdJournalBOM _prodJournalBOM, boolean _markAsHandled = true) //MIV/FE
+    {
+        InventQty           qtyAdjust = 0;
+        MobRegistrations    unhandledRegistration;
+ 
+        ttsBegin;
+        while select forupdate unhandledRegistration
+            where unhandledRegistration.MessageId == this.parmMessageId()               
+               && unhandledRegistration.Handled == NoYes::No
+               && unhandledRegistration.InventTransId == _prodJournalBOM.InventTransId
+               && unhandledRegistration.InventDimId == _prodJournalBOM.InventDimId
+        {
+            qtyAdjust += UnitOfMeasureConverter::convert(unhandledRegistration.Qty,
+                                                         UnitOfMeasure::unitOfMeasureIdBySymbol(unhandledRegistration.Unit),
+                                                         UnitOfMeasure::unitOfMeasureIdBySymbol(_prodJournalBOM.BOMUnitId),
+                                                         NoYes::Yes,
+                                                         InventTable::itemProduct(_prodJournalBOM.ItemId));
+            if (_markAsHandled)
+            {
+                unhandledRegistration.Handled = NoYes::Yes;
+                unhandledRegistration.update();
+            }
+        }
+        ttscommit;
+ 
+        return qtyAdjust;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getJournalId</Name>
+				<Source><![CDATA[
+    private JournalId getJournalId(str _backendID)
+    {
+        return conPeek(MobHelper::strSplit(_backendID,'/').pack(),6);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLineRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_backendID"></param>
+    /// <returns></returns>
+    public Map getLineRecords(TFMRequestGetOrderLinesElement _request)
+    {
+        
+        return MobPickOrderTypeProd::getJournalLinesFromJournal(this.getJournalId(_request.parmBackendID()));//SubStr(backendid,2,strlen(backendId)); // Remove the prefix    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getJournalLinesFromJournal</Name>
+				<Source><![CDATA[
+    public static Map getJournalLinesFromJournal(JournalId _journalId)
+    {
+        Map                     ret = new Map(Types::String,Types::Record);
+        ProdJournalBOM          prodJournalBom;
+        InventTable             inventTable;
+        ProdJournalTable        prodJournalTable;
+        WMSLocation             wmsLocation;
+        InventDim               inventDim;
+        int                     sorting;
+        if (!_journalId || !ProdJournalTable::exist(_journalId))
+        {
+            throw error(strfmt(ProdJournalTable::txtNotExist(),_journalId));
+        }
+        select firstonly prodJournalTable
+                    where prodJournalTable.JournalId   == _journalId &&
+                          prodJournalTable.JournalType == prodjournaltype::Picklist;
+    
+        if (! prodJournalTable)
+        {
+            throw error(strfmt("@SYS62511", _journalId));
+        }
+        if (prodJournalTable.Posted)
+        {
+            return ret;
+        }
+        while select prodJournalBom
+                    join inventDim
+                        order by wMSLocationId
+                        where inventDim.inventDimId == prodJournalBom.InventDimId
+                    join inventTable
+                    where prodJournalBom.JournalId == prodJournalTable.JournalId &&
+                          prodJournalBom.ItemId == inventTable.ItemId  &&
+                          inventTable.ItemType == ItemType::Item
+        {
+    
+            if (MobInventLocationsGroupRights::existsUser(curUserId(), inventDim.InventLocationId) &&
+                        MobHelper::IsProdPickJournalEnabled(inventDim.InventLocationId) )
+            {
+                wmsLocation = WMSLocation::find(inventDim.wMSLocationId,inventDim.InventLocationId);
+                ret.insert((wmsLocation.sortCode ? int2Str(wmsLocation.sortCode) : int2str(sorting)) + ';' + int642Str(prodJournalBom.RecId),prodJournalBom);
+                sorting++;
+                
+            }
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lineTableId</Name>
+				<Source><![CDATA[
+    public TableId lineTableId()
+    {
+        return tableNum(ProdJournalBOM);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProdPickJournals</Name>
+				<Source><![CDATA[
+    public Map getProdPickJournals(TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+        ProdJournalTable        prodJournalTable;
+        //ProdJournalBOM          prodJournalBom;
+        ProdJournalBOM          prodJournalBomChk;
+        inventLocationId        location;
+        //date					deliveryDate = _filters.parmDeliveryDate();
+        Map                     returnMap = new Map(Types::string, Types::Record);
+        QueryBuildDataSource	qbdsProdJournal;
+        QueryBuildDataSource	qbdsProdJournalBom;
+        Query					q = new Query();
+        QueryRun				qr;
+        if (_filters.getFieldMap().exists(tableStr(ReferenceIdentity)))
+        {
+            return returnMap;
+        }
+        qbdsProdJournal	= q.addDataSource(tableNum(ProdJournalTable));
+        qbdsProdJournal.addSortField(fieldNum(ProdJournalTable,JournalId),SortOrder::Descending);
+        qbdsProdJournal.addRange(fieldNum(ProdJournalTable,JournalType)).value(queryValue(ProdJournalType::Picklist));
+		if (_scannedValue)
+        {
+            qbdsProdJournal.addRange(fieldNum(ProdJournalTable,JournalId)).value(_scannedValue);
+        }
+        qbdsProdJournal.addRange(fieldNum(ProdJournalTable,Posted)).value(queryValue(NoYes::No));
+		if (_filters.parmDeliveryDate())
+        {
+            qbdsProdJournalBom = qbdsProdJournal.addDataSource(tableNum(ProdJournalBOM));
+			qbdsProdJournalBom.joinMode(JoinMode::ExistsJoin);
+            qbdsProdJournalBom.addLink(fieldNum(ProdJournalTable,journalId), fieldNum(ProdJournalBOM,journalid));
+            qbdsProdJournalBom.addRange(fieldNum(ProdJournalBOM,TransDate)).value('..'+ queryValue(_filters.parmDeliveryDate()));
+        }
+        TFMFilterAdditionsDataBinding::modifyQuery(methodStr(MobDocPickOrder,PickOrderFilters) + strReplace(_filters.getFieldValue(extendedTypeStr(TFMOrderTypes)),';',''),q,_filters);
+        /*while select prodJournalTable
+            order by JournalId desc
+            where prodJournalTable.JournalType == prodjournaltype::Picklist &&
+                  (!_scannedValue || prodJournalTable.JournalId == _scannedValue) &&
+                  prodJournalTable.Posted    == NoYes::No
+            exists join prodJournalBom
+                where prodJournalBom.JournalId == prodJournalTable.JournalId &&
+                        (!_deliveryDate || prodJournalBom.TransDate <= _deliveryDate)*/
+        qr = new QueryRun(q);
+        while (qr.next())
+        {
+            prodJournalTable = qr.get(tableNum(ProdJournalTable));
+            select firstOnly prodJournalBomChk
+                where prodJournalBomChk.JournalId == prodJournalTable.JournalId;
+            location = prodJournalBomChk.inventDim().InventLocationId;
+    
+            if (location &&
+                ( _filters.parmWarehouse() == MobConstants::All() || location == _filters.parmWarehouse()) &&
+                MobInventLocationsGroupRights::existsUser(curUserId(), location) )
+            {
+                //returnMap.insert(tableStr(prodJournalTable) + ';' + int642Str(prodJournalTable.RecId), prodJournalTable);
+                returnMap.insert(this.getBackendID(prodJournalTable), prodJournalTable);
+            }
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

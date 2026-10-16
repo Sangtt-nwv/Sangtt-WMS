@@ -1,0 +1,661 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMXMLFormat</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Superclass for formatting the xml. All Format classes extends this class.
+/// </summary>
+class TFMXMLFormat
+{
+    Common              common;
+    XmlDocument         resultXml;
+    TFMOrderTypes       orderType;
+    TFMPageID			pageName;
+    str                 imageID;
+    str                 sorting;
+    str                 displayLine1;
+    str                 displayLine2;
+    str                 displayLine3;
+    str                 displayLine4;
+    str                 displayLine5;
+    Map                 fieldsToAdd;
+    Map					fieldsFromDS;
+    Map					MenuItemsConf;
+    SysDictTable		sdt;
+    TFMPage				page;
+    TFMPageDatasources	ds;
+    str					recordLineTag;
+    Map                 cachedResponse;
+    TFMDocumentDeviceId deviceId;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmDeviceId</Name>
+				<Source><![CDATA[
+    public TFMDocumentDeviceId parmDeviceId(TFMDocumentDeviceId _deviceId = deviceId)
+    {
+        deviceId = _deviceId;
+        return deviceId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dataSource</Name>
+				<Source><![CDATA[
+	public TFMPageDatasources dataSource()
+    {
+        return ds;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFieldsToAddMap</Name>
+				<Source><![CDATA[
+	public Map parmFieldsToAddMap(Map _fieldsToAdd = fieldsToAdd)
+    {
+        fieldsToAdd = _fieldsToAdd;
+        return fieldsToAdd;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addFieldToOutput</Name>
+				<Source><![CDATA[
+	public void addFieldToOutput(str _key, str _value)
+    {
+        fieldsToAdd.insert(_key,_value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPage</Name>
+				<Source><![CDATA[
+	public TFMPage getPage()
+    {
+        if (!page)
+        {
+            page = TFMPagesProvider::getAllPages().getPage(pageName);
+        }
+        
+        return page;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addMenuItemsConfigurationIfExists</Name>
+				<Source><![CDATA[
+    public void addMenuItemsConfigurationIfExists(str _menuItemName, int _promoted, boolean _enabled)
+    {
+        if (MenuItemsConf.exists(_menuItemName))
+        {
+			this.addMenuItemsConfiguration(_menuItemName,_promoted,_enabled);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addMenuItemsConfiguration</Name>
+				<Source><![CDATA[
+	public void addMenuItemsConfiguration(str _menuItemName, int _promoted, boolean _enabled)
+    {
+        TFMMenuItemStateConfiguration MenuItemConf = TFMMenuItemStateConfiguration::Construct(_menuItemName);
+        MenuItemConf.parmEnabled(_enabled);
+        MenuItemConf.parmPromoted(_promoted);
+        MenuItemsConf.add(_menuItemName,MenuItemConf);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendMenuItemConfigurationToXML</Name>
+				<Source><![CDATA[
+	public void appendMenuItemConfigurationToXML(XmlElement _lineElement)
+    {
+        XmlElement						menuItemStateConfigurationsNode = _lineElement.ownerDocument().createElement(TFMConstants::menuItemStateConfigurations());
+        MapEnumerator					sEnum							= MenuItemsConf.getEnumerator();
+        TFMMenuItemStateConfiguration	menuItemConf;
+
+        if (!MenuItemsConf.elements())
+        {
+            return;
+        }
+		
+		while (sEnum.moveNext())
+        {
+            menuItemConf = sEnum.currentValue();
+            if (menuItemConf.parmMenuItemName() == 'attachments')
+            {
+                menuItemConf.parmEnabled(TFMHelper::DocuRefexist(common.dataAreaId, common.tableID, common.RecId));
+            } else if (MenuItemConf.parmMenuItemName() == TFMConstants::MenuItemRegisterImage() && !TFMTablesProvider::instance().isTableAllowed(common.tableId))
+            {
+                menuItemConf.parmEnabled(false);
+            } else if (MenuItemConf.parmMenuItemName() == 'unlockOrder' && fieldsToAdd.exists(TFMConstants::Status()) && fieldsToAdd.lookup(TFMConstants::Status()) == TFMConstants::unlocked())
+            {
+                menuItemConf.parmEnabled(false);
+            }
+            menuItemConf.appendToXML(menuItemStateConfigurationsNode);
+        }
+
+        _lineElement.appendChild(menuItemStateConfigurationsNode);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addField</Name>
+				<Source><![CDATA[
+	public void addField(str _key, str _value)
+    {
+        fieldsToAdd.insert(_key,_value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDisplayLine1</Name>
+				<Source><![CDATA[
+    public str parmDisplayLine1(str _dispLine1 = displayLine1)
+    {
+        displayLine1 = _dispLine1;
+        return displayLine1;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDisplayLine2</Name>
+				<Source><![CDATA[
+    public str parmDisplayLine2(str _dispLine = displayLine2)
+    {
+        displayLine2 = _dispLine;
+        return displayLine2;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDisplayLine3</Name>
+				<Source><![CDATA[
+    public str parmDisplayLine3(str _dispLine3 = displayLine3)
+    {
+        displayLine3 = _dispLine3;
+        return displayLine3;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDisplayLine4</Name>
+				<Source><![CDATA[
+    public str parmDisplayLine4(str _dispLine4 = displayLine4)
+    {
+        displayLine4 = _dispLine4;
+        return displayLine4;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDisplayLine5</Name>
+				<Source><![CDATA[
+    public str parmDisplayLine5(str _dispLine5 = displayLine5)
+    {
+        displayLine5 = _dispLine5;
+        return displayLine5;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromCommon</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The initFromCommon method initializes the TFMXMLFormat class, and all of its derivatives, with standard variables needed for the classes to work.
+    /// </summary>
+    /// <param name = "_resultXml">The XML Document in which to add the content of the class.</param>
+    /// <param name = "_common">The table buffer the class will take its data from for the XML.</param>
+    /// <param name = "_sorting">The sorting of the record in the result. This field will be deprecated in future versions.</param>
+    /// <param name = "_orderType">The Order Type, Optional. Used to differentiate two classes using the same buffer types but in different contexts.</param>
+    public void initFromCommon(XmlDocument _resultXml, Common _common, int _sorting, TFMOrderTypes _orderType = '', TFMPageID _pageId = '')
+    {
+        Container            fields = TFMXMLFormat::fieldsFromCommon(_common).pack();
+        fieldsToAdd		= new Map(Types::String, Types::String);
+        Common          = _common;
+        resultXml       = _resultXml;
+        sorting         = int2str(_sorting);
+        orderType       = _orderType;
+        displayLine1    = conLen(fields) > 3 ? conPeek(fields,4) : '';
+        fieldsToAdd.insert('DisplayLine1_Label', conLen(fields) > 4 ? conPeek(fields,5) : '');
+        displayLine2    = conLen(fields) > 5 ? conPeek(fields,6) : '';
+        displayLine3    = conLen(fields) > 7 ? conPeek(fields,7) : '';
+        displayLine4    = conLen(fields) > 9 ? conPeek(fields,8) : '';
+        displayLine5    = conLen(fields) > 11 ? conPeek(fields,10) : '';
+        imageID         = fieldName2Id(_common.TableId, 'ItemId') ? _common.(fieldName2Id(_common.TableId, 'ItemId')) : '';
+        pageName		= _pageId;
+        MenuItemsConf   = new Map(Types::String, Types::Class);
+        ds = TFMPageDatasources::FindOrCreate(_pageId,tableId2Name(_common.tableId),_orderType);
+        sdt = new SysDictTable(common.tableId);
+        
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromDataSource</Name>
+				<Source><![CDATA[
+    public void initFromDataSource(TFMPageDatasources _ds)
+    {
+        orderType       = _ds.OrderType;
+        pageName		= _ds.PageID;
+        MenuItemsConf   = new Map(Types::String, Types::Class);
+        ds = _ds;
+        fieldsToAdd = new Map(Types::String, Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCommon</Name>
+				<Source><![CDATA[
+	public Common parmCommon(Common _common = common)
+    {
+        common = _common;
+        sdt = new SysDictTable(common.tableId);
+        return common;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPageID</Name>
+				<Source><![CDATA[
+    public TFMPageId parmPageID(TFMPageID _pageId = pageName)
+    {
+        pageName = _pageId;
+        return pageName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldsFromCommon</Name>
+				<Source><![CDATA[
+    public static List fieldsFromCommon(Common _common)
+    {
+        MapEnumerator   keyFields = TFMHelper::getPrimaryKeysFromTableName(tableId2Name(_common.TableID)).getEnumerator();
+        DictField       dictField;
+        List			ret = new List(Types::String);    
+        SysDictField	sdf = new DictTable(_common.TableID).titleField1() ? new SysDictField(_common.TableID, new DictTable(_common.TableID).titleField1()) : null;
+
+        if (sdf)
+        {
+            ret.addEnd(sdf.label());
+            ret.addEnd(strFmt('%1',_common.(sdf.id())));
+        }
+
+        sdf = new DictTable(_common.TableID).titleField2() ? new SysDictField(_common.TableID, new DictTable(_common.TableID).titleField2()) : null;
+        if (sdf)
+        {
+            ret.addEnd(sdf.label());
+            ret.addEnd(strFmt('%1',_common.(sdf.id())));
+        }
+        
+        while (keyFields.moveNext())
+        {
+            dictField = keyFields.currentValue();
+            ret.addEnd(dictField.label());
+            ret.addEnd(strFmt('%1',_common.(dictField.id())));
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Main run method of the format classes.
+    /// </summary>
+    public void run()
+    {
+        if (!TFMOutputCacheSetup::isCacheActive(classIdGet(this),orderType) || !TFMXMLTable::exists(common,orderType) || !this.setCachedXML())
+        {
+            this.getPage();
+            this.initDefaultMenuItemConfiguration();
+            //Get Data Source fields
+			this.updateDatasource();
+			//Get Class Fields
+			this.setValues();    
+            this.enrichDataSetFromCustomComponents();
+            this.convertFieldsToMap();
+			//Merge DS and class fields Cls fields takes precedence
+            fieldsToAdd = TFMHelper::mergeMaps(fieldsToAdd,fieldsFromDS);
+
+			//Display Override /Delta fields
+            fieldsToAdd = TFMDisplayLineOverride::FindAndExecuteFromDS(ds,Common,fieldsToAdd);
+            if (page)
+            {
+                fieldsToAdd.insert(extendedTypeStr(TFMPageID), page.parmId());
+            }
+			if (resultXml != null)
+            {
+				//Legacy, append to xml object
+                this.setXML();
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>enrichDataSetFromCustomComponents</Name>
+				<Source><![CDATA[
+    protected void enrichDataSetFromCustomComponents()
+    {
+        SetEnumerator			sEnum;
+        TFMListCustomComponent	customComponent;
+        if (page == null)
+        {
+            return;
+        }
+        TFMList list = TFMListsProvider::getAllLists().getList(page.getListId());
+        if(list)
+        {
+            sEnum = list.getListConfiguration().getCustomComponents().getEnumerator();
+            while (sEnum.moveNext())
+            {
+                customComponent = sEnum.current();
+                fieldsToAdd = customComponent.enrichDataset(common, fieldsToAdd);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertFieldsToMap</Name>
+				<Source><![CDATA[
+	public void convertFieldsToMap()
+    {
+        //RefID ✔️
+        fieldsToAdd.insert(tableStr(ReferenceIdentity), fieldsToAdd.exists(tableStr(ReferenceIdentity)) ? fieldsToAdd.lookup(tableStr(ReferenceIdentity)) : tableId2Name(common.TableId ) + ';' + int642Str(common.RecId ));
+        fieldsToAdd.insert(TFMConstants::Attachment(),TFMHelper::DocuRefexist(common.dataAreaId, common.tableID, common.RecId) ? '1' : '0');
+        fieldsToAdd.insert('attachmentImage',fieldsToAdd.lookup(TFMConstants::Attachment()) == '1' ? resourceStr(TFMAttachmentIcon) : 'unlocked');
+        //DisplayLines
+        this.addDisplayLine(TFMConstants::DisplayLine1(),displayLine1);
+        this.addDisplayLine(TFMConstants::DisplayLine2(),displayLine2);
+        this.addDisplayLine(TFMConstants::DisplayLine3(),displayLine3);
+        this.addDisplayLine(TFMConstants::DisplayLine4(),displayLine4);
+        this.addDisplayLine(TFMConstants::DisplayLine5(),displayLine5);
+        //Sorting
+        if (sorting)
+        {
+            fieldsToAdd.insert(TFMConstants::Sorting(), fieldsToAdd.exists(TFMConstants::Sorting()) ? fieldsToAdd.lookup(TFMConstants::Sorting()) : sorting);
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDisplayLine</Name>
+				<Source><![CDATA[
+	protected void addDisplayLine(str _key, str _value)
+    {
+        int breakPos= strScan(_value,': ',1,100);
+        if (breakPos && !fieldsToAdd.exists(_key))
+        {
+			//Old style displayLine
+            fieldsToAdd.insert(_key+ '_Label', subStr(_value,1,breakPos-1));
+            fieldsToAdd.insert(_key, subStr(_value,breakPos+2,1000));
+        }
+		else
+        {
+			fieldsToAdd.insert(_key, fieldsToAdd.exists(_key) ? fieldsToAdd.lookup(_key) : _value);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultMenuItemConfiguration</Name>
+				<Source><![CDATA[
+	protected void initDefaultMenuItemConfiguration()
+    {
+        MenuItemsConf =  TFMPageMenuItemsFormHelper::getPageMenuItemStateConfigurations(pageName);        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateDatasource</Name>
+				<Source><![CDATA[
+	protected void updateDatasource()
+    {
+        SetEnumerator		sEnum;
+        TFMDataSourceBlock	dsBlock;
+        fieldsFromDS = new Map(Types::String, Types::String);
+		if (!pageName)
+        {
+            return;
+        }
+        ds = TFMPageDatasources::FindOrCreate(pageName,tableId2Name(common.tableId),orderType);
+        sEnum = ds.GetDataSourceBlocks(common).getEnumerator();
+		while (sEnum.moveNext())
+        {
+            dsBlock = sEnum.current();
+            dsBlock.parmDeviceId(deviceId);
+            fieldsFromDS = TFMHelper::mergeMaps(dsBlock.AddFields(common), fieldsFromDS);
+            fieldsFromDS = TFMHelper::mergeMaps(dsBlock.getOverrideFieldsMap(), fieldsFromDS);
+        }
+        fieldsToAdd = TFMHelper::mergeMaps(fieldsFromDS, fieldsToAdd);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>clearValues</Name>
+				<Source><![CDATA[
+	public void clearValues()
+    {
+        fieldsToAdd = new Map(Types::String, Types::String);
+        imageID = '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {        
+        //fieldsToAdd = new Map(Types::String, Types::String);
+		if (sdt.fieldName2Id(extendedTypeStr(ItemId)))// && sdt.fieldName2Id(extendedTypeStr(InventDimId)))
+        {
+			//Generic image initialization based on if the record has an item id and inventDim
+            imageId = TFMHelper::imageIDFromDocuref(TFMHelper::FindItemDocuref(common.(sdt.fieldName2Id(extendedTypeStr(ItemId))),sdt.fieldName2Id(extendedTypeStr(InventDimId)) ? common.(sdt.fieldName2Id(extendedTypeStr(InventDimId))) : ''));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setCachedXML</Name>
+				<Source><![CDATA[
+	protected boolean setCachedXML()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        fieldsToAdd = new Map(Types::String, Types::String);
+        cachedResponse = new Map(Types::String, Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setXML</Name>
+				<Source><![CDATA[
+    protected void setXML()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+	public void appendToXML(XmlElement _parentNode)
+    {
+        XmlElement recordLine = _parentNode.ownerDocument().createElement(recordLineTag);
+        str         recKey      = tableId2Name(common.TableId)+int642Str(Common.RecId);
+        if (cachedResponse.exists(recKey))
+        {
+            recordLine.innerXml(cachedResponse.lookup(recKey));
+        }
+        else
+        {
+            this.addToLineElement( recordLine );
+        }
+        _parentNode.appendChild(recordLine);
+
+        if (TFMOutputCacheSetup::isCacheActive(classIdGet(this),orderType) && !TFMXMLTable::exists(common,orderType))
+        {
+            TFMXMLTable::StoreXML(recordLine.innerxml(),common,orderType);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addToLineElement</Name>
+				<Source><![CDATA[
+    protected void addToLineElement(XmlElement _parentNode)
+    {
+        MapEnumerator mEnum;
+        XmlElement lineElement;
+
+        //create each field element
+        mEnum = fieldsToAdd.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            lineElement = _parentNode.ownerDocument().createElement( mEnum.currentKey());
+            lineElement.text( mEnum.currentValue() );
+            _parentNode.appendChild( lineElement );
+        }
+        this.appendMenuItemConfigurationToXML(_parentNode);
+
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructFromCommon</Name>
+				<Source><![CDATA[
+    public static TFMXMLFormat constructFromCommon(XmlDocument _resultXml, Common _common, int _sorting, TFMOrderTypes _orderType = '', ClassName _baseClassName = classStr(TFMXMLFormat))
+    {
+        TFMXMLFormat            ret;
+        TFMTableNameAttribute   tableNameAttribute = new TFMTableNameAttribute(tableId2Name(_common.TableId),_orderType);
+ 
+        if (!tableNameAttribute)
+        {
+            tableNameAttribute = new TFMTableNameAttribute(tableId2Name(_common.TableId));
+        }
+
+        ret = SysExtensionAppClassFactory::getClassFromSysAttribute(_baseClassName, tableNameAttribute);
+
+        if (classIdGet(ret) == className2Id(_baseClassName))
+        {
+            ret = TFMGetRegistrationConfiguration::getClassFromSysAttribute(_baseClassName, tableNameAttribute);
+        }
+
+        if (classIdGet(ret) == className2Id(_baseClassName))
+        {
+            tableNameAttribute = new TFMTableNameAttribute(tableId2Name(_common.TableId));
+            ret = SysExtensionAppClassFactory::getClassFromSysAttribute(_baseClassName, tableNameAttribute);
+        }
+
+        if (classIdGet(ret) == className2Id(_baseClassName))
+        {
+            ret = TFMGetRegistrationConfiguration::getClassFromSysAttribute(_baseClassName, tableNameAttribute);
+        }
+        ret.initFromCommon(_resultXml, _common, _sorting, _orderType);
+ 
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructFromDataSource</Name>
+				<Source><![CDATA[
+    public static TFMXMLFormat constructFromDataSource(TFMPageDatasources _ds, ClassName _baseClassName = classStr(TFMXMLFormat))
+    {        
+        TFMTableNameAttribute   tableNameAttribute  = new TFMTableNameAttribute(_ds.TableName,_ds.OrderType);
+        TFMXMLFormat            ret                 = SysExtensionAppClassFactory::getClassFromSysAttribute(_baseClassName, tableNameAttribute);
+
+     
+        if (classIdGet(ret) == className2Id(_baseClassName))
+        {
+            ret = TFMGetRegistrationConfiguration::getClassFromSysAttribute(_baseClassName, tableNameAttribute);
+        }
+
+        if (classIdGet(ret) == className2Id(_baseClassName))
+        {
+            tableNameAttribute = new TFMTableNameAttribute(_ds.TableName);
+            ret = SysExtensionAppClassFactory::getClassFromSysAttribute(_baseClassName, tableNameAttribute);
+        }
+
+        if (classIdGet(ret) == className2Id(_baseClassName))
+        {
+            ret = TFMGetRegistrationConfiguration::getClassFromSysAttribute(_baseClassName, tableNameAttribute);
+        }
+        ret.initFromDataSource(_ds);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructFromBackendID</Name>
+				<Source><![CDATA[
+    public static TFMXMLFormat constructFromBackendID(str _backendID, ClassName _baseClassName = classStr(TFMXMLFormat))
+    {
+        TFMXMLFormat            ret;  
+        TFMTableNameAttribute   tableNameAttribute;
+        TableName               tblName             = subStr(_backendID,1,strScan(_backendID,'/',1,strLen(_backendID)) - 1);
+        container               backendIDcon        = TFMHelper::strSplit(_backendID,'/').pack();
+        tableNameAttribute = new TFMTableNameAttribute(tblName,conLen(backendIDcon) == 7 ? conPeek(backendIDcon,7) : '');
+        ret = SysExtensionAppClassFactory::getClassFromSysAttribute(_baseClassName, tableNameAttribute);
+        if (classIdGet(ret) == className2Id(_baseClassName))
+        {
+            tableNameAttribute = new TFMTableNameAttribute(tblName);
+            ret = SysExtensionAppClassFactory::getClassFromSysAttribute(_baseClassName, tableNameAttribute);
+        }
+        ret.clearValues();
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

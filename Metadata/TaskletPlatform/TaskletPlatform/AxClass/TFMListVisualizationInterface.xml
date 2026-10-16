@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListVisualizationInterface</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+interface TFMListVisualizationInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>render</Name>
+				<Source><![CDATA[
+    public void render(TFMListBase _listElement)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderList</Name>
+				<Source><![CDATA[
+    public void renderList(TFMListConfiguration _listConf)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderRows</Name>
+				<Source><![CDATA[
+    public void renderRows(TFMListRows _rows)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderRow</Name>
+				<Source><![CDATA[
+    public void renderRow(TFMListRow _row)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderColumns</Name>
+				<Source><![CDATA[
+    public void renderColumns(TFMListColumns _columns)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderColumn</Name>
+				<Source><![CDATA[
+    public void renderColumn(TFMListColumn _column)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderElements</Name>
+				<Source><![CDATA[
+    public void renderElements(TFMListElements _column)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderText</Name>
+				<Source><![CDATA[
+    public void renderText(TFMListTextElement _textElement)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderImage</Name>
+				<Source><![CDATA[
+    public void renderImage(TFMListImageElement _imageElement)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderValue</Name>
+				<Source><![CDATA[
+    public void renderValue(TFMListValueElement _valueElement)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderValues</Name>
+				<Source><![CDATA[
+    public void renderValues(TFMListValuesElement _valueElement)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderCustomComponent</Name>
+				<Source><![CDATA[
+    public void renderCustomComponent(TFMListCustomComponent _customComponentElement)
+    {
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMInventDimensionSetupContract_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classStr(TFMInventDimensionSetupContract))]
+final class TFMInventDimensionSetupContract_Extension
+{
+    private boolean expDateActive;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmExpDateActive</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('ExpDateActive'), TFMDescription("Defines if the expiration date should be picked up for the item")]
+    public boolean parmExpDateActive(boolean _expDateActive = expDateActive)
+    {
+        expDateActive = _expDateActive;
+        return expDateActive;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

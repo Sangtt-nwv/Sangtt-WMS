@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowJsonCreatorWorkLog</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDrawFlowJsonCreatorWorkLog extends TFMDrawFlowJsonCreator
+{
+    TFMRegistrationCollectors collectors;
+    public static int headerContractID = 12345677;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>classHandled</Name>
+				<Source><![CDATA[
+    public ClassName classHandled()
+    {
+        return classStr(TFMWorkLogForm);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>jSon</Name>
+				<Source><![CDATA[
+    public str jSon(Object _class)
+    {
+        TFMWorkLogForm                  logForm = _class;
+        TFMDrawFlowContract             contract = TFMDrawFlowContract::Construct();
+        TFMDrawFlowLogicBlockContract   blockContract;
+        MapEnumerator                   mEnum;
+        TFMRegistrationCollector        collector;
+        int                             i;
+
+        if (logForm.getHeaders())
+        {
+            blockContract = TFMDrawFlowJsonCreatorWorkLog::headerContract(logForm.getHeaders(), 50,100);
+        
+            contract.addBlockContract(blockContract);
+            i++;
+        }
+
+        collectors = logForm.currentCollectors();
+        if (collectors)
+        {
+            mEnum = collectors.collectorMap().getEnumerator();
+            while (mEnum.moveNext())
+            {
+                collector = mEnum.currentValue();
+                if (!collector.parmActive() || !collector.parmVisible())
+                {
+                    continue;
+                }
+                blockContract = TFMDrawFlowJsonCreatorRegistrationCollectors::regCollector2Contract(collector,50 +i*250,100); 
+                blockContract.parmInputs().remove('input_1');
+                blockContract.parmOutputs().remove('output_1');
+                contract.addBlockContract(blockContract);
+                i++;
+            }
+        }
+        if (logForm.getCurrentResultStatus()!= TFMDocumentQueueStatus::NewDocument)
+        {
+            blockContract = TFMDrawFlowJsonCreatorWorkLog::resultContract(logForm.getCurrentResult(), logForm.getCurrentResultStatus(),50 +i*250,100);
+            contract.addBlockContract(blockContract);
+        }
+
+        str jSon = TFMJsonSerializer::serializeClass(contract);
+        jSon = TFMTranslationProvider::replaceAllTranslations(jSon);
+
+        Map currentlyPickedMap = logForm.getCurrentlyPickedMap();
+
+        currentlyPickedMap.add('ToBinType', "@SYS100076");
+
+
+        System.Text.RegularExpressions.Match myMatch;
+        System.String sysStrLabelId;
+        System.String sysStrLabelIdContent;
+        System.String sysInputString = jSon;
+        str strOut;
+        str regex;
+        regex = '{([^}]+)}';
+
+        myMatch = System.Text.RegularExpressions.Regex::Match(jSon, regex);
+
+        while (myMatch.get_Success())
+        {
+            sysStrLabelId = myMatch.get_Value();
+            sysStrLabelIdContent = myMatch.get_Groups().get_Item(1).get_Value();
+
+            if(currentlyPickedMap.exists(sysStrLabelIdContent))
+            {
+                sysInputString = sysInputString.Replace(sysStrLabelId, currentlyPickedMap.lookup(sysStrLabelIdContent));
+            }
+            myMatch = myMatch.NextMatch();
+        }
+
+        return sysInputString;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resultContract</Name>
+				<Source><![CDATA[
+    public static TFMDrawFlowLogicBlockContract resultContract(str _resultString, TFMDocumentQueueStatus _status, int _posX, int _posY)
+    {
+        TFMDrawFlowLogicBlockContract   blockContract = new TFMDrawFlowLogicBlockContract();
+        List                            inList = new List(Types::Class), outList = new List(Types::Class);
+        resourceNode                    rn = _status == TFMDocumentQueueStatus::Completed ? new resourceNode(resourceStr(TFMBlockCheckmark)) : new resourceNode(resourceStr(TFMBlockError));
+
+        str                             html = '<div><div class="title-box"><img src="'+ '/resources/images/' + rn.filename() + '" ><b>' + "@SYS6769" +'</b></div><div class="box"><p>'+ _resultString + '</p></div></div>';
+        blockContract.parmId(12345678);
+        blockContract.parmData(TFMDrawFlowLogicBlockDataContract::Construct('result','result'));
+        blockContract.parmHtml(html);        
+        blockContract.parmPosX(_posX);
+        blockContract.parmPosY(_posY);
+        
+        return blockContract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerContract</Name>
+				<Source><![CDATA[
+    public static TFMDrawFlowLogicBlockContract headerContract(TFMReferenceDataConfiguration _headers, int _posX, int _posY)
+    {
+        TFMDrawFlowLogicBlockContract   blockContract = new TFMDrawFlowLogicBlockContract();
+        List                            inList = new List(Types::Class), outList = new List(Types::Class);
+        resourceNode                    rn = new resourceNode(resourceStr(TFMDatatypeRadiobutton));
+        str                             html;
+        str                             headerString;
+        SetEnumerator                   sEnum;
+        TFMRegistrationCollector        collector;
+        blockContract.parmId(headerContractID);
+        blockContract.parmData(TFMDrawFlowLogicBlockDataContract::Construct('headers','headers'));
+ 
+        sEnum = _headers.getCollectors().getEnumerator();
+        while (sEnum.moveNext())
+        {
+            collector = sEnum.current();
+            if(collector.parmActive() && (!collector.origins().matchedSource() || (collector.origins().matchedSource() && collector.parmDisableMatchedSource()) ))
+            {
+                headerString += collector.parmLabel() + '<input type="text" id="fname" name="fname" value="'+collector.parmDefaultValue()+'"><br><br>';
+            }
+        }
+
+        html = '<div><div class="title-box"><img src="'+ '/resources/images/' + rn.filename() + '" ><b>' + "@TFM:Headers" +'</b></div><div class="box"><p>'+ headerString + '</p></div></div>';
+        blockContract.parmHtml(html);
+        blockContract.parmPosX(_posX);
+        blockContract.parmPosY(_posY);
+        
+        return blockContract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>instanceFromJson</Name>
+				<Source><![CDATA[
+    public Object instanceFromJson(str _json)
+    {
+        Object ret;
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveJson2Data</Name>
+				<Source><![CDATA[
+    public void saveJson2Data(str _json, str _keyValue, object _keyObject)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

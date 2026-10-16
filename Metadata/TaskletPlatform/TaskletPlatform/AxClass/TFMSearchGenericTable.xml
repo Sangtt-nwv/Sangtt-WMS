@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMSearchGenericTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Generic table search, when no specific handler has been made for a search.
+/// </summary>
+class TFMSearchGenericTable extends TFMSearchHandler
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>performSearch</Name>
+				<Source><![CDATA[
+    public void performSearch()
+    {
+        TableName               tableName = strReplace(request.parmType(),'_' + TFMConstants::Search(),'');
+        SysDictTable            sdt = new SysDictTable(tableName2Id(tableName));
+        str                     value = request.parmParameters().parmSearchValue();
+        QueryRun                qr = TFMSearchGenericTable::makeQuery(tableName, value);
+        Common                  record;
+        while (qr.next())
+        {
+            record = qr.get(sdt.id());
+            if (record)
+            {
+                this.addResult(strFmt('%1',record.(sdt.titleField1())), record.(sdt.titleField1()), record);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeQuery</Name>
+				<Source><![CDATA[
+    public static QueryRun makeQuery(TableName _tableName, str _value)
+    {
+        SysDictTable            sdt = new SysDictTable(tableName2Id(_tableName));
+        Query                   q = new Query();//request.parmType());
+        QueryBuildDataSource    qbds = q.addDataSource(sdt.id());
+        QueryBuildRange         qbr;
+        SetEnumerator           sEnum =  TFMSearchGenericTable::getFieldsForQuery(sdt.id()).getEnumerator();
+        str                     rangeStr = '';
+        
+        while(sEnum.moveNext())
+        {
+            rangeStr += (rangeStr ? ' || ' : '') +'('+sdt.name()+'.'+sEnum.current()+' LIKE "*'+_value+'*")';
+            
+        }
+        qbds.name(sdt.name());
+        qbds.addRange(sdt.titleField1()).value('(' +rangeStr + ')');
+
+        return new QueryRun(q);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeKeyFieldQuery</Name>
+				<Source><![CDATA[
+    public static QueryRun makeKeyFieldQuery(TableName _tableName, str _value)
+    {
+        SysDictTable            sdt = new SysDictTable(tableName2Id(_tableName));
+        Query                   q = new Query();//request.parmType());
+        QueryBuildDataSource    qbds = q.addDataSource(sdt.id());
+        QueryBuildRange         qbr;
+        MapEnumerator           mEnum =  TFMHelper::getPrimaryKeysFromTableName(_tableName).getEnumerator();
+        str                     rangeStr = '';
+        DictField               df;
+        while(mEnum.moveNext())
+        {
+            rangeStr += (rangeStr ? ' || ' : '') +'('+sdt.name()+'.'+mEnum.currentKey()+' LIKE "'+_value+'")';
+            
+        }
+        qbds.name(sdt.name());
+        qbds.addRange(sdt.titleField1()).value('(' +rangeStr + ')');
+
+        return new QueryRun(q);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFieldsForQuery</Name>
+				<Source><![CDATA[
+    protected static Set getFieldsForQuery(TableId _tableId)
+    {
+        MapEnumerator   keyFields = TFMHelper::getPrimaryKeysFromTableName(tableId2Name(_tableId)).getEnumerator();
+        DictField       dictField;
+        Set			    ret = new Set(Types::String);
+        SysDictField	sdf = new DictTable(_tableId).titleField1() ? new SysDictField(_tableId, new DictTable(_tableId).titleField1()) : null;
+        if (sdf)
+        {
+            ret.add(sdf.name());
+        }
+        sdf = new DictTable(_tableId).titleField2() ? new SysDictField(_tableId, new DictTable(_tableId).titleField2()) : null;
+        if (sdf)
+        {
+            ret.add(sdf.name());
+        }
+        
+        while (keyFields.moveNext())
+        {
+            dictField = keyFields.currentValue();            
+            ret.add(dictField.name());            
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

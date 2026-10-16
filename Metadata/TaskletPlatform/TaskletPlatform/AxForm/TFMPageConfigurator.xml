@@ -1,0 +1,1785 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMPageConfigurator</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMPageConfigurator extends FormRun
+{
+    FormCommandButtonControl        saveButton;
+    TFMPageConfiguratorFormClass    pageConfiguratorClass;
+    QueryBuildRange				    qbr;
+    QueryBuildRange				    qbrMenuItems;
+    TFMPageID                       pageId;
+    TFMPageXSDParser			    parser;
+   
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+     public void run()
+    {
+        URLUtility              urlUtil = new URLUtility();
+        TFMPage                 page;        
+        SysDictClass            dc;
+        TFMPageTypeAttribute    pageAttr;
+
+        if (element.args().caller() && (element.args().caller().name() == formStr(TFMPageOverview) || element.args().caller().name() == formStr(TFMNewPageFromProcess) || element.args().caller().name() == formStr(TFMProcessOverview) || SysTest::hasMethod(element.args().caller(), formMethodStr(TFMPageOverview, getCurrentPage))))
+        {
+            page = element.args().caller().getCurrentPage();
+            pageId = page.parmId();
+        }
+        else
+        {
+            pageId = urlUtil.getQueryParamValue('PageId');
+        }
+            
+        
+        pageConfiguratorClass = new TFMPageConfiguratorFormClass(pageId, TFMPageMenuItems_ds, TFMPageMenuItems_MenuPageID);
+
+        if(!pageConfiguratorClass || !pageConfiguratorClass.currentPage())
+        {
+            info("@TFM:Unabletoopentheconfiguratorforth");
+            return;
+        }
+        super();
+        this.updatePageClass();
+        
+        element.design().caption(strFmt("@SYS109730", "@TFM:PageConfigurator", pageId));
+        
+        TFMDeltaPages_ds.queryBuildDataSource().addRange(fieldNum(TFMDeltaPages,Name)).value(pageId);
+        TFMDeltaPages_ds.executeQuery();
+
+        saveButton = this.control(this.controlId('systemdefinedsavebutton')) as FormCommandButtonControl;
+
+        dc = new SysDictClass(classIdGet(page));
+        pageAttr = dc.getAttribute(classStr(TFMPageTypeAttribute));
+
+        OrderLinesPinnableValues.visible(OrderLinesPinnableValues.enabled(pageAttr.parmPageType() == 'OrderLines'));
+
+        TFMPage_TitleTranslated.text(TFMListVisualization::getMenuTitle(element.getCurrentPage().parmTitle()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void init()
+    {
+        super();
+        //SysFlushAOD::main(new Args());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCurrentPage</Name>
+				<Source><![CDATA[
+    public TFMPage getCurrentPage()
+    {
+        return pageConfiguratorClass.currentPage();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updatePageClass</Name>
+				<Source><![CDATA[
+    public void updatePageClass()
+    {
+        TFMPage pageClass = pageConfiguratorClass.currentPage();
+        TFMPage_Title.text(pageClass.parmTitle());
+        TFMPage_Icon.text(pageClass.parmIcon());
+        TFMPage_Description.text(pageClass.parmDescription());
+        this.updatePageIconOnForm();
+
+        Offline.visible(pageClass.getConfiguration().hasOfflineOptions());
+        
+        XmlViewer.visible(true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CloseLookupForMenuItems</Name>
+				<Source><![CDATA[
+    public void CloseLookupForMenuItems(str selectedMenuItemId = '')
+    {
+        if(!selectedMenuItemId)
+        {
+            // when the lookup form closes then set the selected item back to what is was before.
+            pageConfiguratorClass.setActiveMenuItem(pageConfiguratorClass.parmLastSelectedMenuItemId());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updatePageIconOnForm</Name>
+				<Source><![CDATA[
+    public void updatePageIconOnForm()
+    {
+        TFMGraphicsHelper::setImageHtmlWithWidth(element.getCurrentPage().parmIcon(), HtmlViewerIcon, 120); //TODO: Use the TFMMediaProvider getMediaForHtml
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LookupResource</Name>
+				<Source><![CDATA[
+    private void LookupResource()
+    {
+        Args    args = new Args();
+        Object  formRun;
+        FormStringControl formControl = element.PageMenuItemGrid_MenuPageIconString;
+        args.name(formStr(TFMResourceLookup));
+        args.caller(formControl);
+        formRun = classfactory.formRunClass(args);
+        formRun.init();
+        formControl.performFormLookup(formRun);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateAdditionalMenuItemProperties</Name>
+				<Source><![CDATA[
+    private void populateAdditionalMenuItemProperties(FormGroupControl _formGroupControl, Map _xsdNodesForCurrentMenuItem, str _pageCommandKey, Set _addedFields)
+    {
+        anytype                                 methodValue;
+        MapEnumerator							xsdNodesForMenuItemEnum;
+        TFMPage                                 pageClass;
+        
+
+        if(_xsdNodesForCurrentMenuItem)
+        {
+            xsdNodesForMenuItemEnum = _xsdNodesForCurrentMenuItem.getEnumerator();
+            while (xsdNodesForMenuItemEnum.moveNext())
+            {
+                str pageCommandKeyAndFieldName = _pageCommandKey + '/' + xsdNodesForMenuItemEnum.currentKey();
+                if(!_addedFields.in(pageCommandKeyAndFieldName) && !TFMPageMenuItemsHelper::isMenuItemElement( xsdNodesForMenuItemEnum.currentKey()))
+                {
+                    // add the field from the documentation that was not in the parmMethods.
+                    Map fieldValue = xsdNodesForMenuItemEnum.currentValue();
+                    if(fieldValue)
+                    {
+                        str typeStr = fieldValue.lookup('type'); // find the type and convert it to a X++ type
+                        if(typeStr)
+                        {
+                            //boolean converted;
+                            Types t;
+                            ExtendedTypeId edt;
+                            [t, edt] = TFMFormHelper::convertXsdStringTypeToTypes(typeStr);
+
+                            List enumValuesValuesList;
+                            if(fieldValue.exists('enumValues'))
+                            {
+                                List enumValuesList;
+                                str enumValuesStr = fieldValue.lookup('enumValues');
+                                enumValuesList = TFMHelper::strSplit(enumValuesStr,'|');
+                                ListEnumerator enumValuesListEnum = enumValuesList.getEnumerator();
+                                enumValuesValuesList = new List(Types::String);
+                                while(enumValuesListEnum.moveNext())
+                                {
+                                    enumValuesValuesList.addEnd(conPeek(TFMHelper::strSplit(enumValuesListEnum.current(),'¤').pack(), 4));
+                                }
+                            }
+                            pageClass = this.getCurrentPage();
+                            methodValue = TFMPageConfigParms::getValue(pageClass.getConfiguration().parmName(), classId2Name(classIdGet(pageClass.getConfiguration())), pageCommandKeyAndFieldName, '');
+                            TFMFormHelper::type2FormControl(_formGroupControl, t, edt, pageCommandKeyAndFieldName, (methodValue) ? methodValue : fieldValue.lookup('default'), xsdNodesForMenuItemEnum.currentKey(), methodStr(TFMPageConfiguratorFormClass, control_modified), pageConfiguratorClass, '' ,fieldValue.lookup('annotation'), enumValuesValuesList);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>clearAttributes</Name>
+				<Source><![CDATA[
+    private void clearAttributes()
+    {
+        while (FormGroupControlMenuItemsAttributesCol1.controlCount())
+        {
+            FormGroupControlMenuItemsAttributesCol1.formRun().design().removeControl(FormGroupControlMenuItemsAttributesCol1.controlNum(1).id());
+        }
+        while (FormGroupControlMenuItemsAttributesCol2.controlCount())
+        {
+            FormGroupControlMenuItemsAttributesCol2.formRun().design().removeControl(FormGroupControlMenuItemsAttributesCol2.controlNum(1).id());
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>TFMDeltaPages</Name>
+				<Methods>
+					<Method>
+						<Name>pageIcon</Name>
+						<Source><![CDATA[
+        public display container pageIcon()
+        {
+            ImageReference	imgRef;
+            if (!element.getCurrentPage())
+            {
+                return conNull();
+            }
+			
+            imgRef = ImageReference::constructForUrl(TFMDocGetMedia::getURLFromIconName(TFMDeltaPages.Icon ? TFMDeltaPages.Icon : element.getCurrentPage().parmIcon()));
+            return imgRef.pack();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>validateWrite</Name>
+						<Source><![CDATA[
+        public boolean validateWrite()
+        {
+            boolean ret;
+        
+            ret = super();
+            if (!TFMDeltaPages.Icon && !TFMDeltaPages.Title && !TFMDeltaPages.Description)
+            {
+                ret = false;
+            }
+			else
+            {
+                TFMDeltaPages.Name = element.getCurrentPage().parmId();
+            }
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>AvailableOnMenus</Name>
+						<Source><![CDATA[
+        public edit NoYes AvailableOnMenus(boolean _set, NoYes _value)
+        {
+            TFMPage pageClass = element.getCurrentPage();
+            if (_set)
+            {
+                TFMPageConfigParms::CreateOrUpdateParameter(element.getCurrentPage().parmId(), classId2Name(classIdGet(pageClass)),methodStr(TFMPage,parmAvailableForMenuPages),_value);
+                pageClass.parmAvailableForMenuPages(_value);
+            }
+   
+            
+            return pageClass.parmAvailableForMenuPages();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>Icon</DataField>
+						<Methods>
+							<Method>
+								<Name>lookup</Name>
+								<Source><![CDATA[
+            /// <summary>
+            ///
+            /// </summary>
+            /// <param name = "_formControl"></param>
+            /// <param name = "_filterStr"></param>
+            public void lookup(FormControl _formControl, str _filterStr)
+            {
+                Args    args = new Args();
+                Object  formRun;
+                FormStringControl formControl = _formControl;
+                args.name(formStr(TFMResourceLookup));
+                args.caller(formControl);
+                formRun = classfactory.formRunClass(args);
+                formRun.init();
+                formControl.performFormLookup(formRun);
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+			<DataSource>
+				<Name>TFMPageMenuItems</Name>
+				<Methods>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        public void initValue()
+        {
+            TFMPageMenuItems.PageID = element.getCurrentPage().parmId();
+            TFMPageMenuItems.Enabled = true;
+            TFMPageMenuItems.VisibleWhenNoData = true;
+            super();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>init</Name>
+						<Source><![CDATA[
+        public void init()
+        {
+            QueryBuildDataSource qbds;
+            super();
+            qbds = TFMPageMenuItems_DS.queryBuildDataSource();
+            qbrMenuItems = qbds.addRange(fieldNum(TFMPageMenuItems,PageID ));
+            qbds.addSortIndex(indexNum(TFMPageMenuItems, LineNumberIndex));
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret = super();
+
+            TFMPageConfigurationAttributeAttribute	configAttr;
+            TFMPageActionAttribute                  actionAttr;
+            SysDictMethod			                DM;
+            SetEnumerator                           methodSet;
+            anytype                                 methodValue;
+            Map										xsdDocumentationForCurrentMenuItem;
+            Map										xsdNodesForCurrentMenuItem;
+            Map										xsdNodesForCurrentMenuItemRow2;
+            Set                                     parmMethodsOnConfigurationClass = new Set(Types::String);
+            str										xPath;
+            str                                     xPathAndKey;
+            Set										addedFields;
+            str                                     lastPartOfXPath;
+            str                                     rootXPath = 'application/pages/page/';
+            str                                     helpText;
+            XmlElement                              helpTextElem;
+            str                                     pageCommandKey;
+            TFMPage                                 pageClass;
+            
+            if(!element.MenuItems.IsActivePage())
+            {
+                return ret;
+            }
+
+            pageClass = element.getCurrentPage();
+
+            if(!TFMPageMenuItems || !pageClass)
+            {
+                return ret;
+            }
+
+            parser = TFMPageXsdParserProvider::instance().getEntityImpl();
+
+            FormGroupControlMenuItemsAttributesCol1.columns(1);
+            xPath = rootXPath + TFMRegistrationCollector::smallBeginnings(subStr(classId2Name(classIdGet(pageClass.getConfiguration())), strLen(classStr(TFMPage))+1, strLen(classId2Name(classIdGet(pageClass.getConfiguration())))));
+
+            addedFields = new Set(Types::String);
+            pageCommandKey = TFMPageMenuItems.MenuPageID;
+            pageConfiguratorClass.parmLastSelectedMenuItemId(TFMPageMenuItems.MenuPageID);
+            TFMMenuItemsCtrl1.setActiveMenuItemsToJavascript(pageConfiguratorClass.parmLastSelectedMenuItemId());
+
+            // remove controls from attributes
+            element.clearAttributes();
+
+            // find documentation for the menu item it self.
+            str xPathForMenuItemInXsd;
+
+            switch(TFMPageMenuItems.MenuItemType)
+            {
+                case TFMPageMenuItemTypes::AdhocAction:
+                    xPathForMenuItemInXsd = rootXPath + 'actions/adhocRegistration';
+                    break;
+                case TFMPageMenuItemTypes::OpenAction:
+                    xPathForMenuItemInXsd = rootXPath + 'actions/open';
+                    break;
+                case TFMPageMenuItemTypes::showImage:
+                    xPathForMenuItemInXsd = rootXPath + 'actions/showImage';
+                    break;
+                case TFMPageMenuItemTypes::OfflinePageMenuItem:
+                case TFMPageMenuItemTypes::PageMenuItem:
+                    if(pageCommandKey == TFMConstants::MenuItemTypeBarcode())
+                    {
+                        xPathForMenuItemInXsd = rootXPath + 'typeBarcode';
+                    }else
+                    {
+                        xPathForMenuItemInXsd = xPath + '/' + pageCommandKey;
+                    }
+                    break;
+                case TFMPageMenuItemTypes::typeBarcode:
+                    xPathForMenuItemInXsd = rootXPath + 'typeBarcode';
+                    break;
+                default:
+            }
+            Map xsdDocForMenuItemMap = parser.drillDown(xPathForMenuItemInXsd, false, true);
+            lastPartOfXPath = TFMFormHelper::getLastPartOfPath(xPathForMenuItemInXsd);
+            if(xsdDocForMenuItemMap.exists(lastPartOfXPath))
+            {
+                XmlElement xmlDocElement = xsdDocForMenuItemMap.lookup(lastPartOfXPath);
+                if(xmlDocElement)
+                {
+                    FormStaticTextControl_description.text(xmlDocElement.InnerText());
+                } 
+                else
+                {
+                    FormStaticTextControl_description.text('');
+                }
+            }
+            
+            // add all parms methods to the control group.
+            parmMethodsOnConfigurationClass = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(pageClass.getConfiguration()));
+            methodSet = parmMethodsOnConfigurationClass.getEnumerator();
+            while (methodSet.moveNext())
+            {
+                DM = new SysDictMethod(UtilElementType::ClassInstanceMethod,classIdGet(pageClass.getConfiguration()),methodSet.current());
+
+                configAttr = DM.getAttribute(classStr(TFMPageConfigurationAttributeAttribute));
+                if (!configAttr || configAttr.parmXPath() != pageCommandKey)
+                {
+                    continue;
+                }
+
+                actionAttr = DM.getAttribute(classStr(TFMPageActionAttribute));
+                if(actionAttr)
+                {
+                    lastPartOfXPath = TFMFormHelper::getLastPartOfPath(configAttr.parmXPath());
+                    if(!TFMPageMenuItemsHelper::isMenuItemElement( configAttr.parmnodeName()))
+                    {
+                        //add documentation from xsd.
+                        xsdDocumentationForCurrentMenuItem = parser.drillDown(xPath + '/' + configAttr.parmXPath(), false, true);
+                    
+                        helpText = '';
+                        if(xsdDocumentationForCurrentMenuItem && xsdDocumentationForCurrentMenuItem.elements())
+                        {
+                            helpTextElem = xsdDocumentationForCurrentMenuItem.lookup(lastPartOfXPath);
+                            if(helpTextElem)
+                            {
+                                helpText = helpTextElem.innerText();
+                            }
+                        }
+
+                        methodValue = TFMPageConfigParms::getValue(pageClass.getConfiguration().parmName(), classId2Name(classIdGet(pageClass.getConfiguration())), DM.name(), '');
+                        TFMFormHelper::type2FormControl(FormGroupControlMenuItemsAttributesCol1, DM.returnType(), DM.returnId() , DM.name(), methodValue, configAttr.parmnodeName(), methodStr(TFMPageConfiguratorFormClass, control_modified), pageConfiguratorClass, '', helpText);
+                    }
+
+                    addedFields.add(configAttr.parmXPath() + '/' + configAttr.parmnodeName());
+                }
+            }
+
+            if(TFMPageMenuItems.MenuItemType == TFMPageMenuItemTypes::OpenAction)
+            {
+                TFMPage pointsToPage = TFMPagesProvider::getAllPages().getPage(TFMPageMenuItems.MenuPageID);
+
+                if( pointsToPage && (pointsToPage.parmType() == TFMConstants::Lookup() || pointsToPage.parmType() == TFMConstants::UnplannedItemRegistration()))
+                {
+                    // only show if the page points to an unplanned or lookup page.
+                    str suppressReferesName = TFMPageMenuItems.MenuPageID + '/' + TFMConstants::SuppressRefreshAfterSuccessfulPost();
+                    methodValue = TFMPageConfigParms::getValue(pageClass.getConfiguration().parmName(), classId2Name(classIdGet(pageClass.getConfiguration())), suppressReferesName, '');
+                    helpText = "@TFM:Supressrefreshingthispagewhenret";
+                    TFMFormHelper::type2FormControl(FormGroupControlMenuItemsAttributesCol1, extendedTypeNum(NoYesId), extendedTypeNum(NoYesId), suppressReferesName, methodValue, "@TFM:Suppressrefreshaftersuccesfulpos", methodStr(TFMPageConfiguratorFormClass, control_modified), pageConfiguratorClass, '', helpText);
+                }
+
+                str automaticTransfer = TFMPageMenuItems.MenuPageID + '/' + TFMConstants::AutomaticValueTransfer();
+                methodValue = TFMPageConfigParms::getValue(pageClass.getConfiguration().parmName(), classId2Name(classIdGet(pageClass.getConfiguration())), automaticTransfer, true);
+                helpText = "@TFM:automaticValueTransferHelp";
+                TFMFormHelper::type2FormControl(FormGroupControlMenuItemsAttributesCol1, extendedTypeNum(NoYesId), extendedTypeNum(NoYesId), automaticTransfer, methodValue, "@TFM:automaticValueTransfer", methodStr(TFMPageConfiguratorFormClass, control_modified), pageConfiguratorClass, '', helpText);
+            }
+
+            // add additional properties for the menu item
+            if(addedFields)
+            {
+                xPathAndKey = xPath + '/' + pageCommandKey; //xpath includes the configuration page in the path.
+
+                xsdNodesForCurrentMenuItem = parser.drillDownForAttributes(xPathAndKey);
+
+                if(!xsdNodesForCurrentMenuItem || !xsdNodesForCurrentMenuItem.elements())
+                {
+                    // look in the page element
+                    xsdNodesForCurrentMenuItem = parser.drillDownForAttributes(rootXPath + pageCommandKey);
+                }
+
+                if(!xsdNodesForCurrentMenuItem || !xsdNodesForCurrentMenuItem.elements())
+                {
+                    // look in the actions element
+                    if(TFMPageMenuItems.MenuItemType == TFMPageMenuItemTypes::AdhocAction)
+                    {
+                        xsdNodesForCurrentMenuItem = parser.drillDownForAttributes(rootXPath + 'actions/adhocRegistration');
+                        xsdNodesForCurrentMenuItemRow2 = parser.drillDownForAttributes(rootXPath + 'actions/adhocRegistration/onSuccessfulPost');
+                        element.populateAdditionalMenuItemProperties(FormGroupControlMenuItemsAttributesCol2, xsdNodesForCurrentMenuItemRow2, pageCommandKey + '/onSuccessfulPost', addedFields);
+                        
+                    }
+                    else
+                    {
+                        xsdNodesForCurrentMenuItem = parser.drillDownForAttributes(rootXPath + 'actions/' + pageCommandKey);
+                    }
+                }
+
+                element.populateAdditionalMenuItemProperties(FormGroupControlMenuItemsAttributesCol1, xsdNodesForCurrentMenuItem, pageCommandKey, addedFields);
+                
+            }
+            if (TFMConstants::MenuItemTypeBarcode() == TFMPageMenuItems.MenuPageID)
+            {
+                //Handle Qualifiers
+                FormGroupControlMenuItemsAttributesCol1.columns(4);
+                pageConfiguratorClass.populateTypeBarcodePropertiesWithGs1AIs(FormGroupControlMenuItemsAttributesCol1);
+            }
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>menuItemIcon</Name>
+						<Source><![CDATA[
+        public display container menuItemIcon(TFMPageMenuItems _record)
+        {
+            ImageReference	imgRef;
+            TFMPage page;
+            str imgStr = TFMPageMenuItemsFormHelper::getMenuItemIconStr(_record, pageConfiguratorClass.pagesOnForm);
+            imgRef = ImageReference::constructForUrl(TFMDocGetMedia::getURLFromIconName(imgStr));
+            return imgRef.pack();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>create</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name = "_append"></param>
+        public void create(boolean _append = false)
+        {
+            element.clearAttributes();
+            super(_append);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>validateDelete</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public boolean validateDelete()
+        {
+            boolean ret = false;
+        
+            if(TFMPageMenuItems.TableName == '' && TFMFormLookupHelper::IsDefinedAsPageActionAttribute(TFMPageMenuItems.MenuPageID, element.getCurrentPage().getConfiguration()))
+            {
+                info(strFmt("@TFM:Themenuitem1cannotbedeletedbecau", TFMPageMenuItems.MenuPageID));
+            }
+            else
+            {
+                ret = super();
+            }
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>executeQuery</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void executeQuery()
+        {
+            TFMMenuItemsCtrl1.sendUpdatingToControl();
+            super();
+            TFMMenuItemsCtrl1.sendMenuItemsToControl(TFMPageMenuItems_ds, pageConfiguratorClass);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>MenuPageID</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            /// <summary>
+            ///
+            /// </summary>
+            public void modified()
+            {
+                super();
+                if(TFMPageMenuItems.isNewRecord() && TFMPageMenuItems.MenuPageID)
+                {
+                    str selected=TFMPageMenuItems.MenuPageID;
+                    TFMPageMenuItems_DS.write();
+                    TFMPageMenuItems_DS.executeQuery();
+                    pageConfiguratorClass.setActiveMenuItem(selected);
+                }
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+			<DataSource>
+				<Name>TFMPinnableValues</Name>
+				<Methods>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void initValue()
+        {
+            super();
+            TFMPinnableValues.PageID = pageId;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>init</Name>
+						<Source><![CDATA[
+        public void init()
+        {
+            super();
+            this.queryBuildDataSource().addRange(fieldNum(TFMPinnableValues,PageID)).value(pageId);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>Tab</Name>
+				<Type>Tab</Type>
+				<Methods>
+					<Method>
+						<Name>tabChange</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name = "_FromTab"></param>
+        /// <returns></returns>
+        public boolean tabChange(int _FromTab)
+        {
+            boolean ret;
+            TFMMenuItemsCtrl1.sendUpdatingToControl();
+            ret = super(_FromTab);
+    
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TFMPage_Title</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public boolean modified()
+        {
+            boolean ret;
+            
+            ret = super();
+
+            element.getCurrentPage().parmTitle(this.text());
+            ttsbegin;
+            TFMDeltaPages::createFromPageClass(element.getCurrentPage());
+            ttscommit;
+            TFMPagesProvider::instance().invalidateProvider();
+            TFMPage_TitleTranslated.text(TFMListVisualization::getMenuTitle(element.getCurrentPage().parmTitle()));
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TFMPage_Icon</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public boolean modified()
+        {
+            boolean ret;
+    
+            ret = super();
+            element.getCurrentPage().parmIcon(this.text());
+            ttsbegin;
+            TFMDeltaPages::createFromPageClass(element.getCurrentPage());
+            ttscommit;
+            element.updatePageIconOnForm();
+            TFMPagesProvider::instance().invalidateProvider();
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TFMPage_Description</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public boolean modified()
+        {
+            boolean ret;
+    
+            ret = super();
+            element.getCurrentPage().parmDescription(this.text());
+            ttsbegin;
+            TFMDeltaPages::createFromPageClass(element.getCurrentPage());
+            ttscommit;          
+            TFMPagesProvider::instance().invalidateProvider();
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ConfigurationTab</Name>
+				<Type>TabPage</Type>
+				<Methods>
+					<Method>
+						<Name>pageActivated</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void pageActivated()
+        {
+            super();
+            if(!element.configTab.controlCount())
+            {
+                pageConfiguratorClass.setTabPages(ConfigTab, offlineTab);
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>MenuItems</Name>
+				<Type>TabPage</Type>
+				<Methods>
+					<Method>
+						<Name>pageActivated</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void pageActivated()
+        {
+            super();
+            
+            qbrMenuItems.value(pageConfiguratorClass.currentPage().parmId());
+            TFMPageMenuItems_ds.executeQuery();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>MenuitemIcon</Name>
+				<Type>Image</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            this.lookup();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void lookup()
+        {
+            super();
+            element.LookupResource();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>PageMenuItemGrid_MenuPageIconString</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void lookup()
+        {
+            super();
+            element.LookupResource();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Offline</Name>
+				<Type>TabPage</Type>
+				<Methods>
+					<Method>
+						<Name>pageActivated</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void pageActivated()
+        {
+            super();
+
+            if(!element.configTab.controlCount())
+            {
+                pageConfiguratorClass.setTabPages(ConfigTab, offlineTab);
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>TabXML</Name>
+				<Type>TabPage</Type>
+				<Methods>
+					<Method>
+						<Name>pageActivated</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void pageActivated()
+        {
+            boolean outputTranslatedValue = FormCheckBoxControl_TranslateLabels.checked(); 
+
+            TFMPageOrderList orderList = element.getCurrentPage() as TFMPageOrderList;
+            XML serviceXml = (orderList) ? orderList.getServiceXML() : '';
+            XML outputXmlStr;
+            XmlDocument pagesRoot = element.getCurrentPage().getXML(pageConfiguratorClass.pagesOnForm);
+            XmlElement outputElement;
+            
+            outputElement = pagesRoot.createElement('output');
+            outputXmlStr = outputElement.innerXml(pagesRoot.getNamedElement('page').xml() + serviceXml);
+            
+            if(outputTranslatedValue)
+            {
+                outputXmlStr = TFMTranslationProvider::replaceAllTranslations(outputXmlStr);
+            }
+
+            XmlViewer.parmFormatAsXml('Yes');
+            XmlViewer.parmHtml(TFMFormXMLFormatter::htmlColorXML('<output>' + outputXmlStr + '</output>'));
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormCheckBoxControl_TranslateLabels</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public boolean modified()
+        {
+            boolean ret;
+    
+            ret = super();
+
+            TabXML.pageActivated();
+    
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>TFMDeltaPages</Name>
+			<Table>TFMDeltaPages</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Description</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FilterName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Icon</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Name</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PackedQuery</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>QueryName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Title</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Type</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>TFMPageActions</Name>
+			<Table>TFMPageActions</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Icon</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Id</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Name</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Title</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>TFMDeltaPages</JoinSource>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>TFMPageMenuItems</Name>
+			<Table>TFMPageMenuItems</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Enabled</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Hide</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Icon</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LineNumber</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Mandatory</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MenuItemType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MenuPageID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OrderType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PageID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Promoted</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PromotedItem</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Title</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>VisibleWhenNoData</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<Index>LineNumberIndex</Index>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>TFMPinnableValues</Name>
+			<Table>TFMPinnableValues</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DisplayName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>GS1AI</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Icon</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Name</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PageID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RegularExpression</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@TFM:PageConfigurator</Caption>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<AlignControl>No</AlignControl>
+				<ElementPosition>1073741822</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Tab</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>HeaderTabPage</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>FormGroupControl2</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl>
+										<Name>HtmlViewerIcon</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<FormControlExtension>
+											<Name>TFMHtmlViewerCtrl</Name>
+											<ExtensionComponents />
+											<ExtensionProperties>
+												<AxFormControlExtensionProperty>
+													<Name>htmlField</Name>
+													<Type>String</Type>
+												</AxFormControlExtensionProperty>
+												<AxFormControlExtensionProperty>
+													<Name>addCopyLinkField</Name>
+													<Type>String</Type>
+												</AxFormControlExtensionProperty>
+												<AxFormControlExtensionProperty>
+													<Name>formatAsXmlField</Name>
+													<Type>String</Type>
+												</AxFormControlExtensionProperty>
+											</ExtensionProperties>
+										</FormControlExtension>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>FormGroupControl1</Name>
+										<Type>Group</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>TFMPage_Title</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<ExtendedDataType>TFMPageTitleString</ExtendedDataType>
+												<Label>@SYS121139</Label>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>TFMPage_Icon</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<ExtendedDataType>TFMImageName</ExtendedDataType>
+												<Label>@SYS308379</Label>
+												<LookupOnly>Yes</LookupOnly>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>TFMPage_TitleTranslated</Name>
+												<AllowEdit>No</AllowEdit>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Label>@TFM:Translatedtitle</Label>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>AvailableOnMenus</Name>
+												<Type>CheckBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataMethod>AvailableOnMenus</DataMethod>
+												<DataSource>TFMDeltaPages</DataSource>
+												<Label>@TFM:AvailableonMenupages</Label>
+											</AxFormControl>
+										</Controls>
+										<Columns>2</Columns>
+									</AxFormControl>
+								</Controls>
+								<Columns>2</Columns>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>TFMPage_Description</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ExtendedStyle>businessCard_notes</ExtendedStyle>
+								<Type>String</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@SYS121176</Label>
+								<MultiLine>Yes</MultiLine>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS28004</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>ConfigurationTab</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>920350134</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>GeneralTabTitleCopy1</Name>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>GeneralTabTitleTextCopy1</Name>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@SYS14011</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabControl">
+								<Name>configTab</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Tab</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls />
+								<Style>FastTabs</Style>
+							</AxFormControl>
+						</Controls>
+						<HideIfEmpty>No</HideIfEmpty>
+						<Caption>@SYS304003</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>MenuItems</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormContainerControl">
+								<Name>TFMMenuItemsCtrl1</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Container</Type>
+								<Width>510</Width>
+								<WidthMode>Manual</WidthMode>
+								<FormControlExtension>
+									<Name>TFMMenuItemsCtrl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties />
+								</FormControlExtension>
+								<Controls />
+								<HideIfEmpty>No</HideIfEmpty>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>FormGroupControlAttributes</Name>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>FormGroupControlMenuItemsPageAttributes</Name>
+										<HeightMode>SizeToAvailable</HeightMode>
+										<Type>Group</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>FormGroupControlMenuItemInfoField</Name>
+												<Type>Group</Type>
+												<WidthMode>SizeToAvailable</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>TFMPageMenuItems_MenuPageID</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<ExtendedStyle>informationalField</ExtendedStyle>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>MenuPageID</DataField>
+														<DataSource>TFMPageMenuItems</DataSource>
+														<Label>@TFM:ID</Label>
+														<LookupOnly>Yes</LookupOnly>
+														<ViewEditMode>Edit</ViewEditMode>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormComboBoxControl">
+														<Name>TFMPageMenuItems_MenuItemType1</Name>
+														<AllowEdit>No</AllowEdit>
+														<Enabled>No</Enabled>
+														<ExtendedStyle>informationalField</ExtendedStyle>
+														<Type>ComboBox</Type>
+														<Width>250</Width>
+														<WidthMode>Manual</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>MenuItemType</DataField>
+														<DataSource>TFMPageMenuItems</DataSource>
+														<Label>@TFM:Type</Label>
+														<Items />
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>TFMPageMenuItems_Mandatory2</Name>
+														<AllowEdit>No</AllowEdit>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>Mandatory</DataField>
+														<DataSource>TFMPageMenuItems</DataSource>
+													</AxFormControl>
+												</Controls>
+												<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>FormGroupControlMenuItemHeaderFields</Name>
+												<ExtendedStyle>group_Container</ExtendedStyle>
+												<Type>Group</Type>
+												<WidthMode>SizeToAvailable</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormImageControl">
+														<Name>MenuitemIcon</Name>
+														<Height>40</Height>
+														<HeightMode>Manual</HeightMode>
+														<Type>Image</Type>
+														<Width>40</Width>
+														<WidthMode>Manual</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<DataMethod>menuItemIcon</DataMethod>
+														<DataSource>TFMPageMenuItems</DataSource>
+														<Label>@TFM:Icon</Label>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>PageMenuItemGrid_MenuPageIconString</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<HelpText>The name of the icon for the menu item. If left empty it will default to the icon of the target page or the default icon defined on the device.</HelpText>
+														<Type>String</Type>
+														<Width>150</Width>
+														<WidthMode>Manual</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>Icon</DataField>
+														<DataSource>TFMPageMenuItems</DataSource>
+														<Label>@TFM:Iconname</Label>
+														<LookupOnly>Yes</LookupOnly>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>TFMPageMenuItems_Hide</Name>
+														<HelpText>If set to true, the menu item will not be shown on the page.</HelpText>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>Hide</DataField>
+														<DataSource>TFMPageMenuItems</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>TFMPageMenuItems_VisibleWhenNoData</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>VisibleWhenNoData</DataField>
+														<DataSource>TFMPageMenuItems</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>TFMPageMenuItems_Title</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<HelpText>If the title is empty. The Menu Item uses the label from the device or from the page it is opening.</HelpText>
+														<Type>String</Type>
+														<Width>220</Width>
+														<WidthMode>Manual</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>Title</DataField>
+														<DataSource>TFMPageMenuItems</DataSource>
+														<Label>@TFM:Title</Label>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormGroupControl">
+														<Name>FormGroupControlDescription</Name>
+														<Type>Group</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls>
+															<AxFormControl xmlns=""
+																i:type="AxFormStaticTextControl">
+																<Name>FormStaticTextControl_description</Name>
+																<AutoDeclaration>Yes</AutoDeclaration>
+																<Type>StaticText</Type>
+																<WidthMode>SizeToAvailable</WidthMode>
+																<FormControlExtension
+																	i:nil="true" />
+															</AxFormControl>
+														</Controls>
+													</AxFormControl>
+												</Controls>
+												<Columns>3</Columns>
+												<Caption>@TFM:Generalmenuitemconfigurations</Caption>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>FormGroupControlMenuItemsAttributes</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<ExtendedStyle>group_Container</ExtendedStyle>
+												<HeightMode>SizeToAvailable</HeightMode>
+												<Type>Group</Type>
+												<WidthMode>SizeToAvailable</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormGroupControl">
+														<Name>FormGroupControlMenuItemsAttributesCol1</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<HeightMode>SizeToAvailable</HeightMode>
+														<Type>Group</Type>
+														<WidthMode>SizeToAvailable</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls />
+														<ArrangeMethod>Auto</ArrangeMethod>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormGroupControl">
+														<Name>FormGroupControlMenuItemsAttributesCol2</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<HeightMode>SizeToAvailable</HeightMode>
+														<Type>Group</Type>
+														<WidthMode>SizeToAvailable</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls />
+														<ArrangeMethod>Auto</ArrangeMethod>
+													</AxFormControl>
+												</Controls>
+												<ArrangeMethod>Auto</ArrangeMethod>
+												<Columns>2</Columns>
+												<HideIfEmpty>No</HideIfEmpty>
+												<Caption>@TFM:Additionalconfigurationsfortheme</Caption>
+											</AxFormControl>
+										</Controls>
+										<Caption>@TFM:Menuitemsetup</Caption>
+										<DataSource>TFMPageMenuItems</DataSource>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+						</Controls>
+						<Columns>2</Columns>
+						<Caption>@TFM:MEL93</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>OrderLinesPinnableValues</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>PinnablePane</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>buttonsCopy1</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>NewLineCopy1</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>New</Command>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>DeleteLineCopy1</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>DeleteRecord</Command>
+											</AxFormControl>
+										</Controls>
+										<DataSource>TFMPinnableValues</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataSource>TFMPinnableValues</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>FormStaticTextControl_pinnable_help</Name>
+								<Type>StaticText</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@TFM:OnorderlinesitispossibletoaddPin</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>PinnableGrid</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Grid</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>PinnableGrid_PageID</Name>
+										<Type>String</Type>
+										<Visible>No</Visible>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>PageID</DataField>
+										<DataSource>TFMPinnableValues</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>PinnableGrid_GS1Name</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>GS1Name</DataField>
+										<DataSource>TFMPinnableValues</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>PinnableGrid_RegularExpression</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>RegularExpression</DataField>
+										<DataSource>TFMPinnableValues</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>PinnableGrid_Name</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Name</DataField>
+										<DataSource>TFMPinnableValues</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>PinnableGrid_DisplayName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>DisplayName</DataField>
+										<DataSource>TFMPinnableValues</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>PinnableGrid_Icon</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Icon</DataField>
+										<DataSource>TFMPinnableValues</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>Overview</DataGroup>
+								<DataSource>TFMPinnableValues</DataSource>
+							</AxFormControl>
+						</Controls>
+						<Caption>@TFM:PinnableValues</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Offline</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabControl">
+								<Name>OfflineTab</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<HeightMode>SizeToContent</HeightMode>
+								<Type>Tab</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls />
+								<Style>FastTabs</Style>
+							</AxFormControl>
+						</Controls>
+						<HideIfEmpty>No</HideIfEmpty>
+						<Caption>@SYS39786</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TabXML</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormCheckBoxControl">
+								<Name>FormCheckBoxControl_TranslateLabels</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<HelpText>If enabled, then the label ids will be translated.</HelpText>
+								<Type>CheckBox</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Label>@TFM:Translatelabels</Label>
+								<Style>Toggle</Style>
+							</AxFormControl>
+							<AxFormControl>
+								<Name>XmlViewer</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<FormControlExtension>
+									<Name>TFMHtmlViewerCtrl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties>
+										<AxFormControlExtensionProperty>
+											<Name>htmlField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>addCopyLinkField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>formatAsXmlField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+									</ExtensionProperties>
+								</FormControlExtension>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS98689</Caption>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<Style>VerticalTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts>
+		<AxFormPartReference xmlns="">
+			<Name>Help</Name>
+			<MenuItemName>TFMHelpPart</MenuItemName>
+		</AxFormPartReference>
+	</Parts>
+</AxForm>

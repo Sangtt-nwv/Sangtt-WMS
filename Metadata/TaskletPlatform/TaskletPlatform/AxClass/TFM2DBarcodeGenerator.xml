@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFM2DBarcodeGenerator</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.Drawing;
+class TFM2DBarcodeGenerator
+{
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getQRCode</Name>
+				<Source><![CDATA[
+    public static System.Drawing.Bitmap getQRCode(str _value)
+    {
+        System.Drawing.Bitmap result;
+        QRCoder.QRCodeGenerator.ECCLevel eccLevel;
+
+        QRCoder.QRCodeGenerator qrGenerator = new QRCoder.QRCodeGenerator();
+        QRCoder.QRCodeData qrCodeData = qrGenerator.CreateQrCode(_value, QRCoder.QRCodeGenerator.ECCLevel::M);
+
+        QRCoder.QRCode qrCode = new QRCoder.QRCode(qrCodeData);
+
+        result = qrCode.GetGraphic(20,System.Drawing.Color::White,System.Drawing.Color::FromArgb(255,hex2int('64'),hex2Int('BC'),hex2Int('98')),TFMImageHelper::base64ToImage(TFMImageHelper::resource2Base64(resourceStr(TFMMainMenuIcon))));
+
+        System.IO.MemoryStream memoryStream = new System.IO.MemoryStream();
+
+        result.Save(memoryStream, System.Drawing.Imaging.ImageFormat::get_Png());
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showLoginUserNameBarcode</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Adds the user name barcode to the HtmlViewer.
+    /// </summary>
+    /// <param name = "_htmlViewer">The Html Viewer to add the barcode to.</param>
+    public static void showLoginUserNameBarcode(TFMHtmlViewerCtrl _htmlViewer, str _loginUserName)
+    {
+        resourceNode rn = new resourceNode(resourceStr(TFMTaskletLogoWhite));
+        str colorCode = '#262f2d';
+
+        BarcodeEAN128 loginBarcode = BarcodeEAN128::construct();
+        BarCodeString barcodeStr = loginBarcode.encodeString('95' + _loginUserName, true);
+
+        int width = max((strLen(_loginUserName) + 1) * 12, 650);
+
+        System.Drawing.Bitmap barcodeImage          = TFM2DBarcodeGenerator::getImage(barcodeStr,
+        'BC C128 HD MEDIUM',//    'BC C128 HD Narrow',//Barcode Font
+        100,//Barcode Font Size
+        width,//Barcode Width
+        125//Barcode Height
+        );
+
+        TFMGraphicsHelper::setImageHtml(barcodeImage, _htmlViewer,false);
+
+        str html = '<table style="border-color: lightgray; border-width: thin; border-style: solid;" bgcolor="'+ colorCode +'"><tr><td>'+_htmlViewer.parmHtml() + '</td></tr>' 
+            + '<tr><td><span style="color: white;padding: 7px">' + "@TFM:Username" + '</span><img src="'+ '/resources/images/' + rn.filename() + '" title="@TFM:Username" align="right" height="36"/></td>';
+        html += '</tr></table>';
+        _htmlViewer.parmHtml(html);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showEndPointBarcode</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Adds the Endpoint barcode to the HtmlViewer.
+    /// </summary>
+    /// <param name = "_htmlViewer">The Html Viewer to add the barcode to.</param>
+    public static void showEndPointBarcode(TFMHtmlViewerCtrl _htmlViewer, str _endPointJson)
+    {
+        resourceNode rn = new resourceNode(resourceStr(TFMTaskletLogoWhite));
+        str colorCode = '#262f2d';
+
+        TFMGraphicsHelper::setImageHtml(TFM2DBarcodeGenerator::getQRCode(_endPointJson), _htmlViewer,false,0.15);
+
+        str html = '<table style="border-color: lightgray; border-width: thin; border-style: solid;" bgcolor="'+ colorCode +'"><tr><td>'+_htmlViewer.parmHtml() + '</td></tr><tr><td><span style="color: white;padding: 7px">' + "@TFM:Endpoint" + '</span><img title="endpointBarcode" src="'+ '/resources/images/' + rn.filename()
+            + '" align="right" height="22px" ></td>';
+        html += '</tr></table>';
+        _htmlViewer.parmHtml(html);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEndPointJson</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the json for the endpoint
+    /// </summary>
+    /// <param name = "_endpointId">The id of the endpoint</param>
+    /// <param name = "_displayName">The display name of the endpoint</param>
+    /// <param name = "_baseUrl">The base url that will be used to connect to the DynFo</param>
+    /// <param name = "_clientId">The client Id set up in the App Registration in Azure</param>
+    /// <param name = "_authority">The value of authority element. It will default to the organizations url but if a tenant is used then it can be set here. e.g. https://login.microsoftonline.com/CLIENT_ID/oauth2/authorize </param>
+    /// <returns></returns>
+    public static str getEndPointJson(str _endpointId, str _displayName, str _baseUrl, str _clientId, str _authority = 'https://login.microsoftonline.com/organizations/')
+    {
+        str json = '{"id": "' + _endpointId +'",  "displayName": "' + _displayName +'", "type": "D365FO", "protocol": "classic", "address": "'
+            + _baseUrl + '/",'
+            + '"azureConfiguration": ';
+        json += '{ "authority": "'+ _authority +'",';
+        json += '"serviceName": "' + classStr(TFMService) + '", "clientId": "' + _clientId + '", "returnUri": "' + _baseUrl + '/oauth"}}';
+
+        return json;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getImage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the barcode as an image.
+    /// </summary>
+    /// <param name = "_barcode">The barcode to create</param>
+    /// <param name = "_barcodeFont">The barcode font to use</param>
+    /// <param name = "_fontSize">The font size</param>
+    /// <param name = "_width">The width of the image</param>
+    /// <param name = "_height">The height of the image</param>
+    /// <returns></returns>
+    public static System.Drawing.Bitmap getImage(str _barcode, str _barcodeFont, int _fontSize, int _width, int _height)
+    {
+        Font font  = new Font(_barcodeFont, _fontSize);
+        System.Drawing.RectangleF rectF = new RectangleF(0, 0, _width, _height);
+        System.Drawing.Bitmap image = new System.Drawing.Bitmap(_width, _height);
+
+        using (System.Drawing.Graphics graphics = System.Drawing.Graphics::FromImage(image))
+        {
+            graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode::HighQualityBicubic;
+            graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint::ClearTypeGridFit;
+            graphics.PixelOffsetMode   = System.Drawing.Drawing2D.PixelOffsetMode::HighQuality;
+
+            var strFormat           = System.Drawing.StringFormat::GenericTypographic;
+            strFormat.Alignment     = System.Drawing.StringAlignment::Center;
+            strFormat.LineAlignment = System.Drawing.StringAlignment::Center;
+
+            var blackBrush = new  SolidBrush(System.Drawing.Color::Black);
+            var whiteBrush = new SolidBrush(System.Drawing.Color::White);
+
+            graphics.FillRectangle(whiteBrush, rectF);
+            graphics.DrawString(_barcode, font, blackBrush, rectF, strFormat);
+            graphics.Flush();
+        }
+        
+        using (System.IO.MemoryStream ms = new System.IO.MemoryStream())
+        {
+            image.Save(ms, System.Drawing.Imaging.ImageFormat::Png);
+        }
+
+        return image;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

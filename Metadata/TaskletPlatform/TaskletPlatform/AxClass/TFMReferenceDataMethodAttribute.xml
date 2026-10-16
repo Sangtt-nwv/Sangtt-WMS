@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMReferenceDataMethodAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMReferenceDataMethodAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    str pagesUsingThis;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(str _pagesUsingThis = '')
+    {        
+        pagesUsingThis = _pagesUsingThis;
+        super();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPagesUsingThis</Name>
+				<Source><![CDATA[
+    public str parmPagesUsingThis(str _pagesUsingThis = pagesUsingThis)
+    {
+        pagesUsingThis = _pagesUsingThis;
+        return pagesUsingThis;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pagesUsingFilter</Name>
+				<Source><![CDATA[
+	public Set pagesUsingFilter()
+    {
+        Set pagesUsingFilter = new Set(Types::String);
+        ListEnumerator		lEnum = strSplit(pagesUsingThis,';').getEnumerator();
+        while (lEnum.moveNext() && pagesUsingThis)
+        {
+            pagesUsingFilter.add(lEnum.current());
+        }
+        return pagesUsingFilter;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMReferenceDataMethodAttribute);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

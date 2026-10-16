@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocAttachments</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The MobDocQuarantineOrder class is the document handler for the quarantine order creation in Mobile Wms.
+/// </summary>
+class MobDocAttachments extends TFMDocAttachments
+{
+
+}
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+</AxClass>

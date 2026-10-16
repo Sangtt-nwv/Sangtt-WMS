@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMWorkflowBlock</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMWorkflowBlock
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>steps</Name>
+				<Source><![CDATA[
+	public Set steps()
+    {
+        return new Set(Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AdditionalValues</Name>
+				<Source><![CDATA[
+    public Map AdditionalValues(Common _common = null)
+    {
+        return new Map(Types::String, Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dynamicSteps</Name>
+				<Source><![CDATA[
+	public Set dynamicSteps(Common _common, boolean _getAllSteps = false)
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

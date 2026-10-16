@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowDataContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute('data')]
+class TFMDrawFlowDataContract
+{
+    Map data;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        data = new Map(Types::Integer, Types::Class);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMDrawFlowDataContract Construct()
+    {
+        return new TFMDrawFlowDataContract();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmData</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('data'), TFMContractClass(classStr(TFMDrawFlowLogicBlockContract))]
+    public Map parmData(Map _data = data)
+    {
+        data = _data;
+        return data;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

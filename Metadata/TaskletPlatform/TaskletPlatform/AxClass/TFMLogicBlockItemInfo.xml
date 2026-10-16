@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicBlockItemInfo</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicBlockItemInfo extends TFMLogicBlock implements TFMLogicBlockDataCollectionInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {        
+        refConf.addCollector(TFMGetReferenceData::defaultItemIdCollector(2,true,false,extendedTypeStr(ItemId)));
+        
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        TFMRegistrationCollectors ret = TFMRegistrationCollectors::Construct();
+        
+        TFMRegistrationCollectorInformation itemInfo = new TFMRegistrationCollectorInformation(10, 'info', '{ItemNumber}', '', '');
+
+        TFMConditions conditions = TFMConditions::Construct();
+        conditions.addCondition(TFMCondition::Construct(classStr(TFMLogicContextInfoContext),conNull(),'ItemInformation'),methodStr(TFMRegistrationCollector,parmHelpLabel) );
+        itemInfo.parmConditions(conditions);
+
+        ret.addCollector(itemInfo);
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Name of the block Type.
+    /// </summary>
+    /// <returns>Name of the block</returns>
+    public Name blockName()
+    {
+        return "@TFM:ShowItemInfo";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    public TFMPostResponseData post()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMTaskletLogo);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMExpressionsCompanyImage</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// An expression used to retrieve the company image, that is used for reports.
+/// </summary>
+[TFMDescription("An expression used to retrieve the company image, that is used for reports, as a base64 image.")]
+class TFMExpressionsCompanyImage extends TFMExpressions
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processExpressionCommon</Name>
+				<Source><![CDATA[
+    public str processExpressionCommon(Common _common)
+    {
+        Bitmap bmp = FormLetter::companyLogo();//CompanyImage::findByRecord(CompanyInfo::find()).Image;
+        BinData     bin = new BinData();
+        str         ret;
+        if (bmp == conNull())
+        {
+            return '';
+        }
+        bin.setData(bmp);
+        ret = bin.base64Encode();
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processExpressionValue</Name>
+				<Source><![CDATA[
+    [SysObsolete]
+    public str processExpressionValue(str _value)
+    {
+        
+        return this.processExpressionCommon(null);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

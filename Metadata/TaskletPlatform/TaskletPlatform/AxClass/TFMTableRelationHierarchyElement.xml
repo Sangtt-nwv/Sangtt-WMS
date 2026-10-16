@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMTableRelationHierarchyElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMTableRelationHierarchyElement
+{
+    TableName                               tableName;
+    FieldName                               tableField;
+    TFMTableRelationHierarchyElement        nestedTable;
+    FieldName                               relationFieldName;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(str _tableName, FieldName _tableField, FieldName _relationFieldName)
+    {
+        tableName           = _tableName;
+        tableField          = _tableField;
+        relationFieldName   = _relationFieldName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTableName</Name>
+				<Source><![CDATA[
+    public TableName parmTableName(TableName _tableName = TableName)
+    {
+        tableName = _tableName;
+        return tableName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRelationFieldName</Name>
+				<Source><![CDATA[
+    public FieldName parmRelationFieldName(FieldName _relationFieldName = relationFieldName)
+    {
+        relationFieldName = _relationFieldName;
+        return relationFieldName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addNestedTable</Name>
+				<Source><![CDATA[
+    public void addNestedTable(TFMTableRelationHierarchyElement _nestedTable)
+    {
+        nestedTable = _nestedTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>endTable</Name>
+				<Source><![CDATA[
+    public TableName endTable()
+    {
+        return nestedTable == null ? tableName : nestedTable.endTable();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findValue</Name>
+				<Source><![CDATA[
+    public anytype findValue(Common _buffer)
+    {
+        Common subTable;
+        QueryRun qr;
+        if (!nestedTable)
+        {
+            return _buffer.(fieldName2Id(_buffer.TableId, tableField));
+        }
+        
+        //Find nested buffer
+        qr = TFMGenericDataHelper::getRelatedTableFromspecifiedField(_buffer, tableField,nestedTable.parmTableName(), nestedTable.parmRelationFieldName());
+        qr.next();
+        subTable = qr.get(tableName2Id(nestedTable.parmTableName()));
+        return nestedTable.findValue(subTable);
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

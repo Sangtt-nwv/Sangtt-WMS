@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMShowDataResults</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMShowDataResults
+{
+    Map dataResult;
+    TFMHtmlViewerCtrl htmlViewer;
+    FormTabPageControl    fieldsGroup;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>ShowResults</Name>
+				<Source><![CDATA[
+    public static void ShowResults(Map _dataResults)
+    {
+        
+        new TFMShowDataResults(_dataResults);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(Map _dataResults)
+    {
+        FormRun             formRun;
+        FormGroupControl    navList;
+        FormListBoxControl  lb;
+        MapEnumerator       mEnum;
+        str                 firstKey;
+        
+        //Call the form using a Menu Item
+        Args	Args = new Args(formStr(TFMShowDataResults));
+        dataResult = _dataResults;
+        formRun = New FormRun(Args);
+        formRun.init();
+        formRun.run();
+
+        navList = formRun.control(formRun.controlId(formControlStr(TFMShowDataResults, NavList)));
+        htmlViewer = formRun.control(formRun.controlId(formControlStr(TFMShowDataResults, XmlViewer)));
+        lb = navList.addControl(FormControlType::ListBox, 'Records');
+        fieldsGroup = formRun.control(formRun.controlId(formControlStr(TFMShowDataResults, fields)));
+        mEnum = _dataResults.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            lb.add(mEnum.currentKey());
+            firstKey = firstKey ? firstKey : mEnum.currentKey();
+        }
+        lb.registerOverrideMethod(methodStr(FormListBoxControl, selectionChange), methodStr(TFMShowDataResults, selectionChanged), this);
+        this.showAllFields(dataResult.lookup(firstKey));
+        formRun.wait();
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>selectionChanged</Name>
+				<Source><![CDATA[
+    public int selectionChanged(FormListBoxControl _listBoxControl)
+    {
+        //info(strFmt('%1 %2 %3 %4 %5 %6 %7 %8',_listBoxControl.text(), _listBoxControl.currentRow(), _listBoxControl.item(), _listBoxControl.selection(), _listBoxControl.valueStr()));
+
+        
+        this.showAllFields(dataResult.lookup(_listBoxControl.valueStr()));
+        return 1;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showAllFields</Name>
+				<Source><![CDATA[
+    protected void showAllFields(str _tableXML)
+    {
+        DictField                       dictField;
+        fieldId                         fieldId;
+        int                             i;
+        int                             fieldCnt;
+        Map                             userDefinedFields;
+        List                            systemFields;
+        MapEnumerator                   mapIt;
+        ListEnumerator                  listIt;
+        SysDictTable                    dictTable;
+        XmlDocument                     xmlDoc = XmlDocument::newXml(_tableXML);
+        TableName                       tableName = xmlDoc.root().getAttribute('name');
+        Map                             values = new Map(Types::String, Types::String);
+        XmlElement                      child = xmlDoc.root().firstChild();
+        FieldName                       fieldName;
+        dictTable = new SysDictTable(tableName2Id(tableName));
+        htmlViewer.parmHtml(TFMFormXMLFormatter::htmlColorXML(_tableXML));
+        userDefinedFields = new Map(Types::String, Types::Integer);
+        systemFields      = new List(Types::Integer);
+        while (fieldsGroup.controlCount())
+        {
+            fieldsGroup.formRun().design().removeControl(fieldsGroup.controlNum(1).id());
+        }
+        //Include all of the base table fields so we have "complete records".
+        fieldCnt = dictTable.fieldCnt(TableScope::IncludeBaseTables);
+        for (i = 1; i <= fieldCnt; i++)
+        {
+            fieldId = dictTable.fieldCnt2Id(i, TableScope::IncludeBaseTables);
+
+            dictField = new dictField(dictTable.id(), fieldId);
+            if (dictField)
+            {
+                if (dictField.isSystem())
+                {
+                    systemFields.addEnd(fieldId);
+                }
+                else
+                {
+                    userDefinedFields.insert(dictField.name(), fieldId);
+                }
+            }
+        }
+
+        while (child)
+        {
+            values.insert(child.getAttribute('name'), child.innerText());
+            child = child.nextSibling();
+        }
+
+        mapIt = userDefinedFields.getEnumerator();
+        while (mapIt.moveNext())
+        {
+            fieldName = dictTable.fieldName(mapIt.currentValue());
+            this.populateGroup(dictTable.id(), mapIt.currentValue(), values.exists(fieldName) ? values.lookup(fieldName) : '');
+        }
+
+        listIt = systemFields.getEnumerator();
+        while (listIt.moveNext())
+        {
+            fieldName = dictTable.fieldName(listIt.current());
+            this.populateGroup(dictTable.id(), listIt.current(), values.exists(fieldName) ? values.lookup(fieldName) : '');
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateGroup</Name>
+				<Source><![CDATA[
+    public void populateGroup(TableId _tableId, FieldId _fieldId, str _value)
+    {
+        //From tableBrowser
+        FormStringControl FormStringControl;
+        FormInt64Control FormInt64Control;
+        FormIntControl FormIntControl;
+        FormComboBoxControl FormComboBoxControl;
+        FormCheckBoxControl FormCheckBoxControl;
+        FormTimeControl FormTimeControl;
+        FormDateControl FormDateControl;
+        FormGuidControl FormGuidControl;
+        FormDateTimeControl FormDateTimeControl;
+        FormRealControl FormRealControl;
+        FormSegmentedEntryControl FormSegmentedEntryControl;
+        FormReferenceGroupControl FormReferenceGroupControl;
+
+        FormControl FormControl;
+        SysDictField dictField;
+        int j;
+        tableId rootTableId;
+        str controlName;
+        UtilElementName utilElmName;
+        Types baseType;
+
+        dictField = new SysDictField(_tableId, _fieldId);
+        if(dictField.isSystem())
+        {
+            //System fields are only stored on the root table, so get the information from there.
+            rootTableId = SysDictTable::getRootTable(_tableId);
+            dictField = new SysDictField(rootTableId, _fieldId);
+        }
+
+        for(j = 1;j <= dictField.arraySize(); j++)
+        {
+            FormControl = null;
+
+            controlName = strfmt('%1_%2', dictField.name(), j);
+            baseType = dictField.baseType();
+            utilElmName = dictField.typeName();
+                
+            switch (baseType)
+            {
+                case Types::String:
+                case Types::RString:
+                case Types::VarString:
+                    FormStringControl = fieldsGroup.addControl(FormControlType::String, controlName);
+                    if (DictField.typeId())
+                    {
+                        FormStringControl.extendedDataType(DictField.typeId());
+                    }
+
+                    FormStringControl.displayHeightMode(0);
+                    FormStringControl.displayHeightValue(1);
+                    FormStringControl.text(_value);
+                    FormStringControl.label(FormStringControl.label() ? FormStringControl.label() : dictField.name());
+                    FormControl = FormStringControl;
+                    break;
+
+                case Types::Integer:
+
+                    if (Global::isTypeTime(utilElmName))
+                    {
+                        FormTimeControl = fieldsGroup.addControl(FormControlType::Time, controlName);
+                        
+                        if (DictField.typeId())
+                        {
+                            FormTimeControl.extendedDataType(DictField.typeId());
+                        }
+                        FormTimeControl.value(str2Int(_value));
+                        FormTimeControl.label(FormTimeControl.label() ? FormTimeControl.label() : dictField.name());
+                        FormControl = FormTimeControl;
+                    }
+                    else
+                    {
+                        FormIntControl = fieldsGroup.addControl(FormControlType::Integer, controlName);
+                        
+                        if (DictField.typeId())
+                        {
+                            FormIntControl.extendedDataType(DictField.typeId());
+                        }
+                        FormIntControl.value(str2int(_value));
+                        FormIntControl.label(FormIntControl.label() ? FormIntControl.label() : dictField.name());
+                        FormControl = FormIntControl;
+                    }
+                    break;
+
+                case Types::Int64:
+                    // Reference Controls are created by default for surrogate foreign keys. However, the raw 64-bit
+                    // integer should always be displayed. Force all Int64 type fields to use an Int64 Control.
+                    FormControl = fieldsGroup.addControl(FormControlType::Int64, controlName);
+
+                    FormInt64Control = FormControl as FormInt64Control;
+                    if (DictField.typeId())
+                    {
+                        FormInt64Control.extendedDataType(DictField.typeId());
+                    }
+                    FormInt64Control.value(str2int64(_value));
+                    FormInt64Control.label(FormInt64Control.label() ? FormInt64Control.label() : dictField.name());
+                    FormControl = FormInt64Control;
+                    
+
+                    break;
+
+                case Types::Enum:
+                    FormControl = fieldsGroup.addControl(FormControlType::ComboBox, controlName);
+
+                    FormComboBoxControl = FormControl as FormComboBoxControl;
+                    if (DictField.enumId())
+                    {
+                        FormComboBoxControl.enumType(DictField.enumId());
+                    }
+                    FormComboBoxControl.label(FormComboBoxControl.label() ? FormComboBoxControl.label() : dictField.name());
+                    FormControl = FormComboBoxControl;
+                    
+                    break;
+
+                case Types::Real:
+                    FormRealControl = fieldsGroup.addControl(FormControlType::Real, controlName);
+                    if (DictField.typeId())
+                    {
+                        FormRealControl.extendedDataType(DictField.typeId());
+                    }
+                    FormRealControl.realValue(str2Num(_value));
+                    FormRealControl.label(FormRealControl.label() ? FormRealControl.label() : dictField.name());
+                    FormControl = FormComboBoxControl;
+
+                    break;
+
+                case Types::Guid:
+                    FormGuidControl = fieldsGroup.addControl(FormControlType::Guid, controlName);
+                    if (DictField.typeId())
+                    {
+                        FormGuidControl.extendedDataType(DictField.typeId());
+                    }
+                    FormGuidControl.label(FormGuidControl.label() ? FormGuidControl.label() : dictField.name());
+                    FormControl = FormGuidControl;
+
+                    break;
+
+                case Types::Date:
+                    FormDateControl = fieldsGroup.addControl(FormControlType::Date, controlName);
+                    if (DictField.typeId())
+                    {
+                        FormDateControl.extendedDataType(DictField.typeId());
+                    }
+                    FormDateControl.label(FormDateControl.label() ? FormDateControl.label() : dictField.name());
+                    FormControl = FormDateControl;
+                        
+                    break;
+
+                case Types::UtcDateTime:
+                    FormDateTimeControl = fieldsGroup.addControl(FormControlType::DateTime, controlName);
+                    if (DictField.typeId())
+                    {
+                        FormDateTimeControl.extendedDataType(DictField.typeId());
+                    }
+                    FormDateTimeControl.label(FormDateTimeControl.label() ? FormDateTimeControl.label() : dictField.name());
+                    FormControl = FormDateTimeControl;
+
+                    break;
+            }
+
+
+            if (FormControl != null)
+            {
+                FormControl.name(controlName);
+                FormControl.helpText(dictField.name());
+
+                
+            }
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

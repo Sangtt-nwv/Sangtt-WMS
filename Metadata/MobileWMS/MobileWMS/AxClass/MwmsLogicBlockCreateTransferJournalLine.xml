@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockCreateTransferJournalLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic block creating Transer journal lines
+/// </summary>
+class MwmsLogicBlockCreateTransferJournalLine extends MwmsLogicBlockJournalLinesCommon implements TFMLogicBlockDataCollectionInterface, TFMLogicBlockPrePostDataModifyInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicBlockCreateTransferJournalLine Construct()
+    {
+        return new MwmsLogicBlockCreateTransferJournalLine();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        components.addComponent(new MwmsLogicComponentInventoryMovement());
+
+        categories.add("@SYS8801");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method provides the header fields, that are needed to find out which data should be collected.
+    /// </summary>
+    /// <returns>A TFMReferenceDataConfiguration object, containing registration collectors for the header.</returns>
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        return components.getHeaders();        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return methodStr(MobimageHandlerCombinedImages,transferJournalIcon);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Name of the block Type.
+    /// </summary>
+    /// <returns>Name of the block</returns>
+    public Name blockName()
+    {
+        return "@MobileWMS:CreateorUpdateTransferJournalLine";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method gives you the registration collectors for this data collection block.
+    /// </summary>
+    /// <returns>A collection of registration collectors.</returns>
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        return components.getCollectors();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method is called before the post method, and gives the option to add extra registration collectors for the user to be prompted for before the post method is executed.
+    /// </summary>
+    /// <returns>Returns a TFMRegistrationCollectors object if the user must be further prompted, otherwise it returns null</returns>
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preparePost</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to set up tables to be used in the posting. Ensures that addons can be made, that can modify the data of the block before posting, when needed.
+    /// </summary>
+    public void preparePost()
+    {
+        TFMRequestItemAndDimensionElement   docRequest = request.convertToOtherRequestType(classStr(TFMRequestItemAndDimensionElement));
+        InventDim                           inventDimIssue;
+        
+        Qty                                 qty;
+        ItemId                              itemId = docRequest.parmItemId();
+
+        inventJournalTable = InventJournalTable::find(docRequest.parmJournalId(),true);
+
+        if (createOrUpdate == AddUpdate::Add)
+        {
+            inventDimIssue.data(docRequest.parmInventDim());
+            inventDim.data(docRequest.parmInventDim());
+
+            inventDimIssue = docRequest.createFromInventDim(inventDimIssue);
+            inventDim = docRequest.createToInventDim(inventDim);
+            qty = docRequest.parmQuantity();
+            inventJournalTrans = MobPostHelper::inventJournalTransferLineCreate(inventJournalTable, qty,itemId,inventDimIssue, inventDim, false, true);
+        }
+        else
+        {
+            // Update Line(s)
+            inventJournalTrans = docRequest.getReferredRecord();
+
+            inventDimIssue.data(docRequest.parmInventDim());
+            inventDim.data(docRequest.parmInventDim());
+
+            inventDimIssue = docRequest.createFromInventDim(inventDimIssue);
+            inventDim = docRequest.createToInventDim(inventDim);
+
+            qty = docRequest.parmQuantity();
+            inventJournalTrans.Qty = qty;
+            this.updateJournalLine(inventJournalTrans, inventDimIssue, inventDim);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method executed when all data has been collected, and contains the posting logic.
+    /// </summary>
+    /// <returns>A TFMPostResponseData object.</returns>
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData                 response = TFMPostResponseData::Construct();
+        ttsbegin;
+        if (inventJournalTrans.RecId)
+        {
+            inventJournalTrans.update();
+        }
+        else
+        {
+            inventJournalTrans.insert(false);
+        }
+        ttscommit;
+        MobPostHelper::validateInventJournalTransfer(inventJournalTable);
+        
+        response.parmResponseText("@MobileWMS:MEL47");
+
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateJournalLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to update a journal line with new data
+    /// </summary>
+    /// <param name = "_line">The line buffer</param>
+    /// <param name = "_wmsLocation">The Wms Location to change the lines dimension to</param>    
+    protected void updateJournalLine(Common _line, InventDim _fromInventDim, InventDim _toInventDim)
+    {
+        //InventDim           iDimFrom;
+        //InventDim           iDimTo;
+        
+        if (_line.tableId == tableNum(InventJournalTrans))
+        {
+            inventJournalTrans = _line;
+            inventJournalTrans.selectForUpdate(true);
+            
+            if(_fromInventDim)
+            {
+                inventJournalTrans.inventDimID = InventDim::findOrCreate(_fromInventDim).inventDimId;
+            }
+
+            if(_toInventDim)
+            {
+                inventJournalTrans.ToinventDimID = InventDim::findOrCreate(_toInventDim).inventDimId;
+            }
+          
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

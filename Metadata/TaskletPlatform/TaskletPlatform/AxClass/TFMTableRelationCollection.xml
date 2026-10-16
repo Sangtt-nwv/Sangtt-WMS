@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMTableRelationCollection</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMTableRelationCollection
+{
+    Map	relations;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        relations = new Map(Types::String, Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTableRelation</Name>
+				<Source><![CDATA[
+    public void addTableRelation(TFMTableRelationHierarchyElement _tableRelation)
+    {        
+        relations.insert(_tableRelation.parmTableName()+_tableRelation.endTable(), _tableRelation);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ParseSuperCondensed</Name>
+				<Source><![CDATA[
+    public static TFMTableRelationHierarchyElement ParseSuperCondensed(str _condensedString)
+    {
+        System.Text.RegularExpressions.Regex regex;
+        System.Text.RegularExpressions.MatchCollection matches;
+        System.Text.RegularExpressions.Match match;
+
+        // Regex to match the structure: <TableName> (<TableFieldName>, <RelationFieldName>)
+        regex = new System.Text.RegularExpressions.Regex(
+        @"(?<tableName>\w+)\s*\((?<tableFieldName>\w+)(?:,\s*(?<relationFieldName>\w+))?\)"
+    );
+
+        // Split on '->' to get individual table definitions
+        List list = new List(Types::String);
+        list = TFMHelper::strSplit(_condensedString, "|-|");
+
+        // Initialize the root contract
+        TFMTableRelationHierarchyElement currentContract = null, parentContract = null, previousContract = null;
+
+        ListEnumerator enumerator = list.getEnumerator();
+        while (enumerator.moveNext())
+        {
+            str segment = strRTrim(enumerator.current());
+            match = regex.Match(segment);
+
+            if (!match.Success)
+            {
+                throw error(strFmt("@TFM:Invalidformat1", segment));
+            }
+
+            // Extract fields from the regex match
+            str tableName = match.Groups.get_Item("@TFM:tableName").Value;
+            str tableFieldName = match.Groups.get_Item("@TFM:tableFieldName").Value;
+            str relationFieldName = match.Groups.get_Item("@TFM:relationFieldName").Value;
+
+            // Create a new GenericTableContract instance
+            currentContract = new TFMTableRelationHierarchyElement(tableName, tableFieldName, relationFieldName);
+
+            // Link the current contract to its parent
+            if (!parentContract)
+            {
+                // Set the root contract
+                parentContract = currentContract;
+            }
+            if (previousContract)
+            {
+                previousContract.addNestedTable(currentContract);
+            }
+            
+            
+            previousContract = currentContract;
+        }
+
+        return parentContract;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMDrawFlowContextPart</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMDrawFlowContextPart extends FormRun
+{
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void init()
+    {
+        super();
+        element.args().caller().setContextGroup(ContextGroup);
+        element.design().viewEditMode(ViewEditMode::Edit);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getGroup</Name>
+				<Source><![CDATA[
+    public FormGroupControl getGroup()
+    {
+        return ContextGroup;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="" />
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">@TFM:Context</Caption>
+		<Style xmlns="">FormPart</Style>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>ContextGroup</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+				<HideIfEmpty>No</HideIfEmpty>
+				<ViewEditMode>Edit</ViewEditMode>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

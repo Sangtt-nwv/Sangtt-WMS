@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMHtmlHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMHtmlHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>map2Html</Name>
+				<Source><![CDATA[
+	public static str map2Html(Map _map)
+    {
+        MapEnumerator   mEnum = _map.getEnumerator();
+        Set             headLines = new Set(Types::String);
+        Set             values = new Set(Types::String);
+        str             head;
+        str             value;
+        str             html = '<table style=\"border-collapse: collapse; width: 100%; text-align: center;\">';
+        int             i =1;
+        while (mEnum.moveNext())
+        {
+            head += '<th><b>'+mEnum.currentKey()+'</b></th>';
+            value+= '<td>'+mEnum.currentValue()+'</td>';
+            if (i div 6)
+            {
+                html += '<tr>' + head + '</tr><tr>' + value + '</tr>';
+                head = '';
+                value = '';
+                i=0;
+            }
+            i++;
+        }
+
+        if (head)
+        {
+            html += '<tr>' + head + '</tr><tr>' + value + '</tr>';
+        }
+
+        return html + '</table>';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>requestmap2HtmlList</Name>
+				<Source><![CDATA[
+    public static str requestmap2HtmlList(Map _map)
+    {
+        MapEnumerator   mEnum = _map.getEnumerator();
+        Set             headLines = new Set(Types::String);
+        Set             values = new Set(Types::String);
+        str             head;
+        str             value;
+        str             html = '<html><body><table style=\"border-collapse: collapse; width: 100%; text-align: left;\">';
+        int             i =1;
+        while (mEnum.moveNext())
+        {
+            if (mEnum.currentValue() == '')
+            {
+                continue;
+            }
+            SysDictType dictType = new SysDictType(extendedTypeName2Id(mEnum.currentKey()));
+
+            html += '<tr><td><b>'+(dictType ? dictType.label() : mEnum.currentKey())+'</b></td>';
+            html+= '<td>'+mEnum.currentValue()+'</td></tr>';
+            
+        }
+
+        return html + '</table></body></html>';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>entityTileHtml</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Format the tile as html.
+    /// </summary>
+    /// <param name = "_iconName"></param>
+    /// <param name = "_title"></param>
+    /// <param name = "_description"></param>
+    /// <returns></returns>
+    public static str entityTileHtml(str _iconName, str _title, str _description)
+    {
+        str html;
+        str iconStr;
+        str icon = _iconName;
+        icon = icon ? icon : TFMImageHelper::resource2Base64(resourceStr(TFMTaskletLogo));
+        if(icon)
+        {
+            iconStr = TFMDocGetMedia::getURLFromIconName(icon);
+            html =
+                '<img src="' + iconStr + '" style="width: 80px; height: 80px; position: relative; left: -10px;" ></img>'
+                + '<div style="padding: 8px; margin-right: 10px; overflow: hidden;width: 100%; display: flex; flex-direction: column; ">'
+                + '<div style="display: block; font-size: large; font-weight: bolder; text-align: center;">'
+                + _title
+                + '</div>'
+                + '<div style="text-align: center; display: flex; flex-grow: 1; font-size: small; align-items: center; justify-content: center; word-wrap: break-word; ">' + _description + '</div>'
+                + '</div>'
+                ;
+        }
+        return html;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

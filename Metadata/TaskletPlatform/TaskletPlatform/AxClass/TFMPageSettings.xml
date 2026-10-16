@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageSettings</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMpageType('Settings', "Settings")]
+class TFMPageSettings extends TFMPage
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>DefaultActions</Name>
+				<Source><![CDATA[
+    public Map DefaultActions(int _promoteOffset = 0)
+    {
+        return new Map(Types::String, Types::Class);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

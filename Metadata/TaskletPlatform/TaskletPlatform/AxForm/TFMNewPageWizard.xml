@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMNewPageWizard</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMNewPageWizard extends FormRun
+{
+    TFMPageWizard sysWizard;
+
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    void init()
+    {
+        super();
+
+        if (element.args().caller())
+			sysWizard = element.args().caller();
+        OrderListLinesHtml.parmHtml('<table><tr><h1>Order List And Lines</h1></tr><tr><h3>Choose this option, if you want to register data in a Order List and order lines structure</h3><br><h2>Examples of such pages include:</h2><h3>Pick<br>Receive<br>Count</h3></tr></table>');
+        LookupHtml.parmHtml('<table><tr><h1>Lookup</h1></tr><tr><h3>Choose this option, if you want to display and/or register data in a single level</h3><br><h2>Examples of such pages include:</h2><h3>Location Content<br>Locate Item<br>Quarantine Orders<br>Profit/Loss Journals</h3></tr></table>');
+        UIRHtml.parmHtml('<table><tr><h1>Unplanned Item Registration</h1></tr><tr><h3>Choose this option, if you want to register data directly from the filter or in a flow.</h3><br><h2>Examples of such pages include:</h2><h3>Register Barcode<br>Unplanned Move</h3></tr></table>');
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    void run()
+    {
+        super();
+
+        sysWizard.nextEnabled(false);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>wizard</Name>
+				<Source><![CDATA[
+    SysWizard wizard()
+    {
+        return sysWizard;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>OrderListAndLines</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            if (pageName.text())
+            {
+                sysWizard.next();
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Lookup</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            
+            super();
+            if (pageName.text())
+            {
+                sysWizard.next();
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>UnplannedItemRegistration</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+			if (pageName.text())
+            {
+                sysWizard.next();
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">@TFM:NewPageWizard</Caption>
+		<Pattern xmlns="">Wizard</Pattern>
+		<PatternVersion xmlns="">1.2</PatternVersion>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
+		<Style xmlns="">Wizard</Style>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Welcome</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>WelcomeInstruction</Name>
+								<Type>StaticText</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Style>MainInstruction</Style>
+								<Text>@TFM:CreateAPage</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>WelcomeGroup</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>PageName</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<ExtendedDataType>Name</ExtendedDataType>
+										<Mandatory>Yes</Mandatory>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>OrderListLinesGroup</Name>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>OrderListAndLines</Name>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<ButtonDisplay>ImageOnly</ButtonDisplay>
+												<ImageLocation>AOTResource</ImageLocation>
+												<NormalImage>TFMOrderListAndLinesImage</NormalImage>
+												<Text>@TFM:OrderListAndLines</Text>
+											</AxFormControl>
+											<AxFormControl>
+												<Name>OrderListLinesHtml</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<FormControlExtension>
+													<Name>TFMHtmlViewerCtrl</Name>
+													<ExtensionComponents />
+													<ExtensionProperties>
+														<AxFormControlExtensionProperty>
+															<Name>htmlField</Name>
+															<Type>String</Type>
+														</AxFormControlExtensionProperty>
+													</ExtensionProperties>
+												</FormControlExtension>
+											</AxFormControl>
+										</Controls>
+										<Columns>2</Columns>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>LookupGroup</Name>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>Lookup</Name>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<ButtonDisplay>ImageOnly</ButtonDisplay>
+												<ImageLocation>AOTResource</ImageLocation>
+												<NormalImage>TFMLookupTemplateImage</NormalImage>
+												<Text>@TFM:Lookup</Text>
+											</AxFormControl>
+											<AxFormControl>
+												<Name>LookupHtml</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<FormControlExtension>
+													<Name>TFMHtmlViewerCtrl</Name>
+													<ExtensionComponents />
+													<ExtensionProperties>
+														<AxFormControlExtensionProperty>
+															<Name>htmlField</Name>
+															<Type>String</Type>
+														</AxFormControlExtensionProperty>
+													</ExtensionProperties>
+												</FormControlExtension>
+											</AxFormControl>
+										</Controls>
+										<Columns>2</Columns>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>UIRGroup</Name>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>UnplannedItemRegistration</Name>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<ButtonDisplay>ImageOnly</ButtonDisplay>
+												<ImageLocation>AOTResource</ImageLocation>
+												<NormalImage>TaskletFactory</NormalImage>
+												<Text>@TFM:UnplannedItemRegistration</Text>
+											</AxFormControl>
+											<AxFormControl>
+												<Name>UIRHtml</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<FormControlExtension>
+													<Name>TFMHtmlViewerCtrl</Name>
+													<ExtensionComponents />
+													<ExtensionProperties>
+														<AxFormControlExtensionProperty>
+															<Name>htmlField</Name>
+															<Type>String</Type>
+														</AxFormControlExtensionProperty>
+													</ExtensionProperties>
+												</FormControlExtension>
+											</AxFormControl>
+										</Controls>
+										<Columns>2</Columns>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS27227</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Setup</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>SetupInstruction</Name>
+								<Type>StaticText</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Style>MainInstruction</Style>
+								<Text>@SYS2186</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>SetupGroup</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls />
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS2186</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>FinishTab</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>FinishInstruction</Name>
+								<Type>StaticText</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Style>MainInstruction</Style>
+								<Text>@SYS22170</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>FinshGroup</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls />
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS22170</Caption>
+					</AxFormControl>
+				</Controls>
+				<ShowTabs>No</ShowTabs>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

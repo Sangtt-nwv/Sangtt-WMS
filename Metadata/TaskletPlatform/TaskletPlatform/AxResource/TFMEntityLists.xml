@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxResource xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMEntityLists</Name>
+	<FileName>entity_list.png</FileName>
+	<RelativeUriInModelStore>TaskletPlatform\TaskletPlatform\AxResource\ResourceContent\Images\entity_list.png</RelativeUriInModelStore>
+</AxResource>

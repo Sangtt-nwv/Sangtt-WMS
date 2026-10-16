@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPrimaryInputMethod</Name>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>Scan</Name>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Control</Name>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>ScanOnly</Name>
+			<Value>2</Value>
+		</AxEnumValue>
+	</EnumValues>
+	<IsExtensible>true</IsExtensible>
+</AxEnum>

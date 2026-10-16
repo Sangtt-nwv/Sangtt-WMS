@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobImageHandlerOrderImages</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobImageHandlerOrderImages extends TFMImageHandler
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This image handler adds the possibility to generate an image based on order number
+    /// </summary>
+    /// <param name = "_imageId">A string with an image Id</param>
+    /// <returns>A base64 encoded image containing all the item images for the order</returns>
+    public str process(str _imageId)
+    {
+        str                             ret;
+        MobOrder                        mobOrder;
+        TFMRequestGetOrderLinesElement  lineReq;
+        Map                             recMap;
+        
+        mobOrder = MobOrder::constructFromBackendID(strReplace(_imageId,'|','/'));
+        if (mobOrder != null)
+        {
+            lineReq = new TFMRequestGetOrderLinesElement();
+            lineReq.parmBackendID(strReplace(_imageId,'|','/'));
+            lineReq.parmRoot(new TFMRequestBasicElement());
+            mobOrder.parmSkipRouteActivation(true);
+            recMap = mobOrder.getLineRecords(lineReq);
+            ret = this.recordMap2Image(recMap);
+
+        }
+        
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>recordMap2Image</Name>
+				<Source><![CDATA[
+    public str recordMap2Image(Map _records)
+    {
+        MapEnumerator mEnum = _records.getEnumerator();
+        Common          record;
+        int             fieldId;
+        Set             items = new Set(Types::String);
+        while (mEnum.moveNext())
+        {
+            record = mEnum.currentValue();
+            fieldId = fieldName2Id(record.tableId,extendedTypeStr(ItemId));
+            if (!fieldId)
+            {
+                fieldId = fieldName2Id(record.tableId,fieldStr(ITMLine, ShipItemId));
+            }
+            if (!fieldId)
+            {
+                continue;
+            }
+            items.add(record.(fieldId));
+        }
+        return TFMDocGetMedia::dopackItems2Image(items);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

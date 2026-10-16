@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatLookupCarts</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableNameAttribute(tableStr(MobCarts))]
+class MobXMLFormatLookupCarts extends TFMXMLFormatLookup
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        MobCarts		carts = common;
+        Map				cartContent;
+        Set				items = new Set(Types::String);
+        MapEnumerator	mEnum;
+        InventSum		iSum;
+        str				refToAttach;
+        str				itemsStr;
+        super();
+        
+        displayLine1 = "@MobileWMS:CartID" +': ' + carts.cartID;
+        displayLine2 = "@SYS3794" + ': ' + carts.WMSLocationId;
+        
+        displayLine5 = "@SYS43" + ': ' + (carts.Note ? carts.Note + "@MobileWMS:lineBreak" : '' ) + MobReservedCarts::reserveInfo(carts.CartID);
+
+        fieldsToAdd.insert(extendedTypeStr(MobCartID), carts.CartID);
+        cartContent = MobDocUnplannedCartMove::locationContent(WMSLocation::find(carts.WMSLocationId,carts.InventLocationId));
+        imageID = '';
+		mEnum = cartContent.getEnumerator();
+		while (mEnum.moveNext())
+        {
+			
+            iSum = mEnum.currentValue();
+            itemsStr += (itemsStr ? "@MobileWMS:lineBreak" : '' ) + MobHelper::formatItemQty(iSum.PhysicalInvent,iSum.inventTable().inventUnitId()) + ' ' + iSum.inventTable().inventUnitId() + ' ' +iSum.ItemId;
+            if (items.in(iSum.ItemId))
+            {
+                continue;
+            }
+            imageID += (imageID ? ',' :'') + iSum.ItemId;
+            items.add(iSum.ItemId);
+        }
+        displayLine3 = "@SYS15649" + ': ' + (items.elements() > 5 ? strFmt("@MobileWMS:items",items.elements()) : itemsStr);
+        if (carts.ReferenceId && !strScan(carts.ReferenceId, MobConstants::BackendId(),1,10))
+        {
+            displayLine4 = strReplace(strFmt('%1: %2',carts.ReferenceCategory, carts.ReferenceId), "@SYS53672", "@SYS50404");
+        }
+        imageID = imageID ? imageID : 'CartEmpty';
+
+        if (subStr(carts.ReferenceId,1,strLen(MobConstants::BackendId())) == MobConstants::BackendId())
+        {
+            refToAttach = subStr(carts.ReferenceId,strLen(MobConstants::BackendId())+1,100);
+            fieldsToAdd.insert(extendedTypeStr(InventTransRefId),refToAttach);
+        }
+		else
+        {
+            fieldsToAdd.insert(extendedTypeStr(InventTransRefId),'');
+        }
+        carts.reread();
+        if (!carts.ReferenceId && MenuItemsConf.exists(methodStr(MobDocUnplannedCartMove,postDetachListFromCart )))
+        {
+            MenuItemsConf.remove(methodStr(MobDocUnplannedCartMove,postDetachListFromCart ));
+        }
+        if ((carts.ReferenceId || MobCarts::FindByReference(refToAttach)) && MenuItemsConf.exists(methodStr(MobDocUnplannedCartMove,postAttachListToCart )))
+        {
+            MenuItemsConf.remove(methodStr(MobDocUnplannedCartMove,postAttachListToCart ));
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

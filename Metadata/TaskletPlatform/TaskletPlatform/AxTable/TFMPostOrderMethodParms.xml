@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPostOrderMethodParms</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMPostOrderMethodParms extends common
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>nameOverride</Name>
+				<Source><![CDATA[
+    public edit Name nameOverride(boolean _set, Name _name)
+    {
+        Name name;
+        TFMPostOrderPromptOverrideLines line;
+
+        if (_set)
+        {
+            select firstonly line where line.TFMPostOrderPromptOverrideRecID == this.PostOrderPromptOverrideRecID && line.Name == _name;
+            this.PostOrderPromptOverrideLinesRecId = line.RecId;
+            
+        }
+
+        name = TFMPostOrderPromptOverrideLines::FindRecID(this.PostOrderPromptOverrideLinesRecId).name;
+
+        return name;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupLineNames</Name>
+				<Source><![CDATA[
+    public void lookupLineNames(FormControl _callingControl)
+    {
+        SysTableLookup          sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMPostOrderPromptOverrideLines), _callingControl);
+        Query                   query = new Query();
+        QueryBuildDataSource    queryBuildDataSource;
+        
+        sysTableLookup.addLookupfield(fieldNum(TFMPostOrderPromptOverrideLines, name),true);
+        sysTableLookup.addLookupfield(fieldNum(TFMPostOrderPromptOverrideLines, InputType));
+        queryBuildDataSource = query.addDataSource(tableNum(TFMPostOrderPromptOverrideLines));
+        queryBuildDataSource.addSortField(fieldnum(TFMPostOrderPromptOverrideLines, name));
+
+        queryBuildDataSource.addOrderByField(fieldnum(TFMPostOrderPromptOverrideLines, Name));
+
+        queryBuildDataSource.orderMode(OrderMode::GroupBy);//Used to Group the Field Value
+        queryBuildDataSource.addRange(fieldnum(TFMPostOrderPromptOverrideLines,TFMPostOrderPromptOverrideRecID)).value(queryValue(this.PostOrderPromptOverrideRecID));
+        
+        sysTableLookup.parmQuery(query);
+
+        SysTableLookup.parmUseLookupValue(false);
+        
+        sysTableLookup.performFormLookup();        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:FunctionFlowCustomizationLinesDevDesc</DeveloperDocumentation>
+	<Label>@TFM:MethodParameters</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>ParmName</TitleField1>
+	<TitleField2>EDTName</TitleField2>
+	<ReplacementKey>LineIdx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ParmName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>baseType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EDTName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ParmName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ParmName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>baseType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EDTName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>nameOverride</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReturnTableName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Expression</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Header</Name>
+			<Label>@SYS4925</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>PostOrderPromptOverrideLinesRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PostOrderPromptOverrideRecID</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ParmName</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>baseType</Name>
+			<AllowEdit>No</AllowEdit>
+			<Label>@SYS1201</Label>
+			<EnumType>Types</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>EDTName</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>ExtendedDataTypeName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>PostOrderPromptOverrideRecID</Name>
+			<ExtendedDataType>TFMPostOrderPromptOverrideRecID</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ReturnTableName</Name>
+			<ExtendedDataType>TableNameShort</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Expression</Name>
+			<ExtendedDataType>TFMExpression</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>PostOrderPromptOverrideLinesRecId</Name>
+			<ExtendedDataType>TFMPostOrderPromptOverrideLinesRecId</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>LineIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ParmName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>PostOrderPromptOverrideRecID</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>PostOrderPromptOverride</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>TFMPostOrderPromptOverride</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>PostOrderPromptOverrideRecID</Name>
+					<Field>PostOrderPromptOverrideRecID</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>TFMPostOrderPromptOverrideLines</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<CreateNavigationPropertyMethods>Yes</CreateNavigationPropertyMethods>
+			<NavigationPropertyMethodNameOverride>Lines</NavigationPropertyMethodNameOverride>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>TFMPostOrderPromptOverrideLines</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>PostOrderPromptOverrideLinesRecId</Name>
+					<Field>PostOrderPromptOverrideLinesRecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+			<Index>RecId</Index>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

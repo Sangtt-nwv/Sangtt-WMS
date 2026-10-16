@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMOfflineUpdateMode</Name>
+	<Label>@TFM:UpdateMode</Label>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>Always</Name>
+			<Label>@SYS14585</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>OnNoOrders</Name>
+			<Label>@TFM:OnNoOrders</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Manual</Name>
+			<Label>@SYS9232</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

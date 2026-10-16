@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMGraphWorkflow</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMGraphWorkflow extends TFMGraphGeneric
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static TFMGraphWorkflow construct(TFMHtmlViewerCtrl _htmlViewer, Map _ancestors, Map _treeNodes, str _headline = '', int _forcedWidth = -5, int _forcedHeight = -5)
+    {
+        return new TFMGraphWorkflow(_htmlViewer, _ancestors, _treeNodes,_headline, _forcedWidth, _forcedHeight);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initBaseBmp</Name>
+				<Source><![CDATA[
+    protected void initBaseBmp(str _headline = '')
+    {
+        InteropPermission			perm = new InteropPermission(InteropKind::ClrInterop);
+        System.Drawing.Graphics		bmpDC;
+        MapEnumerator				mEnum = treeNodes.getEnumerator();
+        TFMGraphTreeNodeWorkflow	treenode;
+        Map							groups = new Map(Types::String, Types::Class);
+        TFMGraphRectInteraction				groupRect;
+        TFMGraphRectInteractionWorkflow		treenodeRect;
+		int                     i;
+        super(_headline);
+        perm.assert();
+        //BP deviation documented        
+        bmpDC = System.Drawing.Graphics::FromImage(bmpBase);
+        
+		while (mEnum.moveNext())
+        {
+            treenode = mEnum.currentValue();
+
+            treenodeRect = treenode.parmRect();
+            treenodeRect.parmLeft(treenodeRect.parmLeft() - treenodeRect.iWidth()*0.25);
+            treenodeRect.parmRight(treenodeRect.parmRight() + treenodeRect.iWidth()*0.25);
+            groupRect = groups.exists(treenode.parmGroupName()) ? groups.lookup(treenode.parmGroupName()) : TFMGraphRectInteraction::Construct(treenodeRect.parmTop(),treenodeRect.parmBottom(),treenodeRect.parmLeft(), treenodeRect.parmRight());
+            groupRect.parmTop(min(treenodeRect.parmTop(),groupRect.parmTop()));
+            groupRect.parmBottom(max(treenodeRect.parmBottom(),groupRect.parmBottom()));
+            groupRect.parmLeft(min(treenodeRect.parmLeft(),groupRect.parmLeft()));
+            groupRect.parmRight(max(treenodeRect.parmRight(),groupRect.parmRight()));
+            groups.insert(treenode.parmGroupName(),groupRect);
+        }
+        mEnum = groups.getEnumerator();
+		while (mEnum.moveNext())
+        {
+            groupRect = mEnum.currentValue();
+            TFMGraphicsHelper::drawBmpEdges(bmpDC,groupRect.parmLeft() - 15 ,groupRect.parmTop() - 15 ,groupRect.iWidth() + 30 ,groupRect.iHeight() + 45 ,196<<24,true,false);
+            TFMGraphicsHelper::drawText(bmpDC,groupRect.iCenterX(),groupRect.rBottom() + 15 ,128<<24,mEnum.currentKey(),20,SysChartHorizontalAlignment::Center, SysChartVerticalAlignment::Middle);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

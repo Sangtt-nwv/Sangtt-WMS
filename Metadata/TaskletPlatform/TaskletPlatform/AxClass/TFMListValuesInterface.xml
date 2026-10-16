@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListValuesInterface</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+interface TFMListValuesInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmListSeparator</Name>
+				<Source><![CDATA[
+    public str parmListSeparator(str _ListSeparator)
+    {
+     
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmListValues</Name>
+				<Source><![CDATA[
+    public str parmListValues(str _ListValues)
+    {
+    
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobReceiveOrderTypeProdInput</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The MobReceiveOrderTypeProdInput class handles the Production Input Order data and posting logic.
+/// </summary>
+[TFMTableName(tableStr(WMSJournalTable),'Production')]
+class MobReceiveOrderTypeProdInput extends MobReceiveOrderTypeArrival
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getwmsJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(WMSJournalTable))]
+    public WMSJournalTable getwmsJournalTable()
+    {
+        return JournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBackendID</Name>
+				<Source><![CDATA[
+    public str getBackendID(Common _common)
+    {
+        JournalTable = _common;
+        return tableStr(WMSJournalTable) + '/' + fieldStr(WMSJournalTable,JournalId) + '/' + JournalTable.JournalId +'/' + 'Production';//#PickProdOrderPrefix + prodJournalTable.JournalId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaderRecords</Name>
+				<Source><![CDATA[
+    public Map getHeaderRecords(TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+        InventLocation  inventLocation;
+        Map             returnMap = new Map(Types::string, Types::Record);
+        str				orgWareHouse = _filters.parmWarehouse();
+        orderSet = new Set (Types::String);
+        inventLocation = MobHelper::getAllowedInventLocations(curUserId());
+        while select inventLocation where (inventLocation.InventLocationId == orgWareHouse || orgWareHouse == MobConstants::all())
+        {
+            // Check if sales orders are enabled for this warehouse
+            if (MobHelper::IsProductionInputEnabled(inventLocation.InventLocationId))
+            {
+                // Use the warehouse from the current iteration
+                _filters.parmWarehouse(inventLocation.InventLocationId);
+                returnMap = MobHelper::mergeMaps(returnMap,this.getProductionInputJournals(_filters,_scannedValue));
+            }
+        }
+        _filters.parmWarehouse(orgWareHouse);
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProductionInputJournals</Name>
+				<Source><![CDATA[
+    protected Map getProductionInputJournals(TFMRequestFiltersElement _filters, ItemId _itemId)
+    {
+        
+        InventDim               dim1;    
+        Query                   q = new Query();
+        QueryRun                qr;
+        QueryBuildDataSource    qbdsWMSJournalTable;
+        QueryBuildDataSource    qbdsWMSJournalTrans;
+        QueryBuildDataSource    qbdsInventDim1;
+        QueryBuildDataSource    qbdsInventDim2;
+        Map                     returnMap = new Map (Types::String, Types::Record);    
+    
+        qbdsWMSJournalTable = q.addDataSource( tableNum( WMSJournalTable ) );
+        qbdsWMSJournalTable.addSortField(fieldNum(WMSJournalTable, JournalId), SortOrder::Descending);
+        qbdsWMSJournalTable.addRange(fieldNum(WMSJournalTable, inventTransType)).value( queryValue(InventTransType::Production) );
+        qbdsWMSJournalTable.addRange(fieldNum(WMSJournalTable, Posted)).value( queryValue(NoYes::No) );
+        qbdsWMSJournalTable.addRange(fieldNum(WMSJournalTable, journalType)).value( queryValue(WmsJournalType::Production) );
+    
+        qbdsInventDim1 = qbdsWMSJournalTable.addDataSource(tableNum(InventDim), 'dim1');
+        qbdsInventDim1.joinMode(JoinMode::ExistsJoin);
+        qbdsInventDim1.addLink(fieldNum(wMSJournalTable,InventDimId), fieldNum(InventDim,InventDimId));
+        if (_filters.parmWarehouse())
+        {
+            qbdsInventDim1.addRange(fieldNum(InventDim, InventSiteId)).value( queryValue(InventLocation::find(_filters.parmWarehouse()).InventSiteId) );
+            qbdsInventDim1.addRange(fieldNum(InventDim, InventLocationId)).value(queryValue(_filters.parmWarehouse()));
+        }
+    
+        qbdsWMSJournalTrans = qbdsWMSJournalTable.addDataSource(tableNum(WMSJournalTrans));
+        qbdsWMSJournalTrans.joinMode(JoinMode::ExistsJoin);
+        qbdsWMSJournalTrans.addLink(fieldNum(wMSJournalTable,JournalId), fieldNum(WMSJournalTrans,JournalId));
+        qbdsWMSJournalTrans.addRange(fieldNum(WMSJournalTrans,Qty)).value('> 0');
+    
+        if (_filters.parmDeliveryDate())
+        {
+            qbdsWMSJournalTrans.addRange(fieldNum(WMSJournalTrans,TransDate)).value( strFmt('.. %1', queryValue(_filters.parmDeliveryDate())) );
+        }
+    
+        if (_itemId)
+        {
+            qbdsWMSJournalTrans.addRange(fieldNum(WMSJournalTrans,itemId)).value( queryValue(_itemId) );
+    
+            if (itemInventDim)
+            {
+                qbdsInventDim2 = qbdsWMSJournalTrans.addDataSource(tableNum( InventDim ));
+                qbdsInventDim2.joinMode( JoinMode::ExistsJoin );
+                qbdsInventDim2.addLink( fieldNum(WMSJournalTrans,InventDimId), fieldNum(InventDim,InventDimId));
+                InventDim::queryAddRange(qbdsInventDim2, itemInventDim);
+            }
+        }
+        TFMFilterAdditionsDataBinding::modifyQuery(methodStr(MobDocReceiveOrder, ReceiveOrderFilters) + strReplace(_filters.getFieldValue(extendedTypeStr(TFMOrderTypes)),';',''),q,_filters);
+        qr = new QueryRun( q );
+        while(qr.next())
+        {
+            JournalTable = qr.get(tableNum(WMSJournalTable));
+            dim1 = JournalTable.inventDim();
+            if (orderSet.in(JournalTable.journalId))
+            {
+                continue;
+            }
+            if (_filters.parmWarehouse() || MobHelper::isInventLocationAllowed(curUserId(), dim1.InventLocationId))
+            {
+                
+                returnMap.insert(this.getBackendID(JournalTable) ,JournalTable);
+                /*MobXMLFormat = TFMXMLFormat::constructFromCommon(resultXml, wMSJournalTable, sorting);
+                MobXMLFormat.run();*/
+            }
+            orderSet.add(JournalTable.journalId);
+    
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

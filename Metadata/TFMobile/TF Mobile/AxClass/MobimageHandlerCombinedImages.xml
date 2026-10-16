@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobimageHandlerCombinedImages</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobimageHandlerCombinedImages extends TFMImageHandler
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public str process(str _imageId)
+    {
+        str				ret;
+        SysDictClass	DC;
+
+        if (SysTest::hasMethod(this,_imageId))
+        {
+            DC = new SysDictClass(classIdGet(this));
+
+            return DC.callObject(_imageId,this);
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>attachListToCart</Name>
+				<Source><![CDATA[
+    public str attachListToCart()
+    {
+        str						base64;
+
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(MobCartForWarehouseEmpty),50,50,100,100,false);
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(TFMPickIcon),65,76,200,200,false);
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(TFMStatePlus),85,80,30,30,true);
+        
+        return base64;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>detachListFromCart</Name>
+				<Source><![CDATA[
+    public str detachListFromCart()
+    {
+        str						base64;
+
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(MobCartForWarehouseEmpty),50,50,100,100,false);
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(TFMPickIcon),65,76,200,200,false);
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(TFMStateMinus),85,80,30,30,true);
+        
+        return base64;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cancelPickLine</Name>
+				<Source><![CDATA[
+    public str cancelPickLine()
+    {
+        str						base64;
+
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(TFMPickIcon),50,50,100,100,false);
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(TFMStateMinus),85,80,30,30,true);
+        
+        return base64;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>movementJournalIcon</Name>
+				<Source><![CDATA[
+    public str movementJournalIcon()
+    {
+        str						base64;
+
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(TFMStandardItem),50,50,100,100,false);
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(TFMStateMinusRed),78,80,35,35,true);
+        
+        return base64;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>transferJournalIcon</Name>
+				<Source><![CDATA[
+    public str transferJournalIcon()
+    {
+        str						base64;
+
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(TFMEmptyLocation),50,50,80,80,false);
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(TFMLocationContentIcon),25,35,125,125,false);
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(TFMStandardItem),60,58,70,70,false);
+        base64 = TFMImageCombiner::combineImage(base64,resourceStr(TFMStateUnplanned),80,80,65,65,false);
+        
+        return base64;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_Receive</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter super class for general receive order lines.
+/// </summary>
+class MobXMLFormatOrderLines_Receive extends TFMXMLFormatOrderLines
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setInventDim</Name>
+				<Source><![CDATA[
+    protected void setInventDim(ItemId _itemId)
+    {
+        mainOrderType           = MobConstants::receive();
+        super(_itemId);
+
+        if (mobInventDimSetup.registerLicensePlate())
+        {
+            //ValidatetoLocation       = true;
+            toBin               = '@type='+"@WAX67"+';' + inventDim.LicensePlateId;
+        }
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

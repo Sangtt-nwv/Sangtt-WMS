@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>InventTransWMS_Pick_Mob</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class extension of the foundation class InventTransWMS_Pick, in order to call a private method in the class.
+/// </summary>
+class InventTransWMS_Pick_Mob extends InventTransWMS_Pick
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>MobupdateInventServer</Name>
+				<Source><![CDATA[
+    public static boolean MobupdateInventServer(
+        TmpInventTransWMS       _tmpInventTransWMS,
+        container               _mapQtyByTmpInventTransWMSPacked,
+        container               _mapInventTransInventTransOriginPacked)
+    {
+        return InventTransWMS_Pick::updateInventServer(
+            _tmpInventTransWMS,
+            _mapQtyByTmpInventTransWMSPacked,
+            _mapInventTransInventTransOriginPacked);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

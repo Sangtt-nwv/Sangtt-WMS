@@ -1,0 +1,3751 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <BuildTasksDirectory Condition=" '$(BuildTasksDirectory)' == ''">$(MSBuildProgramFiles32)\MSBuild\Microsoft\Dynamics\AX</BuildTasksDirectory>
+    <Model>TF Mobile</Model>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <OutputPath>bin</OutputPath>
+    <SchemaVersion>2.0</SchemaVersion>
+    <GenerateCrossReferences>True</GenerateCrossReferences>
+    <RunAppCheckerRules>False</RunAppCheckerRules>
+    <LogAppcheckerDiagsAsErrors>False</LogAppcheckerDiagsAsErrors>
+    <DeployOnline>False</DeployOnline>
+    <ProjectGuid>{6d536d6e-bccf-400b-a5dd-f9b49a7db4fd}</ProjectGuid>
+    <Name>TFMobile</Name>
+    <RootNamespace>TFMobile</RootNamespace>
+    <StartupType>Class</StartupType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <Configuration>Debug</Configuration>
+    <DBSyncInBuild>False</DBSyncInBuild>
+    <GenerateFormAdaptors>False</GenerateFormAdaptors>
+    <Company>
+    </Company>
+    <Partition>initial</Partition>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DataEntityExpandParentChildRelations>False</DataEntityExpandParentChildRelations>
+    <DataEntityUseLabelTextAsFieldName>False</DataEntityUseLabelTextAsFieldName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.Common.targets" />
+  <Import Project="$(BuildTasksDirectory)\Microsoft.Dynamics.Framework.Tools.BuildTasks.17.0.targets" />
+  <ItemGroup>
+    <Folder Include="Base Enums\" />
+    <Folder Include="ServiceGroup\" />
+    <Folder Include="Label Files\" />
+    <Folder Include="MacroDictionary\" />
+    <Folder Include="Menu Extensions\" />
+    <Folder Include="Forms\" />
+    <Folder Include="Tables\" />
+    <Folder Include="Queries\" />
+    <Folder Include="Action Menu Items\" />
+    <Folder Include="Resources\" />
+    <Folder Include="Form Extensions\" />
+    <Folder Include="Security Privileges\" />
+    <Folder Include="Security Roles\" />
+    <Folder Include="Service\" />
+    <Folder Include="Extended Data Types\" />
+    <Folder Include="Security Duties\" />
+    <Folder Include="Classes\" />
+    <Folder Include="Display Menu Items\" />
+    <Folder Include="Table Extensions\" />
+    <Content Include="AxClass\InventLocationWHSProcessEnablementService_Mob_Class_Extension">
+      <SubType>Content</SubType>
+      <Name>InventLocationWHSProcessEnablementService_Mob_Class_Extension</Name>
+      <Link>Classes\InventLocationWHSProcessEnablementService_Mob_Class_Extension</Link>
+    </Content>
+    <Content Include="AxClass\InventLocation_FormMob_Extension">
+      <SubType>Content</SubType>
+      <Name>InventLocation_FormMob_Extension</Name>
+      <Link>Classes\InventLocation_FormMob_Extension</Link>
+    </Content>
+    <Content Include="AxClass\InventQuarantineOrderMob_Extension">
+      <SubType>Content</SubType>
+      <Name>InventQuarantineOrderMob_Extension</Name>
+      <Link>Classes\InventQuarantineOrderMob_Extension</Link>
+    </Content>
+    <Content Include="AxClass\InventTransWMS_Pick_Mob">
+      <SubType>Content</SubType>
+      <Name>InventTransWMS_Pick_Mob</Name>
+      <Link>Classes\InventTransWMS_Pick_Mob</Link>
+    </Content>
+    <Content Include="AxClass\InventTransWMS_Register_Mob">
+      <SubType>Content</SubType>
+      <Name>InventTransWMS_Register_Mob</Name>
+      <Link>Classes\InventTransWMS_Register_Mob</Link>
+    </Content>
+    <Content Include="AxClass\Mob2DBarcodeGenerator">
+      <SubType>Content</SubType>
+      <Name>Mob2DBarcodeGenerator</Name>
+      <Link>Classes\Mob2DBarcodeGenerator</Link>
+    </Content>
+    <Content Include="AxClass\MobAIResultChoicesContract">
+      <SubType>Content</SubType>
+      <Name>MobAIResultChoicesContract</Name>
+      <Link>Classes\MobAIResultChoicesContract</Link>
+    </Content>
+    <Content Include="AxClass\MobAIResultContract">
+      <SubType>Content</SubType>
+      <Name>MobAIResultContract</Name>
+      <Link>Classes\MobAIResultContract</Link>
+    </Content>
+    <Content Include="AxClass\MobAIResultMessageContract">
+      <SubType>Content</SubType>
+      <Name>MobAIResultMessageContract</Name>
+      <Link>Classes\MobAIResultMessageContract</Link>
+    </Content>
+    <Content Include="AxClass\MobBarcodeHelper">
+      <SubType>Content</SubType>
+      <Name>MobBarcodeHelper</Name>
+      <Link>Classes\MobBarcodeHelper</Link>
+    </Content>
+    <Content Include="AxClass\MobBasket">
+      <SubType>Content</SubType>
+      <Name>MobBasket</Name>
+      <Link>Classes\MobBasket</Link>
+    </Content>
+    <Content Include="AxClass\MobBatchOrderType">
+      <SubType>Content</SubType>
+      <Name>MobBatchOrderType</Name>
+      <Link>Classes\MobBatchOrderType</Link>
+    </Content>
+    <Content Include="AxClass\MobBatchOrderTypeProcess">
+      <SubType>Content</SubType>
+      <Name>MobBatchOrderTypeProcess</Name>
+      <Link>Classes\MobBatchOrderTypeProcess</Link>
+    </Content>
+    <Content Include="AxClass\MobCartType">
+      <SubType>Content</SubType>
+      <Name>MobCartType</Name>
+      <Link>Classes\MobCartType</Link>
+    </Content>
+    <Content Include="AxClass\MobCartTypePicklist">
+      <SubType>Content</SubType>
+      <Name>MobCartTypePicklist</Name>
+      <Link>Classes\MobCartTypePicklist</Link>
+    </Content>
+    <Content Include="AxClass\MobCartTypeProdPick">
+      <SubType>Content</SubType>
+      <Name>MobCartTypeProdPick</Name>
+      <Link>Classes\MobCartTypeProdPick</Link>
+    </Content>
+    <Content Include="AxClass\MobConfluencePageBodyContract">
+      <SubType>Content</SubType>
+      <Name>MobConfluencePageBodyContract</Name>
+      <Link>Classes\MobConfluencePageBodyContract</Link>
+    </Content>
+    <Content Include="AxClass\MobConfluencePageContract">
+      <SubType>Content</SubType>
+      <Name>MobConfluencePageContract</Name>
+      <Link>Classes\MobConfluencePageContract</Link>
+    </Content>
+    <Content Include="AxClass\MobConfluencePageViewContract">
+      <SubType>Content</SubType>
+      <Name>MobConfluencePageViewContract</Name>
+      <Link>Classes\MobConfluencePageViewContract</Link>
+    </Content>
+    <Content Include="AxClass\MobConsolidateOrderCreate">
+      <SubType>Content</SubType>
+      <Name>MobConsolidateOrderCreate</Name>
+      <Link>Classes\MobConsolidateOrderCreate</Link>
+    </Content>
+    <Content Include="AxClass\MobConstants">
+      <SubType>Content</SubType>
+      <Name>MobConstants</Name>
+      <Link>Classes\MobConstants</Link>
+    </Content>
+    <Content Include="AxClass\MobCountOrderType">
+      <SubType>Content</SubType>
+      <Name>MobCountOrderType</Name>
+      <Link>Classes\MobCountOrderType</Link>
+    </Content>
+    <Content Include="AxClass\MobCountOrderTypeCount">
+      <SubType>Content</SubType>
+      <Name>MobCountOrderTypeCount</Name>
+      <Link>Classes\MobCountOrderTypeCount</Link>
+    </Content>
+    <Content Include="AxClass\MobCountOrderTypeTagCount">
+      <SubType>Content</SubType>
+      <Name>MobCountOrderTypeTagCount</Name>
+      <Link>Classes\MobCountOrderTypeTagCount</Link>
+    </Content>
+    <Content Include="AxClass\MobDataMigratorPlatformModelSetup">
+      <SubType>Content</SubType>
+      <Name>MobDataMigratorPlatformModelSetup</Name>
+      <Link>Classes\MobDataMigratorPlatformModelSetup</Link>
+    </Content>
+    <Content Include="AxClass\MobDataSourceBlockLockOrderList_extension">
+      <SubType>Content</SubType>
+      <Name>MobDataSourceBlockLockOrderList_extension</Name>
+      <Link>Classes\MobDataSourceBlockLockOrderList_extension</Link>
+    </Content>
+    <Content Include="AxClass\MobDocAddCountLine">
+      <SubType>Content</SubType>
+      <Name>MobDocAddCountLine</Name>
+      <Link>Classes\MobDocAddCountLine</Link>
+    </Content>
+    <Content Include="AxClass\MobDocAddPickLine">
+      <SubType>Content</SubType>
+      <Name>MobDocAddPickLine</Name>
+      <Link>Classes\MobDocAddPickLine</Link>
+    </Content>
+    <Content Include="AxClass\MobDocAttachments">
+      <SubType>Content</SubType>
+      <Name>MobDocAttachments</Name>
+      <Link>Classes\MobDocAttachments</Link>
+    </Content>
+    <Content Include="AxClass\MobDocBatchOrder">
+      <SubType>Content</SubType>
+      <Name>MobDocBatchOrder</Name>
+      <Link>Classes\MobDocBatchOrder</Link>
+    </Content>
+    <Content Include="AxClass\MobDocCancelPickLine">
+      <SubType>Content</SubType>
+      <Name>MobDocCancelPickLine</Name>
+      <Link>Classes\MobDocCancelPickLine</Link>
+    </Content>
+    <Content Include="AxClass\MobDocCountOrder">
+      <SubType>Content</SubType>
+      <Name>MobDocCountOrder</Name>
+      <Link>Classes\MobDocCountOrder</Link>
+    </Content>
+    <Content Include="AxClass\MobDocGetItemImages">
+      <SubType>Content</SubType>
+      <Name>MobDocGetItemImages</Name>
+      <Link>Classes\MobDocGetItemImages</Link>
+    </Content>
+    <Content Include="AxClass\MobDocLicensePlateMultiMove">
+      <SubType>Content</SubType>
+      <Name>MobDocLicensePlateMultiMove</Name>
+      <Link>Classes\MobDocLicensePlateMultiMove</Link>
+    </Content>
+    <Content Include="AxClass\MobDocLicensePlateMultiMoveAction">
+      <SubType>Content</SubType>
+      <Name>MobDocLicensePlateMultiMoveAction</Name>
+      <Link>Classes\MobDocLicensePlateMultiMoveAction</Link>
+    </Content>
+    <Content Include="AxClass\MobDocLicensePlateOverview">
+      <SubType>Content</SubType>
+      <Name>MobDocLicensePlateOverview</Name>
+      <Link>Classes\MobDocLicensePlateOverview</Link>
+    </Content>
+    <Content Include="AxClass\MobDocLocateItem">
+      <SubType>Content</SubType>
+      <Name>MobDocLocateItem</Name>
+      <Link>Classes\MobDocLocateItem</Link>
+    </Content>
+    <Content Include="AxClass\MobDocLocationContent">
+      <SubType>Content</SubType>
+      <Name>MobDocLocationContent</Name>
+      <Link>Classes\MobDocLocationContent</Link>
+    </Content>
+    <Content Include="AxClass\MobDocMovementJournal">
+      <SubType>Content</SubType>
+      <Name>MobDocMovementJournal</Name>
+      <Link>Classes\MobDocMovementJournal</Link>
+    </Content>
+    <Content Include="AxClass\MobDocNegativeAdjustment">
+      <SubType>Content</SubType>
+      <Name>MobDocNegativeAdjustment</Name>
+      <Link>Classes\MobDocNegativeAdjustment</Link>
+    </Content>
+    <Content Include="AxClass\MobDocOfflineUploadAdhocRegistrations">
+      <SubType>Content</SubType>
+      <Name>MobDocOfflineUploadAdhocRegistrations</Name>
+      <Link>Classes\MobDocOfflineUploadAdhocRegistrations</Link>
+    </Content>
+    <Content Include="AxClass\MobDocPackingItems">
+      <SubType>Content</SubType>
+      <Name>MobDocPackingItems</Name>
+      <Link>Classes\MobDocPackingItems</Link>
+    </Content>
+    <Content Include="AxClass\MobDocPallet">
+      <SubType>Content</SubType>
+      <Name>MobDocPallet</Name>
+      <Link>Classes\MobDocPallet</Link>
+    </Content>
+    <Content Include="AxClass\MobDocPickOrder">
+      <SubType>Content</SubType>
+      <Name>MobDocPickOrder</Name>
+      <Link>Classes\MobDocPickOrder</Link>
+    </Content>
+    <Content Include="AxClass\MobDocPlannedMove">
+      <SubType>Content</SubType>
+      <Name>MobDocPlannedMove</Name>
+      <Link>Classes\MobDocPlannedMove</Link>
+    </Content>
+    <Content Include="AxClass\MobDocProdReportErrorQty">
+      <SubType>Content</SubType>
+      <Name>MobDocProdReportErrorQty</Name>
+      <Link>Classes\MobDocProdReportErrorQty</Link>
+    </Content>
+    <Content Include="AxClass\MobDocProductionOrders">
+      <SubType>Content</SubType>
+      <Name>MobDocProductionOrders</Name>
+      <Link>Classes\MobDocProductionOrders</Link>
+    </Content>
+    <Content Include="AxClass\MobDocProfitLoss">
+      <SubType>Content</SubType>
+      <Name>MobDocProfitLoss</Name>
+      <Link>Classes\MobDocProfitLoss</Link>
+    </Content>
+    <Content Include="AxClass\MobDocQuarantineOrder">
+      <SubType>Content</SubType>
+      <Name>MobDocQuarantineOrder</Name>
+      <Link>Classes\MobDocQuarantineOrder</Link>
+    </Content>
+    <Content Include="AxClass\MobDocReceiveOrder">
+      <SubType>Content</SubType>
+      <Name>MobDocReceiveOrder</Name>
+      <Link>Classes\MobDocReceiveOrder</Link>
+    </Content>
+    <Content Include="AxClass\MobDocRegisterBarcode">
+      <SubType>Content</SubType>
+      <Name>MobDocRegisterBarcode</Name>
+      <Link>Classes\MobDocRegisterBarcode</Link>
+    </Content>
+    <Content Include="AxClass\MobDocRegisterGenericImage">
+      <SubType>Content</SubType>
+      <Name>MobDocRegisterGenericImage</Name>
+      <Link>Classes\MobDocRegisterGenericImage</Link>
+    </Content>
+    <Content Include="AxClass\MobDocShipTotes">
+      <SubType>Content</SubType>
+      <Name>MobDocShipTotes</Name>
+      <Link>Classes\MobDocShipTotes</Link>
+    </Content>
+    <Content Include="AxClass\MobDocTagCounting">
+      <SubType>Content</SubType>
+      <Name>MobDocTagCounting</Name>
+      <Link>Classes\MobDocTagCounting</Link>
+    </Content>
+    <Content Include="AxClass\MobDocTransferJournal">
+      <SubType>Content</SubType>
+      <Name>MobDocTransferJournal</Name>
+      <Link>Classes\MobDocTransferJournal</Link>
+    </Content>
+    <Content Include="AxClass\MobDocumentConnector">
+      <SubType>Content</SubType>
+      <Name>MobDocumentConnector</Name>
+      <Link>Classes\MobDocumentConnector</Link>
+    </Content>
+    <Content Include="AxClass\MobDocumentNode">
+      <SubType>Content</SubType>
+      <Name>MobDocumentNode</Name>
+      <Link>Classes\MobDocumentNode</Link>
+    </Content>
+    <Content Include="AxClass\MobDocumentNodes">
+      <SubType>Content</SubType>
+      <Name>MobDocumentNodes</Name>
+      <Link>Classes\MobDocumentNodes</Link>
+    </Content>
+    <Content Include="AxClass\MobDocUnplannedCartMove">
+      <SubType>Content</SubType>
+      <Name>MobDocUnplannedCartMove</Name>
+      <Link>Classes\MobDocUnplannedCartMove</Link>
+    </Content>
+    <Content Include="AxClass\MobDocUnplannedCount">
+      <SubType>Content</SubType>
+      <Name>MobDocUnplannedCount</Name>
+      <Link>Classes\MobDocUnplannedCount</Link>
+    </Content>
+    <Content Include="AxClass\MobDocUnplannedMove">
+      <SubType>Content</SubType>
+      <Name>MobDocUnplannedMove</Name>
+      <Link>Classes\MobDocUnplannedMove</Link>
+    </Content>
+    <Content Include="AxClass\MobExpressionsCurrentWorker">
+      <SubType>Content</SubType>
+      <Name>MobExpressionsCurrentWorker</Name>
+      <Link>Classes\MobExpressionsCurrentWorker</Link>
+    </Content>
+    <Content Include="AxClass\MobExpressionsDefaultReceiptLocation">
+      <SubType>Content</SubType>
+      <Name>MobExpressionsDefaultReceiptLocation</Name>
+      <Link>Classes\MobExpressionsDefaultReceiptLocation</Link>
+    </Content>
+    <Content Include="AxClass\MobExpressionsInventDimStr">
+      <SubType>Content</SubType>
+      <Name>MobExpressionsInventDimStr</Name>
+      <Link>Classes\MobExpressionsInventDimStr</Link>
+    </Content>
+    <Content Include="AxClass\MobExpressionsInventSumField">
+      <SubType>Content</SubType>
+      <Name>MobExpressionsInventSumField</Name>
+      <Link>Classes\MobExpressionsInventSumField</Link>
+    </Content>
+    <Content Include="AxClass\MobExpressionsOnHandInventory">
+      <SubType>Content</SubType>
+      <Name>MobExpressionsOnHandInventory</Name>
+      <Link>Classes\MobExpressionsOnHandInventory</Link>
+    </Content>
+    <Content Include="AxClass\MobFormLookupHelper">
+      <SubType>Content</SubType>
+      <Name>MobFormLookupHelper</Name>
+      <Link>Classes\MobFormLookupHelper</Link>
+    </Content>
+    <Content Include="AxClass\MobFormXMLFormatter">
+      <SubType>Content</SubType>
+      <Name>MobFormXMLFormatter</Name>
+      <Link>Classes\MobFormXMLFormatter</Link>
+    </Content>
+    <Content Include="AxClass\MobGetReferenceData_Extension">
+      <SubType>Content</SubType>
+      <Name>MobGetReferenceData_Extension</Name>
+      <Link>Classes\MobGetReferenceData_Extension</Link>
+    </Content>
+    <Content Include="AxClass\MobGraphicsHelper">
+      <SubType>Content</SubType>
+      <Name>MobGraphicsHelper</Name>
+      <Link>Classes\MobGraphicsHelper</Link>
+    </Content>
+    <Content Include="AxClass\MobGraphRectInteraction">
+      <SubType>Content</SubType>
+      <Name>MobGraphRectInteraction</Name>
+      <Link>Classes\MobGraphRectInteraction</Link>
+    </Content>
+    <Content Include="AxClass\MobGraphRectInteractionWorkflow">
+      <SubType>Content</SubType>
+      <Name>MobGraphRectInteractionWorkflow</Name>
+      <Link>Classes\MobGraphRectInteractionWorkflow</Link>
+    </Content>
+    <Content Include="AxClass\MobHelper">
+      <SubType>Content</SubType>
+      <Name>MobHelper</Name>
+      <Link>Classes\MobHelper</Link>
+    </Content>
+    <Content Include="AxClass\MobHtmlHelper">
+      <SubType>Content</SubType>
+      <Name>MobHtmlHelper</Name>
+      <Link>Classes\MobHtmlHelper</Link>
+    </Content>
+    <Content Include="AxClass\MobImageCombiner">
+      <SubType>Content</SubType>
+      <Name>MobImageCombiner</Name>
+      <Link>Classes\MobImageCombiner</Link>
+    </Content>
+    <Content Include="AxClass\MobimageHandlerCombinedImages">
+      <SubType>Content</SubType>
+      <Name>MobimageHandlerCombinedImages</Name>
+      <Link>Classes\MobimageHandlerCombinedImages</Link>
+    </Content>
+    <Content Include="AxClass\MobImageHandlerOrderImages">
+      <SubType>Content</SubType>
+      <Name>MobImageHandlerOrderImages</Name>
+      <Link>Classes\MobImageHandlerOrderImages</Link>
+    </Content>
+    <Content Include="AxClass\MobImageHelper">
+      <SubType>Content</SubType>
+      <Name>MobImageHelper</Name>
+      <Link>Classes\MobImageHelper</Link>
+    </Content>
+    <Content Include="AxClass\MobInventDimHelper">
+      <SubType>Content</SubType>
+      <Name>MobInventDimHelper</Name>
+      <Link>Classes\MobInventDimHelper</Link>
+    </Content>
+    <Content Include="AxClass\MobInventDimSetup_Extension">
+      <SubType>Content</SubType>
+      <Name>MobInventDimSetup_Extension</Name>
+      <Link>Classes\MobInventDimSetup_Extension</Link>
+    </Content>
+    <Content Include="AxClass\MobInventJournalTableCommon">
+      <SubType>Content</SubType>
+      <Name>MobInventJournalTableCommon</Name>
+      <Link>Classes\MobInventJournalTableCommon</Link>
+    </Content>
+    <Content Include="AxClass\MobInventOnhand_availAndPhysical">
+      <SubType>Content</SubType>
+      <Name>MobInventOnhand_availAndPhysical</Name>
+      <Link>Classes\MobInventOnhand_availAndPhysical</Link>
+    </Content>
+    <Content Include="AxClass\MobInventSumHelper">
+      <SubType>Content</SubType>
+      <Name>MobInventSumHelper</Name>
+      <Link>Classes\MobInventSumHelper</Link>
+    </Content>
+    <Content Include="AxClass\MobListItemContract">
+      <SubType>Content</SubType>
+      <Name>MobListItemContract</Name>
+      <Link>Classes\MobListItemContract</Link>
+    </Content>
+    <Content Include="AxClass\MobListLookupCartContent">
+      <SubType>Content</SubType>
+      <Name>MobListLookupCartContent</Name>
+      <Link>Classes\MobListLookupCartContent</Link>
+    </Content>
+    <Content Include="AxClass\MobListOrderLinesReceive">
+      <SubType>Content</SubType>
+      <Name>MobListOrderLinesReceive</Name>
+      <Link>Classes\MobListOrderLinesReceive</Link>
+    </Content>
+    <Content Include="AxClass\MobListValuesElement">
+      <SubType>Content</SubType>
+      <Name>MobListValuesElement</Name>
+      <Link>Classes\MobListValuesElement</Link>
+    </Content>
+    <Content Include="AxClass\MobLocalizationContract">
+      <SubType>Content</SubType>
+      <Name>MobLocalizationContract</Name>
+      <Link>Classes\MobLocalizationContract</Link>
+    </Content>
+    <Content Include="AxClass\MobLogicStepOperatorInterface">
+      <SubType>Content</SubType>
+      <Name>MobLogicStepOperatorInterface</Name>
+      <Link>Classes\MobLogicStepOperatorInterface</Link>
+    </Content>
+    <Content Include="AxClass\MobMediaItem">
+      <SubType>Content</SubType>
+      <Name>MobMediaItem</Name>
+      <Link>Classes\MobMediaItem</Link>
+    </Content>
+    <Content Include="AxClass\MobOnlineValidator">
+      <SubType>Content</SubType>
+      <Name>MobOnlineValidator</Name>
+      <Link>Classes\MobOnlineValidator</Link>
+    </Content>
+    <Content Include="AxClass\MobOrder">
+      <SubType>Content</SubType>
+      <Name>MobOrder</Name>
+      <Link>Classes\MobOrder</Link>
+    </Content>
+    <Content Include="AxClass\MobOrderLinesResponseElement_Extension">
+      <SubType>Content</SubType>
+      <Name>MobOrderLinesResponseElement_Extension</Name>
+      <Link>Classes\MobOrderLinesResponseElement_Extension</Link>
+    </Content>
+    <Content Include="AxClass\MobPageAdhocMenuItemsAdditionalProperties">
+      <SubType>Content</SubType>
+      <Name>MobPageAdhocMenuItemsAdditionalProperties</Name>
+      <Link>Classes\MobPageAdhocMenuItemsAdditionalProperties</Link>
+    </Content>
+    <Content Include="AxClass\MobPageHelper">
+      <SubType>Content</SubType>
+      <Name>MobPageHelper</Name>
+      <Link>Classes\MobPageHelper</Link>
+    </Content>
+    <Content Include="AxClass\MobPageLineAdhocRequestAttribute">
+      <SubType>Content</SubType>
+      <Name>MobPageLineAdhocRequestAttribute</Name>
+      <Link>Classes\MobPageLineAdhocRequestAttribute</Link>
+    </Content>
+    <Content Include="AxClass\MobPageMenuConfiguration">
+      <SubType>Content</SubType>
+      <Name>MobPageMenuConfiguration</Name>
+      <Link>Classes\MobPageMenuConfiguration</Link>
+    </Content>
+    <Content Include="AxClass\MobPageMenuItemsAdditionalProperties">
+      <SubType>Content</SubType>
+      <Name>MobPageMenuItemsAdditionalProperties</Name>
+      <Link>Classes\MobPageMenuItemsAdditionalProperties</Link>
+    </Content>
+    <Content Include="AxClass\MobPageMenuItemsHelper">
+      <SubType>Content</SubType>
+      <Name>MobPageMenuItemsHelper</Name>
+      <Link>Classes\MobPageMenuItemsHelper</Link>
+    </Content>
+    <Content Include="AxClass\MobPagesProvider">
+      <SubType>Content</SubType>
+      <Name>MobPagesProvider</Name>
+      <Link>Classes\MobPagesProvider</Link>
+    </Content>
+    <Content Include="AxClass\MobPageTitle">
+      <SubType>Content</SubType>
+      <Name>MobPageTitle</Name>
+      <Link>Classes\MobPageTitle</Link>
+    </Content>
+    <Content Include="AxClass\MobPickOrderType">
+      <SubType>Content</SubType>
+      <Name>MobPickOrderType</Name>
+      <Link>Classes\MobPickOrderType</Link>
+    </Content>
+    <Content Include="AxClass\MobPickOrderTypeConsolidatedPicklist">
+      <SubType>Content</SubType>
+      <Name>MobPickOrderTypeConsolidatedPicklist</Name>
+      <Link>Classes\MobPickOrderTypeConsolidatedPicklist</Link>
+    </Content>
+    <Content Include="AxClass\MobPickOrderTypePicklist">
+      <SubType>Content</SubType>
+      <Name>MobPickOrderTypePicklist</Name>
+      <Link>Classes\MobPickOrderTypePicklist</Link>
+    </Content>
+    <Content Include="AxClass\MobPickOrderTypeProd">
+      <SubType>Content</SubType>
+      <Name>MobPickOrderTypeProd</Name>
+      <Link>Classes\MobPickOrderTypeProd</Link>
+    </Content>
+    <Content Include="AxClass\MobPickOrderTypeReturn">
+      <SubType>Content</SubType>
+      <Name>MobPickOrderTypeReturn</Name>
+      <Link>Classes\MobPickOrderTypeReturn</Link>
+    </Content>
+    <Content Include="AxClass\MobPickOrderTypeSales">
+      <SubType>Content</SubType>
+      <Name>MobPickOrderTypeSales</Name>
+      <Link>Classes\MobPickOrderTypeSales</Link>
+    </Content>
+    <Content Include="AxClass\MobPickOrderTypeTransfer">
+      <SubType>Content</SubType>
+      <Name>MobPickOrderTypeTransfer</Name>
+      <Link>Classes\MobPickOrderTypeTransfer</Link>
+    </Content>
+    <Content Include="AxClass\MobPlannedMoveType">
+      <SubType>Content</SubType>
+      <Name>MobPlannedMoveType</Name>
+      <Link>Classes\MobPlannedMoveType</Link>
+    </Content>
+    <Content Include="AxClass\MobPostHelper">
+      <SubType>Content</SubType>
+      <Name>MobPostHelper</Name>
+      <Link>Classes\MobPostHelper</Link>
+    </Content>
+    <Content Include="AxClass\MobReceiveOrderType">
+      <SubType>Content</SubType>
+      <Name>MobReceiveOrderType</Name>
+      <Link>Classes\MobReceiveOrderType</Link>
+    </Content>
+    <Content Include="AxClass\MobReceiveOrderTypeArrival">
+      <SubType>Content</SubType>
+      <Name>MobReceiveOrderTypeArrival</Name>
+      <Link>Classes\MobReceiveOrderTypeArrival</Link>
+    </Content>
+    <Content Include="AxClass\MobReceiveOrderTypeLandedCostOrder">
+      <SubType>Content</SubType>
+      <Name>MobReceiveOrderTypeLandedCostOrder</Name>
+      <Link>Classes\MobReceiveOrderTypeLandedCostOrder</Link>
+    </Content>
+    <Content Include="AxClass\MobReceiveOrderTypeProdInput">
+      <SubType>Content</SubType>
+      <Name>MobReceiveOrderTypeProdInput</Name>
+      <Link>Classes\MobReceiveOrderTypeProdInput</Link>
+    </Content>
+    <Content Include="AxClass\MobReceiveOrderTypePurchOrder">
+      <SubType>Content</SubType>
+      <Name>MobReceiveOrderTypePurchOrder</Name>
+      <Link>Classes\MobReceiveOrderTypePurchOrder</Link>
+    </Content>
+    <Content Include="AxClass\MobReceiveOrderTypeReturn">
+      <SubType>Content</SubType>
+      <Name>MobReceiveOrderTypeReturn</Name>
+      <Link>Classes\MobReceiveOrderTypeReturn</Link>
+    </Content>
+    <Content Include="AxClass\MobReceiveOrderTypeTransfer">
+      <SubType>Content</SubType>
+      <Name>MobReceiveOrderTypeTransfer</Name>
+      <Link>Classes\MobReceiveOrderTypeTransfer</Link>
+    </Content>
+    <Content Include="AxClass\MobRequestApplication">
+      <SubType>Content</SubType>
+      <Name>MobRequestApplication</Name>
+      <Link>Classes\MobRequestApplication</Link>
+    </Content>
+    <Content Include="AxClass\MobRequestFiltersElement_Extension">
+      <SubType>Content</SubType>
+      <Name>MobRequestFiltersElement_Extension</Name>
+      <Link>Classes\MobRequestFiltersElement_Extension</Link>
+    </Content>
+    <Content Include="AxClass\MobRequestMoveMultiLicensePlate">
+      <SubType>Content</SubType>
+      <Name>MobRequestMoveMultiLicensePlate</Name>
+      <Link>Classes\MobRequestMoveMultiLicensePlate</Link>
+    </Content>
+    <Content Include="AxClass\MobRequestValidationElement">
+      <SubType>Content</SubType>
+      <Name>MobRequestValidationElement</Name>
+      <Link>Classes\MobRequestValidationElement</Link>
+    </Content>
+    <Content Include="AxClass\MobToteShipping">
+      <SubType>Content</SubType>
+      <Name>MobToteShipping</Name>
+      <Link>Classes\MobToteShipping</Link>
+    </Content>
+    <Content Include="AxClass\MobVersion">
+      <SubType>Content</SubType>
+      <Name>MobVersion</Name>
+      <Link>Classes\MobVersion</Link>
+    </Content>
+    <Content Include="AxClass\MobWorkflowDefinitionCount">
+      <SubType>Content</SubType>
+      <Name>MobWorkflowDefinitionCount</Name>
+      <Link>Classes\MobWorkflowDefinitionCount</Link>
+    </Content>
+    <Content Include="AxClass\MobWorkflowDefinitionReceive">
+      <SubType>Content</SubType>
+      <Name>MobWorkflowDefinitionReceive</Name>
+      <Link>Classes\MobWorkflowDefinitionReceive</Link>
+    </Content>
+    <Content Include="AxClass\MobWorkflowDefinitionStandard_Extension">
+      <SubType>Content</SubType>
+      <Name>MobWorkflowDefinitionStandard_Extension</Name>
+      <Link>Classes\MobWorkflowDefinitionStandard_Extension</Link>
+    </Content>
+    <Content Include="AxClass\MobWorkflowValidationOutboundLP">
+      <SubType>Content</SubType>
+      <Name>MobWorkflowValidationOutboundLP</Name>
+      <Link>Classes\MobWorkflowValidationOutboundLP</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupCarts">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupCarts</Name>
+      <Link>Classes\MobXMLFormatLookupCarts</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupFinishPacking">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupFinishPacking</Name>
+      <Link>Classes\MobXMLFormatLookupFinishPacking</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupLicensePlate">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupLicensePlate</Name>
+      <Link>Classes\MobXMLFormatLookupLicensePlate</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupLicensePlateInCart">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupLicensePlateInCart</Name>
+      <Link>Classes\MobXMLFormatLookupLicensePlateInCart</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupLicensePlateInfo">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupLicensePlateInfo</Name>
+      <Link>Classes\MobXMLFormatLookupLicensePlateInfo</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupLocateItem">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupLocateItem</Name>
+      <Link>Classes\MobXMLFormatLookupLocateItem</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupLocationContent">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupLocationContent</Name>
+      <Link>Classes\MobXMLFormatLookupLocationContent</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupPackingStations">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupPackingStations</Name>
+      <Link>Classes\MobXMLFormatLookupPackingStations</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupProdOrder">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupProdOrder</Name>
+      <Link>Classes\MobXMLFormatLookupProdOrder</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupProfitLoss">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupProfitLoss</Name>
+      <Link>Classes\MobXMLFormatLookupProfitLoss</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupProfitLossLine">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupProfitLossLine</Name>
+      <Link>Classes\MobXMLFormatLookupProfitLossLine</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupQuarantineOrder">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupQuarantineOrder</Name>
+      <Link>Classes\MobXMLFormatLookupQuarantineOrder</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupTagCounting">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupTagCounting</Name>
+      <Link>Classes\MobXMLFormatLookupTagCounting</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupTagCountingLine">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupTagCountingLine</Name>
+      <Link>Classes\MobXMLFormatLookupTagCountingLine</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupTote">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupTote</Name>
+      <Link>Classes\MobXMLFormatLookupTote</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatLookupToteContent">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatLookupToteContent</Name>
+      <Link>Classes\MobXMLFormatLookupToteContent</Link>
+    </Content>
+    <Content Include="AxClass\MobXmlFormatLookupTransferJournals">
+      <SubType>Content</SubType>
+      <Name>MobXmlFormatLookupTransferJournals</Name>
+      <Link>Classes\MobXmlFormatLookupTransferJournals</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_BatchOrder">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_BatchOrder</Name>
+      <Link>Classes\MobXMLFormatOrderLines_BatchOrder</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_CoBy">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_CoBy</Name>
+      <Link>Classes\MobXMLFormatOrderLines_CoBy</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_Invent">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_Invent</Name>
+      <Link>Classes\MobXMLFormatOrderLines_Invent</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_InventCount">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_InventCount</Name>
+      <Link>Classes\MobXMLFormatOrderLines_InventCount</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_InventCountTag">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_InventCountTag</Name>
+      <Link>Classes\MobXMLFormatOrderLines_InventCountTag</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_Pick">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_Pick</Name>
+      <Link>Classes\MobXMLFormatOrderLines_Pick</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_PickProd">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_PickProd</Name>
+      <Link>Classes\MobXMLFormatOrderLines_PickProd</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_PickSales">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_PickSales</Name>
+      <Link>Classes\MobXMLFormatOrderLines_PickSales</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_PickTransfer">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_PickTransfer</Name>
+      <Link>Classes\MobXMLFormatOrderLines_PickTransfer</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_PickWMS">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_PickWMS</Name>
+      <Link>Classes\MobXMLFormatOrderLines_PickWMS</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_PlannedMove">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_PlannedMove</Name>
+      <Link>Classes\MobXMLFormatOrderLines_PlannedMove</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_Receive">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_Receive</Name>
+      <Link>Classes\MobXMLFormatOrderLines_Receive</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_ReceiveArrival">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_ReceiveArrival</Name>
+      <Link>Classes\MobXMLFormatOrderLines_ReceiveArrival</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_ReceiveLandedCost">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_ReceiveLandedCost</Name>
+      <Link>Classes\MobXMLFormatOrderLines_ReceiveLandedCost</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_ReceivePurch">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_ReceivePurch</Name>
+      <Link>Classes\MobXMLFormatOrderLines_ReceivePurch</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrderLines_ReceiveTransfer">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrderLines_ReceiveTransfer</Name>
+      <Link>Classes\MobXMLFormatOrderLines_ReceiveTransfer</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_BatchOrders">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_BatchOrders</Name>
+      <Link>Classes\MobXMLFormatOrders_BatchOrders</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_Cart">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_Cart</Name>
+      <Link>Classes\MobXMLFormatOrders_Cart</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_Extension">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_Extension</Name>
+      <Link>Classes\MobXMLFormatOrders_Extension</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_Invent">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_Invent</Name>
+      <Link>Classes\MobXMLFormatOrders_Invent</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_InventCount">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_InventCount</Name>
+      <Link>Classes\MobXMLFormatOrders_InventCount</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_InventCountTag">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_InventCountTag</Name>
+      <Link>Classes\MobXMLFormatOrders_InventCountTag</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_ItemRequirement">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_ItemRequirement</Name>
+      <Link>Classes\MobXMLFormatOrders_ItemRequirement</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_PackWMS">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_PackWMS</Name>
+      <Link>Classes\MobXMLFormatOrders_PackWMS</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_Pick">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_Pick</Name>
+      <Link>Classes\MobXMLFormatOrders_Pick</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_PickProd">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_PickProd</Name>
+      <Link>Classes\MobXMLFormatOrders_PickProd</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_PickProdInCart">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_PickProdInCart</Name>
+      <Link>Classes\MobXMLFormatOrders_PickProdInCart</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_PickSales">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_PickSales</Name>
+      <Link>Classes\MobXMLFormatOrders_PickSales</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_PickTransfer">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_PickTransfer</Name>
+      <Link>Classes\MobXMLFormatOrders_PickTransfer</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_PickWMS">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_PickWMS</Name>
+      <Link>Classes\MobXMLFormatOrders_PickWMS</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_PickWMSInCart">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_PickWMSInCart</Name>
+      <Link>Classes\MobXMLFormatOrders_PickWMSInCart</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_PlannedMove">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_PlannedMove</Name>
+      <Link>Classes\MobXMLFormatOrders_PlannedMove</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_Receive">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_Receive</Name>
+      <Link>Classes\MobXMLFormatOrders_Receive</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_ReceiveArrival">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_ReceiveArrival</Name>
+      <Link>Classes\MobXMLFormatOrders_ReceiveArrival</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_ReceiveLandedCost">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_ReceiveLandedCost</Name>
+      <Link>Classes\MobXMLFormatOrders_ReceiveLandedCost</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_ReceivePurch">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_ReceivePurch</Name>
+      <Link>Classes\MobXMLFormatOrders_ReceivePurch</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_ReceiveTransfer">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_ReceiveTransfer</Name>
+      <Link>Classes\MobXMLFormatOrders_ReceiveTransfer</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatOrders_Totes">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatOrders_Totes</Name>
+      <Link>Classes\MobXMLFormatOrders_Totes</Link>
+    </Content>
+    <Content Include="AxClass\MobXMLFormatSearch">
+      <SubType>Content</SubType>
+      <Name>MobXMLFormatSearch</Name>
+      <Link>Classes\MobXMLFormatSearch</Link>
+    </Content>
+    <Content Include="AxClass\TFMDataSourceBlockOrderLineItemSetupMob_extension">
+      <SubType>Content</SubType>
+      <Name>TFMDataSourceBlockOrderLineItemSetupMob_extension</Name>
+      <Link>Classes\TFMDataSourceBlockOrderLineItemSetupMob_extension</Link>
+    </Content>
+    <Content Include="AxClass\TFMDataSourceBlockValuesOverride_batchorderLines">
+      <SubType>Content</SubType>
+      <Name>TFMDataSourceBlockValuesOverride_batchorderLines</Name>
+      <Link>Classes\TFMDataSourceBlockValuesOverride_batchorderLines</Link>
+    </Content>
+    <Content Include="AxClass\TFMDataSourceBlockValuesOverride_pickLines">
+      <SubType>Content</SubType>
+      <Name>TFMDataSourceBlockValuesOverride_pickLines</Name>
+      <Link>Classes\TFMDataSourceBlockValuesOverride_pickLines</Link>
+    </Content>
+    <Content Include="AxClass\TFMDataSourceBlockValuesOverride_receiveLines">
+      <SubType>Content</SubType>
+      <Name>TFMDataSourceBlockValuesOverride_receiveLines</Name>
+      <Link>Classes\TFMDataSourceBlockValuesOverride_receiveLines</Link>
+    </Content>
+    <Content Include="AxClass\TFMDataSourceBlockValuesOverride_UnplannedCartMove">
+      <SubType>Content</SubType>
+      <Name>TFMDataSourceBlockValuesOverride_UnplannedCartMove</Name>
+      <Link>Classes\TFMDataSourceBlockValuesOverride_UnplannedCartMove</Link>
+    </Content>
+    <Content Include="AxClass\TFMDocumentHandler_mob_extension">
+      <SubType>Content</SubType>
+      <Name>TFMDocumentHandler_mob_extension</Name>
+      <Link>Classes\TFMDocumentHandler_mob_extension</Link>
+    </Content>
+    <Content Include="AxClass\TFMParameters_TFMobile_Extension">
+      <SubType>Content</SubType>
+      <Name>TFMParameters_TFMobile_Extension</Name>
+      <Link>Classes\TFMParameters_TFMobile_Extension</Link>
+    </Content>
+    <Content Include="AxClass\TFMPostAdhocRegistration_mob_extension">
+      <SubType>Content</SubType>
+      <Name>TFMPostAdhocRegistration_mob_extension</Name>
+      <Link>Classes\TFMPostAdhocRegistration_mob_extension</Link>
+    </Content>
+    <Content Include="AxClass\WMSLocation_Mob_Extension">
+      <SubType>Content</SubType>
+      <Name>WMSLocation_Mob_Extension</Name>
+      <Link>Classes\WMSLocation_Mob_Extension</Link>
+    </Content>
+    <Content Include="AxClass\WmsOrderTransType_Mob_Class_Extension">
+      <SubType>Content</SubType>
+      <Name>WmsOrderTransType_Mob_Class_Extension</Name>
+      <Link>Classes\WmsOrderTransType_Mob_Class_Extension</Link>
+    </Content>
+    <Content Include="AxClass\WmsOrderTransType_Output_OrderPick_MobClass_Extension">
+      <SubType>Content</SubType>
+      <Name>WmsOrderTransType_Output_OrderPick_MobClass_Extension</Name>
+      <Link>Classes\WmsOrderTransType_Output_OrderPick_MobClass_Extension</Link>
+    </Content>
+    <Content Include="AxEdt\MobAccumulateByVendor">
+      <SubType>Content</SubType>
+      <Name>MobAccumulateByVendor</Name>
+      <Link>Extended Data Types\MobAccumulateByVendor</Link>
+    </Content>
+    <Content Include="AxEdt\MobActionOnEmptyListEDT">
+      <SubType>Content</SubType>
+      <Name>MobActionOnEmptyListEDT</Name>
+      <Link>Extended Data Types\MobActionOnEmptyListEDT</Link>
+    </Content>
+    <Content Include="AxEdt\MobAttributeName">
+      <SubType>Content</SubType>
+      <Name>MobAttributeName</Name>
+      <Link>Extended Data Types\MobAttributeName</Link>
+    </Content>
+    <Content Include="AxEdt\MobAutomaticAcceptEDT">
+      <SubType>Content</SubType>
+      <Name>MobAutomaticAcceptEDT</Name>
+      <Link>Extended Data Types\MobAutomaticAcceptEDT</Link>
+    </Content>
+    <Content Include="AxEdt\MobBackendId">
+      <SubType>Content</SubType>
+      <Name>MobBackendId</Name>
+      <Link>Extended Data Types\MobBackendId</Link>
+    </Content>
+    <Content Include="AxEdt\MobCartID">
+      <SubType>Content</SubType>
+      <Name>MobCartID</Name>
+      <Link>Extended Data Types\MobCartID</Link>
+    </Content>
+    <Content Include="AxEdt\MobCartReservationLevelEnum">
+      <SubType>Content</SubType>
+      <Name>MobCartReservationLevelEnum</Name>
+      <Link>Extended Data Types\MobCartReservationLevelEnum</Link>
+    </Content>
+    <Content Include="AxEdt\MobCategoryName">
+      <SubType>Content</SubType>
+      <Name>MobCategoryName</Name>
+      <Link>Extended Data Types\MobCategoryName</Link>
+    </Content>
+    <Content Include="AxEdt\MobConsolidatedPickingRouteId">
+      <SubType>Content</SubType>
+      <Name>MobConsolidatedPickingRouteId</Name>
+      <Link>Extended Data Types\MobConsolidatedPickingRouteId</Link>
+    </Content>
+    <Content Include="AxEdt\MobCountByLP">
+      <SubType>Content</SubType>
+      <Name>MobCountByLP</Name>
+      <Link>Extended Data Types\MobCountByLP</Link>
+    </Content>
+    <Content Include="AxEdt\MobDataSetField">
+      <SubType>Content</SubType>
+      <Name>MobDataSetField</Name>
+      <Link>Extended Data Types\MobDataSetField</Link>
+    </Content>
+    <Content Include="AxEdt\MobDocumentAnswerDate">
+      <SubType>Content</SubType>
+      <Name>MobDocumentAnswerDate</Name>
+      <Link>Extended Data Types\MobDocumentAnswerDate</Link>
+    </Content>
+    <Content Include="AxEdt\MobDocumentAnswerDateTime">
+      <SubType>Content</SubType>
+      <Name>MobDocumentAnswerDateTime</Name>
+      <Link>Extended Data Types\MobDocumentAnswerDateTime</Link>
+    </Content>
+    <Content Include="AxEdt\MobDocumentAnswerTime">
+      <SubType>Content</SubType>
+      <Name>MobDocumentAnswerTime</Name>
+      <Link>Extended Data Types\MobDocumentAnswerTime</Link>
+    </Content>
+    <Content Include="AxEdt\MobDocumentContentSubject">
+      <SubType>Content</SubType>
+      <Name>MobDocumentContentSubject</Name>
+      <Link>Extended Data Types\MobDocumentContentSubject</Link>
+    </Content>
+    <Content Include="AxEdt\MobDocumentDeviceId">
+      <SubType>Content</SubType>
+      <Name>MobDocumentDeviceId</Name>
+      <Link>Extended Data Types\MobDocumentDeviceId</Link>
+    </Content>
+    <Content Include="AxEdt\MobDocumentMessageId">
+      <SubType>Content</SubType>
+      <Name>MobDocumentMessageId</Name>
+      <Link>Extended Data Types\MobDocumentMessageId</Link>
+    </Content>
+    <Content Include="AxEdt\MobDocumentStrictValidation">
+      <SubType>Content</SubType>
+      <Name>MobDocumentStrictValidation</Name>
+      <Link>Extended Data Types\MobDocumentStrictValidation</Link>
+    </Content>
+    <Content Include="AxEdt\MobDocumentTypeId">
+      <SubType>Content</SubType>
+      <Name>MobDocumentTypeId</Name>
+      <Link>Extended Data Types\MobDocumentTypeId</Link>
+    </Content>
+    <Content Include="AxEdt\MobDocumentTypeParameters">
+      <SubType>Content</SubType>
+      <Name>MobDocumentTypeParameters</Name>
+      <Link>Extended Data Types\MobDocumentTypeParameters</Link>
+    </Content>
+    <Content Include="AxEdt\MobDocumentUserOrGroup">
+      <SubType>Content</SubType>
+      <Name>MobDocumentUserOrGroup</Name>
+      <Link>Extended Data Types\MobDocumentUserOrGroup</Link>
+    </Content>
+    <Content Include="AxEdt\MobDocumentXML">
+      <SubType>Content</SubType>
+      <Name>MobDocumentXML</Name>
+      <Link>Extended Data Types\MobDocumentXML</Link>
+    </Content>
+    <Content Include="AxEdt\MobExpression">
+      <SubType>Content</SubType>
+      <Name>MobExpression</Name>
+      <Link>Extended Data Types\MobExpression</Link>
+    </Content>
+    <Content Include="AxEdt\MobFlowContextField">
+      <SubType>Content</SubType>
+      <Name>MobFlowContextField</Name>
+      <Link>Extended Data Types\MobFlowContextField</Link>
+    </Content>
+    <Content Include="AxEdt\MobFlowVariableName">
+      <SubType>Content</SubType>
+      <Name>MobFlowVariableName</Name>
+      <Link>Extended Data Types\MobFlowVariableName</Link>
+    </Content>
+    <Content Include="AxEdt\MobFontID">
+      <SubType>Content</SubType>
+      <Name>MobFontID</Name>
+      <Link>Extended Data Types\MobFontID</Link>
+    </Content>
+    <Content Include="AxEdt\MobGroupByVendor">
+      <SubType>Content</SubType>
+      <Name>MobGroupByVendor</Name>
+      <Link>Extended Data Types\MobGroupByVendor</Link>
+    </Content>
+    <Content Include="AxEdt\MobGS1AI">
+      <SubType>Content</SubType>
+      <Name>MobGS1AI</Name>
+      <Link>Extended Data Types\MobGS1AI</Link>
+    </Content>
+    <Content Include="AxEdt\MobGS1Name">
+      <SubType>Content</SubType>
+      <Name>MobGS1Name</Name>
+      <Link>Extended Data Types\MobGS1Name</Link>
+    </Content>
+    <Content Include="AxEdt\MobGS1ReferenceValue">
+      <SubType>Content</SubType>
+      <Name>MobGS1ReferenceValue</Name>
+      <Link>Extended Data Types\MobGS1ReferenceValue</Link>
+    </Content>
+    <Content Include="AxEdt\MobHandled">
+      <SubType>Content</SubType>
+      <Name>MobHandled</Name>
+      <Link>Extended Data Types\MobHandled</Link>
+    </Content>
+    <Content Include="AxEdt\MobImageName">
+      <SubType>Content</SubType>
+      <Name>MobImageName</Name>
+      <Link>Extended Data Types\MobImageName</Link>
+    </Content>
+    <Content Include="AxEdt\MobInclExpectedDate">
+      <SubType>Content</SubType>
+      <Name>MobInclExpectedDate</Name>
+      <Link>Extended Data Types\MobInclExpectedDate</Link>
+    </Content>
+    <Content Include="AxEdt\MobInventDimFieldName">
+      <SubType>Content</SubType>
+      <Name>MobInventDimFieldName</Name>
+      <Link>Extended Data Types\MobInventDimFieldName</Link>
+    </Content>
+    <Content Include="AxEdt\MobInventDimIdFieldName">
+      <SubType>Content</SubType>
+      <Name>MobInventDimIdFieldName</Name>
+      <Link>Extended Data Types\MobInventDimIdFieldName</Link>
+    </Content>
+    <Content Include="AxEdt\MoblineCompletedDefinition">
+      <SubType>Content</SubType>
+      <Name>MoblineCompletedDefinition</Name>
+      <Link>Extended Data Types\MoblineCompletedDefinition</Link>
+    </Content>
+    <Content Include="AxEdt\MobLineSelection">
+      <SubType>Content</SubType>
+      <Name>MobLineSelection</Name>
+      <Link>Extended Data Types\MobLineSelection</Link>
+    </Content>
+    <Content Include="AxEdt\MobListHeight">
+      <SubType>Content</SubType>
+      <Name>MobListHeight</Name>
+      <Link>Extended Data Types\MobListHeight</Link>
+    </Content>
+    <Content Include="AxEdt\MobListId">
+      <SubType>Content</SubType>
+      <Name>MobListId</Name>
+      <Link>Extended Data Types\MobListId</Link>
+    </Content>
+    <Content Include="AxEdt\MobListValueIfEnum">
+      <SubType>Content</SubType>
+      <Name>MobListValueIfEnum</Name>
+      <Link>Extended Data Types\MobListValueIfEnum</Link>
+    </Content>
+    <Content Include="AxEdt\MobListWidth">
+      <SubType>Content</SubType>
+      <Name>MobListWidth</Name>
+      <Link>Extended Data Types\MobListWidth</Link>
+    </Content>
+    <Content Include="AxEdt\MobListXAlign">
+      <SubType>Content</SubType>
+      <Name>MobListXAlign</Name>
+      <Link>Extended Data Types\MobListXAlign</Link>
+    </Content>
+    <Content Include="AxEdt\MobListYAlign">
+      <SubType>Content</SubType>
+      <Name>MobListYAlign</Name>
+      <Link>Extended Data Types\MobListYAlign</Link>
+    </Content>
+    <Content Include="AxEdt\MobLocalizedStringEDT">
+      <SubType>Content</SubType>
+      <Name>MobLocalizedStringEDT</Name>
+      <Link>Extended Data Types\MobLocalizedStringEDT</Link>
+    </Content>
+    <Content Include="AxEdt\MobMediaID">
+      <SubType>Content</SubType>
+      <Name>MobMediaID</Name>
+      <Link>Extended Data Types\MobMediaID</Link>
+    </Content>
+    <Content Include="AxEdt\MobMenu">
+      <SubType>Content</SubType>
+      <Name>MobMenu</Name>
+      <Link>Extended Data Types\MobMenu</Link>
+    </Content>
+    <Content Include="AxEdt\MobMenuDescription">
+      <SubType>Content</SubType>
+      <Name>MobMenuDescription</Name>
+      <Link>Extended Data Types\MobMenuDescription</Link>
+    </Content>
+    <Content Include="AxEdt\MobMenuGroupId">
+      <SubType>Content</SubType>
+      <Name>MobMenuGroupId</Name>
+      <Link>Extended Data Types\MobMenuGroupId</Link>
+    </Content>
+    <Content Include="AxEdt\MobMenuItemActionID">
+      <SubType>Content</SubType>
+      <Name>MobMenuItemActionID</Name>
+      <Link>Extended Data Types\MobMenuItemActionID</Link>
+    </Content>
+    <Content Include="AxEdt\MobMenuSorting">
+      <SubType>Content</SubType>
+      <Name>MobMenuSorting</Name>
+      <Link>Extended Data Types\MobMenuSorting</Link>
+    </Content>
+    <Content Include="AxEdt\MobMethodName">
+      <SubType>Content</SubType>
+      <Name>MobMethodName</Name>
+      <Link>Extended Data Types\MobMethodName</Link>
+    </Content>
+    <Content Include="AxEdt\MobNodeName">
+      <SubType>Content</SubType>
+      <Name>MobNodeName</Name>
+      <Link>Extended Data Types\MobNodeName</Link>
+    </Content>
+    <Content Include="AxEdt\MobOfflineUpdateModeEDT">
+      <SubType>Content</SubType>
+      <Name>MobOfflineUpdateModeEDT</Name>
+      <Link>Extended Data Types\MobOfflineUpdateModeEDT</Link>
+    </Content>
+    <Content Include="AxEdt\MobOperationMode">
+      <SubType>Content</SubType>
+      <Name>MobOperationMode</Name>
+      <Link>Extended Data Types\MobOperationMode</Link>
+    </Content>
+    <Content Include="AxEdt\MobOrderTypes">
+      <SubType>Content</SubType>
+      <Name>MobOrderTypes</Name>
+      <Link>Extended Data Types\MobOrderTypes</Link>
+    </Content>
+    <Content Include="AxEdt\MobOverwriteDefault">
+      <SubType>Content</SubType>
+      <Name>MobOverwriteDefault</Name>
+      <Link>Extended Data Types\MobOverwriteDefault</Link>
+    </Content>
+    <Content Include="AxEdt\MobPackingStationID">
+      <SubType>Content</SubType>
+      <Name>MobPackingStationID</Name>
+      <Link>Extended Data Types\MobPackingStationID</Link>
+    </Content>
+    <Content Include="AxEdt\MobPageDataSourcesRefRecID">
+      <SubType>Content</SubType>
+      <Name>MobPageDataSourcesRefRecID</Name>
+      <Link>Extended Data Types\MobPageDataSourcesRefRecID</Link>
+    </Content>
+    <Content Include="AxEdt\MobPageID">
+      <SubType>Content</SubType>
+      <Name>MobPageID</Name>
+      <Link>Extended Data Types\MobPageID</Link>
+    </Content>
+    <Content Include="AxEdt\MobPageMenuItemType">
+      <SubType>Content</SubType>
+      <Name>MobPageMenuItemType</Name>
+      <Link>Extended Data Types\MobPageMenuItemType</Link>
+    </Content>
+    <Content Include="AxEdt\MobPageTitleString">
+      <SubType>Content</SubType>
+      <Name>MobPageTitleString</Name>
+      <Link>Extended Data Types\MobPageTitleString</Link>
+    </Content>
+    <Content Include="AxEdt\MobPageType">
+      <SubType>Content</SubType>
+      <Name>MobPageType</Name>
+      <Link>Extended Data Types\MobPageType</Link>
+    </Content>
+    <Content Include="AxEdt\MobPickReturnOrders">
+      <SubType>Content</SubType>
+      <Name>MobPickReturnOrders</Name>
+      <Link>Extended Data Types\MobPickReturnOrders</Link>
+    </Content>
+    <Content Include="AxEdt\MobPostOrderPromptOverrideLinesRecId">
+      <SubType>Content</SubType>
+      <Name>MobPostOrderPromptOverrideLinesRecId</Name>
+      <Link>Extended Data Types\MobPostOrderPromptOverrideLinesRecId</Link>
+    </Content>
+    <Content Include="AxEdt\MobPostOrderPromptOverrideRecID">
+      <SubType>Content</SubType>
+      <Name>MobPostOrderPromptOverrideRecID</Name>
+      <Link>Extended Data Types\MobPostOrderPromptOverrideRecID</Link>
+    </Content>
+    <Content Include="AxEdt\MobPromptForUnit">
+      <SubType>Content</SubType>
+      <Name>MobPromptForUnit</Name>
+      <Link>Extended Data Types\MobPromptForUnit</Link>
+    </Content>
+    <Content Include="AxEdt\MobRegisteredOnMobile">
+      <SubType>Content</SubType>
+      <Name>MobRegisteredOnMobile</Name>
+      <Link>Extended Data Types\MobRegisteredOnMobile</Link>
+    </Content>
+    <Content Include="AxEdt\MobRegistrationNumber">
+      <SubType>Content</SubType>
+      <Name>MobRegistrationNumber</Name>
+      <Link>Extended Data Types\MobRegistrationNumber</Link>
+    </Content>
+    <Content Include="AxEdt\MobRegularExpression">
+      <SubType>Content</SubType>
+      <Name>MobRegularExpression</Name>
+      <Link>Extended Data Types\MobRegularExpression</Link>
+    </Content>
+    <Content Include="AxEdt\MobReleasedToMobile">
+      <SubType>Content</SubType>
+      <Name>MobReleasedToMobile</Name>
+      <Link>Extended Data Types\MobReleasedToMobile</Link>
+    </Content>
+    <Content Include="AxEdt\MobScanToSelectBehaviour">
+      <SubType>Content</SubType>
+      <Name>MobScanToSelectBehaviour</Name>
+      <Link>Extended Data Types\MobScanToSelectBehaviour</Link>
+    </Content>
+    <Content Include="AxEdt\MobServiceId">
+      <SubType>Content</SubType>
+      <Name>MobServiceId</Name>
+      <Link>Extended Data Types\MobServiceId</Link>
+    </Content>
+    <Content Include="AxEdt\MobTableName">
+      <SubType>Content</SubType>
+      <Name>MobTableName</Name>
+      <Link>Extended Data Types\MobTableName</Link>
+    </Content>
+    <Content Include="AxEdt\MobTableNameAndField">
+      <SubType>Content</SubType>
+      <Name>MobTableNameAndField</Name>
+      <Link>Extended Data Types\MobTableNameAndField</Link>
+    </Content>
+    <Content Include="AxEdt\MobTakePlaceBothEnum">
+      <SubType>Content</SubType>
+      <Name>MobTakePlaceBothEnum</Name>
+      <Link>Extended Data Types\MobTakePlaceBothEnum</Link>
+    </Content>
+    <Content Include="AxEdt\MobTimeStamp">
+      <SubType>Content</SubType>
+      <Name>MobTimeStamp</Name>
+      <Link>Extended Data Types\MobTimeStamp</Link>
+    </Content>
+    <Content Include="AxEdt\MobToteId">
+      <SubType>Content</SubType>
+      <Name>MobToteId</Name>
+      <Link>Extended Data Types\MobToteId</Link>
+    </Content>
+    <Content Include="AxEdt\MobValidationWarningTypes">
+      <SubType>Content</SubType>
+      <Name>MobValidationWarningTypes</Name>
+      <Link>Extended Data Types\MobValidationWarningTypes</Link>
+    </Content>
+    <Content Include="AxEdt\MobValueInteractionPermissionEnum">
+      <SubType>Content</SubType>
+      <Name>MobValueInteractionPermissionEnum</Name>
+      <Link>Extended Data Types\MobValueInteractionPermissionEnum</Link>
+    </Content>
+    <Content Include="AxEdt\MobWorkflowName">
+      <SubType>Content</SubType>
+      <Name>MobWorkflowName</Name>
+      <Link>Extended Data Types\MobWorkflowName</Link>
+    </Content>
+    <Content Include="AxEdt\MobWorkflowStepId">
+      <SubType>Content</SubType>
+      <Name>MobWorkflowStepId</Name>
+      <Link>Extended Data Types\MobWorkflowStepId</Link>
+    </Content>
+    <Content Include="AxEdt\MobXMLTableRefRecId">
+      <SubType>Content</SubType>
+      <Name>MobXMLTableRefRecId</Name>
+      <Link>Extended Data Types\MobXMLTableRefRecId</Link>
+    </Content>
+    <Content Include="AxEnum\MobCartReservationLevel">
+      <SubType>Content</SubType>
+      <Name>MobCartReservationLevel</Name>
+      <Link>Base Enums\MobCartReservationLevel</Link>
+    </Content>
+    <Content Include="AxEnum\MobInventRefType">
+      <SubType>Content</SubType>
+      <Name>MobInventRefType</Name>
+      <Link>Base Enums\MobInventRefType</Link>
+    </Content>
+    <Content Include="AxEnum\MobLineSelectionTypes">
+      <SubType>Content</SubType>
+      <Name>MobLineSelectionTypes</Name>
+      <Link>Base Enums\MobLineSelectionTypes</Link>
+    </Content>
+    <Content Include="AxEnum\MobWorkflowValidationTypes">
+      <SubType>Content</SubType>
+      <Name>MobWorkflowValidationTypes</Name>
+      <Link>Base Enums\MobWorkflowValidationTypes</Link>
+    </Content>
+    <Content Include="AxForm\MobCarts">
+      <SubType>Content</SubType>
+      <Name>MobCarts</Name>
+      <Link>Forms\MobCarts</Link>
+    </Content>
+    <Content Include="AxForm\MobConsolidatePickingRoutes">
+      <SubType>Content</SubType>
+      <Name>MobConsolidatePickingRoutes</Name>
+      <Link>Forms\MobConsolidatePickingRoutes</Link>
+    </Content>
+    <Content Include="AxForm\MobInventAdjustmentCauses">
+      <SubType>Content</SubType>
+      <Name>MobInventAdjustmentCauses</Name>
+      <Link>Forms\MobInventAdjustmentCauses</Link>
+    </Content>
+    <Content Include="AxForm\MobInventLocationSetup">
+      <SubType>Content</SubType>
+      <Name>MobInventLocationSetup</Name>
+      <Link>Forms\MobInventLocationSetup</Link>
+    </Content>
+    <Content Include="AxForm\MobPackingStation">
+      <SubType>Content</SubType>
+      <Name>MobPackingStation</Name>
+      <Link>Forms\MobPackingStation</Link>
+    </Content>
+    <Content Include="AxForm\MobParameters">
+      <SubType>Content</SubType>
+      <Name>MobParameters</Name>
+      <Link>Forms\MobParameters</Link>
+    </Content>
+    <Content Include="AxForm\MobPostOrderPromptOverrideForm">
+      <SubType>Content</SubType>
+      <Name>MobPostOrderPromptOverrideForm</Name>
+      <Link>Forms\MobPostOrderPromptOverrideForm</Link>
+    </Content>
+    <Content Include="AxForm\MobRegistrationErrors">
+      <SubType>Content</SubType>
+      <Name>MobRegistrationErrors</Name>
+      <Link>Forms\MobRegistrationErrors</Link>
+    </Content>
+    <Content Include="AxForm\MobToteOverview">
+      <SubType>Content</SubType>
+      <Name>MobToteOverview</Name>
+      <Link>Forms\MobToteOverview</Link>
+    </Content>
+    <Content Include="AxFormExtension\InventJournalCount.Mob">
+      <SubType>Content</SubType>
+      <Name>InventJournalCount.Mob</Name>
+      <Link>Form Extensions\InventJournalCount.Mob</Link>
+    </Content>
+    <Content Include="AxFormExtension\InventJournalCountTag.Mob">
+      <SubType>Content</SubType>
+      <Name>InventJournalCountTag.Mob</Name>
+      <Link>Form Extensions\InventJournalCountTag.Mob</Link>
+    </Content>
+    <Content Include="AxFormExtension\InventJournalTable.Mob">
+      <SubType>Content</SubType>
+      <Name>InventJournalTable.Mob</Name>
+      <Link>Form Extensions\InventJournalTable.Mob</Link>
+    </Content>
+    <Content Include="AxFormExtension\InventLocation.Mob">
+      <SubType>Content</SubType>
+      <Name>InventLocation.Mob</Name>
+      <Link>Form Extensions\InventLocation.Mob</Link>
+    </Content>
+    <Content Include="AxFormExtension\TFMDocumentQueue.TFMobile">
+      <SubType>Content</SubType>
+      <Name>TFMDocumentQueue.TFMobile</Name>
+      <Link>Form Extensions\TFMDocumentQueue.TFMobile</Link>
+    </Content>
+    <Content Include="AxFormExtension\TFMParameters.TFMobile">
+      <SubType>Content</SubType>
+      <Name>TFMParameters.TFMobile</Name>
+      <Link>Form Extensions\TFMParameters.TFMobile</Link>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_cs">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_cs</Name>
+      <Link>Label Files\MobileWMS_cs</Link>
+    </Content>
+    <Content Include="MobileWMS.cs.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.cs.label.txt</Name>
+      <Link>Label Files\MobileWMS.cs.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_cs</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_da-DK">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_da-DK</Name>
+      <Link>Label Files\MobileWMS_da-DK</Link>
+    </Content>
+    <Content Include="MobileWMS.da-DK.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.da-DK.label.txt</Name>
+      <Link>Label Files\MobileWMS.da-DK.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_da-DK</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_da">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_da</Name>
+      <Link>Label Files\MobileWMS_da</Link>
+    </Content>
+    <Content Include="MobileWMS.da.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.da.label.txt</Name>
+      <Link>Label Files\MobileWMS.da.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_da</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_de">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_de</Name>
+      <Link>Label Files\MobileWMS_de</Link>
+    </Content>
+    <Content Include="MobileWMS.de.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.de.label.txt</Name>
+      <Link>Label Files\MobileWMS.de.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_de</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_en-US">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_en-US</Name>
+      <Link>Label Files\MobileWMS_en-US</Link>
+    </Content>
+    <Content Include="MobileWMS.en-US.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.en-US.label.txt</Name>
+      <Link>Label Files\MobileWMS.en-US.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_en-US</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_es">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_es</Name>
+      <Link>Label Files\MobileWMS_es</Link>
+    </Content>
+    <Content Include="MobileWMS.es.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.es.label.txt</Name>
+      <Link>Label Files\MobileWMS.es.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_es</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_fi">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_fi</Name>
+      <Link>Label Files\MobileWMS_fi</Link>
+    </Content>
+    <Content Include="MobileWMS.fi.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.fi.label.txt</Name>
+      <Link>Label Files\MobileWMS.fi.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_fi</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_fr">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_fr</Name>
+      <Link>Label Files\MobileWMS_fr</Link>
+    </Content>
+    <Content Include="MobileWMS.fr.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.fr.label.txt</Name>
+      <Link>Label Files\MobileWMS.fr.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_fr</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_it">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_it</Name>
+      <Link>Label Files\MobileWMS_it</Link>
+    </Content>
+    <Content Include="MobileWMS.it.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.it.label.txt</Name>
+      <Link>Label Files\MobileWMS.it.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_it</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_ja">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_ja</Name>
+      <Link>Label Files\MobileWMS_ja</Link>
+    </Content>
+    <Content Include="MobileWMS.ja.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.ja.label.txt</Name>
+      <Link>Label Files\MobileWMS.ja.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_ja</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_nl-BE">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_nl-BE</Name>
+      <Link>Label Files\MobileWMS_nl-BE</Link>
+    </Content>
+    <Content Include="MobileWMS.nl-BE.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.nl-BE.label.txt</Name>
+      <Link>Label Files\MobileWMS.nl-BE.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_nl-BE</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_nl">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_nl</Name>
+      <Link>Label Files\MobileWMS_nl</Link>
+    </Content>
+    <Content Include="MobileWMS.nl.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.nl.label.txt</Name>
+      <Link>Label Files\MobileWMS.nl.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_nl</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_no">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_no</Name>
+      <Link>Label Files\MobileWMS_no</Link>
+    </Content>
+    <Content Include="MobileWMS.no.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.no.label.txt</Name>
+      <Link>Label Files\MobileWMS.no.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_no</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_pl">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_pl</Name>
+      <Link>Label Files\MobileWMS_pl</Link>
+    </Content>
+    <Content Include="MobileWMS.pl.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.pl.label.txt</Name>
+      <Link>Label Files\MobileWMS.pl.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_pl</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_pt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_pt</Name>
+      <Link>Label Files\MobileWMS_pt</Link>
+    </Content>
+    <Content Include="MobileWMS.pt.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.pt.label.txt</Name>
+      <Link>Label Files\MobileWMS.pt.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_pt</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_ro">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_ro</Name>
+      <Link>Label Files\MobileWMS_ro</Link>
+    </Content>
+    <Content Include="MobileWMS.ro.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.ro.label.txt</Name>
+      <Link>Label Files\MobileWMS.ro.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_ro</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_ru">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_ru</Name>
+      <Link>Label Files\MobileWMS_ru</Link>
+    </Content>
+    <Content Include="MobileWMS.ru.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.ru.label.txt</Name>
+      <Link>Label Files\MobileWMS.ru.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_ru</DependentUpon>
+    </Content>
+    <Content Include="AxLabelFile\MobileWMS_sv">
+      <SubType>Content</SubType>
+      <Name>MobileWMS_sv</Name>
+      <Link>Label Files\MobileWMS_sv</Link>
+    </Content>
+    <Content Include="MobileWMS.sv.label.txt">
+      <SubType>Content</SubType>
+      <Name>MobileWMS.sv.label.txt</Name>
+      <Link>Label Files\MobileWMS.sv.label.txt</Link>
+      <DependentUpon>AxLabelFile\MobileWMS_sv</DependentUpon>
+    </Content>
+    <Content Include="AxMacroDictionary\Mob">
+      <SubType>Content</SubType>
+      <Name>Mob</Name>
+      <Link>MacroDictionary\Mob</Link>
+    </Content>
+    <Content Include="AxMenuExtension\TFM.TFMobile">
+      <SubType>Content</SubType>
+      <Name>TFM.TFMobile</Name>
+      <Link>Menu Extensions\TFM.TFMobile</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobConsolidateOrderCreate">
+      <SubType>Content</SubType>
+      <Name>MobConsolidateOrderCreate</Name>
+      <Link>Action Menu Items\MobConsolidateOrderCreate</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobCreateDocumentHandlers">
+      <SubType>Content</SubType>
+      <Name>MobCreateDocumentHandlers</Name>
+      <Link>Action Menu Items\MobCreateDocumentHandlers</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobCreateMenuSettings">
+      <SubType>Content</SubType>
+      <Name>MobCreateMenuSettings</Name>
+      <Link>Action Menu Items\MobCreateMenuSettings</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobDataMigratorPlatformModelSetup">
+      <SubType>Content</SubType>
+      <Name>MobDataMigratorPlatformModelSetup</Name>
+      <Link>Action Menu Items\MobDataMigratorPlatformModelSetup</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobDocumentQueueCleanup">
+      <SubType>Content</SubType>
+      <Name>MobDocumentQueueCleanup</Name>
+      <Link>Action Menu Items\MobDocumentQueueCleanup</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobDocumentQueueProcessor">
+      <SubType>Content</SubType>
+      <Name>MobDocumentQueueProcessor</Name>
+      <Link>Action Menu Items\MobDocumentQueueProcessor</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobExportFonts">
+      <SubType>Content</SubType>
+      <Name>MobExportFonts</Name>
+      <Link>Action Menu Items\MobExportFonts</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobExportList">
+      <SubType>Content</SubType>
+      <Name>MobExportList</Name>
+      <Link>Action Menu Items\MobExportList</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobExportSetup">
+      <SubType>Content</SubType>
+      <Name>MobExportSetup</Name>
+      <Link>Action Menu Items\MobExportSetup</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobImportLists">
+      <SubType>Content</SubType>
+      <Name>MobImportLists</Name>
+      <Link>Action Menu Items\MobImportLists</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobImportSetup">
+      <SubType>Content</SubType>
+      <Name>MobImportSetup</Name>
+      <Link>Action Menu Items\MobImportSetup</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobListNewVersion">
+      <SubType>Content</SubType>
+      <Name>MobListNewVersion</Name>
+      <Link>Action Menu Items\MobListNewVersion</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobMenuExport">
+      <SubType>Content</SubType>
+      <Name>MobMenuExport</Name>
+      <Link>Action Menu Items\MobMenuExport</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobPageOverrideDialog">
+      <SubType>Content</SubType>
+      <Name>MobPageOverrideDialog</Name>
+      <Link>Action Menu Items\MobPageOverrideDialog</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobPageWizard">
+      <SubType>Content</SubType>
+      <Name>MobPageWizard</Name>
+      <Link>Action Menu Items\MobPageWizard</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobTestEndpoint">
+      <SubType>Content</SubType>
+      <Name>MobTestEndpoint</Name>
+      <Link>Action Menu Items\MobTestEndpoint</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\MobToteShipping">
+      <SubType>Content</SubType>
+      <Name>MobToteShipping</Name>
+      <Link>Action Menu Items\MobToteShipping</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobApplicationConfigImport">
+      <SubType>Content</SubType>
+      <Name>MobApplicationConfigImport</Name>
+      <Link>Display Menu Items\MobApplicationConfigImport</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobCarts">
+      <SubType>Content</SubType>
+      <Name>MobCarts</Name>
+      <Link>Display Menu Items\MobCarts</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobConsolidatePickingRoutes">
+      <SubType>Content</SubType>
+      <Name>MobConsolidatePickingRoutes</Name>
+      <Link>Display Menu Items\MobConsolidatePickingRoutes</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobDataSources">
+      <SubType>Content</SubType>
+      <Name>MobDataSources</Name>
+      <Link>Display Menu Items\MobDataSources</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobDeviceConnectionGuide">
+      <SubType>Content</SubType>
+      <Name>MobDeviceConnectionGuide</Name>
+      <Link>Display Menu Items\MobDeviceConnectionGuide</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobDeviceTable">
+      <SubType>Content</SubType>
+      <Name>MobDeviceTable</Name>
+      <Link>Display Menu Items\MobDeviceTable</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobDisplayLineOverride">
+      <SubType>Content</SubType>
+      <Name>MobDisplayLineOverride</Name>
+      <Link>Display Menu Items\MobDisplayLineOverride</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobDocumentOverview">
+      <SubType>Content</SubType>
+      <Name>MobDocumentOverview</Name>
+      <Link>Display Menu Items\MobDocumentOverview</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobDocumentQueue">
+      <SubType>Content</SubType>
+      <Name>MobDocumentQueue</Name>
+      <Link>Display Menu Items\MobDocumentQueue</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobDocumentResultViewer">
+      <SubType>Content</SubType>
+      <Name>MobDocumentResultViewer</Name>
+      <Link>Display Menu Items\MobDocumentResultViewer</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobDynafilter">
+      <SubType>Content</SubType>
+      <Name>MobDynafilter</Name>
+      <Link>Display Menu Items\MobDynafilter</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobFeedbackPart">
+      <SubType>Content</SubType>
+      <Name>MobFeedbackPart</Name>
+      <Link>Display Menu Items\MobFeedbackPart</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobFonts">
+      <SubType>Content</SubType>
+      <Name>MobFonts</Name>
+      <Link>Display Menu Items\MobFonts</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobGS1AISetup">
+      <SubType>Content</SubType>
+      <Name>MobGS1AISetup</Name>
+      <Link>Display Menu Items\MobGS1AISetup</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobHelpPart">
+      <SubType>Content</SubType>
+      <Name>MobHelpPart</Name>
+      <Link>Display Menu Items\MobHelpPart</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobImageAggregate">
+      <SubType>Content</SubType>
+      <Name>MobImageAggregate</Name>
+      <Link>Display Menu Items\MobImageAggregate</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobImages">
+      <SubType>Content</SubType>
+      <Name>MobImages</Name>
+      <Link>Display Menu Items\MobImages</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobInventAdjustmentCauses">
+      <SubType>Content</SubType>
+      <Name>MobInventAdjustmentCauses</Name>
+      <Link>Display Menu Items\MobInventAdjustmentCauses</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobInventLocationSetup">
+      <SubType>Content</SubType>
+      <Name>MobInventLocationSetup</Name>
+      <Link>Display Menu Items\MobInventLocationSetup</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobListEdit">
+      <SubType>Content</SubType>
+      <Name>MobListEdit</Name>
+      <Link>Display Menu Items\MobListEdit</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobListOverview">
+      <SubType>Content</SubType>
+      <Name>MobListOverview</Name>
+      <Link>Display Menu Items\MobListOverview</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobListUsageViewer">
+      <SubType>Content</SubType>
+      <Name>MobListUsageViewer</Name>
+      <Link>Display Menu Items\MobListUsageViewer</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobMediaQueue">
+      <SubType>Content</SubType>
+      <Name>MobMediaQueue</Name>
+      <Link>Display Menu Items\MobMediaQueue</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobMenuConfig">
+      <SubType>Content</SubType>
+      <Name>MobMenuConfig</Name>
+      <Link>Display Menu Items\MobMenuConfig</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobMenuConfigCreateDefaults">
+      <SubType>Content</SubType>
+      <Name>MobMenuConfigCreateDefaults</Name>
+      <Link>Display Menu Items\MobMenuConfigCreateDefaults</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobMenuGroups">
+      <SubType>Content</SubType>
+      <Name>MobMenuGroups</Name>
+      <Link>Display Menu Items\MobMenuGroups</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobOutputCacheSetup">
+      <SubType>Content</SubType>
+      <Name>MobOutputCacheSetup</Name>
+      <Link>Display Menu Items\MobOutputCacheSetup</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobPackingStation">
+      <SubType>Content</SubType>
+      <Name>MobPackingStation</Name>
+      <Link>Display Menu Items\MobPackingStation</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobPageConfigurator">
+      <SubType>Content</SubType>
+      <Name>MobPageConfigurator</Name>
+      <Link>Display Menu Items\MobPageConfigurator</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobPageListDataBinding">
+      <SubType>Content</SubType>
+      <Name>MobPageListDataBinding</Name>
+      <Link>Display Menu Items\MobPageListDataBinding</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobPageOverview">
+      <SubType>Content</SubType>
+      <Name>MobPageOverview</Name>
+      <Link>Display Menu Items\MobPageOverview</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobPagesMap">
+      <SubType>Content</SubType>
+      <Name>MobPagesMap</Name>
+      <Link>Display Menu Items\MobPagesMap</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobParameters">
+      <SubType>Content</SubType>
+      <Name>MobParameters</Name>
+      <Link>Display Menu Items\MobParameters</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobPostOrderPromptOverride">
+      <SubType>Content</SubType>
+      <Name>MobPostOrderPromptOverride</Name>
+      <Link>Display Menu Items\MobPostOrderPromptOverride</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobRegistrationError">
+      <SubType>Content</SubType>
+      <Name>MobRegistrationError</Name>
+      <Link>Display Menu Items\MobRegistrationError</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobRegistrationLog">
+      <SubType>Content</SubType>
+      <Name>MobRegistrationLog</Name>
+      <Link>Display Menu Items\MobRegistrationLog</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobSearchSetup">
+      <SubType>Content</SubType>
+      <Name>MobSearchSetup</Name>
+      <Link>Display Menu Items\MobSearchSetup</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobToteOverview">
+      <SubType>Content</SubType>
+      <Name>MobToteOverview</Name>
+      <Link>Display Menu Items\MobToteOverview</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobTraceLog">
+      <SubType>Content</SubType>
+      <Name>MobTraceLog</Name>
+      <Link>Display Menu Items\MobTraceLog</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobTranslations">
+      <SubType>Content</SubType>
+      <Name>MobTranslations</Name>
+      <Link>Display Menu Items\MobTranslations</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\MobWorkflows">
+      <SubType>Content</SubType>
+      <Name>MobWorkflows</Name>
+      <Link>Display Menu Items\MobWorkflows</Link>
+    </Content>
+    <Content Include="AxQuery\MobDocumentQueue">
+      <SubType>Content</SubType>
+      <Name>MobDocumentQueue</Name>
+      <Link>Queries\MobDocumentQueue</Link>
+    </Content>
+    <Content Include="AxQuery\MobDocumentQueueProcessor">
+      <SubType>Content</SubType>
+      <Name>MobDocumentQueueProcessor</Name>
+      <Link>Queries\MobDocumentQueueProcessor</Link>
+    </Content>
+    <Content Include="AxQuery\MobShopFloorJobListQuery">
+      <SubType>Content</SubType>
+      <Name>MobShopFloorJobListQuery</Name>
+      <Link>Queries\MobShopFloorJobListQuery</Link>
+    </Content>
+    <Content Include="AxResource\MobAssembly">
+      <SubType>Content</SubType>
+      <Name>MobAssembly</Name>
+      <Link>Resources\MobAssembly</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\Assembly.png">
+      <SubType>Content</SubType>
+      <Name>Assembly.png</Name>
+      <Link>Resources\Assembly.png</Link>
+      <DependentUpon>AxResource\MobAssembly</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobAttachmentIcon">
+      <SubType>Content</SubType>
+      <Name>MobAttachmentIcon</Name>
+      <Link>Resources\MobAttachmentIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\attachment.png">
+      <SubType>Content</SubType>
+      <Name>attachment.png</Name>
+      <Link>Resources\attachment.png</Link>
+      <DependentUpon>AxResource\MobAttachmentIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobBlobVariable">
+      <SubType>Content</SubType>
+      <Name>MobBlobVariable</Name>
+      <Link>Resources\MobBlobVariable</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\variable_blob.png">
+      <SubType>Content</SubType>
+      <Name>variable_blob.png</Name>
+      <Link>Resources\variable_blob.png</Link>
+      <DependentUpon>AxResource\MobBlobVariable</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobBreak">
+      <SubType>Content</SubType>
+      <Name>MobBreak</Name>
+      <Link>Resources\MobBreak</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\break_II.png">
+      <SubType>Content</SubType>
+      <Name>break_II.png</Name>
+      <Link>Resources\break_II.png</Link>
+      <DependentUpon>AxResource\MobBreak</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobBreakIcon">
+      <SubType>Content</SubType>
+      <Name>MobBreakIcon</Name>
+      <Link>Resources\MobBreakIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\break.png">
+      <SubType>Content</SubType>
+      <Name>break.png</Name>
+      <Link>Resources\break.png</Link>
+      <DependentUpon>AxResource\MobBreakIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobCamera">
+      <SubType>Content</SubType>
+      <Name>MobCamera</Name>
+      <Link>Resources\MobCamera</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\camera.png">
+      <SubType>Content</SubType>
+      <Name>camera.png</Name>
+      <Link>Resources\camera.png</Link>
+      <DependentUpon>AxResource\MobCamera</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobCancelOrder">
+      <SubType>Content</SubType>
+      <Name>MobCancelOrder</Name>
+      <Link>Resources\MobCancelOrder</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\deleteregistrationsmenuitem.png">
+      <SubType>Content</SubType>
+      <Name>deleteregistrationsmenuitem.png</Name>
+      <Link>Resources\deleteregistrationsmenuitem.png</Link>
+      <DependentUpon>AxResource\MobCancelOrder</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobCartForWarehouse">
+      <SubType>Content</SubType>
+      <Name>MobCartForWarehouse</Name>
+      <Link>Resources\MobCartForWarehouse</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\warehousecart.png">
+      <SubType>Content</SubType>
+      <Name>warehousecart.png</Name>
+      <Link>Resources\warehousecart.png</Link>
+      <DependentUpon>AxResource\MobCartForWarehouse</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobCartForWarehouseAdd">
+      <SubType>Content</SubType>
+      <Name>MobCartForWarehouseAdd</Name>
+      <Link>Resources\MobCartForWarehouseAdd</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\warehouse-cart_add.png">
+      <SubType>Content</SubType>
+      <Name>warehouse-cart_add.png</Name>
+      <Link>Resources\warehouse-cart_add.png</Link>
+      <DependentUpon>AxResource\MobCartForWarehouseAdd</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobCartForWarehouseEmpty">
+      <SubType>Content</SubType>
+      <Name>MobCartForWarehouseEmpty</Name>
+      <Link>Resources\MobCartForWarehouseEmpty</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\warehouse-cart_empty.png">
+      <SubType>Content</SubType>
+      <Name>warehouse-cart_empty.png</Name>
+      <Link>Resources\warehouse-cart_empty.png</Link>
+      <DependentUpon>AxResource\MobCartForWarehouseEmpty</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobCartForWarehouseUnplanned">
+      <SubType>Content</SubType>
+      <Name>MobCartForWarehouseUnplanned</Name>
+      <Link>Resources\MobCartForWarehouseUnplanned</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\warehouse-cart_unplanned.png">
+      <SubType>Content</SubType>
+      <Name>warehouse-cart_unplanned.png</Name>
+      <Link>Resources\warehouse-cart_unplanned.png</Link>
+      <DependentUpon>AxResource\MobCartForWarehouseUnplanned</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobCartForWarehouse_unload">
+      <SubType>Content</SubType>
+      <Name>MobCartForWarehouse_unload</Name>
+      <Link>Resources\MobCartForWarehouse_unload</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\warehouse-cart_unload.png">
+      <SubType>Content</SubType>
+      <Name>warehouse-cart_unload.png</Name>
+      <Link>Resources\warehouse-cart_unload.png</Link>
+      <DependentUpon>AxResource\MobCartForWarehouse_unload</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobClientAddColumnIcon">
+      <SubType>Content</SubType>
+      <Name>MobClientAddColumnIcon</Name>
+      <Link>Resources\MobClientAddColumnIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\365-Client-AddColumn.png">
+      <SubType>Content</SubType>
+      <Name>365-Client-AddColumn.png</Name>
+      <Link>Resources\365-Client-AddColumn.png</Link>
+      <DependentUpon>AxResource\MobClientAddColumnIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobClientAddIcon">
+      <SubType>Content</SubType>
+      <Name>MobClientAddIcon</Name>
+      <Link>Resources\MobClientAddIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\365-Client-add.png">
+      <SubType>Content</SubType>
+      <Name>365-Client-add.png</Name>
+      <Link>Resources\365-Client-add.png</Link>
+      <DependentUpon>AxResource\MobClientAddIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobClientAddImageIcon">
+      <SubType>Content</SubType>
+      <Name>MobClientAddImageIcon</Name>
+      <Link>Resources\MobClientAddImageIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\365-Client-Image.png">
+      <SubType>Content</SubType>
+      <Name>365-Client-Image.png</Name>
+      <Link>Resources\365-Client-Image.png</Link>
+      <DependentUpon>AxResource\MobClientAddImageIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobClientAddRowIcon">
+      <SubType>Content</SubType>
+      <Name>MobClientAddRowIcon</Name>
+      <Link>Resources\MobClientAddRowIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\365-Client-addRow.png">
+      <SubType>Content</SubType>
+      <Name>365-Client-addRow.png</Name>
+      <Link>Resources\365-Client-addRow.png</Link>
+      <DependentUpon>AxResource\MobClientAddRowIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobClientAddTextIcon">
+      <SubType>Content</SubType>
+      <Name>MobClientAddTextIcon</Name>
+      <Link>Resources\MobClientAddTextIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\365-Client-Text.png">
+      <SubType>Content</SubType>
+      <Name>365-Client-Text.png</Name>
+      <Link>Resources\365-Client-Text.png</Link>
+      <DependentUpon>AxResource\MobClientAddTextIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobClientCopyIcon">
+      <SubType>Content</SubType>
+      <Name>MobClientCopyIcon</Name>
+      <Link>Resources\MobClientCopyIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\365-Client-copy.png">
+      <SubType>Content</SubType>
+      <Name>365-Client-copy.png</Name>
+      <Link>Resources\365-Client-copy.png</Link>
+      <DependentUpon>AxResource\MobClientCopyIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobClientDeleteIcon">
+      <SubType>Content</SubType>
+      <Name>MobClientDeleteIcon</Name>
+      <Link>Resources\MobClientDeleteIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\365-Client-delete.png">
+      <SubType>Content</SubType>
+      <Name>365-Client-delete.png</Name>
+      <Link>Resources\365-Client-delete.png</Link>
+      <DependentUpon>AxResource\MobClientDeleteIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobClientDimensionIcon">
+      <SubType>Content</SubType>
+      <Name>MobClientDimensionIcon</Name>
+      <Link>Resources\MobClientDimensionIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\365-Client-Dimension.png">
+      <SubType>Content</SubType>
+      <Name>365-Client-Dimension.png</Name>
+      <Link>Resources\365-Client-Dimension.png</Link>
+      <DependentUpon>AxResource\MobClientDimensionIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobClientMoveDownIcon">
+      <SubType>Content</SubType>
+      <Name>MobClientMoveDownIcon</Name>
+      <Link>Resources\MobClientMoveDownIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\365-Client-MoveDown.png">
+      <SubType>Content</SubType>
+      <Name>365-Client-MoveDown.png</Name>
+      <Link>Resources\365-Client-MoveDown.png</Link>
+      <DependentUpon>AxResource\MobClientMoveDownIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobClientMoveUpIcon">
+      <SubType>Content</SubType>
+      <Name>MobClientMoveUpIcon</Name>
+      <Link>Resources\MobClientMoveUpIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\365-Client-MoveUp.png">
+      <SubType>Content</SubType>
+      <Name>365-Client-MoveUp.png</Name>
+      <Link>Resources\365-Client-MoveUp.png</Link>
+      <DependentUpon>AxResource\MobClientMoveUpIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobClientPasteIcon">
+      <SubType>Content</SubType>
+      <Name>MobClientPasteIcon</Name>
+      <Link>Resources\MobClientPasteIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\365-Client-paste.png">
+      <SubType>Content</SubType>
+      <Name>365-Client-paste.png</Name>
+      <Link>Resources\365-Client-paste.png</Link>
+      <DependentUpon>AxResource\MobClientPasteIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobClientTrafficIcon">
+      <SubType>Content</SubType>
+      <Name>MobClientTrafficIcon</Name>
+      <Link>Resources\MobClientTrafficIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\365-Client-traffic.png">
+      <SubType>Content</SubType>
+      <Name>365-Client-traffic.png</Name>
+      <Link>Resources\365-Client-traffic.png</Link>
+      <DependentUpon>AxResource\MobClientTrafficIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobContainer">
+      <SubType>Content</SubType>
+      <Name>MobContainer</Name>
+      <Link>Resources\MobContainer</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\MobContainer.png">
+      <SubType>Content</SubType>
+      <Name>MobContainer.png</Name>
+      <Link>Resources\MobContainer.png</Link>
+      <DependentUpon>AxResource\MobContainer</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobCountIcon">
+      <SubType>Content</SubType>
+      <Name>MobCountIcon</Name>
+      <Link>Resources\MobCountIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenucount.png">
+      <SubType>Content</SubType>
+      <Name>mainmenucount.png</Name>
+      <Link>Resources\mainmenucount.png</Link>
+      <DependentUpon>AxResource\MobCountIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobCreatePalletIcon">
+      <SubType>Content</SubType>
+      <Name>MobCreatePalletIcon</Name>
+      <Link>Resources\MobCreatePalletIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenucreatepallet.png">
+      <SubType>Content</SubType>
+      <Name>mainmenucreatepallet.png</Name>
+      <Link>Resources\mainmenucreatepallet.png</Link>
+      <DependentUpon>AxResource\MobCreatePalletIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobDeleteAllRegistrations">
+      <SubType>Content</SubType>
+      <Name>MobDeleteAllRegistrations</Name>
+      <Link>Resources\MobDeleteAllRegistrations</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\deleteallregistrationsmenuitem.png">
+      <SubType>Content</SubType>
+      <Name>deleteallregistrationsmenuitem.png</Name>
+      <Link>Resources\deleteallregistrationsmenuitem.png</Link>
+      <DependentUpon>AxResource\MobDeleteAllRegistrations</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobDeviceContextMenuIcon">
+      <SubType>Content</SubType>
+      <Name>MobDeviceContextMenuIcon</Name>
+      <Link>Resources\MobDeviceContextMenuIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\ContextMenuIcon.png">
+      <SubType>Content</SubType>
+      <Name>ContextMenuIcon.png</Name>
+      <Link>Resources\ContextMenuIcon.png</Link>
+      <DependentUpon>AxResource\MobDeviceContextMenuIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobDocument">
+      <SubType>Content</SubType>
+      <Name>MobDocument</Name>
+      <Link>Resources\MobDocument</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\document.png">
+      <SubType>Content</SubType>
+      <Name>document.png</Name>
+      <Link>Resources\document.png</Link>
+      <DependentUpon>AxResource\MobDocument</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobEmptyBox">
+      <SubType>Content</SubType>
+      <Name>MobEmptyBox</Name>
+      <Link>Resources\MobEmptyBox</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\emptyBox.png">
+      <SubType>Content</SubType>
+      <Name>emptyBox.png</Name>
+      <Link>Resources\emptyBox.png</Link>
+      <DependentUpon>AxResource\MobEmptyBox</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobEmptyLocation">
+      <SubType>Content</SubType>
+      <Name>MobEmptyLocation</Name>
+      <Link>Resources\MobEmptyLocation</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\EmptyLocation.png">
+      <SubType>Content</SubType>
+      <Name>EmptyLocation.png</Name>
+      <Link>Resources\EmptyLocation.png</Link>
+      <DependentUpon>AxResource\MobEmptyLocation</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobEntityClass">
+      <SubType>Content</SubType>
+      <Name>MobEntityClass</Name>
+      <Link>Resources\MobEntityClass</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\entity_Class.png">
+      <SubType>Content</SubType>
+      <Name>entity_Class.png</Name>
+      <Link>Resources\entity_Class.png</Link>
+      <DependentUpon>AxResource\MobEntityClass</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobEntityCustomizations">
+      <SubType>Content</SubType>
+      <Name>MobEntityCustomizations</Name>
+      <Link>Resources\MobEntityCustomizations</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\entity_customization.png">
+      <SubType>Content</SubType>
+      <Name>entity_customization.png</Name>
+      <Link>Resources\entity_customization.png</Link>
+      <DependentUpon>AxResource\MobEntityCustomizations</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobEntityDatasources">
+      <SubType>Content</SubType>
+      <Name>MobEntityDatasources</Name>
+      <Link>Resources\MobEntityDatasources</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\entity_dataSource.png">
+      <SubType>Content</SubType>
+      <Name>entity_dataSource.png</Name>
+      <Link>Resources\entity_dataSource.png</Link>
+      <DependentUpon>AxResource\MobEntityDatasources</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobEntityFilter">
+      <SubType>Content</SubType>
+      <Name>MobEntityFilter</Name>
+      <Link>Resources\MobEntityFilter</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\entity_filter.png">
+      <SubType>Content</SubType>
+      <Name>entity_filter.png</Name>
+      <Link>Resources\entity_filter.png</Link>
+      <DependentUpon>AxResource\MobEntityFilter</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobEntityListClick">
+      <SubType>Content</SubType>
+      <Name>MobEntityListClick</Name>
+      <Link>Resources\MobEntityListClick</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\entity_clicked.png">
+      <SubType>Content</SubType>
+      <Name>entity_clicked.png</Name>
+      <Link>Resources\entity_clicked.png</Link>
+      <DependentUpon>AxResource\MobEntityListClick</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobEntityLists">
+      <SubType>Content</SubType>
+      <Name>MobEntityLists</Name>
+      <Link>Resources\MobEntityLists</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\entity_list.png">
+      <SubType>Content</SubType>
+      <Name>entity_list.png</Name>
+      <Link>Resources\entity_list.png</Link>
+      <DependentUpon>AxResource\MobEntityLists</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobEntityModel">
+      <SubType>Content</SubType>
+      <Name>MobEntityModel</Name>
+      <Link>Resources\MobEntityModel</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\entity_model.png">
+      <SubType>Content</SubType>
+      <Name>entity_model.png</Name>
+      <Link>Resources\entity_model.png</Link>
+      <DependentUpon>AxResource\MobEntityModel</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobEntityWorkflow">
+      <SubType>Content</SubType>
+      <Name>MobEntityWorkflow</Name>
+      <Link>Resources\MobEntityWorkflow</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\entity_workflow.png">
+      <SubType>Content</SubType>
+      <Name>entity_workflow.png</Name>
+      <Link>Resources\entity_workflow.png</Link>
+      <DependentUpon>AxResource\MobEntityWorkflow</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobFinishedPallet">
+      <SubType>Content</SubType>
+      <Name>MobFinishedPallet</Name>
+      <Link>Resources\MobFinishedPallet</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\reportasfinished.png">
+      <SubType>Content</SubType>
+      <Name>reportasfinished.png</Name>
+      <Link>Resources\reportasfinished.png</Link>
+      <DependentUpon>AxResource\MobFinishedPallet</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobFolderIcon">
+      <SubType>Content</SubType>
+      <Name>MobFolderIcon</Name>
+      <Link>Resources\MobFolderIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\Folder_Icon.png">
+      <SubType>Content</SubType>
+      <Name>Folder_Icon.png</Name>
+      <Link>Resources\Folder_Icon.png</Link>
+      <DependentUpon>AxResource\MobFolderIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobHistoryIcon">
+      <SubType>Content</SubType>
+      <Name>MobHistoryIcon</Name>
+      <Link>Resources\MobHistoryIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\history.png">
+      <SubType>Content</SubType>
+      <Name>history.png</Name>
+      <Link>Resources\history.png</Link>
+      <DependentUpon>AxResource\MobHistoryIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\Mobile_WMS">
+      <SubType>Content</SubType>
+      <Name>Mobile_WMS</Name>
+      <Link>Resources\Mobile_WMS</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\Mobile WMS.png">
+      <SubType>Content</SubType>
+      <Name>Mobile WMS.png</Name>
+      <Link>Resources\Mobile WMS.png</Link>
+      <DependentUpon>AxResource\Mobile_WMS</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobItemImageCapture">
+      <SubType>Content</SubType>
+      <Name>MobItemImageCapture</Name>
+      <Link>Resources\MobItemImageCapture</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\imagecapture.png">
+      <SubType>Content</SubType>
+      <Name>imagecapture.png</Name>
+      <Link>Resources\imagecapture.png</Link>
+      <DependentUpon>AxResource\MobItemImageCapture</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobItemPhysicalDimensions">
+      <SubType>Content</SubType>
+      <Name>MobItemPhysicalDimensions</Name>
+      <Link>Resources\MobItemPhysicalDimensions</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\itemdimensions.png">
+      <SubType>Content</SubType>
+      <Name>itemdimensions.png</Name>
+      <Link>Resources\itemdimensions.png</Link>
+      <DependentUpon>AxResource\MobItemPhysicalDimensions</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobLoading">
+      <SubType>Content</SubType>
+      <Name>MobLoading</Name>
+      <Link>Resources\MobLoading</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\loading.gif">
+      <SubType>Content</SubType>
+      <Name>loading.gif</Name>
+      <Link>Resources\loading.gif</Link>
+      <DependentUpon>AxResource\MobLoading</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobLocateItemIcon">
+      <SubType>Content</SubType>
+      <Name>MobLocateItemIcon</Name>
+      <Link>Resources\MobLocateItemIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenulocateitem.png">
+      <SubType>Content</SubType>
+      <Name>mainmenulocateitem.png</Name>
+      <Link>Resources\mainmenulocateitem.png</Link>
+      <DependentUpon>AxResource\MobLocateItemIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobLocationContentIcon">
+      <SubType>Content</SubType>
+      <Name>MobLocationContentIcon</Name>
+      <Link>Resources\MobLocationContentIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenubincontent.png">
+      <SubType>Content</SubType>
+      <Name>mainmenubincontent.png</Name>
+      <Link>Resources\mainmenubincontent.png</Link>
+      <DependentUpon>AxResource\MobLocationContentIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobLocked">
+      <SubType>Content</SubType>
+      <Name>MobLocked</Name>
+      <Link>Resources\MobLocked</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\locked.png">
+      <SubType>Content</SubType>
+      <Name>locked.png</Name>
+      <Link>Resources\locked.png</Link>
+      <DependentUpon>AxResource\MobLocked</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobLookupTemplateImage">
+      <SubType>Content</SubType>
+      <Name>MobLookupTemplateImage</Name>
+      <Link>Resources\MobLookupTemplateImage</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\sketch_lookup_withFlow.png">
+      <SubType>Content</SubType>
+      <Name>sketch_lookup_withFlow.png</Name>
+      <Link>Resources\sketch_lookup_withFlow.png</Link>
+      <DependentUpon>AxResource\MobLookupTemplateImage</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobMainMenuIcon">
+      <SubType>Content</SubType>
+      <Name>MobMainMenuIcon</Name>
+      <Link>Resources\MobMainMenuIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\launchappicon.png">
+      <SubType>Content</SubType>
+      <Name>launchappicon.png</Name>
+      <Link>Resources\launchappicon.png</Link>
+      <DependentUpon>AxResource\MobMainMenuIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobManufacturingExecution">
+      <SubType>Content</SubType>
+      <Name>MobManufacturingExecution</Name>
+      <Link>Resources\MobManufacturingExecution</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\productionCopy.png">
+      <SubType>Content</SubType>
+      <Name>productionCopy.png</Name>
+      <Link>Resources\productionCopy.png</Link>
+      <DependentUpon>AxResource\MobManufacturingExecution</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobMissingImage">
+      <SubType>Content</SubType>
+      <Name>MobMissingImage</Name>
+      <Link>Resources\MobMissingImage</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\imageMissing.png">
+      <SubType>Content</SubType>
+      <Name>imageMissing.png</Name>
+      <Link>Resources\imageMissing.png</Link>
+      <DependentUpon>AxResource\MobMissingImage</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobMobileLocalizationFile">
+      <SubType>Content</SubType>
+      <Name>MobMobileLocalizationFile</Name>
+      <Link>Resources\MobMobileLocalizationFile</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Data\StringResources.resx">
+      <SubType>Content</SubType>
+      <Name>StringResources.resx</Name>
+      <Link>Resources\StringResources.resx</Link>
+      <DependentUpon>AxResource\MobMobileLocalizationFile</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobNavigationButton">
+      <SubType>Content</SubType>
+      <Name>MobNavigationButton</Name>
+      <Link>Resources\MobNavigationButton</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\gotomainmenu.png">
+      <SubType>Content</SubType>
+      <Name>gotomainmenu.png</Name>
+      <Link>Resources\gotomainmenu.png</Link>
+      <DependentUpon>AxResource\MobNavigationButton</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobNegativeAdjustmentIcon">
+      <SubType>Content</SubType>
+      <Name>MobNegativeAdjustmentIcon</Name>
+      <Link>Resources\MobNegativeAdjustmentIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenunegativeadjustment.png">
+      <SubType>Content</SubType>
+      <Name>mainmenunegativeadjustment.png</Name>
+      <Link>Resources\mainmenunegativeadjustment.png</Link>
+      <DependentUpon>AxResource\MobNegativeAdjustmentIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobOfflineManagementIcon">
+      <SubType>Content</SubType>
+      <Name>MobOfflineManagementIcon</Name>
+      <Link>Resources\MobOfflineManagementIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\offline.png">
+      <SubType>Content</SubType>
+      <Name>offline.png</Name>
+      <Link>Resources\offline.png</Link>
+      <DependentUpon>AxResource\MobOfflineManagementIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobOpenMenuItem">
+      <SubType>Content</SubType>
+      <Name>MobOpenMenuItem</Name>
+      <Link>Resources\MobOpenMenuItem</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\openmenuitem.png">
+      <SubType>Content</SubType>
+      <Name>openmenuitem.png</Name>
+      <Link>Resources\openmenuitem.png</Link>
+      <DependentUpon>AxResource\MobOpenMenuItem</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobOrderLevelRegistrations">
+      <SubType>Content</SubType>
+      <Name>MobOrderLevelRegistrations</Name>
+      <Link>Resources\MobOrderLevelRegistrations</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\orderlevelregistrationmenuitem.png">
+      <SubType>Content</SubType>
+      <Name>orderlevelregistrationmenuitem.png</Name>
+      <Link>Resources\orderlevelregistrationmenuitem.png</Link>
+      <DependentUpon>AxResource\MobOrderLevelRegistrations</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobOrderListAndLinesImage">
+      <SubType>Content</SubType>
+      <Name>MobOrderListAndLinesImage</Name>
+      <Link>Resources\MobOrderListAndLinesImage</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\sketch-orderList-Lines_.png">
+      <SubType>Content</SubType>
+      <Name>sketch-orderList-Lines_.png</Name>
+      <Link>Resources\sketch-orderList-Lines_.png</Link>
+      <DependentUpon>AxResource\MobOrderListAndLinesImage</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobOrderListAndLinesImage_">
+      <SubType>Content</SubType>
+      <Name>MobOrderListAndLinesImage_</Name>
+      <Link>Resources\MobOrderListAndLinesImage_</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\sketch-orderList-Lines_small.png">
+      <SubType>Content</SubType>
+      <Name>sketch-orderList-Lines_small.png</Name>
+      <Link>Resources\sketch-orderList-Lines_small.png</Link>
+      <DependentUpon>AxResource\MobOrderListAndLinesImage_</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobPalletLookupIcon">
+      <SubType>Content</SubType>
+      <Name>MobPalletLookupIcon</Name>
+      <Link>Resources\MobPalletLookupIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenupallettransport.png">
+      <SubType>Content</SubType>
+      <Name>mainmenupallettransport.png</Name>
+      <Link>Resources\mainmenupallettransport.png</Link>
+      <DependentUpon>AxResource\MobPalletLookupIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobPalletMoveIcon">
+      <SubType>Content</SubType>
+      <Name>MobPalletMoveIcon</Name>
+      <Link>Resources\MobPalletMoveIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenupallettransport-unplanned.png">
+      <SubType>Content</SubType>
+      <Name>mainmenupallettransport-unplanned.png</Name>
+      <Link>Resources\mainmenupallettransport-unplanned.png</Link>
+      <DependentUpon>AxResource\MobPalletMoveIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobPalletWithItemsIcon">
+      <SubType>Content</SubType>
+      <Name>MobPalletWithItemsIcon</Name>
+      <Link>Resources\MobPalletWithItemsIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\PalletWithItems.png">
+      <SubType>Content</SubType>
+      <Name>PalletWithItems.png</Name>
+      <Link>Resources\PalletWithItems.png</Link>
+      <DependentUpon>AxResource\MobPalletWithItemsIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobPaperHole">
+      <SubType>Content</SubType>
+      <Name>MobPaperHole</Name>
+      <Link>Resources\MobPaperHole</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\paper_hole.png">
+      <SubType>Content</SubType>
+      <Name>paper_hole.png</Name>
+      <Link>Resources\paper_hole.png</Link>
+      <DependentUpon>AxResource\MobPaperHole</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobPickIcon">
+      <SubType>Content</SubType>
+      <Name>MobPickIcon</Name>
+      <Link>Resources\MobPickIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenupick.png">
+      <SubType>Content</SubType>
+      <Name>mainmenupick.png</Name>
+      <Link>Resources\mainmenupick.png</Link>
+      <DependentUpon>AxResource\MobPickIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobPlannedMoveIcon">
+      <SubType>Content</SubType>
+      <Name>MobPlannedMoveIcon</Name>
+      <Link>Resources\MobPlannedMoveIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenumove.png">
+      <SubType>Content</SubType>
+      <Name>mainmenumove.png</Name>
+      <Link>Resources\mainmenumove.png</Link>
+      <DependentUpon>AxResource\MobPlannedMoveIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobPost">
+      <SubType>Content</SubType>
+      <Name>MobPost</Name>
+      <Link>Resources\MobPost</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\postmenuitem.png">
+      <SubType>Content</SubType>
+      <Name>postmenuitem.png</Name>
+      <Link>Resources\postmenuitem.png</Link>
+      <DependentUpon>AxResource\MobPost</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobProduction">
+      <SubType>Content</SubType>
+      <Name>MobProduction</Name>
+      <Link>Resources\MobProduction</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\production.png">
+      <SubType>Content</SubType>
+      <Name>production.png</Name>
+      <Link>Resources\production.png</Link>
+      <DependentUpon>AxResource\MobProduction</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobProductionConsumption">
+      <SubType>Content</SubType>
+      <Name>MobProductionConsumption</Name>
+      <Link>Resources\MobProductionConsumption</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\productionconsumption.png">
+      <SubType>Content</SubType>
+      <Name>productionconsumption.png</Name>
+      <Link>Resources\productionconsumption.png</Link>
+      <DependentUpon>AxResource\MobProductionConsumption</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobProductionOutput">
+      <SubType>Content</SubType>
+      <Name>MobProductionOutput</Name>
+      <Link>Resources\MobProductionOutput</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\productionoutput.png">
+      <SubType>Content</SubType>
+      <Name>productionoutput.png</Name>
+      <Link>Resources\productionoutput.png</Link>
+      <DependentUpon>AxResource\MobProductionOutput</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobProfitLossJournalIcon">
+      <SubType>Content</SubType>
+      <Name>MobProfitLossJournalIcon</Name>
+      <Link>Resources\MobProfitLossJournalIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenuprofitlossjournallookup.png">
+      <SubType>Content</SubType>
+      <Name>mainmenuprofitlossjournallookup.png</Name>
+      <Link>Resources\mainmenuprofitlossjournallookup.png</Link>
+      <DependentUpon>AxResource\MobProfitLossJournalIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobProgresError">
+      <SubType>Content</SubType>
+      <Name>MobProgresError</Name>
+      <Link>Resources\MobProgresError</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\progresserror.png">
+      <SubType>Content</SubType>
+      <Name>progresserror.png</Name>
+      <Link>Resources\progresserror.png</Link>
+      <DependentUpon>AxResource\MobProgresError</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobQuarantineOrderIcon">
+      <SubType>Content</SubType>
+      <Name>MobQuarantineOrderIcon</Name>
+      <Link>Resources\MobQuarantineOrderIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenuquarantineorders.png">
+      <SubType>Content</SubType>
+      <Name>mainmenuquarantineorders.png</Name>
+      <Link>Resources\mainmenuquarantineorders.png</Link>
+      <DependentUpon>AxResource\MobQuarantineOrderIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobReadyToSend">
+      <SubType>Content</SubType>
+      <Name>MobReadyToSend</Name>
+      <Link>Resources\MobReadyToSend</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\readytosend.png">
+      <SubType>Content</SubType>
+      <Name>readytosend.png</Name>
+      <Link>Resources\readytosend.png</Link>
+      <DependentUpon>AxResource\MobReadyToSend</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobReadyToSendOk">
+      <SubType>Content</SubType>
+      <Name>MobReadyToSendOk</Name>
+      <Link>Resources\MobReadyToSendOk</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\readytosendok.png">
+      <SubType>Content</SubType>
+      <Name>readytosendok.png</Name>
+      <Link>Resources\readytosendok.png</Link>
+      <DependentUpon>AxResource\MobReadyToSendOk</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobReceiveIcon">
+      <SubType>Content</SubType>
+      <Name>MobReceiveIcon</Name>
+      <Link>Resources\MobReceiveIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenureceive.png">
+      <SubType>Content</SubType>
+      <Name>mainmenureceive.png</Name>
+      <Link>Resources\mainmenureceive.png</Link>
+      <DependentUpon>AxResource\MobReceiveIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobRefresh">
+      <SubType>Content</SubType>
+      <Name>MobRefresh</Name>
+      <Link>Resources\MobRefresh</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\refreshmenuitem.png">
+      <SubType>Content</SubType>
+      <Name>refreshmenuitem.png</Name>
+      <Link>Resources\refreshmenuitem.png</Link>
+      <DependentUpon>AxResource\MobRefresh</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobRegisterBarcodeIcon">
+      <SubType>Content</SubType>
+      <Name>MobRegisterBarcodeIcon</Name>
+      <Link>Resources\MobRegisterBarcodeIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenuscaninfo.png">
+      <SubType>Content</SubType>
+      <Name>mainmenuscaninfo.png</Name>
+      <Link>Resources\mainmenuscaninfo.png</Link>
+      <DependentUpon>AxResource\MobRegisterBarcodeIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobReportAsFinishedIcon">
+      <SubType>Content</SubType>
+      <Name>MobReportAsFinishedIcon</Name>
+      <Link>Resources\MobReportAsFinishedIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenureportasfinished.png">
+      <SubType>Content</SubType>
+      <Name>mainmenureportasfinished.png</Name>
+      <Link>Resources\mainmenureportasfinished.png</Link>
+      <DependentUpon>AxResource\MobReportAsFinishedIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobScanInfoIcon">
+      <SubType>Content</SubType>
+      <Name>MobScanInfoIcon</Name>
+      <Link>Resources\MobScanInfoIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenuscaninfoi.png">
+      <SubType>Content</SubType>
+      <Name>mainmenuscaninfoi.png</Name>
+      <Link>Resources\mainmenuscaninfoi.png</Link>
+      <DependentUpon>AxResource\MobScanInfoIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobSettingsIcon">
+      <SubType>Content</SubType>
+      <Name>MobSettingsIcon</Name>
+      <Link>Resources\MobSettingsIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenusettings.png">
+      <SubType>Content</SubType>
+      <Name>mainmenusettings.png</Name>
+      <Link>Resources\mainmenusettings.png</Link>
+      <DependentUpon>AxResource\MobSettingsIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobShipping">
+      <SubType>Content</SubType>
+      <Name>MobShipping</Name>
+      <Link>Resources\MobShipping</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenushipping.png">
+      <SubType>Content</SubType>
+      <Name>mainmenushipping.png</Name>
+      <Link>Resources\mainmenushipping.png</Link>
+      <DependentUpon>AxResource\MobShipping</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobShowImage">
+      <SubType>Content</SubType>
+      <Name>MobShowImage</Name>
+      <Link>Resources\MobShowImage</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\showimage.png">
+      <SubType>Content</SubType>
+      <Name>showimage.png</Name>
+      <Link>Resources\showimage.png</Link>
+      <DependentUpon>AxResource\MobShowImage</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobSignatureIcon">
+      <SubType>Content</SubType>
+      <Name>MobSignatureIcon</Name>
+      <Link>Resources\MobSignatureIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\signatureicon.png">
+      <SubType>Content</SubType>
+      <Name>signatureicon.png</Name>
+      <Link>Resources\signatureicon.png</Link>
+      <DependentUpon>AxResource\MobSignatureIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobSketchListEditor">
+      <SubType>Content</SubType>
+      <Name>MobSketchListEditor</Name>
+      <Link>Resources\MobSketchListEditor</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\sketch-list-editor.png">
+      <SubType>Content</SubType>
+      <Name>sketch-list-editor.png</Name>
+      <Link>Resources\sketch-list-editor.png</Link>
+      <DependentUpon>AxResource\MobSketchListEditor</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobStandardItem">
+      <SubType>Content</SubType>
+      <Name>MobStandardItem</Name>
+      <Link>Resources\MobStandardItem</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\item.png">
+      <SubType>Content</SubType>
+      <Name>item.png</Name>
+      <Link>Resources\item.png</Link>
+      <DependentUpon>AxResource\MobStandardItem</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobStar">
+      <SubType>Content</SubType>
+      <Name>MobStar</Name>
+      <Link>Resources\MobStar</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\Starx.png">
+      <SubType>Content</SubType>
+      <Name>Starx.png</Name>
+      <Link>Resources\Starx.png</Link>
+      <DependentUpon>AxResource\MobStar</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobStateError">
+      <SubType>Content</SubType>
+      <Name>MobStateError</Name>
+      <Link>Resources\MobStateError</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\errorred.png">
+      <SubType>Content</SubType>
+      <Name>errorred.png</Name>
+      <Link>Resources\errorred.png</Link>
+      <DependentUpon>AxResource\MobStateError</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobStateLog">
+      <SubType>Content</SubType>
+      <Name>MobStateLog</Name>
+      <Link>Resources\MobStateLog</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\state_log.png">
+      <SubType>Content</SubType>
+      <Name>state_log.png</Name>
+      <Link>Resources\state_log.png</Link>
+      <DependentUpon>AxResource\MobStateLog</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobStateMinus">
+      <SubType>Content</SubType>
+      <Name>MobStateMinus</Name>
+      <Link>Resources\MobStateMinus</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\minus.png">
+      <SubType>Content</SubType>
+      <Name>minus.png</Name>
+      <Link>Resources\minus.png</Link>
+      <DependentUpon>AxResource\MobStateMinus</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobStateMinusRed">
+      <SubType>Content</SubType>
+      <Name>MobStateMinusRed</Name>
+      <Link>Resources\MobStateMinusRed</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\minusred.png">
+      <SubType>Content</SubType>
+      <Name>minusred.png</Name>
+      <Link>Resources\minusred.png</Link>
+      <DependentUpon>AxResource\MobStateMinusRed</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobStateOrderFlagClear">
+      <SubType>Content</SubType>
+      <Name>MobStateOrderFlagClear</Name>
+      <Link>Resources\MobStateOrderFlagClear</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\orderflagclear.png">
+      <SubType>Content</SubType>
+      <Name>orderflagclear.png</Name>
+      <Link>Resources\orderflagclear.png</Link>
+      <DependentUpon>AxResource\MobStateOrderFlagClear</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobStateOrderFlagSet">
+      <SubType>Content</SubType>
+      <Name>MobStateOrderFlagSet</Name>
+      <Link>Resources\MobStateOrderFlagSet</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\oderflagset.png">
+      <SubType>Content</SubType>
+      <Name>oderflagset.png</Name>
+      <Link>Resources\oderflagset.png</Link>
+      <DependentUpon>AxResource\MobStateOrderFlagSet</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobStatePlus">
+      <SubType>Content</SubType>
+      <Name>MobStatePlus</Name>
+      <Link>Resources\MobStatePlus</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\plus.png">
+      <SubType>Content</SubType>
+      <Name>plus.png</Name>
+      <Link>Resources\plus.png</Link>
+      <DependentUpon>AxResource\MobStatePlus</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobStateUnplanned">
+      <SubType>Content</SubType>
+      <Name>MobStateUnplanned</Name>
+      <Link>Resources\MobStateUnplanned</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\State_unplanned.png">
+      <SubType>Content</SubType>
+      <Name>State_unplanned.png</Name>
+      <Link>Resources\State_unplanned.png</Link>
+      <DependentUpon>AxResource\MobStateUnplanned</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobStateUpdate">
+      <SubType>Content</SubType>
+      <Name>MobStateUpdate</Name>
+      <Link>Resources\MobStateUpdate</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\state_update.png">
+      <SubType>Content</SubType>
+      <Name>state_update.png</Name>
+      <Link>Resources\state_update.png</Link>
+      <DependentUpon>AxResource\MobStateUpdate</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobStateValidation_OK">
+      <SubType>Content</SubType>
+      <Name>MobStateValidation_OK</Name>
+      <Link>Resources\MobStateValidation_OK</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\validation_ok.png">
+      <SubType>Content</SubType>
+      <Name>validation_ok.png</Name>
+      <Link>Resources\validation_ok.png</Link>
+      <DependentUpon>AxResource\MobStateValidation_OK</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobStopWatch">
+      <SubType>Content</SubType>
+      <Name>MobStopWatch</Name>
+      <Link>Resources\MobStopWatch</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\stopwatch.png">
+      <SubType>Content</SubType>
+      <Name>stopwatch.png</Name>
+      <Link>Resources\stopwatch.png</Link>
+      <DependentUpon>AxResource\MobStopWatch</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobTakeitemImage">
+      <SubType>Content</SubType>
+      <Name>MobTakeitemImage</Name>
+      <Link>Resources\MobTakeitemImage</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\takeitemimage.png">
+      <SubType>Content</SubType>
+      <Name>takeitemimage.png</Name>
+      <Link>Resources\takeitemimage.png</Link>
+      <DependentUpon>AxResource\MobTakeitemImage</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobTaskletGuide">
+      <SubType>Content</SubType>
+      <Name>MobTaskletGuide</Name>
+      <Link>Resources\MobTaskletGuide</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\Wizard-Banner-Tasklet-logo.jpg">
+      <SubType>Content</SubType>
+      <Name>Wizard-Banner-Tasklet-logo.jpg</Name>
+      <Link>Resources\Wizard-Banner-Tasklet-logo.jpg</Link>
+      <DependentUpon>AxResource\MobTaskletGuide</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobTaskletLogo">
+      <SubType>Content</SubType>
+      <Name>MobTaskletLogo</Name>
+      <Link>Resources\MobTaskletLogo</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\tasklet.png">
+      <SubType>Content</SubType>
+      <Name>tasklet.png</Name>
+      <Link>Resources\tasklet.png</Link>
+      <DependentUpon>AxResource\MobTaskletLogo</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobTaskletLogoWhite">
+      <SubType>Content</SubType>
+      <Name>MobTaskletLogoWhite</Name>
+      <Link>Resources\MobTaskletLogoWhite</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\web-taskletfactory-logo-white.png">
+      <SubType>Content</SubType>
+      <Name>web-taskletfactory-logo-white.png</Name>
+      <Link>Resources\web-taskletfactory-logo-white.png</Link>
+      <DependentUpon>AxResource\MobTaskletLogoWhite</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobTileBackground">
+      <SubType>Content</SubType>
+      <Name>MobTileBackground</Name>
+      <Link>Resources\MobTileBackground</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\tileback.png">
+      <SubType>Content</SubType>
+      <Name>tileback.png</Name>
+      <Link>Resources\tileback.png</Link>
+      <DependentUpon>AxResource\MobTileBackground</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobTrashCanEmpty">
+      <SubType>Content</SubType>
+      <Name>MobTrashCanEmpty</Name>
+      <Link>Resources\MobTrashCanEmpty</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\trashcanempty.png">
+      <SubType>Content</SubType>
+      <Name>trashcanempty.png</Name>
+      <Link>Resources\trashcanempty.png</Link>
+      <DependentUpon>AxResource\MobTrashCanEmpty</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobTrashCanFilled">
+      <SubType>Content</SubType>
+      <Name>MobTrashCanFilled</Name>
+      <Link>Resources\MobTrashCanFilled</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\trashcanfilled.png">
+      <SubType>Content</SubType>
+      <Name>trashcanfilled.png</Name>
+      <Link>Resources\trashcanfilled.png</Link>
+      <DependentUpon>AxResource\MobTrashCanFilled</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobTypeAndQtyExample">
+      <SubType>Content</SubType>
+      <Name>MobTypeAndQtyExample</Name>
+      <Link>Resources\MobTypeAndQtyExample</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\typeandqty-example.PNG">
+      <SubType>Content</SubType>
+      <Name>typeandqty-example.PNG</Name>
+      <Link>Resources\typeandqty-example.PNG</Link>
+      <DependentUpon>AxResource\MobTypeAndQtyExample</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobTypeBarcode">
+      <SubType>Content</SubType>
+      <Name>MobTypeBarcode</Name>
+      <Link>Resources\MobTypeBarcode</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\menutypebarcode.png">
+      <SubType>Content</SubType>
+      <Name>menutypebarcode.png</Name>
+      <Link>Resources\menutypebarcode.png</Link>
+      <DependentUpon>AxResource\MobTypeBarcode</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobUnlock">
+      <SubType>Content</SubType>
+      <Name>MobUnlock</Name>
+      <Link>Resources\MobUnlock</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\unlocked.png">
+      <SubType>Content</SubType>
+      <Name>unlocked.png</Name>
+      <Link>Resources\unlocked.png</Link>
+      <DependentUpon>AxResource\MobUnlock</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobUnlocked">
+      <SubType>Content</SubType>
+      <Name>MobUnlocked</Name>
+      <Link>Resources\MobUnlocked</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\unlocked_isometric.png">
+      <SubType>Content</SubType>
+      <Name>unlocked_isometric.png</Name>
+      <Link>Resources\unlocked_isometric.png</Link>
+      <DependentUpon>AxResource\MobUnlocked</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobUnplannedCountIcon">
+      <SubType>Content</SubType>
+      <Name>MobUnplannedCountIcon</Name>
+      <Link>Resources\MobUnplannedCountIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenucount-unplanned.png">
+      <SubType>Content</SubType>
+      <Name>mainmenucount-unplanned.png</Name>
+      <Link>Resources\mainmenucount-unplanned.png</Link>
+      <DependentUpon>AxResource\MobUnplannedCountIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobUnplannedMoveIcon">
+      <SubType>Content</SubType>
+      <Name>MobUnplannedMoveIcon</Name>
+      <Link>Resources\MobUnplannedMoveIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenumove-unplanned.png">
+      <SubType>Content</SubType>
+      <Name>mainmenumove-unplanned.png</Name>
+      <Link>Resources\mainmenumove-unplanned.png</Link>
+      <DependentUpon>AxResource\MobUnplannedMoveIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobUnplannedTagCountIcon">
+      <SubType>Content</SubType>
+      <Name>MobUnplannedTagCountIcon</Name>
+      <Link>Resources\MobUnplannedTagCountIcon</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\mainmenutagcountingjournallookup.png">
+      <SubType>Content</SubType>
+      <Name>mainmenutagcountingjournallookup.png</Name>
+      <Link>Resources\mainmenutagcountingjournallookup.png</Link>
+      <DependentUpon>AxResource\MobUnplannedTagCountIcon</DependentUpon>
+    </Content>
+    <Content Include="AxResource\MobViewRegistrations">
+      <SubType>Content</SubType>
+      <Name>MobViewRegistrations</Name>
+      <Link>Resources\MobViewRegistrations</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Images\registrationmenuitem.png">
+      <SubType>Content</SubType>
+      <Name>registrationmenuitem.png</Name>
+      <Link>Resources\registrationmenuitem.png</Link>
+      <DependentUpon>AxResource\MobViewRegistrations</DependentUpon>
+    </Content>
+    <Content Include="AxSecurityDuty\MOBDocumentService">
+      <SubType>Content</SubType>
+      <Name>MOBDocumentService</Name>
+      <Link>Security Duties\MOBDocumentService</Link>
+    </Content>
+    <Content Include="AxSecurityDuty\MobMaintain">
+      <SubType>Content</SubType>
+      <Name>MobMaintain</Name>
+      <Link>Security Duties\MobMaintain</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\MobDocumentServiceSubmit">
+      <SubType>Content</SubType>
+      <Name>MobDocumentServiceSubmit</Name>
+      <Link>Security Privileges\MobDocumentServiceSubmit</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\MobMaintain">
+      <SubType>Content</SubType>
+      <Name>MobMaintain</Name>
+      <Link>Security Privileges\MobMaintain</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\MobPeriodicMaintenance">
+      <SubType>Content</SubType>
+      <Name>MobPeriodicMaintenance</Name>
+      <Link>Security Privileges\MobPeriodicMaintenance</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\MobService">
+      <SubType>Content</SubType>
+      <Name>MobService</Name>
+      <Link>Security Privileges\MobService</Link>
+    </Content>
+    <Content Include="AxSecurityRole\MobileWMSMaintain">
+      <SubType>Content</SubType>
+      <Name>MobileWMSMaintain</Name>
+      <Link>Security Roles\MobileWMSMaintain</Link>
+    </Content>
+    <Content Include="AxSecurityRole\MobUser">
+      <SubType>Content</SubType>
+      <Name>MobUser</Name>
+      <Link>Security Roles\MobUser</Link>
+    </Content>
+    <Content Include="AxService\MobDocumentService">
+      <SubType>Content</SubType>
+      <Name>MobDocumentService</Name>
+      <Link>Service\MobDocumentService</Link>
+    </Content>
+    <Content Include="AxServiceGroup\MobService">
+      <SubType>Content</SubType>
+      <Name>MobService</Name>
+      <Link>ServiceGroup\MobService</Link>
+    </Content>
+    <Content Include="AxTable\MobCartPicklistLink">
+      <SubType>Content</SubType>
+      <Name>MobCartPicklistLink</Name>
+      <Link>Tables\MobCartPicklistLink</Link>
+    </Content>
+    <Content Include="AxTable\MobCarts">
+      <SubType>Content</SubType>
+      <Name>MobCarts</Name>
+      <Link>Tables\MobCarts</Link>
+    </Content>
+    <Content Include="AxTable\MobConsolidatedPickingRouteOrders">
+      <SubType>Content</SubType>
+      <Name>MobConsolidatedPickingRouteOrders</Name>
+      <Link>Tables\MobConsolidatedPickingRouteOrders</Link>
+    </Content>
+    <Content Include="AxTable\MobConsolidatedPickingRoutes">
+      <SubType>Content</SubType>
+      <Name>MobConsolidatedPickingRoutes</Name>
+      <Link>Tables\MobConsolidatedPickingRoutes</Link>
+    </Content>
+    <Content Include="AxTable\MobDeviceTable">
+      <SubType>Content</SubType>
+      <Name>MobDeviceTable</Name>
+      <Link>Tables\MobDeviceTable</Link>
+    </Content>
+    <Content Include="AxTable\MobDisplayLineOverride">
+      <SubType>Content</SubType>
+      <Name>MobDisplayLineOverride</Name>
+      <Link>Tables\MobDisplayLineOverride</Link>
+    </Content>
+    <Content Include="AxTable\MobDisplayLineOverrideLines">
+      <SubType>Content</SubType>
+      <Name>MobDisplayLineOverrideLines</Name>
+      <Link>Tables\MobDisplayLineOverrideLines</Link>
+    </Content>
+    <Content Include="AxTable\MobDocumentAccessRights">
+      <SubType>Content</SubType>
+      <Name>MobDocumentAccessRights</Name>
+      <Link>Tables\MobDocumentAccessRights</Link>
+    </Content>
+    <Content Include="AxTable\MobDocumentParameters">
+      <SubType>Content</SubType>
+      <Name>MobDocumentParameters</Name>
+      <Link>Tables\MobDocumentParameters</Link>
+    </Content>
+    <Content Include="AxTable\MobDocumentQueue">
+      <SubType>Content</SubType>
+      <Name>MobDocumentQueue</Name>
+      <Link>Tables\MobDocumentQueue</Link>
+    </Content>
+    <Content Include="AxTable\MobDocumentTmpHandlerLookup">
+      <SubType>Content</SubType>
+      <Name>MobDocumentTmpHandlerLookup</Name>
+      <Link>Tables\MobDocumentTmpHandlerLookup</Link>
+    </Content>
+    <Content Include="AxTable\MobDocumentType">
+      <SubType>Content</SubType>
+      <Name>MobDocumentType</Name>
+      <Link>Tables\MobDocumentType</Link>
+    </Content>
+    <Content Include="AxTable\MobFilterAdditions">
+      <SubType>Content</SubType>
+      <Name>MobFilterAdditions</Name>
+      <Link>Tables\MobFilterAdditions</Link>
+    </Content>
+    <Content Include="AxTable\MobFilterAdditionsDataBinding">
+      <SubType>Content</SubType>
+      <Name>MobFilterAdditionsDataBinding</Name>
+      <Link>Tables\MobFilterAdditionsDataBinding</Link>
+    </Content>
+    <Content Include="AxTable\MobFilterFieldValues">
+      <SubType>Content</SubType>
+      <Name>MobFilterFieldValues</Name>
+      <Link>Tables\MobFilterFieldValues</Link>
+    </Content>
+    <Content Include="AxTable\MobFonts">
+      <SubType>Content</SubType>
+      <Name>MobFonts</Name>
+      <Link>Tables\MobFonts</Link>
+    </Content>
+    <Content Include="AxTable\MobGenericParms">
+      <SubType>Content</SubType>
+      <Name>MobGenericParms</Name>
+      <Link>Tables\MobGenericParms</Link>
+    </Content>
+    <Content Include="AxTable\MobGS1AISetup">
+      <SubType>Content</SubType>
+      <Name>MobGS1AISetup</Name>
+      <Link>Tables\MobGS1AISetup</Link>
+    </Content>
+    <Content Include="AxTable\MobGS1AITypeBarcodeSetup">
+      <SubType>Content</SubType>
+      <Name>MobGS1AITypeBarcodeSetup</Name>
+      <Link>Tables\MobGS1AITypeBarcodeSetup</Link>
+    </Content>
+    <Content Include="AxTable\MobGS1References">
+      <SubType>Content</SubType>
+      <Name>MobGS1References</Name>
+      <Link>Tables\MobGS1References</Link>
+    </Content>
+    <Content Include="AxTable\MobGS1Table">
+      <SubType>Content</SubType>
+      <Name>MobGS1Table</Name>
+      <Link>Tables\MobGS1Table</Link>
+    </Content>
+    <Content Include="AxTable\MobImageAggregate">
+      <SubType>Content</SubType>
+      <Name>MobImageAggregate</Name>
+      <Link>Tables\MobImageAggregate</Link>
+    </Content>
+    <Content Include="AxTable\MobImageAggregateLines">
+      <SubType>Content</SubType>
+      <Name>MobImageAggregateLines</Name>
+      <Link>Tables\MobImageAggregateLines</Link>
+    </Content>
+    <Content Include="AxTable\MobImageTable">
+      <SubType>Content</SubType>
+      <Name>MobImageTable</Name>
+      <Link>Tables\MobImageTable</Link>
+    </Content>
+    <Content Include="AxTable\MobInventAdjustmentCauses">
+      <SubType>Content</SubType>
+      <Name>MobInventAdjustmentCauses</Name>
+      <Link>Tables\MobInventAdjustmentCauses</Link>
+    </Content>
+    <Content Include="AxTable\MobInventLocationsGroupRights">
+      <SubType>Content</SubType>
+      <Name>MobInventLocationsGroupRights</Name>
+      <Link>Tables\MobInventLocationsGroupRights</Link>
+    </Content>
+    <Content Include="AxTable\MobInventLocationsPickReceiveTypes">
+      <SubType>Content</SubType>
+      <Name>MobInventLocationsPickReceiveTypes</Name>
+      <Link>Tables\MobInventLocationsPickReceiveTypes</Link>
+    </Content>
+    <Content Include="AxTable\MobJmgEmployee">
+      <SubType>Content</SubType>
+      <Name>MobJmgEmployee</Name>
+      <Link>Tables\MobJmgEmployee</Link>
+    </Content>
+    <Content Include="AxTable\MobListAttribute">
+      <SubType>Content</SubType>
+      <Name>MobListAttribute</Name>
+      <Link>Tables\MobListAttribute</Link>
+    </Content>
+    <Content Include="AxTable\MobListNode">
+      <SubType>Content</SubType>
+      <Name>MobListNode</Name>
+      <Link>Tables\MobListNode</Link>
+    </Content>
+    <Content Include="AxTable\MobLists">
+      <SubType>Content</SubType>
+      <Name>MobLists</Name>
+      <Link>Tables\MobLists</Link>
+    </Content>
+    <Content Include="AxTable\MobListsVersion">
+      <SubType>Content</SubType>
+      <Name>MobListsVersion</Name>
+      <Link>Tables\MobListsVersion</Link>
+    </Content>
+    <Content Include="AxTable\MobLockedOrders">
+      <SubType>Content</SubType>
+      <Name>MobLockedOrders</Name>
+      <Link>Tables\MobLockedOrders</Link>
+    </Content>
+    <Content Include="AxTable\MobMediaQueue">
+      <SubType>Content</SubType>
+      <Name>MobMediaQueue</Name>
+      <Link>Tables\MobMediaQueue</Link>
+    </Content>
+    <Content Include="AxTable\MobMenuGroups">
+      <SubType>Content</SubType>
+      <Name>MobMenuGroups</Name>
+      <Link>Tables\MobMenuGroups</Link>
+    </Content>
+    <Content Include="AxTable\MobMenuOptions">
+      <SubType>Content</SubType>
+      <Name>MobMenuOptions</Name>
+      <Link>Tables\MobMenuOptions</Link>
+    </Content>
+    <Content Include="AxTable\MobMenuPermissions">
+      <SubType>Content</SubType>
+      <Name>MobMenuPermissions</Name>
+      <Link>Tables\MobMenuPermissions</Link>
+    </Content>
+    <Content Include="AxTable\MobMessageLog">
+      <SubType>Content</SubType>
+      <Name>MobMessageLog</Name>
+      <Link>Tables\MobMessageLog</Link>
+    </Content>
+    <Content Include="AxTable\MobMultiSelectionTable">
+      <SubType>Content</SubType>
+      <Name>MobMultiSelectionTable</Name>
+      <Link>Tables\MobMultiSelectionTable</Link>
+    </Content>
+    <Content Include="AxTable\MobOutputCacheSetup">
+      <SubType>Content</SubType>
+      <Name>MobOutputCacheSetup</Name>
+      <Link>Tables\MobOutputCacheSetup</Link>
+    </Content>
+    <Content Include="AxTable\MobPackingStation">
+      <SubType>Content</SubType>
+      <Name>MobPackingStation</Name>
+      <Link>Tables\MobPackingStation</Link>
+    </Content>
+    <Content Include="AxTable\MobPageActions">
+      <SubType>Content</SubType>
+      <Name>MobPageActions</Name>
+      <Link>Tables\MobPageActions</Link>
+    </Content>
+    <Content Include="AxTable\MobPageConfigParms">
+      <SubType>Content</SubType>
+      <Name>MobPageConfigParms</Name>
+      <Link>Tables\MobPageConfigParms</Link>
+    </Content>
+    <Content Include="AxTable\MobPageDatasources">
+      <SubType>Content</SubType>
+      <Name>MobPageDatasources</Name>
+      <Link>Tables\MobPageDatasources</Link>
+    </Content>
+    <Content Include="AxTable\MobPageImage">
+      <SubType>Content</SubType>
+      <Name>MobPageImage</Name>
+      <Link>Tables\MobPageImage</Link>
+    </Content>
+    <Content Include="AxTable\MobPageMenuItems">
+      <SubType>Content</SubType>
+      <Name>MobPageMenuItems</Name>
+      <Link>Tables\MobPageMenuItems</Link>
+    </Content>
+    <Content Include="AxTable\MobPageOfflinePages">
+      <SubType>Content</SubType>
+      <Name>MobPageOfflinePages</Name>
+      <Link>Tables\MobPageOfflinePages</Link>
+    </Content>
+    <Content Include="AxTable\MobPagesEDTTmpLookup">
+      <SubType>Content</SubType>
+      <Name>MobPagesEDTTmpLookup</Name>
+      <Link>Tables\MobPagesEDTTmpLookup</Link>
+    </Content>
+    <Content Include="AxTable\MobPagesTmpLookup">
+      <SubType>Content</SubType>
+      <Name>MobPagesTmpLookup</Name>
+      <Link>Tables\MobPagesTmpLookup</Link>
+    </Content>
+    <Content Include="AxTable\MobParameters">
+      <SubType>Content</SubType>
+      <Name>MobParameters</Name>
+      <Link>Tables\MobParameters</Link>
+    </Content>
+    <Content Include="AxTable\MobPinnableValues">
+      <SubType>Content</SubType>
+      <Name>MobPinnableValues</Name>
+      <Link>Tables\MobPinnableValues</Link>
+    </Content>
+    <Content Include="AxTable\MobPostOrderMethodParms">
+      <SubType>Content</SubType>
+      <Name>MobPostOrderMethodParms</Name>
+      <Link>Tables\MobPostOrderMethodParms</Link>
+    </Content>
+    <Content Include="AxTable\MobPostOrderPromptOverride">
+      <SubType>Content</SubType>
+      <Name>MobPostOrderPromptOverride</Name>
+      <Link>Tables\MobPostOrderPromptOverride</Link>
+    </Content>
+    <Content Include="AxTable\MobPostOrderPromptOverrideLineFields">
+      <SubType>Content</SubType>
+      <Name>MobPostOrderPromptOverrideLineFields</Name>
+      <Link>Tables\MobPostOrderPromptOverrideLineFields</Link>
+    </Content>
+    <Content Include="AxTable\MobPostOrderPromptOverrideLines">
+      <SubType>Content</SubType>
+      <Name>MobPostOrderPromptOverrideLines</Name>
+      <Link>Tables\MobPostOrderPromptOverrideLines</Link>
+    </Content>
+    <Content Include="AxTable\MobQueryPages">
+      <SubType>Content</SubType>
+      <Name>MobQueryPages</Name>
+      <Link>Tables\MobQueryPages</Link>
+    </Content>
+    <Content Include="AxTable\MobRealtimeRegistredQuantity">
+      <SubType>Content</SubType>
+      <Name>MobRealtimeRegistredQuantity</Name>
+      <Link>Tables\MobRealtimeRegistredQuantity</Link>
+    </Content>
+    <Content Include="AxTable\MobRegistrations">
+      <SubType>Content</SubType>
+      <Name>MobRegistrations</Name>
+      <Link>Tables\MobRegistrations</Link>
+    </Content>
+    <Content Include="AxTable\MobRegistrationsErrors">
+      <SubType>Content</SubType>
+      <Name>MobRegistrationsErrors</Name>
+      <Link>Tables\MobRegistrationsErrors</Link>
+    </Content>
+    <Content Include="AxTable\MobRegistrationsExtraInfo">
+      <SubType>Content</SubType>
+      <Name>MobRegistrationsExtraInfo</Name>
+      <Link>Tables\MobRegistrationsExtraInfo</Link>
+    </Content>
+    <Content Include="AxTable\MobReservedCarts">
+      <SubType>Content</SubType>
+      <Name>MobReservedCarts</Name>
+      <Link>Tables\MobReservedCarts</Link>
+    </Content>
+    <Content Include="AxTable\MobSearchEDTsToTablesRelation">
+      <SubType>Content</SubType>
+      <Name>MobSearchEDTsToTablesRelation</Name>
+      <Link>Tables\MobSearchEDTsToTablesRelation</Link>
+    </Content>
+    <Content Include="AxTable\MobTmpMethodName">
+      <SubType>Content</SubType>
+      <Name>MobTmpMethodName</Name>
+      <Link>Tables\MobTmpMethodName</Link>
+    </Content>
+    <Content Include="AxTable\MobToteContent">
+      <SubType>Content</SubType>
+      <Name>MobToteContent</Name>
+      <Link>Tables\MobToteContent</Link>
+    </Content>
+    <Content Include="AxTable\MobToteRelatedDataTempTable">
+      <SubType>Content</SubType>
+      <Name>MobToteRelatedDataTempTable</Name>
+      <Link>Tables\MobToteRelatedDataTempTable</Link>
+    </Content>
+    <Content Include="AxTable\MobToteTable">
+      <SubType>Content</SubType>
+      <Name>MobToteTable</Name>
+      <Link>Tables\MobToteTable</Link>
+    </Content>
+    <Content Include="AxTable\MobTraceLog">
+      <SubType>Content</SubType>
+      <Name>MobTraceLog</Name>
+      <Link>Tables\MobTraceLog</Link>
+    </Content>
+    <Content Include="AxTable\MobTracingUsers">
+      <SubType>Content</SubType>
+      <Name>MobTracingUsers</Name>
+      <Link>Tables\MobTracingUsers</Link>
+    </Content>
+    <Content Include="AxTable\MobTranslationLines">
+      <SubType>Content</SubType>
+      <Name>MobTranslationLines</Name>
+      <Link>Tables\MobTranslationLines</Link>
+    </Content>
+    <Content Include="AxTable\MobTranslations">
+      <SubType>Content</SubType>
+      <Name>MobTranslations</Name>
+      <Link>Tables\MobTranslations</Link>
+    </Content>
+    <Content Include="AxTable\MobWorkflowsTable">
+      <SubType>Content</SubType>
+      <Name>MobWorkflowsTable</Name>
+      <Link>Tables\MobWorkflowsTable</Link>
+    </Content>
+    <Content Include="AxTable\MobWorkflowSteps">
+      <SubType>Content</SubType>
+      <Name>MobWorkflowSteps</Name>
+      <Link>Tables\MobWorkflowSteps</Link>
+    </Content>
+    <Content Include="AxTable\MobWorkflowStepsOnlineValidation">
+      <SubType>Content</SubType>
+      <Name>MobWorkflowStepsOnlineValidation</Name>
+      <Link>Tables\MobWorkflowStepsOnlineValidation</Link>
+    </Content>
+    <Content Include="AxTable\MobXMLTable">
+      <SubType>Content</SubType>
+      <Name>MobXMLTable</Name>
+      <Link>Tables\MobXMLTable</Link>
+    </Content>
+    <Content Include="AxTableExtension\InventJournalTable.Mob">
+      <SubType>Content</SubType>
+      <Name>InventJournalTable.Mob</Name>
+      <Link>Table Extensions\InventJournalTable.Mob</Link>
+    </Content>
+    <Content Include="AxTableExtension\InventJournalTrans.Mob">
+      <SubType>Content</SubType>
+      <Name>InventJournalTrans.Mob</Name>
+      <Link>Table Extensions\InventJournalTrans.Mob</Link>
+    </Content>
+    <Content Include="AxTableExtension\InventJournalTrans_Tag.Mob">
+      <SubType>Content</SubType>
+      <Name>InventJournalTrans_Tag.Mob</Name>
+      <Link>Table Extensions\InventJournalTrans_Tag.Mob</Link>
+    </Content>
+    <Content Include="AxTableExtension\InventNumGroup.Mob">
+      <SubType>Content</SubType>
+      <Name>InventNumGroup.Mob</Name>
+      <Link>Table Extensions\InventNumGroup.Mob</Link>
+    </Content>
+  </ItemGroup>
+</Project>

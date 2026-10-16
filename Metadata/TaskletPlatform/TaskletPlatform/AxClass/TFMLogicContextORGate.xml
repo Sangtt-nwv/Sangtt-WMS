@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContextORGate</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicContextORGate extends TFMLogicContextTools
+{
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        inputTypes.add(TFMLogicContextTypes::Boolean);
+        outputType = TFMLogicContextTypes::Boolean;
+        noOfInput = 2;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Name</Name>
+				<Source><![CDATA[
+    public Name Name()
+    {        
+        return "@TFM:ORGate";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public Object process()
+    {
+        Object ret;
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>icon</Name>
+				<Source><![CDATA[
+    public ResourceName icon()
+    {
+        return resourceStr(TFMOperatorORGate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>evaluate</Name>
+				<Source><![CDATA[
+    public anytype evaluate(TFMLogicContext _context)
+    {
+        anytype         ret = false;
+        SetEnumerator   sEnum;
+        TFMCondition    condition;
+        if (children == null)
+        {
+            return ret;
+        }
+        sEnum = children.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            condition = sEnum.current();
+            if (condition.evaluate(_context))
+            {
+                return true;
+            }
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

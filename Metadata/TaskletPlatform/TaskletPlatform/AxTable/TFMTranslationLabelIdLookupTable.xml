@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMTranslationLabelIdLookupTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMTranslationLabelIdLookupTable extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Find</Name>
+				<Source><![CDATA[
+    public static TFMTranslationLabelIdLookupTable Find(LabelString _labelString, boolean _select4Update = false)
+    {
+        TFMTranslationLabelIdLookupTable translation;
+
+        translation.selectForUpdate(_select4Update);
+
+        select firstonly translation where translation.LabelString == _labelString;
+
+        if (!translation)
+        {
+            translation.LabelId = _labelString;
+            translation.LabelString = _labelString;
+        }
+
+        return translation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkExisting</Name>
+				<Source><![CDATA[
+    public static boolean checkExisting(LabelString _labelString)
+    {
+        TFMTranslationLabelIdLookupTable translation;
+
+        translation.selectForUpdate(false);
+
+        select firstonly translation where translation.LabelString == _labelString;
+
+        return translation && translation.RecId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>create</Name>
+				<Source><![CDATA[
+    public static void create(LabelString _labelString, LabelId _labelID)
+    {
+        TFMTranslationLabelIdLookupTable translation;
+
+        translation.LabelString = _labelString;
+
+        translation.LabelId = _labelID;
+        translation.insert();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LabelTranslated</Name>
+				<Source><![CDATA[
+    public display LabelString LabelTranslated()
+    {
+        return SysLabel::isLabelId(this.LabelID) ? SysLabel::labelId2String(this.LabelID,new xInfo().language()) : this.LabelID;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CountTotal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns how many entries there are for a given LabelFile.
+    /// </summary>
+    /// <returns>an Integer of how many entries there are for a given LabelFile.</returns>
+    public display Integer CountTotal()
+    {
+        TFMTranslationLabelIdLookupTable lookuptable;
+
+        select count(RecId) from lookuptable
+            where lookuptable.LabelFile == this.LabelFile;
+        
+        return lookuptable.RecId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteLookupEntries</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Deletes all entries with the provided _labelFildId
+    /// </summary>
+    public static void deleteLookupEntries(str _labelFileId)
+    {
+        TFMTranslationLabelIdLookupTable translationLookup;
+        delete_from translationLookup where translationLookup.LabelFile == _labelFileId;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:TranslationsDevDesc</DeveloperDocumentation>
+	<Label>@SYS23210</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>LabelId</TitleField1>
+	<TitleField2>LabelString</TitleField2>
+	<AllowChangeTracking>No</AllowChangeTracking>
+	<CacheLookup>EntireTable</CacheLookup>
+	<DisableDatabaseLogging>Yes</DisableDatabaseLogging>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LabelId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LabelString</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LabelTranslated</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LabelId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LabelString</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LabelTranslated</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LabelFile</Name>
+			<StringSize>255</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LabelId</Name>
+			<ExtendedDataType>LabelId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LabelString</Name>
+			<ExtendedDataType>LabelString</ExtendedDataType>
+			<Label>@TFM:Labeltranslation</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LookupId</Name>
+			<Visible>No</Visible>
+			<StringSize>255</StringSize>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>Idx</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>LabelFile</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>LabelId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

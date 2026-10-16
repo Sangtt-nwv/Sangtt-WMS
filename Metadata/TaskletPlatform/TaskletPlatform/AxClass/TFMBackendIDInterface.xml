@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMBackendIDInterface</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+interface TFMBackendIDInterface
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getBackendID</Name>
+				<Source><![CDATA[
+    public str getBackendID(Common _common)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lineTableId</Name>
+				<Source><![CDATA[
+    public abstract TableId lineTableId()
+    {
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

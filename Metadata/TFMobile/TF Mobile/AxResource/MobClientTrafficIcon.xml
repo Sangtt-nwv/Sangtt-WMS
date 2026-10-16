@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxResource xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobClientTrafficIcon</Name>
+	<FileName>365-Client-traffic.png</FileName>
+	<RelativeUriInModelStore>TFMobile\TF Mobile\AxResource\ResourceContent\Images\365-Client-traffic.png</RelativeUriInModelStore>
+</AxResource>

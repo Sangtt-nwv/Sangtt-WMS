@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMProvider
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getCacheId</Name>
+				<Source><![CDATA[
+    protected static str getCacheId(ClassName _providerClassName)
+    {
+        return _providerClassName + strLwr(curExt());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>invalidateProvider</Name>
+				<Source><![CDATA[
+    abstract public void invalidateProvider(boolean _requestedByOtherAOS)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>version</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The version number that the provider returns to the TFMVersionProvider (used by the TFMDocApplicationConfiguration)
+    /// </summary>
+    /// <returns></returns>
+    abstract public str version()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProviders</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Return provider objects.
+    /// </summary>
+    /// <param name = "_includeNonSingletons">If True, it will return providers that is not an singleton. Therefore it will contstruct a provider in that case.</param>
+    /// <returns></returns>
+    public static Set getProviders(boolean _includeNonSingletons = false)
+    {
+        ListEnumerator  providerClasses = new SysDictClass(classNum(TFMProvider)).extendedBy(true).getEnumerator();
+        TFMProvider     provider;
+        SysDictClass    sdc;
+        Set             providers = new Set(Types::Class);
+        while (providerClasses.moveNext())
+        {
+            sdc = new SysDictClass(providerClasses.current());
+            if (sdc.hasStaticMethod(staticMethodStr(TFMPagesProvider,instance)))
+            {
+                provider = sdc.callStatic(staticMethodStr(TFMPagesProvider,instance));
+                if (provider)
+                {
+                    providers.add(provider);
+                }
+            } 
+            else if(_includeNonSingletons && !sdc.isAbstract())
+            {
+                providers.add(sdc.makeObject());
+            }
+        }
+        return providers;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>invalidateProviders</Name>
+				<Source><![CDATA[
+    public static void invalidateProviders()
+    {
+        ListEnumerator  providerClasses = new SysDictClass(classNum(TFMProvider)).extendedBy(true).getEnumerator();
+        TFMProvider     provider;
+        SysDictClass    sdc;
+        SetEnumerator   providers = TFMProvider::getProviders().getEnumerator();
+        while (providers.moveNext())
+        {
+            provider = providers.current();
+            provider.invalidateProvider(false);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

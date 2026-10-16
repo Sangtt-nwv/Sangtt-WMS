@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageRegistrationsConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('Registrations', "Registrations")]
+class TFMPageRegistrationsConfiguration extends TFMPageConfiguration
+{
+    boolean     deleteRegistrationEnabled;
+    boolean     deleteAllRegistrationsEnabled;
+    TFMPageTitleString				deleteRegistrationTitle;
+    TFMPageTitleString				deleteAllRegistrationsTitle;
+    TFMListId	listId;
+    
+    boolean openEnabled;
+    boolean refreshEnabled;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmOpenEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'list/open','enabled'), TFMPageAction]
+    public boolean parmOpenEnabled(boolean _openEnabled = openEnabled)
+    {
+        openEnabled = _openEnabled;
+        return openEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRefreshEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'list/refresh','enabled', true,true,false,true), TFMPageAction]
+    public boolean parmRefreshEnabled(boolean _refreshEnabled = refreshEnabled)
+    {
+        refreshEnabled = _refreshEnabled;
+        return refreshEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmListId</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(classStr(TFMListRegistrations),'list','',true)]
+    public TFMListId parmListId(TFMListId _listId = listId)
+    {
+        TFMList			listCls;
+        listId = _listId;
+        if (className2Id(listId))
+        {
+            listCls = new SysDictClass(className2Id(listId)).makeObject();
+            listId = listCls.parmListName();
+        }
+        return listId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDeleteRegistrationTitle</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('DeleteRegistration','deleteRegistration','title',true,true,false,true),TFMPageAction]
+    public TFMPageTitleString parmDeleteRegistrationTitle(TFMPageTitleString _viewRegistrationTitle = deleteRegistrationTitle)
+    {
+        deleteRegistrationTitle = _viewRegistrationTitle;
+        return deleteRegistrationTitle;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDeleteRegistrationEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'deleteRegistration','enabled',true,true,false,true),TFMPageAction]
+    public boolean parmDeleteRegistrationEnabled(boolean _viewRegistrationsEnabled = deleteRegistrationEnabled)
+    {
+        deleteRegistrationEnabled = _viewRegistrationsEnabled;
+        return deleteRegistrationEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDeleteAllRegistrationsTitle</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('DeleteAllRegistrations','deleteAllRegistrations','title',true,true,false,true),TFMPageAction]
+    public TFMPageTitleString parmDeleteAllRegistrationsTitle(TFMPageTitleString _viewAllRegistrationsTitle = deleteAllRegistrationsTitle)
+    {
+        deleteAllRegistrationsTitle = _viewAllRegistrationsTitle;
+        return deleteAllRegistrationsTitle;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDeleteAllRegistrationsEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'deleteAllRegistrations','enabled',true,true,false,true),TFMPageAction]
+    public boolean parmDeleteAllRegistrationsEnabled(boolean _viewAllRegistrationsEnabled = deleteAllRegistrationsEnabled)
+    {
+        deleteAllRegistrationsEnabled = _viewAllRegistrationsEnabled;
+        return deleteAllRegistrationsEnabled;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

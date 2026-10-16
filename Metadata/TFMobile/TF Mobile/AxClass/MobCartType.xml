@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobCartType</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class MobCartType
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>typeOfCart</Name>
+				<Source><![CDATA[
+	public abstract InventTransType typeOfCart()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleScan</Name>
+				<Source><![CDATA[
+	public abstract str handleScan(str _scannedValue)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postProcess</Name>
+				<Source><![CDATA[
+    public abstract void postProcess(Map _contentLines, MobCartID _cartId, XmlDocument _resultXML)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>scannedItemBackendOverride</Name>
+				<Source><![CDATA[
+    public abstract boolean scannedItemBackendOverride(str _scannedValue, MobCartID _cartId, XmlDocument _resultXML)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddorRemoveItemPromptOverride</Name>
+				<Source><![CDATA[
+    public Map AddorRemoveItemPromptOverride(TFMRequestItemAndDimensionElement	_cartRequest)
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UnloadCartPromptOverride</Name>
+				<Source><![CDATA[
+    public Map UnloadCartPromptOverride(TFMRequestBasicElement	_cartRequest)
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CartModePostOverride</Name>
+				<Source><![CDATA[
+    public boolean CartModePostOverride(TFMRequestBasicElement	_cartRequest)
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postCartUnloadOverride</Name>
+				<Source><![CDATA[
+    public boolean postCartUnloadOverride(TFMRequestBasicElement	_cartRequest)
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postCartUnloadpostProcess</Name>
+				<Source><![CDATA[
+    public boolean postCartUnloadpostProcess(TFMRequestBasicElement	_cartRequest)
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postAddOrMoveItemToOrFromCartPreProcess</Name>
+				<Source><![CDATA[
+    public boolean postAddOrMoveItemToOrFromCartPreProcess(TFMRequestItemAndDimensionElement	_cartRequest)
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postAddOrMoveItemToOrFromCartPostProcess</Name>
+				<Source><![CDATA[
+    public boolean postAddOrMoveItemToOrFromCartPostProcess(TFMRequestItemAndDimensionElement _cartRequest, InventJournalTable	_inventJournalTable)
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindCartTypeSubClass</Name>
+				<Source><![CDATA[
+    public static MobCartType FindCartTypeSubClass(str _scannedValue)
+    {
+        ListEnumerator	subClassEnum = new SysDictClass(classNum(MobCartType)).extendedBy(true).getEnumerator();
+        SysDictClass	subClass;
+        MobCartType		cartType;
+        while (subClassEnum.moveNext())
+        {
+            subClass = new SysDictClass(subClassEnum.current());
+            cartType = subClass.makeObject();
+            if (cartType.handleScan(_scannedValue))
+            {
+                return cartType;
+            }
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

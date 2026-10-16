@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageOrderLinesConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('OrderLines', "Order Lines")]
+class TFMPageOrderLinesConfiguration extends TFMListPageConfiguration
+{
+
+    boolean			suggestQuantity;
+    TFMListId		listId;
+    TFMServiceID	serviceId;
+    boolean			clearOrderLevelRegistrations;
+    boolean			viewRegistrationsEnabled;
+    TFMPageID			viewRegistrationsNavigateTo;
+    TFMPageTitleString				viewRegistrationsTitle;
+    TFMActionOnEmptyList    actionOnEmptyList;
+	boolean			deleteOrderRegistrationsEnabled;
+    
+    TFMPageTitleString				deleteOrderRegistrationsTitle;
+
+    boolean			postOrderEnabled;
+    TFMPageID       postOrderNavigateTo;
+
+    boolean			finishOrderEnabled;
+    boolean			finishOrderAlwaysEnabled;
+    
+    boolean			searchEnabled;
+    TFMPageID       searchNavigateTo;
+
+    boolean			cancelRemainingLineQuantityEnabled;
+    boolean			orderLevelRegistrationsEnabled;
+    boolean			toggleOrderLineGroupingEnabled;
+    
+    str				gs1SearchTerm;
+    TFMScanToSelectBehaviour behaviour;
+    str             converterExpression;
+    str             converterExpressionAis;
+    boolean         converterConvertGS1Input;
+    TFMLineSelection lineSelection;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmSuggestQuantity</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'','',true)]
+    public boolean parmSuggestQuantity(boolean _suggestQuantity = suggestQuantity)
+    {
+        suggestQuantity = _suggestQuantity;
+        return suggestQuantity;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmActionOnEmptyList</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(TFMActionOnEmptyList::ClosePage,'','',false)]
+    public TFMActionOnEmptyListEDT parmActionOnEmptyList(TFMActionOnEmptyListEDT _actionOnEmptyList = actionOnEmptyList)
+    {
+        actionOnEmptyList = _actionOnEmptyList;
+        return actionOnEmptyList;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmListId</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(classStr(TFMListOrderLines),'list','',true)]
+    public TFMListId parmListId(TFMListId _listId = listId)
+    {
+        TFMList			listCls;
+        listId = _listId;
+        if (className2Id(listId))
+        {
+            listCls = new SysDictClass(className2Id(listId)).makeObject();
+            listId = listCls.parmListName();
+        }
+        return listId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmId</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','service', '', true, false, false )]
+    public TFMServiceID parmId(TFMServiceID _serviceId = serviceId)
+    {
+        serviceId = _serviceId;
+        return serviceId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClearOrderLevelRegistrations</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'onOrderPosted','',true)]
+    public boolean parmClearOrderLevelRegistrations(boolean _clearOrderLevelRegistrations = clearOrderLevelRegistrations)
+    {
+        clearOrderLevelRegistrations = _clearOrderLevelRegistrations;
+        return clearOrderLevelRegistrations;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSearchEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'search', 'enabled'),TFMPageAction]
+    public boolean parmSearchEnabled(boolean _searchEnabled = searchEnabled)
+    {
+        searchEnabled = _searchEnabled;
+        return searchEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSearchNavigateTo</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('Search','search','navigateTo',true), TFMPageAction]
+    public TFMPageID parmSearchNavigateTo(TFMPageID _searchNavigateTo = searchNavigateTo)
+    {
+        searchNavigateTo = _searchNavigateTo;
+        return searchNavigateTo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmViewRegistrationsEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'viewRegistrations','enabled'),TFMPageAction]
+    public boolean parmViewRegistrationsEnabled(boolean _viewRegistrationsEnabled = viewRegistrationsEnabled)
+    {
+        viewRegistrationsEnabled = _viewRegistrationsEnabled;
+        return viewRegistrationsEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmViewRegistrationsNavigateTo</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('ViewRegistrations','viewRegistrations','navigateTo',true), TFMPageAction]
+    public TFMPageID parmViewRegistrationsNavigateTo(TFMPageID _viewRegistrationsNavigateTo = viewRegistrationsNavigateTo)
+    {
+        viewRegistrationsNavigateTo = _viewRegistrationsNavigateTo;
+        return viewRegistrationsNavigateTo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmViewRegistrationsTitle</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','viewRegistrations','title',true),TFMPageAction]
+    public TFMPageTitleString parmViewRegistrationsTitle(TFMPageTitleString _viewRegistrationsTitle = viewRegistrationsTitle)
+    {
+        viewRegistrationsTitle = _viewRegistrationsTitle;
+        return viewRegistrationsTitle;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDeleteOrderRegistrationsEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'deleteOrderRegistrations','enabled',true),TFMPageAction]
+    public boolean parmDeleteOrderRegistrationsEnabled(boolean _viewRegistrationsEnabled = deleteOrderRegistrationsEnabled)
+    {
+        deleteOrderRegistrationsEnabled = _viewRegistrationsEnabled;
+        return deleteOrderRegistrationsEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDeleteOrderRegistrationsTitle</Name>
+				<Source><![CDATA[
+	[TFMPageConfigurationAttributeAttribute('','deleteOrderRegistrations','title',true),TFMPageAction]
+    public TFMPageTitleString parmDeleteOrderRegistrationsTitle(TFMPageTitleString _viewRegistrationsTitle = deleteOrderRegistrationsTitle)
+    {
+        deleteOrderRegistrationsTitle = _viewRegistrationsTitle;
+        return deleteOrderRegistrationsTitle;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPostOrderEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'postOrder','enabled'),TFMPageAction(TFMPageMenuItemTypes::PageMenuItem, '', true, false, 3)]
+    public boolean parmPostOrderEnabled(boolean _postOrderEnabled = postOrderEnabled)
+    {
+        postOrderEnabled = _postOrderEnabled;
+        return postOrderEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFinishOrderEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'finishOrder','enabled'),TFMPageAction(TFMPageMenuItemTypes::PageMenuItem)]
+    public boolean parmFinishOrderEnabled(boolean _finishOrderEnabled = finishOrderEnabled)
+    {
+        finishOrderEnabled = _finishOrderEnabled;
+        return finishOrderEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFinishOrderAlwaysEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'finishOrder','alwaysEnabled'),TFMPageAction(TFMPageMenuItemTypes::PageMenuItem)]
+    public boolean parmFinishOrderAlwaysEnabled(boolean _finishOrderAlwaysEnabled = finishOrderAlwaysEnabled)
+    {
+        finishOrderAlwaysEnabled = _finishOrderAlwaysEnabled;
+        return finishOrderEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCancelRemainingLineQuantityEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'cancelRemainingLineQuantity','enabled'),TFMPageAction(TFMPageMenuItemTypes::PageMenuItem, '', false, true)]
+    public boolean parmCancelRemainingLineQuantityEnabled(boolean _cancelRemainingLineQuantityEnabled = cancelRemainingLineQuantityEnabled)
+    {
+        cancelRemainingLineQuantityEnabled = _cancelRemainingLineQuantityEnabled;
+        return cancelRemainingLineQuantityEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOrderLevelRegistrationsEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'orderLevelRegistrations','enabled'),TFMPageAction]
+    public boolean parmOrderLevelRegistrationsEnabled(boolean _orderLevelRegistrationsEnabled = orderLevelRegistrationsEnabled)
+    {
+        orderLevelRegistrationsEnabled = _orderLevelRegistrationsEnabled;
+        return orderLevelRegistrationsEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmToggleOrderLineGroupingEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'toggleOrderLineGrouping','enabled'),TFMPageAction(TFMPageMenuItemTypes::PageMenuItem, '', false, true)]
+    public boolean parmToggleOrderLineGroupingEnabled(boolean _toggleOrderLineGroupingEnabled = toggleOrderLineGroupingEnabled)
+    {
+        toggleOrderLineGroupingEnabled = _toggleOrderLineGroupingEnabled;
+        return toggleOrderLineGroupingEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmScanToSelectBehaviour</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(TFMScanToSelectBehaviourTypes::Auto,'scanToSelectBehaviour', 'behaviour', true)]
+    public TFMScanToSelectBehaviour parmScanToSelectBehaviour(TFMScanToSelectBehaviour _behaviour = behaviour)
+    {
+        behaviour = _behaviour;
+        return behaviour;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmScanToSelectBehaviourExpression</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','scanToSelectBehaviour/converter', 'expression', false)]
+    public str parmScanToSelectBehaviourExpression(str _converterExpression = converterExpression)
+    {
+        converterExpression = _converterExpression;
+        return converterExpression;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmScanToSelectBehaviourExpressionAis</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','scanToSelectBehaviour/converter', 'expressionAis', false)]
+    public str parmScanToSelectBehaviourExpressionAis(str _converterExpressionAis = converterExpressionAis)
+    {
+        converterExpressionAis = _converterExpressionAis;
+        return converterExpressionAis;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmScanToSelectBehaviourConvertGS1Input</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(false,'scanToSelectBehaviour/converter', 'convertGS1Input', false)]
+    public boolean parmScanToSelectBehaviourConvertGS1Input(boolean _converterConvertGS1Input = converterConvertGS1Input)
+    {
+        converterConvertGS1Input = _converterConvertGS1Input;
+        return converterConvertGS1Input;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLineSelection</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(TFMLineSelectionTypes::OnlineFirst, 'lineSelection', 'type', true)]
+    public TFMLineSelection parmLineSelection(TFMLineSelection _lineSelection = lineSelection)
+    {
+        lineSelection = _lineSelection;
+        return lineSelection;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateXmlWithAdditionalProperties</Name>
+				<Source><![CDATA[
+    protected void populateXmlWithAdditionalProperties(XmlElement _configNode, TFMPage _page)
+    {
+        super(_configNode, _page);
+        TFMPinnableValues::populateConfigurationXMLWithPinnableValues(_configNode,_page);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateXML</Name>
+				<Source><![CDATA[
+    protected Map populateXML(XmlElement _configNode, XmlElement _pageNode)
+    {
+        XmlElement  scanToSelectBehaviourElement;
+        XmlElement  converter;
+        Map returnMap = super(_configNode, _pageNode);
+
+        // this has been added because the Mobile WMS Device app will convert all barcodes to a GS1 if the converter exists in the XML output. In time this can be deleted because the App will handle it.
+        if(!this.parmScanToSelectBehaviourExpression() || !this.parmScanToSelectBehaviourExpressionAis())
+        {
+            if(returnMap.exists('converter'))
+            {
+                returnMap.remove('converter');
+                
+                scanToSelectBehaviourElement = _configNode.getNamedElement('scanToSelectBehaviour');
+                if(scanToSelectBehaviourElement)
+                {
+                    converter = scanToSelectBehaviourElement.getNamedElement('converter');
+                    if(converter)
+                    {
+                        scanToSelectBehaviourElement.removeChild(converter);
+                    }
+                }
+            }
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

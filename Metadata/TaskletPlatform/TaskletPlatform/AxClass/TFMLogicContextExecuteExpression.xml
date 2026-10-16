@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContextExecuteExpression</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDescription("Executes an expression using a field on a table or other objects in the context")]
+class TFMLogicContextExecuteExpression extends TFMLogicContextObject
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        
+        outputType = TFMLogicContextTypes::String;
+        noOfInput = 0;
+        categories.add("Data");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Name</Name>
+				<Source><![CDATA[
+    public Name Name()
+    {
+        return "Run expression";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public Object process(TFMExpression _expression = '', TableName _tableName = '', TFMFlowVariableContextLookupField _value = '')
+    {
+        Common  record;
+        str	    inputValue;
+        Map	    resultMap = new Map(Types::String, Types::String);
+        if (_tableName)
+        {
+            record = context.getTableFromAnyBlock(_tableName);
+        }
+
+        if (_value)
+        {
+            inputValue = context.replaceWithValue(_value);
+        }
+        resultMap.insert('', TFMExpressions::evaluateExpression(_expression, record, inputValue)); // When no key is specified, return the result with an empty string key
+        return resultMap;
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

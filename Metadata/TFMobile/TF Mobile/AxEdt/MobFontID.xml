@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="" i:type="AxEdtString">
+  <Name>MobFontID</Name>
+  <Label>@SYS15427</Label>
+  <ReferenceTable>MobFonts</ReferenceTable>
+  <ArrayElements />
+  <Relations />
+  <TableReferences>
+    <AxEdtTableReference>
+      <RelatedField>Id</RelatedField>
+      <Table>MobFonts</Table>
+    </AxEdtTableReference>
+  </TableReferences>
+  <StringSize>25</StringSize>
+  <Extends>TFMFontID</Extends>
+</AxEdt>

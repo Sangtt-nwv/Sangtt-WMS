@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMContractClassAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Attribute used in Jay's Sons parser, to indicate which contract class is used in a map datamember.
+/// </summary>
+public class TFMContractClassAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    ClassName           className;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(ClassName _className)
+    {
+        super();
+ 
+        className = _className;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClassName</Name>
+				<Source><![CDATA[
+    public ClassName parmClassName(ClassName _className = className)
+    {
+        className = _className;
+ 
+        return className;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getClassId</Name>
+				<Source><![CDATA[
+    public ClassId getClassId()
+    {
+        return className2Id(ClassName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classid2Name(classIdGet(this))+';'+className;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

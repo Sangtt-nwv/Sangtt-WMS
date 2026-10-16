@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMWorkflowBlockVendorBatch</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMWorkflowBlockVendorBatch extends TFMWorkflowBlock
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dynamicSteps</Name>
+				<Source><![CDATA[
+    public Set dynamicSteps(Common _common, boolean _getAllSteps = false)
+    {
+        Set								ret = super(_common);
+        TFMInventDimSetup				inventDimSetup;
+        SysDictTable					DT;
+        SysDictField					sdf;
+        int								add = 35;
+        SysDictType						dictType;
+        TFMRegistrationCollectorList	listCollector;
+        TFMRegistrationCollectorDate    dateCollector;
+        str								labelForField;
+        InventTable						inventTable;
+        Common							common = _common;
+
+        ret = new Set(Types::Class);
+        if (common == null && _getAllSteps)
+        {
+            select firstonly inventTable;
+            common = inventTable;
+        }
+
+        if (!common)
+        {
+            return ret;
+        }
+        DT = new SysDictTable(common.tableId);
+        if (!DT.fieldName2Id(extendedTypeStr(ItemId)))
+        {
+            return ret;
+        }
+
+        inventTable = InventTable::find(common.(DT.fieldName2Id(extendedTypeStr(ItemId))));
+
+        inventDimSetup = TFMInventDimSetup::Construct(inventTable);
+
+        if((inventDimSetup.registerBatchID() && inventTable.modelGroup().PdsReqVendBatchDetail) || _getAllSteps)
+        {
+            sdf = new SysDictField(tableNum(InventBatch), fieldnum(InventBatch, PdsVendBatchDate));
+            add++;
+            dictType = new SysDictType(sdf.typeId());
+            labelForField = dictType.label();
+            dateCollector = TFMRegistrationCollectorDate::DateStep(false, add, strLwr(sdf.name()), labelForField, labelForField, dictType.help());
+
+            ret.add(dateCollector);
+
+            sdf = new SysDictField(tableNum(InventBatch), fieldnum(InventBatch, PdsVendExpiryDate));
+            add++;
+            dictType = new SysDictType(sdf.typeId());
+            labelForField = dictType.label();
+            dateCollector = TFMRegistrationCollectorDate::DateStep(false, add, strLwr(sdf.name()), labelForField, labelForField, dictType.help());
+
+            ret.add(dateCollector);
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

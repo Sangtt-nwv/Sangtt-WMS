@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContextToInteger</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDescription("Converts values to integer")]
+class TFMLogicContextToInteger extends TFMLogicContextTools
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMLogicContextToInteger Construct()
+    {
+        return new TFMLogicContextToInteger();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        inputTypes.add(TFMLogicContextTypes::String);
+        inputTypes.add(TFMLogicContextTypes::Boolean);
+        inputTypes.add(TFMLogicContextTypes::Decimal);
+        outputType = TFMLogicContextTypes::Integer;
+        noOfInput = 1;
+        categories.add("@TFM:TypeConversion");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Name</Name>
+				<Source><![CDATA[
+    public Name Name()
+    {
+        return "@TFM:ConverttoInteger";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public Object process()
+    {
+        Object ret;
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>icon</Name>
+				<Source><![CDATA[
+    public ResourceName icon()
+    {
+        return resourceStr(TFMDatatypeInteger);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>evaluate</Name>
+				<Source><![CDATA[
+    public anytype evaluate(TFMLogicContext _context)
+    {
+        anytype         ret;
+        SetEnumerator   sEnum;
+        TFMCondition    condition;
+        str             value;
+
+        if (children == null)
+        {
+            return 0;
+        }
+
+        sEnum = children.getEnumerator();
+
+        while (sEnum.moveNext())
+        {
+            condition = sEnum.current();
+            ret = condition.evaluate(_context);
+        }
+
+        value = strLwr(strLRTrim(any2Str(ret)));
+
+        switch (value)
+        {
+            case '':
+            case 'false':
+            case 'no':
+                return 0;
+
+            case 'true':
+            case 'yes':
+                return 1;
+        }
+
+        // Numeric values and numeric strings
+        int result = any2Int(ret);
+
+        // If conversion produced a non-zero number, use it
+        if (result != 0)
+        {
+            return result;
+        }
+
+        // Any zero-like numeric value
+        if (value == '0' || value == '0.0')
+        {
+            return 0;
+        }
+
+        // Any other text
+        return 1;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Barcode Scanning"
+  short_description: "Handle barcode printing, scanning, and GS1-128 parsing"
+  default_prompt: "Use $barcode-scanning to add or debug barcode/scanner handling for this D365FO change."

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsProcessCreateTransferJournalLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Process definition class for journal line creation for transfer. Combines several logic blocks
+/// </summary>
+class MwmsProcessCreateTransferJournalLine extends TFMProcess
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsProcessCreateTransferJournalLine Construct(Name _processName = 'CreateTransferJournalLine', AddUpdate _addOrUpdate = AddUpdate::Add)
+    {
+        return new MwmsProcessCreateTransferJournalLine(_processName, _addOrUpdate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(Name _processName = 'CreateTransferJournalLine', AddUpdate _addOrUpdate = AddUpdate::Add)
+    {
+            processName = _processName;
+            MwmsLogicBlockCreateTransferJournalLicensePlateLine     LPBlock = MwmsLogicBlockCreateTransferJournalLicensePlateLine::Construct();
+            MwmsLogicBlockCreateTransferJournalLine                 itemBlock           = MwmsLogicBlockCreateTransferJournalLine::Construct();
+            itemBlock.parmCreateOrUpdate(_addOrUpdate);
+            LPBlock.parmCreateOrUpdate(_addOrUpdate);
+            
+            super();
+
+            MwmsProcessCreateTransferJournalLine::addBlocksForHandlingLicenseAndItems(this, itemBlock, LPBlock);
+        }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addBlocksForHandlingLicenseAndItems</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Adds the blocks to the process that classify the input and then transfers the value either to the ItemID or the LicensePlate (if LP is enabled).
+    /// This is a general method used for Journals of different types.
+    /// </summary>
+    /// <param name = "_process"></param>
+    /// <param name = "_transferJournalLineBlock"></param>
+    /// <param name = "_licensePlateBlock"></param>
+    public static void addBlocksForHandlingLicenseAndItems (TFMProcess _process, TFMLogicBlockDataCollectionInterface _transferJournalLineBlock, TFMLogicBlockDataCollectionInterface _licensePlateBlock)
+    {
+        TFMLogicStepOperatorIf                                  ifLPBlock;
+        TFMLogicStepOperatorTransferDataToField                 ttFieldBlockItem;
+        TFMLogicStepOperatorTransferDataToField                 ttFieldBlockLicensePlate;
+        TFMLogicBlockDataCollectionInterface                    LPBlock ;
+        TFMLogicStepOperatorDimensionSetupGate                  dimensionSetupGate;
+        TFMLogicStepOperatorThrowError                          dimensionErrorBlock;
+        TFMLogicBlockDataCollectionInterface                    itemBlock           = _transferJournalLineBlock;
+        TFMLogicStepOperatorIf                                  ifBlock             = new TFMLogicStepOperatorIf();
+        TFMLogicStepOperatorClassifyAndReplaceInput             classifyAndReplace  = new TFMLogicStepOperatorClassifyAndReplaceInput();
+        TFMLogicStepOperatorClassifyInput                       classifyBlock       = new TFMLogicStepOperatorClassifyInput();
+        TFMProcessCombineFields                                 combineFields       = TFMProcessCombineFields::Construct();
+        TFMLogicStepOperatorThrowError                          errorBlock          = new TFMLogicStepOperatorThrowError();
+        TFMLogicStepOperatorDeclareVariable                     varDecl             = new TFMLogicStepOperatorDeclareVariable();
+        
+        boolean licensePlatingEnabled = new MobDocLicensePlateOverview().parmEnableLicensePlating();
+        
+        if(licensePlatingEnabled)
+        {
+            LPBlock             = _licensePlateBlock;
+            ifLPBlock           = new TFMLogicStepOperatorIf();
+            varDecl.parmVariableName(classifyBlock.parmVariableName(ifLPBlock.parmCompareValue1(ifBlock.parmCompareValue1('classification'))));
+
+            ttFieldBlockItem            = new TFMLogicStepOperatorTransferDataToField();
+            ttFieldBlockLicensePlate    = new TFMLogicStepOperatorTransferDataToField();
+
+            dimensionSetupGate = new TFMLogicStepOperatorDimensionSetupGate();
+            dimensionSetupGate.parmDimensionFieldName(fieldStr(WHSLicensePlate, LicensePlateId));
+            dimensionSetupGate.parmDimensionFunctionValue(TFMConstants::Active());
+
+            dimensionErrorBlock          = new TFMLogicStepOperatorThrowError();
+            dimensionErrorBlock.parmErrorText('For License Plate Controlled Items the License Plate must be scanned.');
+        }
+        else
+        {
+            varDecl.parmVariableName(classifyBlock.parmVariableName(ifBlock.parmCompareValue1('classification')));
+            
+        }
+        
+        _process.addBlock(classifyAndReplace);
+        _process.addBlock(varDecl);
+        _process.addBlock(classifyBlock);
+        _process.addBlock(ifBlock);
+        _process.addBlock(errorBlock);
+
+        _process.linkBlocks(classifyAndReplace, varDecl,'1','1');
+        _process.linkBlocks(varDecl, classifyBlock,'1','1');
+        _process.linkBlocks(classifyBlock,ifBlock,'1','1');
+        //Activate Origin inheritance of values from InventDim
+        _process.addBlock(itemBlock);
+        _process.blockCollection().addBlockAddon(itemBlock, new TFMLogicBlockAddonDisableValueTransfers());
+        
+        if(licensePlatingEnabled)
+        {
+            _process.addBlock(ifLPBlock);
+            _process.addBlock(ttFieldBlockItem);
+            _process.addBlock(ttFieldBlockLicensePlate);
+            _process.addBlock(dimensionSetupGate);
+            _process.addBlock(dimensionErrorBlock);
+
+            _process.addBlock(LPBlock);
+
+            combineFields.combineCollectors(_process.getHeaders().getCollector(extendedTypeStr(ItemId)), _process.getHeaders().getCollector(extendedTypeStr(WHSLicensePlateId)));
+            _process.combinedFields().add(combineFields);
+            classifyAndReplace.parmContextField(classifyBlock.parmContextField(combineFields.parmReplacementCollector().parmName()));
+
+            ttFieldBlockItem.parmInputValue(strFmt('{%1}', combineFields.parmReplacementCollector().parmName()));
+            ttFieldBlockLicensePlate.parmInputValue(strFmt('{%1}', combineFields.parmReplacementCollector().parmName()));
+            ttFieldBlockItem.parmOutputField(extendedTypeStr(ItemId));
+            ttFieldBlockLicensePlate.parmOutputField(extendedTypeStr(WHSLicensePlateId));
+
+            _process.linkBlocks(ifBlock,ttFieldBlockItem,ifBlock.outputs().getConnectionName(1),'input_1');
+            _process.linkBlocks(ttFieldBlockItem,dimensionSetupGate,ttFieldBlockItem.outputs().getConnectionName(1),'input_1');
+            _process.linkBlocks(dimensionSetupGate,dimensionErrorBlock,dimensionSetupGate.outputs().getConnectionName(1),'input_2');
+            _process.linkBlocks(dimensionSetupGate,itemBlock,dimensionSetupGate.outputs().getConnectionName(2),'input_1');
+
+            _process.linkBlocks(ifBlock,ifLPBlock,ifBlock.outputs().getConnectionName(2),'input_1');
+            _process.linkBlocks(ifLPBlock,ttFieldBlockLicensePlate,ifLPBlock.outputs().getConnectionName(1),'input_1');
+            _process.linkBlocks(ifLPBlock,errorBlock,ifLPBlock.outputs().getConnectionName(2),'input_1');
+            _process.linkBlocks(ttFieldBlockLicensePlate,LPBlock,ttFieldBlockLicensePlate.outputs().getConnectionName(1),'input_1');
+
+            ifLPBlock.parmCompareValue2('License Plate');
+
+        }
+        else
+        {
+            _process.linkBlocks(ifBlock,itemBlock,ifBlock.outputs().getConnectionName(1),'input_1');
+            classifyAndReplace.parmContextField(classifyBlock.parmContextField(extendedTypeStr(ItemId)));
+            _process.linkBlocks(ifBlock,errorBlock,ifBlock.outputs().getConnectionName(2),'input_1');
+        }
+
+        errorBlock.parmErrorText(strFmt("@TaskletMobileWMS:Couldnotclassifyfield1", classifyBlock.parmContextField()));
+        ifBlock.parmCompareValue2('Item Number');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

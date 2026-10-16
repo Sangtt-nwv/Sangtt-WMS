@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Document Attachments"
+  short_description: "Attach and read files against a D365FO record"
+  default_prompt: "Use $document-attachments to attach or read a file for this D365FO change."

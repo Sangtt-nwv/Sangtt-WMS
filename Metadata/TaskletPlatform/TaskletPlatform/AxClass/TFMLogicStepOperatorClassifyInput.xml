@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicStepOperatorClassifyInput</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicStepOperatorClassifyInput extends TFMLogicBlock implements TFMLogicStepOperatorInterface, TFMLogicStepOperatorVariableContextLookupInterface
+{
+    TFMFlowVariableName variableName;
+    TFMFlowContextField contextField;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        return "@TFM:ClassifyInput";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMBlockClassifyInput);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmVariableName</Name>
+				<Source><![CDATA[
+    [TFMParameter('',"@TFM:Storeresultinvariable")]
+    public TFMFlowVariableName parmVariableName(TFMFlowVariableName _variableName = variableName)
+    {
+        variableName = _variableName;
+        return variableName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmContextField</Name>
+				<Source><![CDATA[
+    [TFMParameter('', "@TFM:Whichfieldtoclassifyfrom")]
+    public TFMFlowContextField parmContextField(TFMFlowContextField _contextField = contextField)
+    {
+        contextField = _contextField;
+        return contextField;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runLogic</Name>
+				<Source><![CDATA[
+    public str runLogic ( TFMRequestElement _request )
+    {
+        
+        str                 fieldValue = _request.getFieldValue(contextField);
+        TFMClassificationID classificationID = TFMClassificationHierarchy::classifyInput(fieldValue);
+        _request.logicContext().addFieldContent(variableName, classificationID);
+        _request.makeLogEntry (strFmt('Classified %1 as %2 and stored it in %3', contextField, classificationID, variableName));
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupVariableContext</Name>
+				<Source><![CDATA[
+    public Map lookupVariableContext()
+    {
+        Map                             result = new Map(Types::String, Types::String);
+        Query                           query                   = new Query();
+        QueryBuildDataSource            queryBuildDataSource;
+        TFMClassificationHierarchy      classHierarchy;
+        QueryRun                        qr;
+        queryBuildDataSource = query.addDataSource(tablenum(TFMClassificationHierarchy));
+        
+        qr = new QueryRun(query);
+
+        while (qr.next())
+        {
+            classHierarchy = qr.get(tablenum(TFMClassificationHierarchy));
+            result.insert(classHierarchy.ClassificationID, classHierarchy.ClassificationID);
+        }
+        return result;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMAppInsightsTelemetryLogger</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+Using Microsoft.Dynamics.Integration.Telemetry.AppInsights;
+Using Microsoft.Dynamics.Integration.Telemetry.AppInsights.DataContracts;
+Using Microsoft.Dynamics.ApplicationPlatform.Environment;
+
+class TFMAppInsightsTelemetryLogger
+{
+    private static TFMAppInsightsTelemetryLogger instance;
+    private TelemetryClient telemetryClient;
+    private boolean enabled;
+    str baseUrl;
+    boolean testEnvironment;
+    str instrumentationKey;
+    str ingestionEndpoint;
+    str liveEndpoint;
+    str applicationId;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    private void new()
+    {
+        enabled = !Global::isRunningSyncEngine() && !TFMParameters::find().TelemetryDisabled; // Only run async
+
+        if (enabled)
+        {
+            // Only construct the telemetry client when enabled
+            this.setConnectionValues();
+            telemetryClient= SysApplicationInsightsTelemetryClientFactory::constructClientWithConnectionString(
+                strFmt("InstrumentationKey=%1;IngestionEndpoint=%2;LiveEndpoint=%3;ApplicationId=%4", instrumentationKey, ingestionEndpoint, liveEndpoint, applicationId));
+
+            if (!telemetryClient)
+            {
+                // If telemetry client was not constructed for any reason, then feature is not enabled
+                enabled = false;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setConnectionValues</Name>
+				<Source><![CDATA[
+    protected void setConnectionValues()
+    {
+        ingestionEndpoint = 'https://northeurope-2.in.applicationinsights.azure.com/';
+        liveEndpoint = 'https://northeurope.livediagnostics.monitor.azure.com/';
+
+        if(!instrumentationKey)// values have not already been set
+        {
+            
+            baseUrl = EnvironmentFactory::GetApplicationEnvironment().Infrastructure.HostUrl;
+            testEnvironment = strScan(baseUrl,'devaos',1,1000) || strScan(baseUrl,'sandbox',1,1000);
+
+            if(testEnvironment)// test telemetry
+            {
+                instrumentationKey = 'eb587f36-1a34-47c1-9220-bb60beca71f9';
+                applicationId = '31497fe0-829e-46f2-989a-ff578ce2d729';
+            }
+            else // production telemetry
+            {
+                instrumentationKey = '173144c7-e0df-4eeb-a610-7c4186e502fe';
+                applicationId = '14f9f919-33f4-4107-b312-c1dbff235f3f';
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>typenew</Name>
+				<Source><![CDATA[
+    private static void typenew()
+    {
+        instance = new TFMAppInsightsTelemetryLogger();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>instance</Name>
+				<Source><![CDATA[
+    public static final TFMAppInsightsTelemetryLogger instance()
+    {
+        return TFMAppInsightsTelemetryLogger::instance;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>flushClient</Name>
+				<Source><![CDATA[
+    internal final void flushClient()
+    {
+        if (enabled && telemetryClient)
+        {
+            telemetryClient.FlushClient();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>trackException</Name>
+				<Source><![CDATA[
+    public final void trackException(SysApplicationInsightsExceptionTelemetry _exceptionTelemetry)
+    {
+        if (enabled && telemetryClient)
+        {
+            telemetryClient.TrackException(_exceptionTelemetry.exceptionTelemetryContract());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>trackDocQueue</Name>
+				<Source><![CDATA[
+    public final void trackDocQueue(TFMAppInsightsDocQueueTelemetry _docQueueTelemetry)
+    {
+        if (enabled && telemetryClient)
+        {
+            telemetryClient.TrackTrace(_docQueueTelemetry.traceTelemetryContract());            
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>trackPageView</Name>
+				<Source><![CDATA[
+    public final void trackPageView(SysApplicationInsightsPageViewTelemetry _eventTelemetry)
+    {
+        if (enabled && telemetryClient)
+        {
+            telemetryClient.TrackPageView(_eventTelemetry.pageViewTelemetryContract());
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,4 @@
+interface:
+  display_name: "X++ Database Queries"
+  short_description: "Design correct and efficient X++ data access"
+  default_prompt: "Use $xpp-database-queries to write or review this X++ query."

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMHtmlSanitizer</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Ganss.XSS;
+
+public class TFMHtmlSanitizer 
+{
+    HtmlSanitizer sanitizer;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getSanitizer</Name>
+				<Source><![CDATA[
+    public HtmlSanitizer getSanitizer(){
+
+        if(!sanitizer)
+        {
+                //sanitize before setting
+            sanitizer = new HtmlSanitizer();
+            var allowedSchemes = sanitizer.AllowedSchemes;
+            allowedSchemes.Add('mailto'); // Allow mailto links
+            allowedSchemes.Add('data'); // Allow data to allow base64 img strings
+
+            var allowedAttributes = sanitizer.AllowedAttributes;
+            allowedAttributes.Add('face'); // this allows the editors, font syntax to not get stripped.
+            allowedAttributes.Add('onclick'); // Allow onclick
+
+            var cssProps = sanitizer.AllowedCssProperties;
+            cssProps.Add('justify-content');
+            cssProps.Add('align-items');
+
+            var allowedTags = sanitizer.AllowedTags;
+            allowedTags.Add('style'); // this allows the style tag to not get stripped.
+        }
+
+        return sanitizer;
+   }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

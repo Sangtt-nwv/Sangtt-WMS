@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobPagesProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobPagesProvider 
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>instance</Name>
+				<Source><![CDATA[
+    public static TFMPagesProvider instance()
+    {
+        TFMPagesProvider   provider;
+        provider = TFMPagesProvider::instance();
+        return provider;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllPages</Name>
+				<Source><![CDATA[
+    public static TFMPages getAllPages(LanguageId _languageId = currentUserLanguage())
+    {
+        return TFMPagesProvider::getAllPages(_languageId);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

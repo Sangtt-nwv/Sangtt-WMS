@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMProcessProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Provider class for the system to access processes
+/// </summary>
+class TFMProcessProvider extends TFMCachedProvider
+{
+    TFMProcessCollection processes;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>instance</Name>
+				<Source><![CDATA[
+    public static TFMProcessProvider instance()
+    {
+        TFMProcessProvider   provider;
+        provider = TFMCachedProvider::getProviderInstance(classStr(TFMProcessProvider));
+        return provider;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructEntityImpl</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// </summary>
+    /// <returns></returns>
+    public anytype constructEntityImpl()
+    {
+        return this.CreateProcessTemplates();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEntity</Name>
+				<Source><![CDATA[
+    public anytype getEntity()
+    {
+        return processes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setEntity</Name>
+				<Source><![CDATA[
+    public void setEntity(anytype _entity)
+    {
+        this.processes = _entity;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetAllProcessesImpl</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Fetches all processes from table and classes.
+    /// </summary>
+    /// <returns>TFMProcessCollection element</returns>
+    public static TFMProcessCollection GetAllProcessesImpl()
+    {
+        TFMProcessProvider provider = TFMProcessProvider::instance();
+        TFMProcessCollection processesLocal = provider.getEntityImpl();
+        return processesLocal;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CreateProcessTemplates</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates the processes without initializing them (init = read data from delta etc.);
+    /// </summary>
+    protected TFMProcessCollection CreateProcessTemplates()
+    {
+        ListEnumerator	     lEnum = new SysDictClass(classNum(TFMProcess)).extendedBy(true).getEnumerator();
+        SetEnumerator        sEnum;
+        TFMProcess		     processClass;
+        TFMLogicBlock        logicBlock;
+        TFMProcessTable	     processTable;
+        Version              processVersion;
+        TFMProcessCollection processCollection = TFMProcessCollection::Construct();
+
+        //Info(strFmt('start %1',DateTimeUtil::utcNow()));
+        while (lEnum.moveNext())
+        {
+            try
+            {
+                processClass = new SysDictClass(lEnum.current()).makeObject();
+                this.setDeltaLevelForCode(processClass);
+                processCollection.addProcess(processClass);
+            }
+            catch
+            {
+                continue;
+            }
+        }
+        //Info(strFmt('Premid %1',DateTimeUtil::utcNow()));
+        //Check if any blocks provide their own Process
+        lEnum = new SysDictClass(classNum(TFMLogicBlock)).extendedBy(true).getEnumerator();
+        while (lEnum.moveNext())
+        {
+            try
+            {
+                logicBlock = new SysDictClass(lEnum.current()).makeObject();
+                sEnum = logicBlock.autoCreatedProcesses().getEnumerator();
+                while (sEnum.moveNext())
+                {
+                    processClass = sEnum.current();
+                    if (!processClass) 
+                    {
+                        continue;
+                    }
+                    
+                    this.setDeltaLevelForCode(processClass);
+                    processCollection.addProcess(processClass);
+                }
+            }
+            catch
+            {
+                continue;
+            }
+        }
+        //Info(strFmt('Mid %1',DateTimeUtil::utcNow()));
+        while select processTable
+        {
+            //Delta and fully custom processes
+            if(processCollection.processExists(processTable.ProcessID))
+            {
+                processClass = processCollection.getProcess(processTable.ProcessID, -1);
+                processClass.parmDeltaLevel(TFMDeltaLevel::Overridden);
+            } 
+            else
+            {
+                processClass = TFMProcess::Construct(processTable.ProcessID);
+                processClass.parmDeltaLevel(TFMDeltaLevel::Custom);
+            }
+            
+            processClass.parmRevertToClassic(processTable.RevertToClassic);
+            
+            processCollection.addProcess(processClass);
+        }
+
+        return processCollection;
+        //Info(strFmt('End %1',DateTimeUtil::utcNow()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDeltaLevelForCode</Name>
+				<Source><![CDATA[
+    private void setDeltaLevelForCode(TFMProcess _process)
+    {
+        Version             processVersion;
+        processVersion = TFMProcessVersion::newestVersion(_process.parmProcessName(), false);
+        _process.parmDeltaLevel( (processVersion > 0) ? TFMDeltaLevel::Overridden : TFMDeltaLevel::Code);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>version</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Provide Version number. Used in collective version numbering
+    /// </summary>
+    /// <returns>Version number for processes</returns>
+    public str version()
+    {
+        TFMProcessVersion proVersion;
+        select firstonly proVersion order by ModifiedDateTime desc where proVersion.Locked;
+        return strKeep(strFmt('P%1',proVersion.ModifiedDateTime), '1234567890');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

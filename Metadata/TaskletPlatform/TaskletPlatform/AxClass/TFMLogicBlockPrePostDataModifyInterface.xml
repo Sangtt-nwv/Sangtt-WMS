@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicBlockPrePostDataModifyInterface</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+interface TFMLogicBlockPrePostDataModifyInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>preparePost</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to set up tables to be used in the posting. Ensures that addons can be made, that can modify the data of the block before posting, when needed.
+    /// </summary>
+    public void preparePost()
+    {
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageLookupContent</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public final class TFMPageLookupContent
+{
+    TFMPagesTmpLookup mobTmpPages;
+    FormGridControl gridControl;
+    FormGroupControl splitterControl;
+    FormGroupControl previewControl;
+    FormStringControl strControlPageID;
+    FormStringControl strControlPageType;
+    TFMHtmlViewerCtrl formViewerControl;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(FormGroupControl _contentGroup, TFMPagesTmpLookup _mobTmpPages, boolean _showPageType)
+    {
+        mobTmpPages = _mobTmpPages;
+
+        gridControl = _contentGroup.addControl(FormControlType::Grid, 'gridControl');
+        gridControl.visibleRows(8, AutoMode::Fixed);
+        gridControl.multiSelect(false);
+        gridControl.dataSource(_contentGroup.dataSource());
+        
+        strControlPageID = gridControl.addControl(FormControlType::String, 'TFMPagesTmpLookup_PageID');
+        strControlPageID.label("@SYS7426");
+        strControlPageID.dataField(fieldNum(TFMPagesTmpLookup, PageID));
+        strControlPageID.dataSource(_contentGroup.dataSource());
+
+        if(_showPageType)
+        {
+            strControlPageType = gridControl.addControl(FormControlType::String, 'TFMPagesTmpLookup_PageType');
+            strControlPageType.label("@SYS342003");
+            strControlPageType.dataField(fieldNum(TFMPagesTmpLookup, PageType));
+        }
+
+        strControlPageType = gridControl.addControl(FormControlType::String, 'TFMPagesTmpLookup_Title');
+        strControlPageType.label("@SYS98533");
+        strControlPageType.dataField(fieldNum(TFMPagesTmpLookup, Title));
+
+        strControlPageType.dataSource(_contentGroup.dataSource());
+
+        splitterControl = _contentGroup.addControl(FormControlType::Group, 'splitterControl');
+        
+        previewControl = _contentGroup.addControl(FormControlType::Group, 'previewControl');
+        previewControl.skip(true);
+        previewControl.widthMode(FormWidth::Manual);
+        previewControl.width(230);
+        previewControl.heightMode(FormHeight ::SizeToAvailable);
+
+        formViewerControl = previewControl.addControlEx(classStr(TFMHtmlViewerCtrl), 'htmlViewer');
+        formViewerControl.widthMode(FormWidth::Manual);
+        formViewerControl.width(201);
+        formViewerControl.heightMode(FormHeight::SizeToAvailable);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setIcon</Name>
+				<Source><![CDATA[
+    public void setIcon(str _icon)
+    {
+        TFMGraphicsHelper::setImageHtmlWithWidth(_icon, formViewerControl, 200);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

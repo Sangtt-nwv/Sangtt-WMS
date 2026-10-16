@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentTreeBuilder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDocumentTreeBuilder
+{
+    //ImageListAppl_checkbox   imageList;
+    FormTreeControl				tree;
+    Map							expMap;
+    Map							id2idx;
+    Map							idx2id;
+    Map							contextId2Name;
+    Map							contextId2Record;
+    int							idCounter;
+    boolean						onlyParms;
+    boolean						onlyFilters;
+    FormGroupControl			fgc;
+    ClassName					currentClass;
+    TFMDocumentParametersEdit	parmEditMethod;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    private void new(FormTreeControl _tree, FormGroupControl _fgc)
+    {
+        tree = _tree;
+        fgc = _fgc;
+        parmEditMethod = new TFMDocumentParametersEdit(_fgc);
+		id2idx = new Map(Types::Int64,Types::Int64);
+        idx2id = new Map(Types::Int64,Types::Int64);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    Public static TFMDocumentTreeBuilder Construct(FormTreeControl _tree, FormGroupControl _fgc)
+    {
+        return new TFMDocumentTreeBuilder(_tree,_fgc);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setOnlyParms</Name>
+				<Source><![CDATA[
+    public void setOnlyParms(boolean _onlyParms)
+    {
+        onlyParms = _onlyParms;
+        onlyFilters = _onlyParms ? false : onlyFilters;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setOnlyFilters</Name>
+				<Source><![CDATA[
+    public void setOnlyFilters(boolean _onlyFilters)
+    {
+        onlyFilters = _onlyFilters;
+        onlyParms = _onlyFilters ? false : onlyParms;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildTree</Name>
+				<Source><![CDATA[
+    public TreeItemIdx buildTree(int64 _parentKey, TreeItemIdx _parentIdx, int64 _returnIdx = 0)
+    {
+        //FormTreeItem                    formTreeItem;        
+        TreeItemIdx                     idx;
+        TreeItemIdx                     retIdx = 0;//, tIdx;       
+        DictClass                       dc = new DictClass(className2Id(classStr(TFMDocumentHandler)));
+        DictClass                       subClass;
+        TFMDocumentHandler              docHand;
+        //TFMReferenceDataMethodAttribute refDataAttribute = new TFMReferenceDataMethodAttribute();
+        List                            extendingClasses = dc.extendedBy(true);
+        ListEnumerator                  lEnum = extendingClasses.getEnumerator();
+        while (lEnum.moveNext())
+        {            
+            subClass = new DictClass(lEnum.current());
+            if (subClass == null || subClass.isAbstract())
+            {
+                continue;
+            }
+            docHand = subClass.makeObject() as TFMDocumentHandler;
+            idx = this.addDocumentTreeItem(docHand);
+            
+            
+            
+        }
+        return retIdx;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTreeItemId</Name>
+				<Source><![CDATA[
+    private TreeItemIdx addTreeItemId(Name _name, int64 _id, anytype _data, TreeItemIdx _parentIdx)
+    {
+        FormTreeItem    formTreeItem = new FormTreeItem();
+        TreeItemIdx     idx;
+        
+        //BP Deviation Documented
+        formTreeItem.text(_name);
+
+        formTreeItem.data(_data);
+        
+        idx = tree.addItem(_parentIdx, 0, formTreeItem);
+        
+        id2idx.insert(_id,idx);
+        idx2id.insert(idx,_id);
+
+        return idx;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>selectionChanged</Name>
+				<Source><![CDATA[
+    public void selectionChanged(int _idx, anytype _data)
+    {
+        SysDictClass					DC;
+        //int								i, j;
+        //DictMethod						DM;
+        //TFMParameterAttribute			parmAttr;
+        //Map								filters = TFMFormLookupHelper::getConfigurableFilters();
+        SetEnumerator					collectors;
+        TFMReferenceDataConfiguration	filterConfig;
+        TFMRegistrationCollector		collector;
+        FormStringControl				formStringControl;
+        
+        str								filterStr, clsName, mthdName;
+        //Map								otherGroups = new Map(Types::String, Types::Class);
+        //FormGroupControl				subGrp;
+
+        while (fgc.controlCount())
+        {
+            fgc.formRun().design().removeControl(fgc.controlNum(1).id());
+        }
+        
+        if (onlyParms)
+        {
+            currentClass = parmEditMethod.populateGroupWithDocParms(_data,fgc);
+        }
+        else if (onlyFilters)
+        {
+            if (typeOf(_data) == Types::Class && TFMHelper::List2Set(new SysDictClass(classNum(TFMRegistrationCollector)).extendedBy(true)).in(classidget(_data)))
+            {
+                collector  = _data;
+                collector.PopulateGroup(fgc);
+                return;
+            }
+            filterStr = _data;
+            clsName = subStr(filterStr,1,strScan(filterStr,'.',1,strLen(filterStr))-1);
+            mthdName= subStr(filterStr,strScan(filterStr,'.',1,strLen(filterStr))+1,strLen(filterStr));
+            //Info (clsName + ' ' + mthdName);
+            
+            DC = new SysDictClass(className2Id(clsName));
+            if (DC == null)
+            {
+                return;
+            }
+            currentClass = DC.name();
+            filterConfig = DC.callObject(mthdName,DC.makeObject());
+            collectors = filterConfig.getCollectors().getEnumerator();
+            while (collectors.moveNext())
+            {
+                collector = collectors.current();
+                formStringControl = fgc.addControl(FormControlType::String,collector.parmName());
+                formStringControl.allowEdit(false);
+                formStringControl.label(collector.parmLabel());
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getContextMenuOptions</Name>
+				<Source><![CDATA[
+    public str getContextMenuOptions()
+    {
+        //str ret;
+        ContextMenu menu = new ContextMenu();
+        List options = new List(Types::Class);
+        //int             ids;
+        
+        contextId2Name = new Map(Types::Integer,Types::String);
+        contextId2Record = new Map(Types::Integer,Types::Record);
+        
+
+        options.addEnd(ContextMenuOption::Create('Delete Node',-5000));
+        //contextId2Record.insert(-5000,parentNode);
+        menu.ContextMenuOptions(options);
+    
+        return menu.Serialize();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>selectedMenuOption</Name>
+				<Source><![CDATA[
+    public void selectedMenuOption(int _selectedOption)
+    {
+        if (_selectedOption == -5000)
+        {
+            Info ('delete');
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDocumentTreeItem</Name>
+				<Source><![CDATA[
+    private TreeItemIdx addDocumentTreeItem(TFMDocumentHandler _doc)
+    {
+        TreeItemIdx             idx = this.addTreeItemId(_doc.description(),classIdGet(_doc),classIdGet(_doc),0);
+        TreeItemIdx             filterIdx, dataIdx, pagesIdx, flowsIdx, parmsIdx, filterNameIdx;
+        SetEnumerator           sEnum;
+        SysDictClass            DC = new SysDictClass(classIdGet(_doc));
+        Map						configFilters = TFMFormLookupHelper::getConfigurableFilters();
+        DictMethod              DM;
+        TFMParameterAttribute   parmAttr;
+        Array                   array;
+        
+        int                     i, j;
+        boolean                 foundOne;
+        Set                     methodSet = _doc.getReferenceDataMethods();
+        Set						otherSet;
+        MapEnumerator			mEnum;
+        if (methodSet == null)
+        {
+            methodSet = new Set(Types::String);
+        }
+        otherSet = new Set(Types::String);
+        mEnum = TFMAttributeHandler::getMethodNamesFromSysAttribute(classIdGet(_doc),new TFMReferenceDataMethodAttribute()).getEnumerator();
+		while (mEnum.moveNext())
+        {
+            otherSet.add(mEnum.currentKey());
+        }
+        methodSet = Set::union(methodSet,otherSet);
+        foundOne = false;
+        if (methodSet.elements() && (!onlyParms))
+        {
+            filterIdx = this.addTreeItemId('Filters',classIdGet(_doc) + 100000000,0,idx);
+            dataIdx = this.addTreeItemId('Predefined Data',classIdGet(_doc) + 150000000,0,idx);
+            sEnum  = methodSet.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                i++;
+                if (onlyFilters && configFilters.exists(DC.name() + '.' + sEnum.current() + '()'))
+                {
+                    filterNameIdx  = this.addTreeItemId(sEnum.current(),i,DC.name() + '.' + sEnum.current(),idx);
+                    mEnum = TFMFormLookupHelper::getConfigurableFilterFields(DC.name() + '.' + sEnum.current()).getEnumerator();
+                    j = 1;
+					while(mEnum.moveNext())
+                    {
+                        this.addTreeItemId(mEnum.currentKey(),j*i*65,mEnum.currentValue(),filterNameIdx);
+                        j++;
+                    }
+                    foundOne = true;
+                }
+				else if (!onlyFilters)
+                {
+                    this.addTreeItemId(sEnum.current(),i,0,filterIdx);
+                }
+                
+            }
+            
+        }
+		if (onlyFilters)
+        {
+            tree.delete(filterIdx);
+            tree.delete(dataIdx);
+            if (!foundOne)
+            {
+                tree.delete(idx);
+            }
+            return idx;
+        }
+		if (!onlyParms && !onlyFilters)
+        {
+			pagesIdx = this.addTreeItemId('Pages',classIdGet(_doc) + 250000000,0,idx);
+        }
+        if (!onlyParms)
+        {
+            flowsIdx = this.addTreeItemId('Flows',classIdGet(_doc) + 200000000,0,idx);
+
+            for (i = 1; i <= DC.objectMethodCnt(); i++)
+            {
+                DM = DC.objectMethodObject(i);
+                array = DM.getAttributes(classstr(TFMCollectorMapAttribute));
+                if (array != null)
+                {
+                    foundOne = false;
+                    for (j = 1; j <= array.lastIndex(); j++)
+                    {
+                        foundOne = foundOne || classIdGet(array.value(j)) == classNum(TFMCollectorMapAttribute);
+                    }
+                    if (foundOne)
+                    {
+                        this.addTreeItemId(DM.name(),100+i,0,flowsIdx);
+                    }
+                }
+            }
+        }
+        if (!onlyParms)
+        {
+            parmsIdx = this.addTreeItemId("@SYS7764",classIdGet(_doc) + 300000000,0,idx);
+        }
+        foundOne = false;
+        for (i = 1; i <= DC.objectMethodCnt(); i++)
+        {
+            DM = DC.objectMethodObject(i);
+            array = DM.getAttributes(classstr(TFMParameterAttribute));
+            if (array != null)
+            {
+                for (j = 1; j <= array.lastIndex(); j++)
+                {
+                    parmAttr = array.value(j);
+                    foundOne = true;
+                    if (!onlyParms)
+                    {
+                        this.addTreeItemId(parmAttr.parmLabelString() ? parmAttr.parmLabelString() : new SysDictType(DM.returnid()).label(),200+i,0,parmsIdx);
+                    }
+                }
+            }
+        }
+
+        if (!foundOne && onlyParms)
+        {
+            tree.delete(idx);
+        }
+        
+        return idx;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>expanding</Name>
+				<Source><![CDATA[
+    public boolean expanding(TreeItemIdx _idx, FormTreeExpand _action, anytype _data)
+    {
+        boolean ret;
+        FormTreeItem item = tree.getItem(_idx);
+
+        if (!item.stateExpandedOnce())
+        {
+            this.buildTree(item.data(), _idx);
+            //ret = super(_idx, _action, _data);
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

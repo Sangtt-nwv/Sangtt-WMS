@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockDeleteJournalLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic block used, whenever journal lines must be deleted
+/// </summary>
+class MwmsLogicBlockDeleteJournalLine extends MwmsLogicBlock implements TFMLogicBlockDataCollectionInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method provides the header fields, that are needed to find out which data should be collected.
+    /// </summary>
+    /// <returns>A MobReferenceDataConfiguration object, containing registration collectors for the header.</returns>
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        refConf = components.getHeaders();
+
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>autoCreatedProcesses</Name>
+				<Source><![CDATA[
+    public Set autoCreatedProcesses()
+    {
+        Set ret = super();
+        TFMProcess process = TFMProcess::Construct('DeleteJournalLine');
+        process.addBlock(this);
+        ret.add(process);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMTrashCanEmpty);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        components.addComponent(new TFMLogicComponentDataContext());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method gives you the registration collectors for this data collection block.
+    /// </summary>
+    /// <returns>A collection of registration collectors.</returns>
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        TFMRegistrationCollectors collectors = TFMRegistrationCollectors::Construct();
+
+        collectors.addCollector(TFMRegistrationCollectorRadiobutton::RadioButtonStep(10,TFMConstants::YesNo(),"@SYS304126","@SYS21354",'',"@SYS5461","@SYS5461"+';'+"@SYS2048"));
+        return collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method is called before the post method, and gives the option to add extra registration collectors for the user to be prompted for before the post method is executed.
+    /// </summary>
+    /// <returns>Returns a MobRegistrationCollectors object if the user must be further prompted, otherwise it returns null</returns>
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method executed when all data has been collected, and contains the posting logic.
+    /// </summary>
+    /// <returns>A MobPostResponseData object.</returns>
+    public TFMPostResponseData post()
+    {
+        TFMRequestItemAndDimensionElement docRequest = request.convertToOtherRequestType(classStr(TFMRequestItemAndDimensionElement));
+        Common      common = docRequest.getReferredRecord();
+        TFMPostResponseData     responseData = TFMPostResponseData::Construct();
+        WHSLicensePlate LP;
+        InventJournalTrans      line;
+        InventJournalTrans_Tag  tagLine;
+        InventDim           iDim;
+        InventJournalId     journalId = docRequest.parmJournalId();
+        if (!journalId && docRequest.parmContextValues())
+        {
+            journalId = docRequest.parmContextValues().getFieldValue(TFMConstants::JournalId());
+        }
+        if (docRequest.getFieldValue(TFMConstants::YesNo()) == "@SYS2048")
+        {
+            return responseData;
+        }
+
+        if (common.tableId == tableNum(InventJournalTrans) || common.tableId == tableNum(InventJournalTrans_tag))
+        {
+            common.selectForUpdate(true);
+            common.delete();
+        }
+        else
+        {
+            LP = common;
+            delete_from line
+                where line.JournalId == journalId
+                exists join iDim where iDim.inventDimId == line.InventDimId && iDim.LicensePlateId == LP.LicensePlateId;
+            delete_from tagLine
+                where tagLine.JournalId == journalId
+                exists join iDim where iDim.inventDimId == tagLine.InventDimId && iDim.LicensePlateId == LP.LicensePlateId;
+            
+        }
+        return responseData;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

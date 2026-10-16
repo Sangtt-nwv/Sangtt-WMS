@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMenuItemsContainerInterface</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+interface TFMMenuItemsContainerInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>currentPage</Name>
+				<Source><![CDATA[
+    public TFMPage currentPage(){}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setActiveMenuItem</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Set the active menu item on data source.
+    /// </summary>
+    /// <param name = "_selectMenuItemId">The MenuPageId</param>
+    public void setActiveMenuItem(str _selectMenuItemId){}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveMenuItemsSetup</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Saves the menu item setup for the current page.
+    /// </summary>
+    /// <param name = "promotedMenuItemIds"></param>
+    /// <param name = "nonPromotedItemIds"></param>
+    public void saveMenuItemsSetup(List _menuItemsSetup){}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showAddMenuItemsFormLookup</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Shows the loolup for the MenuPageId to create a link to a new page.
+    /// </summary>
+    public void showAddMenuItemsFormLookup(){}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLastSelectedMenuItemId</Name>
+				<Source><![CDATA[
+    public str parmLastSelectedMenuItemId(){}
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

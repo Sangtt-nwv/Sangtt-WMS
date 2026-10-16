@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMenuAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMMenuAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    ResourceName    iconName;
+    Name            name;
+    Description     description;
+    Name            label;
+    Set				categories;
+    boolean         mainMenuEnabled;
+    boolean         contextMenuEnabled;
+    boolean			oneClickSetup;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(Name _name, Name _label, Description _desc, ResourceName _iconName = resourceStr(TFMMissingImage), boolean _mainMenuEnabled = true, boolean _contextMenuEabled = true, container _categories = conNull(), boolean _oneClickSetup = false)
+    {
+        int i;
+        iconName = _iconName;
+        name = _name;
+        description = _desc;
+        label = _label;
+        mainMenuEnabled =_mainMenuEnabled;
+        contextMenuEnabled = _contextMenuEabled;
+        categories = new Set(Types::String);
+        for (i = 1; i<=conLen(_categories); i++)
+        {
+            categories.add(conPeek(_categories,i));
+        }
+        oneClickSetup = _oneClickSetup;
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIconName</Name>
+				<Source><![CDATA[
+    public ResourceName parmIconName(ResourceName _iconName = iconName)
+    {
+        iconName = _iconName;
+        return iconName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmName</Name>
+				<Source><![CDATA[
+    public Name parmName(Name _name = name)
+    {
+        name = _name;
+        return name;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCategories</Name>
+				<Source><![CDATA[
+    public Set getCategories()
+    {        
+        return categories;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDescription</Name>
+				<Source><![CDATA[
+    public Description parmDescription(Description _description = description)
+    {
+        description = _description;
+        return description;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLabel</Name>
+				<Source><![CDATA[
+    public Name parmLabel(Name _label = label)
+    {
+        label = _label;
+        return label;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMainMenuEnabled</Name>
+				<Source><![CDATA[
+    public boolean parmMainMenuEnabled(boolean _mainMenuEnabled = mainMenuEnabled)
+    {
+        mainMenuEnabled = _mainMenuEnabled;
+        return mainMenuEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmContextMenuEnabled</Name>
+				<Source><![CDATA[
+    public boolean parmContextMenuEnabled(boolean _contextMenuEnabled = contextMenuEnabled)
+    {
+        contextMenuEnabled = _contextMenuEnabled;
+        return contextMenuEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOneClickSetup</Name>
+				<Source><![CDATA[
+    public boolean parmOneClickSetup(boolean _oneClickSetup = oneClickSetup)
+    {
+        oneClickSetup = _oneClickSetup;
+        return oneClickSetup;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMMenuAttribute)+';'+name;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,1101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMWorkflows</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMWorkflows extends FormRun
+{
+    TFMStepsSuccessionGraph graph;
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        URLUtility                      urlUtil = new URLUtility();
+        Name                            wfName = urlUtil.getQueryParamValue('WorkflowName');
+        TFMPageOrderLinesConfiguration	conf;
+        TFMService                      service;
+        TFMPageOrderLines               orderlinePage;
+        TFMPage                         page;
+
+        if (!wfName && element.args().caller() && element.args().caller().name() == formStr(TFMPageOverview))
+        {
+            page = element.args().caller().getCurrentPage();
+            if (page is TFMPageOrderLines)
+            {
+                orderlinePage = page;
+                conf = orderlinePage.getConfiguration();
+                service = TFMServiceProvider::getServices().lookup(conf.parmId());
+                wfName = service.getWorkflow();
+            }
+        }
+
+        
+        super();
+
+        TFMWorkflowsTable_DS.queryBuildDataSource().addRange(fieldNum(TFMWorkflowsTable,WorkflowName)).value(wfName ? wfName : '*');
+        TFMWorkflowsTable_DS.executeQuery();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>TFMWorkflowsTable</Name>
+				<Methods>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret;
+            str xml;
+            XmlDocument xmlDoc = XmlDocument::newBlank();
+            XmlElement  wfs = xmlDoc.createElement('workflows');
+            TFMWorkflowsTable.appendToXml(wfs);
+            ExampleHtmlViewer.parmFormatAsXml('Yes');
+            ExampleHtmlViewer.parmHtml(TFMFormXMLFormatter::htmlColorXML(wfs.xml()));
+
+            xml = TFMServiceProvider::getAllServicesXML();
+            ExampleServicesViewer.parmFormatAsXml('Yes');
+            ExampleServicesViewer.parmHtml(TFMFormXMLFormatter::htmlColorXML(xml));
+            ret = super();
+            
+            graph = TFMStepsSuccessionGraph::construct(FlowViewer, TFMWorkflowsTable.WorkflowName);
+            graph.draw();
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>TFMWorkflowSteps</Name>
+				<Methods>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        public void initValue()
+        {
+            TFMWorkflowSteps.WorkflowName =  TFMWorkflowsTable.WorkflowName;
+            super();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int							ret;
+            TFMWorkflowBlock			block;
+            Set							dynSteps;
+            SetEnumerator				collectors;
+            TFMRegistrationCollector	collector;
+            ClassId						classId = className2Id(TFMWorkflowSteps.CallClass);
+        
+            ret = super();
+            delete_from TFMDocumentTmpHandlerLookup;
+			if (classId)
+            {
+             	block = new sysDictClass(classId).makeObject();
+                dynSteps = block.dynamicSteps(null,true);
+                collectors = Set::union(block.steps(), dynSteps != null ? dynSteps : new Set (Types::Class)).getEnumerator();
+            
+				while ( collectors.moveNext())
+				{
+					collector = collectors.current();
+					TFMDocumentTmpHandlerLookup.ClassName	= collector.parmName();
+					TFMDocumentTmpHandlerLookup.Description	= strReplace(classId2Name(classidget(collector)),classStr(TFMRegistrationCollector),'');
+					TFMDocumentTmpHandlerLookup.insert();
+             	}
+            }
+            TFMDocumentTmpHandlerLookup_ds.executeQuery();
+            
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>TFMDocumentTmpHandlerLookup</Name>
+				<Methods>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret = super();
+            TFMWorkflowBlock			block;
+            SetEnumerator				collectors;
+            Set							dynSteps;
+            TFMRegistrationCollector	collector;
+        
+            if(!TFMWorkflowSteps)
+            {
+                return ret;
+            }
+
+            block = new sysDictClass(className2Id(TFMWorkflowSteps.CallClass)).makeObject();
+            dynSteps = block.dynamicSteps(null,true);
+            collectors = Set::union(block.steps(), dynSteps != null ? dynSteps : new Set (Types::Class)).getEnumerator();
+			
+            while ( collectors.moveNext())
+            {
+                collector = collectors.current();
+                if (collector.parmName() == TFMDocumentTmpHandlerLookup.ClassName && strReplace(classId2Name(classidget(collector)),classStr(TFMRegistrationCollector),'') == TFMDocumentTmpHandlerLookup.Description)
+                {
+                    resourceNode resNode = TFMDrawFlowBlockStyleRegistrationCollector::findResourceForCollector(collector);
+                    collector.PopulateGroup(BlockStepsAttributes,true,true, 'Workflow:'+TFMWorkflowsTable.WorkflowName,TFMDocumentTmpHandlerLookup.ClassName, resNode, false);
+                    return ret;
+                }
+            }
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>TFMWorkflowStepsOnlineValidation</Name>
+				<Methods>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        public void initValue()
+        {
+            TFMWorkflowStepsOnlineValidation.WorkflowName =  TFMWorkflowsTable.WorkflowName;
+            super();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret;
+            FormGroupControl fgc = element.design().controlName(formControlStr(TFMWorkflows, additionalValues));
+        
+            ret = super();
+
+            fgc.visible(TFMWorkflowValidation::allowValidationLevel(TFMWorkflowStepsOnlineValidation.ValidationType));
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>DocumentTypeId</DataField>
+						<Methods>
+							<Method>
+								<Name>lookup</Name>
+								<Source><![CDATA[
+            /// <summary>
+            ///
+            /// </summary>
+            /// <param name = "_formControl"></param>
+            /// <param name = "_filterStr"></param>
+            public void lookup(FormControl _formControl, str _filterStr)
+            {
+                TFMFormLookupHelper::lookupCertainDocumentTypes(_formControl,element,classStr(TFMValidationDocumentTypeAttribute));
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+					<Field>
+						<DataField>PageID</DataField>
+						<Methods>
+							<Method>
+								<Name>lookup</Name>
+								<Source><![CDATA[
+            public void lookup(FormControl _formControl, str _filterStr)
+            {
+                TFMFormLookupHelper::lookupPageNames(_formControl,element,classStr(TFMPageOrderList),TFMWorkflowsTable.WorkflowName);
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+					<Field>
+						<DataField>ValidationType</DataField>
+						<Methods>
+							<Method>
+								<Name>lookup</Name>
+								<Source><![CDATA[
+            /// <summary>
+            ///
+            /// </summary>
+            /// <param name = "_formControl"></param>
+            /// <param name = "_filterStr"></param>
+            public void lookup(FormControl _formControl, str _filterStr)
+            {
+                TFMFormLookupHelper::lookupValidationClasses(_formControl);
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>ResetToDefault</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            TFMWorkflowsTable::defaultSetup();
+            this.formRun().run(); // to refresh the list.
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>StepsGrid_stepName</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            TFMFormLookupHelper::lookupSubClasses(this,classNum(TFMWorkflowBlock));
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>StepsGrid_stepNameCopy1</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            TFMFormLookupHelper::lookupSubClasses(this,classNum(TFMWorkflowBlock));
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>TFMWorkflowsTable</Name>
+			<Table>TFMWorkflowsTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Description</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WorkflowName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WorkflowType</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>TFMWorkflowSteps</Name>
+			<Table>TFMWorkflowSteps</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>CallClass</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WorkflowName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WorkflowStepId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>TFMWorkflowsTable</JoinSource>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>TFMDocumentTmpHandlerLookup</Name>
+			<Table>TFMDocumentTmpHandlerLookup</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>ClassName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Description</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>TFMWorkflowStepsOnlineValidation</Name>
+			<Table>TFMWorkflowStepsOnlineValidation</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DocumentTypeId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PageID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ValidationType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WorkflowName</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>TFMWorkflowsTable</JoinSource>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@SYS105532</Caption>
+		<Pattern xmlns="">SimpleListDetails</Pattern>
+		<PatternVersion xmlns="">1.3</PatternVersion>
+		<Style xmlns="">SimpleListDetails</Style>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>FormActionPaneControl1</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>ButtonGroup</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ResetToDefault</Name>
+								<HelpText>Loads the default workflows not already present in the list.</HelpText>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<AutoRefreshData>Yes</AutoRefreshData>
+								<Text>@SYS4007895</Text>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>Navigation</Name>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl>
+						<Name>QuickFilterControl</Name>
+						<Visible>No</Visible>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension>
+							<Name>QuickFilterControl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>targetControlName</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>placeholderText</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>defaultColumnName</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGridControl">
+						<Name>WorkflowsGrid</Name>
+						<AllowEdit>No</AllowEdit>
+						<Type>Grid</Type>
+						<WidthMode>SizeToContent</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>WorkflowsGrid_WorkflowName</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>WorkflowName</DataField>
+								<DataSource>TFMWorkflowsTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>WorkflowsGrid_Description</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>Description</DataField>
+								<DataSource>TFMWorkflowsTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormComboBoxControl">
+								<Name>WorkflowsGrid_WorkflowType</Name>
+								<Type>ComboBox</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>WorkflowType</DataField>
+								<DataSource>TFMWorkflowsTable</DataSource>
+								<Items />
+							</AxFormControl>
+						</Controls>
+						<DataGroup>Overview</DataGroup>
+						<DataSource>TFMWorkflowsTable</DataSource>
+						<MultiSelect>No</MultiSelect>
+						<ShowRowLabels>No</ShowRowLabels>
+						<Style>List</Style>
+					</AxFormControl>
+				</Controls>
+				<FrameType>None</FrameType>
+				<Style>SidePanel</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>SetupGroup</Name>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>FormGroupControl2_WorkflowName</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>WorkflowName</DataField>
+						<DataSource>TFMWorkflowsTable</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>FormGroupControl2_Description</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>Description</DataField>
+						<DataSource>TFMWorkflowsTable</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>FormGroupControl2_WorkflowType</Name>
+						<Type>ComboBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>WorkflowType</DataField>
+						<DataSource>TFMWorkflowsTable</DataSource>
+						<Items />
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>FormGroupControl2_ScanBehaviourWhenRegisteringQuantity</Name>
+						<Type>ComboBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>ScanBehaviourWhenRegisteringQuantity</DataField>
+						<DataSource>TFMWorkflowsTable</DataSource>
+						<Items />
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormCheckBoxControl">
+						<Name>FormGroupControl2_AutoSave</Name>
+						<Type>CheckBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>AutoSave</DataField>
+						<DataSource>TFMWorkflowsTable</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>FormGroupControl2_CancelBehaviour</Name>
+						<Type>ComboBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>CancelBehaviour</DataField>
+						<DataSource>TFMWorkflowsTable</DataSource>
+						<Items />
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormCheckBoxControl">
+						<Name>FormGroupControl2_PrefillExpectedValueOnLocationScan</Name>
+						<Type>CheckBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>PrefillExpectedValueOnLocationScan</DataField>
+						<DataSource>TFMWorkflowsTable</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormCheckBoxControl">
+						<Name>FormGroupControl2_IncludeHiddenStepsInSummary</Name>
+						<Type>CheckBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>IncludeHiddenStepsInSummary</DataField>
+						<DataSource>TFMWorkflowsTable</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>FormGroupControl2_FastForwardMode</Name>
+						<Type>ComboBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>FastForwardMode</DataField>
+						<DataSource>TFMWorkflowsTable</DataSource>
+						<Items />
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalWrap</ArrangeMethod>
+				<Columns>5</Columns>
+				<DataGroup>Setup</DataGroup>
+				<DataSource>TFMWorkflowsTable</DataSource>
+				<FrameType>None</FrameType>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>FormTabControl1</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Steps</Name>
+						<Pattern>NestedSimpleListDetails</Pattern>
+						<PatternVersion>UX7 1.1</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>FormActionPaneControl2</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>FormButtonGroupControl1</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>NewStep</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>New</Command>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>DeleteStep</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>DeleteRecord</Command>
+											</AxFormControl>
+										</Controls>
+										<DataSource>TFMWorkflowSteps</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Style>Strip</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>StepsBody</Name>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>StepsNavigationList</Name>
+										<HeightMode>SizeToAvailable</HeightMode>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGridControl">
+												<Name>StepsGrid</Name>
+												<AllowEdit>No</AllowEdit>
+												<Type>Grid</Type>
+												<WidthMode>SizeToContent</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>StepsGrid_stepName</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataMethod>stepName</DataMethod>
+														<DataSource>TFMWorkflowSteps</DataSource>
+														<LookupButton>Always</LookupButton>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>Overview</DataGroup>
+												<DataSource>TFMWorkflowSteps</DataSource>
+												<MultiSelect>No</MultiSelect>
+												<ShowRowLabels>No</ShowRowLabels>
+											</AxFormControl>
+										</Controls>
+										<FrameType>None</FrameType>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>StepsDetailsGroup</Name>
+										<HeightMode>SizeToAvailable</HeightMode>
+										<Type>Group</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>StepsDetailsHeaders</Name>
+												<Type>Group</Type>
+												<WidthMode>SizeToAvailable</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>StepsGrid_stepNameCopy1</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataMethod>stepName</DataMethod>
+														<DataSource>TFMWorkflowSteps</DataSource>
+														<LookupButton>Always</LookupButton>
+													</AxFormControl>
+												</Controls>
+												<ColumnsMode>Fill</ColumnsMode>
+												<DataSource>TFMWorkflowSteps</DataSource>
+												<FrameType>None</FrameType>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>StepsDetailsBody</Name>
+												<Type>Group</Type>
+												<WidthMode>SizeToAvailable</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormGridControl">
+														<Name>BlockSteps</Name>
+														<Type>Grid</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls>
+															<AxFormControl xmlns=""
+																i:type="AxFormStringControl">
+																<Name>TFMDocumentTmpHandlerLookup_ClassName</Name>
+																<Type>String</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<DataField>ClassName</DataField>
+																<DataSource>TFMDocumentTmpHandlerLookup</DataSource>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormStringControl">
+																<Name>TFMDocumentTmpHandlerLookup_Description</Name>
+																<Type>String</Type>
+																<FormControlExtension
+																	i:nil="true" />
+																<DataField>Description</DataField>
+																<DataSource>TFMDocumentTmpHandlerLookup</DataSource>
+															</AxFormControl>
+														</Controls>
+														<DataSource>TFMDocumentTmpHandlerLookup</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormGroupControl">
+														<Name>BlockStepsAttributes</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<Type>Group</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls />
+														<Columns>4</Columns>
+														<HideIfEmpty>No</HideIfEmpty>
+														<Caption>@TFM:Attributes</Caption>
+													</AxFormControl>
+												</Controls>
+												<Columns>2</Columns>
+												<HideIfEmpty>No</HideIfEmpty>
+												<FrameType>None</FrameType>
+											</AxFormControl>
+										</Controls>
+										<FrameType>None</FrameType>
+									</AxFormControl>
+								</Controls>
+								<Columns>2</Columns>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS119057</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>OnlineValidation</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>FormActionPaneControl3</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>FormButtonGroupControl1Copy1</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>NewStepCopy1</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>New</Command>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>DeleteStepCopy1</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>DeleteRecord</Command>
+											</AxFormControl>
+										</Controls>
+										<DataSource>TFMWorkflowStepsOnlineValidation</DataSource>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>OnlineValidationGrid</Name>
+								<Type>Grid</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>OnlineValidationGrid_PageID</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>PageID</DataField>
+										<DataSource>TFMWorkflowStepsOnlineValidation</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>OnlineValidationGrid_DocumentTypeId</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>DocumentTypeId</DataField>
+										<DataSource>TFMWorkflowStepsOnlineValidation</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>OnlineValidationGrid_ValidationLevel</Name>
+										<Type>ComboBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ValidationLevel</DataField>
+										<DataSource>TFMWorkflowStepsOnlineValidation</DataSource>
+										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>OnlineValidationGrid_ValidationType</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ValidationType</DataField>
+										<DataSource>TFMWorkflowStepsOnlineValidation</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>Overview</DataGroup>
+								<DataSource>TFMWorkflowStepsOnlineValidation</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>additionalValues</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>additionalValues_ValidationLevel</Name>
+										<Type>ComboBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ValidationLevel</DataField>
+										<DataSource>TFMWorkflowStepsOnlineValidation</DataSource>
+										<Items />
+									</AxFormControl>
+								</Controls>
+								<DataGroup>additionalValues</DataGroup>
+								<DataSource>TFMWorkflowStepsOnlineValidation</DataSource>
+							</AxFormControl>
+						</Controls>
+						<Caption>@TFM:Onlinevalidation</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>FlowTab</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl>
+								<Name>FlowViewer</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<FormControlExtension>
+									<Name>TFMHtmlViewerCtrl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties>
+										<AxFormControlExtensionProperty>
+											<Name>htmlField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>addCopyLinkField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>formatAsXmlField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+									</ExtensionProperties>
+								</FormControlExtension>
+							</AxFormControl>
+						</Controls>
+						<Caption>@TFM:VisualFlow</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>XMLTab</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabControl">
+								<Name>XMLTabs</Name>
+								<Type>Tab</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>Workflow</Name>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl>
+												<Name>ExampleHtmlViewer</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<FormControlExtension>
+													<Name>TFMHtmlViewerCtrl</Name>
+													<ExtensionComponents />
+													<ExtensionProperties>
+														<AxFormControlExtensionProperty>
+															<Name>htmlField</Name>
+															<Type>String</Type>
+														</AxFormControlExtensionProperty>
+														<AxFormControlExtensionProperty>
+															<Name>addCopyLinkField</Name>
+															<Type>String</Type>
+														</AxFormControlExtensionProperty>
+														<AxFormControlExtensionProperty>
+															<Name>formatAsXmlField</Name>
+															<Type>String</Type>
+														</AxFormControlExtensionProperty>
+													</ExtensionProperties>
+												</FormControlExtension>
+											</AxFormControl>
+										</Controls>
+										<Caption>@TFM:Workflow</Caption>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>Services</Name>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl>
+												<Name>ExampleServicesViewer</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<FormControlExtension>
+													<Name>TFMHtmlViewerCtrl</Name>
+													<ExtensionComponents />
+													<ExtensionProperties>
+														<AxFormControlExtensionProperty>
+															<Name>htmlField</Name>
+															<Type>String</Type>
+														</AxFormControlExtensionProperty>
+														<AxFormControlExtensionProperty>
+															<Name>addCopyLinkField</Name>
+															<Type>String</Type>
+														</AxFormControlExtensionProperty>
+														<AxFormControlExtensionProperty>
+															<Name>formatAsXmlField</Name>
+															<Type>String</Type>
+														</AxFormControlExtensionProperty>
+													</ExtensionProperties>
+												</FormControlExtension>
+											</AxFormControl>
+										</Controls>
+										<Caption>@TFM:Services</Caption>
+									</AxFormControl>
+								</Controls>
+								<Style>VerticalTabs</Style>
+							</AxFormControl>
+						</Controls>
+						<Caption>@TFM:XML</Caption>
+					</AxFormControl>
+				</Controls>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts>
+		<AxFormPartReference xmlns="">
+			<Name>HelpPart</Name>
+			<MenuItemName>TFMHelpPart</MenuItemName>
+		</AxFormPartReference>
+	</Parts>
+</AxForm>

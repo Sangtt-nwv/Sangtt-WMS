@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMExpressions</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// An abstract class used as parent class for all expressions to be used in the Mobile WMS Module.
+/// </summary>
+abstract class TFMExpressions
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processExpressionCommon</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method to implement if an expression should be able to handle a buffer.
+    /// </summary>
+    /// <param name = "_common">The table buffer used in the expression.</param>
+    /// <returns>The result of the expression as a string.</returns>
+    public abstract str processExpressionCommon(Common _common)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processExpressionValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The Method to implement in derived classes, if an expression should be able to handle the value of the field provided.
+    /// </summary>
+    /// <param name = "_value">The value being passed to the expression.</param>
+    /// <returns>The result of the expression as a string.</returns>
+    public abstract str processExpressionValue(str _value)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>executeExpression</Name>
+				<Source><![CDATA[
+    private static str executeExpression(TFMExpression _expression, Common _common, str _value)
+    {
+        str             type;        
+        NumberSeq       numSeq;
+        TFMExpressions  exprClass;
+        str             ret;
+        int             paranthesisPos;
+        int             paranthesisEndPos;
+        DictClass       dc;
+        str             expression = strReplace(_expression,'[value]',_value);
+        
+        if(strScan(_expression, '[NEW_TOTEID]', 0, 2000) > 0)
+        {
+            numSeq = NumberSeq::newGetNum(WHSParameters::numRefWHSLicensePlateId());
+            expression = strReplace(_expression, '[NEW_TOTEID]', numSeq.num());
+            numSeq.used();
+        }
+
+        paranthesisPos = strScan(expression,'(',1,strLen(expression))-1;
+        paranthesisEndPos = strScan(expression,')',1,strLen(expression));
+        str expressionName = subStr(_expression,1,paranthesisPos);
+        container splittedtextBefore = strSplit(expressionName,' ').pack();
+        splittedtextBefore = conDel(splittedtextBefore, conLen(splittedtextBefore),1);
+        splittedtextBefore = conDel(splittedtextBefore, 1,3);
+        str textBefore = conLen(splittedtextBefore) ? con2str(splittedtextBefore,' ') +' ' : '';
+        dc = paranthesisPos != -1 ? TFMExpressions::getDictClassFromName(expressionName) : null; //new DictClass(className2Id(classStr(TFMExpressions) + subStr(_expression,1,paranthesisPos))) : null;
+        if (dc == null)
+        {
+            return expression;
+        }
+        exprClass = dc.makeObject();
+        type = subStr(expression,paranthesisPos+2,paranthesisEndPos - paranthesisPos-2);
+        if (subStr(type,1,8) == '[record]')
+        {
+            ret = TFMExpressions::executeRecordFunction(exprClass,_common,type);
+        }
+		else
+        {
+            ret = TFMExpressions::executeStringFunction(exprClass,type); 
+        }
+
+
+
+        return textBefore + ret + subStr(expression,paranthesisEndPos+2, 1000);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>executeRecordFunction</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// executes expressions that uses the context record
+    /// </summary>
+    /// <param name = "_instance">The expression class to execute processExpressionCommon on</param>
+    /// <param name = "_record">The context record</param>
+    /// <param name = "_parmStr">String of parameters</param>
+    /// <returns>The result of the expression execution</returns>
+    protected static str executeRecordFunction(object _instance, Common _record, str _parmStr)
+    {
+        str             parameters = strReplace(strReplace(_parmStr,'[record]|',''),'[record]','');
+        ListEnumerator	parms = TFMHelper::strSplit(parameters,'|').getEnumerator();
+        container		con = conNull();
+        con += _record;
+        while (parms.movenext() && parameters)
+        {
+            con += parms.current();
+        }
+        return TFMDocCustomFunctionFlow::callMethodConInstance(_instance,methodStr(TFMExpressions,processExpressionCommon),con);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>executeStringFunction</Name>
+				<Source><![CDATA[
+    private static str executeStringFunction(object _instance, str _type)
+    {
+        ListEnumerator	parms = TFMHelper::strSplit(_type,'|').getEnumerator();
+        container		con = conNull();
+		while (parms.movenext())
+        {
+            con += parms.current();
+        }
+        return TFMDocCustomFunctionFlow::callMethodConInstance(_instance,methodStr(TFMExpressions,processExpressionValue),con);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>evaluateExpression</Name>
+				<Source><![CDATA[
+    public static str evaluateExpression(TFMExpression _expression, Common _common, str _value)
+    {
+        ListEnumerator  expressions = TFMHelper::strSplit(_expression,'+').getEnumerator();
+        str             returnValue;
+        while (expressions.moveNext())
+        {
+            returnValue += TFMExpressions::executeExpression(StrLRTrim(expressions.current()), _common, _value);
+        }
+
+        return returnValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPossibleExpressions</Name>
+				<Source><![CDATA[
+    public static List getPossibleExpressions()
+    {
+        List            expressionsAvailable = new List(Types::String);
+        DictClass       expClass = new DictClass(className2Id(classStr(TFMExpressions)));        
+        DictClass       subClass;
+        ClassName       clName;
+        ListEnumerator extendingClasses = expClass.extendedBy().getEnumerator();
+                    
+        while (extendingClasses.moveNext())
+        {
+            subClass = new DictClass(extendingClasses.current());
+            if (subClass == null)
+            {
+                continue;
+            }
+            clName = subStr(subClass.name(),strLen(classStr(TFMExpressions))+1,50);
+            expressionsAvailable.addEnd(clName);
+        }
+
+        return expressionsAvailable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDictClassFromName</Name>
+				<Source><![CDATA[
+    public static SysDictClass getDictClassFromName(str _expressionName)
+    {        
+        
+        container       splittedList = strSplit(_expressionName,' ').pack();
+        ListEnumerator  lEnum;
+        str             expressionNameNew = conPeek(splittedList,conLen(splittedList));
+        SysDictClass	sdc = new SysDictClass(className2Id(classStr(TFMExpressions) + expressionNameNew));
+
+        if (!sdc)
+        {
+            lEnum = new SysDictClass(classNum(TFMExpressions)).extendedBy(false).getEnumerator();
+            while (lEnum.moveNext())
+            {
+                sdc = new SysDictClass(lEnum.current());
+                str expName = subStr(sdc.name(),strLen(sdc.name()) - strLen(expressionNameNew)+1, 1000);
+                if (expName == expressionNameNew)
+                {
+                    return sdc;
+                }
+            }
+        }
+
+        return sdc;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPossibleMethodsFromName</Name>
+				<Source><![CDATA[
+    public static Set getPossibleMethodsFromName(str _expressionName)
+    {
+        SysDictClass	sdc = TFMExpressions::getDictClassFromName(_expressionName);
+        TFMExpressions	expCls = sdc ? sdc.makeObject() : null;
+        Set				retMeths = new Set(Types::Class);
+		if (expCls)
+        {
+            retMeths = expCls.getPossibleMethods();
+        }
+        return retMeths;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPossibleMethods</Name>
+				<Source><![CDATA[
+    public Set getPossibleMethods()
+    {
+        SysDictClass	dC = new SysDictClass(classIdGet(this));
+        Set				methods = dC.methods(true,false,false);
+        Set				retMeths = new Set(Types::Class);
+        SetEnumerator	se = methods.getEnumerator();
+        SysDictMethod	dM;
+		while (se.moveNext())
+        {
+            dM = se.current();
+            if (!dM.getAttribute(classStr(SysobsoleteAttribute)))
+            {
+                retMeths.add(dM);
+            }
+        }
+        return retMeths;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

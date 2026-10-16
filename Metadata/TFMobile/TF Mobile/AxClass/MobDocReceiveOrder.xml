@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocReceiveOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The Document handler for all receive orders on the receive page.
+/// </summary>
+[TFMMenu('Receive',"@MobileWMS:MobileWMS158","@MobileWMS:MobileWMS158",resourceStr(MobReceiveIcon),true,true,['Inbound', 'MainMenu'], true)]
+class MobDocReceiveOrder extends TFMDocumentHandler
+{
+    XML                         returningXML;
+    MobDocumentContentSubject   content;
+    NoYes						suggestBatchNumber;
+    NoYes						PromptPackingSlip;    
+    str							packingSlipPrefix;
+    Common						common;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmPromptForPackingSlip</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes,"@MobileWMS:PromptforProductreceipt","@SYS5943")]
+    public MobPromptForUnit parmPromptForPackingSlip(MobPromptForUnit _PromptPackingSlip = PromptPackingSlip)
+    {
+        PromptPackingSlip = _PromptPackingSlip;
+        return PromptPackingSlip;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPackingSlipPrefix</Name>
+				<Source><![CDATA[
+    [TFMParameter('PS-',"@MobileWMS:ProductreceiptPrefix","@SYS5943")]
+    public MobBackendId parmPackingSlipPrefix(MobBackendId _packingSlipPrefix = packingSlipPrefix)
+    {
+        packingSlipPrefix = _packingSlipPrefix;
+        return packingSlipPrefix;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSuggestBatchNumber</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@MobileWMS:SuggestBatchNumber","@InboundTransportationManagement:InboundTransportationManagement")]
+    public MobPromptForUnit parmSuggestBatchNumber(MobPromptForUnit _suggestBatchNumber = suggestBatchNumber)
+    {
+        suggestBatchNumber = _suggestBatchNumber;
+        return suggestBatchNumber;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages						ret = new TFMPages();
+        TFMPageOrderList				listPage = this.makeOrderList();
+        TFMPageOrderLines				linesPage = new TFMPageOrderLines();
+        TFMPageOrderLinesConfiguration	linesConfig;
+        SetEnumerator                   subTables = MobOrder::getSubTypeTableNames(TFMConstants::Receive()).getEnumerator();
+        
+        ret.addPage(listPage);
+        linesPage = listPage.createLinesPage();
+        linesConfig = linesPage.getConfiguration();
+        linesConfig.parmListId(classStr(MobListOrderLinesReceive));
+        ret.addPage(linesPage);
+
+        while (subTables.moveNext())
+        {
+            ret.addPage(this.makeOrderList(subTables.current()));
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeOrderList</Name>
+				<Source><![CDATA[
+    protected TFMPageOrderList makeOrderList(TFMOrderTypes _variantName = '')
+    {
+        TFMPageOrderList				listPage = new TFMPageOrderList();
+        TFMPageOrderListConfiguration	listConfig;
+        int                             pos = strScan(_variantName,';',1,100);
+        SysDictTable                    sdt = _variantName ? new SysDictTable(tableName2Id(pos ? subStr(_variantName,1,pos-1) : _variantName)) : null;
+        listPage.parmId(subStr(MobConstants::Receive() + strReplace(_variantName,';',''),1,30));
+        listPage.parmFilter(methodStr(MobDocReceiveOrder,ReceiveOrderFilters) + strReplace(_variantName,';',''));
+        listPage.parmIcon('mainmenureceive');
+        listPage.parmTitle((sdt ? ' ' + sdt.label() : '') + (pos ? ' ('+subStr(_variantName, pos+1,100)+')':'PageReceiveOrderListTitle'));
+        listConfig = listPage.getConfiguration();
+        listConfig.parmNavigateTo('ReceiveLines');
+        listConfig.parmWorkflowName(TFMConstants::Receive());
+        listConfig.parmId(MobConstants::Receive());
+        return listPage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ReceiveOrderFilters</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The filter for the receive order page.
+    /// </summary>
+    /// <returns>An XML formatted string containing the filter fields.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceData ReceiveOrderFilters()
+    {
+        TFMReferenceDataConfiguration   refData = new TFMReferenceDataConfiguration();
+        TFMReferenceDataConfiguration   inlineRef;
+        TFMRegistrationCollectorList    regCollectorList = new TFMRegistrationCollectorList(5,MobConstants::Warehouse(),"@SYS6437","@SYS6437","@SYS6437");
+        TFMRegistrationCollectorText    orderTypeField;
+        TFMRegistrationCollectorDate    regCollectorDate = TFMRegistrationCollector::collectorFromEDT(extendedtypestr(WMSDlvDate));
+        SetEnumerator                   subClasses = MobOrder::getSubTypeTableNames(MobConstants::Receive()).getEnumerator();
+
+        regCollectorList.parmDataTable(methodStr(TFMGetReferenceData,WarehouseFilterList));
+        regCollectorList.parmDataKeyColumn(extendedtypestr(InventLocationId));
+        regCollectorList.parmDataDisplayColumn(extendedtypestr(Name));
+
+        refData.addCollector(regCollectorList);
+
+        regCollectorDate.parmName(MobConstants::DeliveryDate());
+        regCollectorDate.isHeader(true);
+        regCollectorDate.parmId(10);
+        regCollectorDate.parmLabel("@SYS16056");
+        refData.addCollector(regCollectorDate);
+        refData.parmUseDynaFilter(true);
+
+        //Add Header variants
+        while (subClasses.moveNext())
+        {
+            inlineRef = new TFMReferenceDataConfiguration();
+            inlineRef.addCollector(regCollectorList);
+            inlineRef.addCollector(regCollectorDate);
+            orderTypeField = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(TFMOrderTypes));
+            orderTypeField.parmLocked(true);
+            orderTypeField.parmDefaultValue(subClasses.current());
+            orderTypeField.parmVisible(false);
+            inlineRef.addCollector(orderTypeField);
+            inlineRef.parmUseDynaFilter(true);
+            inlineRef.parmKey(methodStr(MobDocReceiveOrder, ReceiveOrderFilters) + strReplace(subClasses.current(),';',''));
+            refData.addInlinedHeader(inlineRef);
+        }
+
+        return refData;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public TFMDocumentHandlerDescription description()
+    {
+        TFMDocumentHandlerDescription ret;
+
+        ret = "@MobileWMS:ReceiveOrderHandler";
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public Set getDocumentTypes()
+    {
+        Set ret = new Set(Types::String);
+
+        ret.add(methodStr(MobDocReceiveOrder,GetReceiveOrders));
+        ret.add(methodStr(MobDocReceiveOrder,GetReceiveOrderLines));
+        ret.add(methodStr(MobDocReceiveOrder,PostReceiveOrder));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetReceiveOrders</Name>
+				<Source><![CDATA[
+    protected TFMOrderListResponseElement GetReceiveOrders()
+    {
+        XmlElement					ordersElement;
+        TFMRequestFiltersElement    filters;
+        TFMRequestGetOrdersElement  orderRequest = request;
+        str							scannedValue;
+        InventLocationId			inventLocationId = MobConstants::All();
+        Date						deliveryDate;
+    
+        // Before the search for orders is performed we get the filter values entered on the mobile device
+        if (orderRequest.parmFilters() != null)
+        {
+            filters = orderRequest.parmFilters();
+            
+            inventLocationId = filters.parmWarehouse();
+            deliveryDate = filters.parmDeliveryDate();
+            scannedValue = filters.getFieldValue(MobConstants::ScannedValue());
+            
+        }
+    
+        return MobReceiveOrderType::generateResponse(filters,scannedValue);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentContentSubject</Name>
+				<Source><![CDATA[
+    public MobDocumentContentSubject getDocumentContentSubject()
+    {
+        MobDocumentContentSubject ret;
+
+        ret = content;
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetReceiveOrderLines</Name>
+				<Source><![CDATA[
+    protected TFMOrderLinesResponseElement GetReceiveOrderLines()
+    {
+        XmlElement                      ordersElement;        
+        str                             backendid;        
+        TFMRequestGetOrderLinesElement  OrderLinesRequest = request;
+        container                       backendIDcon;
+        MobOrder                        mobOrder;
+        TFMOrderLinesResponseElement	response = TFMOrderLinesResponseElement::Construct('ReceiveLines');
+        MobOrderTypes                   orderType;
+        MapEnumerator                   returnedRecords;
+        Map                             postPromptCollectors;
+        Map                             additionalValues = new Map(Types::String, Types::String);    
+        int                             i;
+        // get BackendId
+
+
+        backendid = OrderLinesRequest.parmBackendID();
+        backendIDcon = MobHelper::strSplit(backendid,'/').pack();
+        orderType = conLen(backendIDcon) == 7 ? conPeek(backendIDcon,7) : '';
+
+        resultXml   = new XmlDocument();
+        ordersElement = resultXml.appendChild(resultXml.createElement(MobConstants::OrderLines()));
+    
+        mobOrder = MobOrder::constructFromBackendID(backendid);
+
+        
+        returnedRecords = MobOrder.getLineRecords(request).getEnumerator();
+
+        while (returnedRecords.moveNext())
+        {
+            i++;
+            response.addRecord(returnedRecords.currentValue(),orderType);
+        }
+        return response;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResult</Name>
+				<Source><![CDATA[
+    public XML getResult()
+    {
+        if (resultXml)
+        {
+            return resultXml.xml();
+        }
+    
+        return returningXML;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PostReceiveOrder</Name>
+				<Source><![CDATA[
+    private str PostReceiveOrder()
+    {
+        TFMRequestBasicElement      root = request as TFMRequestBasicElement;
+        MobOrder                    mobOrder;
+        UserConnection              uc;
+        
+        mobOrder = MobOrder::constructFromBackendID(root.parmOrder().parmBackendID());
+        ttsbegin;
+        resultStr = mobOrder.postRequest(root.parmOrder());
+        ttscommit;
+        content = strFmt("@MobileWMS:OrderPosted" ,mobOrder.parmOrderId());
+        uc = new UserConnection();
+        uc.ttsbegin();
+        mobOrder.postPromptExtraStepsExecution(root.parmOrder().getFieldMap());
+        uc.ttscommit();
+        common = mobOrder.getResultTable();
+        resultXml = mobOrder.parmResultXML();
+
+        return resultStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCommonTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(Common))]
+    public Common getCommonTable()
+    {
+        return common;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

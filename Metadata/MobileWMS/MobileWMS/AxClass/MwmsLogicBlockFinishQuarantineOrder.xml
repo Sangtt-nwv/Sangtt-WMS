@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockFinishQuarantineOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic block needed to ending quarantine orders
+/// </summary>
+class MwmsLogicBlockFinishQuarantineOrder extends TFMLogicBlock implements TFMLogicBlockDataCollectionInterface
+{
+    InventQuarantineOrder       qOrder;
+    InventQuarantineId          inventQuarantineId;
+    InventQty                   qty;
+    InventQty                   scrapQty;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getInventQuarantineOrder</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSetAttribute(tableStr(InventQuarantineOrder))]
+    public InventQuarantineOrder getInventQuarantineOrder()
+    {
+        return qOrder;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmScrapQuantity</Name>
+				<Source><![CDATA[
+    public InventQty parmScrapQuantity(InventQty _scrapQty = scrapQty)
+    {
+        scrapQty = _scrapQty;
+        return scrapQty;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmQuantity</Name>
+				<Source><![CDATA[
+    public InventQty parmQuantity(InventQty _qty = qty)
+    {
+        qty = _qty;
+        return qty;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInventQuarantineId</Name>
+				<Source><![CDATA[
+    public InventQuarantineId parmInventQuarantineId(InventQuarantineId _InventQuarantineId = inventQuarantineId)
+    {
+        inventQuarantineId = _InventQuarantineId;
+        return inventQuarantineId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicBlockFinishQuarantineOrder Construct()
+    {
+        return new MwmsLogicBlockFinishQuarantineOrder();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        TFMLogicComponentQuantity qtyComponent = new TFMLogicComponentQuantity();
+        qtyComponent.parmAddScrapQty(true);
+        super();
+        components.addComponent(qtyComponent);
+        
+
+        categories.add("@SYS6437");
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        TFMRegistrationCollectorText qOrderCollector = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(InventQuarantineId));
+        qOrderCollector.parmOptional(false);
+        refConf.addCollector(qOrderCollector);
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method gives you the registration collectors for this data collection block.
+    /// </summary>    
+    /// <returns>A collection of registration collectors.</returns>
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        TFMRegistrationCollectors   regCols = TFMRegistrationCollectors::Construct();
+        TFMRegistrationCollectorInformation itemInfo = new TFMRegistrationCollectorInformation(1, 'QuarantineInfo', '{'+extendedTypeStr(InventQuarantineId)+'}', '', '');
+        TFMConditions conditions = TFMConditions::Construct();
+        conditions.addCondition(TFMCondition::Construct(classStr(TFMLogicContextInfoContext),conNull(),'QOrderInformation'),methodStr(TFMRegistrationCollector,parmHelpLabel) );
+        itemInfo.parmConditions(conditions);
+        regCols.addCollector(itemInfo);
+        regCols.mergeCollectors(components.getCollectors());
+        return regCols;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData                 response        = TFMPostResponseData::Construct();
+        InventQuarantineUpdStartUp          inventQuarantineUpdStartUp;
+        InventQuarantineUpdReportFinished   inventQuarantineUpdReportFinished;
+        InventParmQuarantineOrder           inventParmQuarantineOrder;
+        InventQuarantineOrder_Scrap         inventQuarantineOrder_Scrap;
+        InventQuarantineOrder_Split         inventQuarantineOrder_Split;
+        InventQuarantineUpdEnd              inventQuarantineUpdEnd;             
+            
+        
+        // Find the quarantine order
+        select firstonly qOrder
+            where qOrder.QuarantineId == inventQuarantineId;
+    
+    
+        if (!qOrder)
+        {
+            throw error(strFmt(SysLabel::labelId2String2("@SYS58441"),inventQuarantineId));
+        }
+    
+        // Check if the order needs to be started
+        if (qOrder.Status == InventQuarantineStatus::Created)
+        {
+            inventParmQuarantineOrder.skipTTSCheck(true);
+            inventParmQuarantineOrder.ParmBuffer::initParmId();
+            inventParmQuarantineOrder.QuarantineId      = qOrder.QuarantineId;
+            inventParmQuarantineOrder.TransDate         = TFMHelper::today();
+            inventParmQuarantineOrder.Type              = InventQuarantineStatus::Started;
+            inventParmQuarantineOrder.write();
+    
+            inventQuarantineUpdStartUp = InventQuarantineUpdStartUp::construct();
+            inventQuarantineUpdStartUp.parmParmBuffer(inventParmQuarantineOrder);
+    
+            inventQuarantineUpdStartUp.run();
+        }
+    
+        // Process:
+        // 1. Validate scrapped qty + qty must not exceed remaining qty
+        // 2. Handle the scrapped quantity
+        // 3. Split the line if necessary (if qty < remaining qty)
+        // 4. Report as finished
+        // 5. End the order
+        // 6. Update the location where the item is placed in the real warehouse (unplanned move)
+    
+        // Validate remaining quantity
+        if (qOrder.RemainQty < qty + scrapQty)
+        {
+            
+            throw error("@MobileWMS:MEL84");
+        }
+    
+        // Handle scrapped quantity
+        if (scrapQty > 0)
+        {
+            inventQuarantineOrder_Scrap  = InventQuarantineOrder_Scrap::construct();
+            inventQuarantineOrder_Scrap.parmInventQuarantineId(inventQuarantineId);
+            inventQuarantineOrder_Scrap.parmScrapQty(scrapQty);
+            inventQuarantineOrder_Scrap.parmTransDate(TFMHelper::today());
+            inventQuarantineOrder_Scrap.runOperation();
+            // Select the quarantine order againg to update the remaining quantity
+            select firstonly qOrder
+                where qOrder.QuarantineId == inventQuarantineId;
+        }
+    
+        // Only split, report as finished and end the order if the quantity is > 0
+        if (qty <= 0)
+        {
+            
+            response.parmResponseText("@MobileWMS:MEL81");
+            return response;
+        }
+        // Split the line?
+        if (qty < qOrder.RemainQty)
+        {
+            inventQuarantineOrder_Split = InventQuarantineOrder_Split::construct();
+            inventQuarantineOrder_Split.parmInventQuarantineId(inventQuarantineId);
+            // The quantity to split must be calculated so the result is that the original line has the quantity to post
+            // The rest of the post process can then use the original order id
+            inventQuarantineOrder_Split.parmSplitQty(qOrder.RemainQty-qty);
+            #ifnot.isAX6
+            inventQuarantineOrder_Split.runOperation();
+            #endif
+            #if.isAX6
+            inventQuarantineOrder_Split.run();
+            #endif
+            
+        }
+    
+    
+        // Post the order
+        // First create the parameters
+        inventParmQuarantineOrder.clear();
+        inventParmQuarantineOrder.QuarantineId      = inventQuarantineId;
+        inventParmQuarantineOrder.TransDate         = TFMHelper::today();
+        inventParmQuarantineOrder.Qty               = qty;
+        inventParmQuarantineOrder.Type              = InventQuarantineStatus::ReportedFinished;
+    
+        // Then run the TFM that reports the order as finished
+        inventQuarantineUpdReportFinished = inventQuarantineUpdReportFinished::newParmBuffer(inventParmQuarantineOrder);
+        inventQuarantineUpdReportFinished.run();
+    
+        // End the order
+        // Set the value on the parameter table
+        inventParmQuarantineOrder.clear();
+        inventParmQuarantineOrder.QuarantineId      = inventQuarantineId;
+        inventParmQuarantineOrder.TransDate         = TFMHelper::today();
+        inventParmQuarantineOrder.Qty               = qty;
+        inventParmQuarantineOrder.Type              = InventQuarantineStatus::Ended;
+        inventQuarantineUpdEnd                      = InventQuarantineUpdEnd::newParmBuffer(inventParmQuarantineOrder);
+        inventQuarantineUpdEnd.run();
+
+        
+        response.parmResponseText("@MobileWMS:MEL81");
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMQuarantineOrderIcon);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        return "@MobileWMS:FinishQuarantine";
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

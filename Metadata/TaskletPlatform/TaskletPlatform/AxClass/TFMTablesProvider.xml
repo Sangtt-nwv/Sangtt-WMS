@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMTablesProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMTablesProvider
+{
+    Map tablesAllowed;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>instance</Name>
+				<Source><![CDATA[
+    public static TFMTablesProvider instance()
+    {
+        TFMTablesProvider   singleton;
+
+        System.Runtime.Caching.ObjectCache memCache = System.Runtime.Caching.MemoryCache::Default;
+        str cacheId = classId2Name(classIdGet(singleton));
+        singleton = memCache.Get(cacheId);
+        if(!singleton)
+        {
+            singleton = new TFMTablesProvider();
+            memCache.Add(cacheId, singleton, new System.Runtime.Caching.CacheItemPolicy());
+        }
+
+        return singleton;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    private void new()
+    {
+        tablesAllowed = new Map(Types::Int64,Types::Enum);
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isTableAllowed</Name>
+				<Source><![CDATA[
+    public boolean isTableAllowed(TableId _id)
+    {
+        SysDictTable sdt;
+        TableGroup		tg;
+
+        if (tablesAllowed.exists(_id))
+        {
+            return tablesAllowed.lookup(_id);
+        }
+        sdt = new SysDictTable(_id);
+
+        tg = sdt.tableGroup();
+
+        tablesAllowed.insert(_id, tg != TableGroup::Transaction);
+
+        return tablesAllowed.lookup(_id);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListOrders</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMListOrders extends TFMList
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        listName = 'Orders';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+	public TFMListConfiguration getList()
+    {
+        TFMListConfiguration				listConfig	= TFMListConfiguration::Construct(listName);
+        TFMListImageElement					img;
+        TFMListRow							row			= listConfig.addRow();
+        TFMListColumn						column		= row.makeColumn(95);
+        column.addElement(TFMListTextElement::ConstructTextElement('{DisplayLine1}',TFMFonts::FindOrCreateFromProperties('headlineFont',TFMFontSizes::large,true,false,'').id));
+        
+        column		= row.makeColumn(5);
+        img = TFMListImageElement::ConstructImageElement('','Status',7,7);
+        img.addValueElement('1','unlocked');
+        img.addValueElement('2',resourceStr(TFMLocked));
+        column.addElement(img);
+        
+        listConfig.parmDisplayStatus(true);
+        row			= listConfig.addRow();
+        column		= row.makeColumn(95);
+        TFMList::makeDisplayLinesInColumnElement(column,2,4,TFMFonts::FindOrCreateFromProperties('MediumContentFont',TFMFontSizes::medium,false,false,'').id);
+        
+        column		= row.makeColumn(5);
+        column.addElement(TFMListImageElement::ConstructImageElement('{attachmentImage}','',5,5,SysChartHorizontalAlignment::Right,TFMVerticalAlignment::Bottom));
+        
+        return listConfig;
+	}
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

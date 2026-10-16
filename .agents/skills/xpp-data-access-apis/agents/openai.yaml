@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Data Access APIs"
+  short_description: "Choose between select, SysDa, AOT Query, and raw SQL"
+  default_prompt: "Use $xpp-data-access-apis to build a dynamic query for this D365FO change."

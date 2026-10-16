@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMTranslationLines</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMTranslationLines extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>createTranslation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method is used to call create category transactions.
+    /// </summary>
+    /// <param name="_sourceCatalogId">
+    /// Catalog reference record ID.
+    /// </param>
+    /// <param name="_targetCatalogId">
+    /// Catalog reference record ID.
+    /// </param>
+    //public static void copyTranslations(
+    //    CatalogRefRecId _sourceCatalogId,
+    //    CatalogRefRecId _targetCatalogId)
+    //{
+    //    CatalogTranslation sourceTranslation;
+    //    while select sourceTranslation
+    //        where sourceTranslation.Catalog == _sourceCatalogId
+    //    {
+    //        CatalogTranslation::createCategoryTranslation(
+    //                                  _targetCatalogId,
+    //                                  strFmt("@RET260942", sourceTranslation.FriendlyName),
+    //                                  strFmt("@RET260942", sourceTranslation.Description),
+    //                                  sourceTranslation.Image,
+    //                                  sourceTranslation.Language);
+    //    }
+    //}
+
+    /// <summary>
+    /// This method is used to create catalog translation.
+    /// </summary>
+    /// <param name="_catalogId">
+    /// The value of catalog ID.
+    /// </param>
+    /// <param name="_friendlyName">
+    /// Translation friendly name.
+    /// </param>
+    /// <param name="_description">
+    /// Translation description
+    /// </param>
+    /// <param name="_image">
+    /// Translation image.
+    /// </param>
+    /// <param name="_languageId">
+    /// Translation langauge ID.
+    /// </param>
+    public static void createTranslation(RefRecId _translationId, Name _translation, LanguageId _languageId = SystemParameters::getSystemLanguageId())
+    {
+        TFMTranslationLines translation;
+
+        ttsbegin;
+
+        translation = TFMTranslationLines::find(_translationId, _languageId, true);
+
+        if (translation)
+        {
+            //translation.FriendlyName = _friendlyName;
+            //translation.Description = _description;
+            //translation.Image = _image;
+            translation.Translation = _translation;
+            translation.update();
+        }
+        else
+        {
+            translation.TranslationHeader = _translationId;
+            translation.Translation = _translation;
+            //translation.FriendlyName = _friendlyName;
+            //translation.Description = _description;
+            //translation.Image = _image;
+            translation.Language = _languageId;
+            translation.insert();
+        }
+
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method is used to find the catalog transaction.
+    /// </summary>
+    /// <param name="_catalogId">
+    /// The value of catalog ID.
+    /// </param>
+    /// <param name="_languageId">
+    /// The default langauge ID in the language table.
+    /// </param>
+    /// <param name="_forUpdate">
+    /// Boolean value for update.
+    /// </param>
+    /// <returns>
+    /// Catalog transaction entry.
+    /// </returns>
+    public static TFMTranslationLines find(RefRecId _translationId, LanguageId _languageId = SystemParameters::getSystemLanguageId(), boolean _forUpdate = false)
+    {
+        TFMTranslationLines translation = null;
+        ;
+
+        //PB: should we add support for fallback langauges. E.g. en_GB -> en?
+
+        if (_translationId && _languageId)
+        {
+            translation.selectForUpdate(_forUpdate);
+            select translation where translation.TranslationHeader== _translationId &&
+                                     translation.Language == _languageId;
+        }
+
+        return translation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>write</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void write()
+    {
+        TFMTranslationProvider::resetProvider();
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void update()
+    {
+        TFMTranslationProvider::resetProvider();
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>delete</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void delete()
+    {
+        TFMTranslationProvider::resetProvider();
+        super();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<AllowRowVersionChangeTracking>No</AllowRowVersionChangeTracking>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>TranslationHeader</Name>
+			<AssetClassification>Customer Content</AssetClassification>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Translation</Name>
+			<StringSize>255</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Language</Name>
+			<AssetClassification>Customer Content</AssetClassification>
+			<ExtendedDataType>LanguageIdAll</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>LocalizedStringTranslationIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>TranslationHeader</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>Language</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>Translation</Name>
+			<Cardinality>OneMore</Cardinality>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>TFMTranslations</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Composition</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>TranslationHeader</Name>
+					<Field>TranslationHeader</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+			<Index>RecId</Index>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>LanguageTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<EDTRelation>Yes</EDTRelation>
+			<RelatedTable>LanguageTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>Language</Name>
+					<SourceEDT>LanguageIdAll</SourceEDT>
+					<Field>Language</Field>
+					<RelatedField>LanguageId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+			<Index>Key</Index>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobInventJournalTableCommon</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobInventJournalTableCommon
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>modifyPages</Name>
+				<Source><![CDATA[
+    public static TFMPages modifyPages(TFMPages _pages, InventJournalType _journalType, str _titleForLinesPage, resourceName _icon, boolean _licensePlateEnabled = true, TFMListId _listIdForLinesPage = '')
+    {
+        TFMPages						                ret = _pages;
+        TFMPageLookup					                lookupPage;
+        TFMPageLookupConfiguration		                lookupConfig;
+        TFMPageUnplannedItemRegistration				unplannedPage;
+        TFMPageUnplannedItemRegistrationConfiguration   unplannedPageConfig;
+        TFMMenuItemStateConfiguration                   conf;
+        TFMPageID pageId = MobInventJournalTableCommon::journalType2JournalPageName(_journalType);
+        
+        lookupPage = ret.getPage(pageId);
+        lookupConfig = lookupPage.getConfiguration();
+        conf = TFMMenuItemStateConfiguration::Construct('PostJournal',0.9,new TFMPageActionAttribute(TFMPageMenuItemTypes::OpenAction,resourceStr(TFMPost),true,true));
+        conf.parmTitle('@{Post}');
+        
+        lookupPage.addActionClass(conf,0);
+        lookupConfig.parmNavigateTo(MobInventJournalTableCommon::journalType2JournalLinesPageName(_journalType));
+        lookupConfig.parmRefreshOnSuccess(true);
+        lookupConfig.parmListId(classStr(TFMListLookupJournalHeader));
+        lookupPage.addAction(MobInventJournalTableCommon::journalType2JournalLinesPageName(_journalType));
+        lookupPage.addAction(MobInventJournalTableCommon::journalType2CreateJournalPageName(_journalType),2).getPageActionSetup().parmVisibleWhenNoData(true);
+        
+        
+        lookupPage = ret.getPage(MobInventJournalTableCommon::journalType2JournalLinesPageName(_journalType));
+        lookupPage.parmIcon(_icon);
+        lookupPage.parmTitle(_titleForLinesPage);
+        lookupConfig = lookupPage.getConfiguration();
+        if(_listIdForLinesPage)
+        {
+            lookupConfig.parmListId(_listIdForLinesPage);
+        }
+        lookupConfig.parmUseRegistrationCollector();
+        lookupConfig.parmRefreshOnSuccess(true);
+        lookupConfig.parmAutomaticAccept(TFMAutomaticAccept::OnOpen);
+        lookupPage.addAction(MobInventJournalTableCommon::journalType2CreateJournalLinePageName(_journalType),1,1).getPageActionSetup().parmVisibleWhenNoData(true);
+        lookupPage.parmAvailableForMenuPages(false);
+        if (_licensePlateEnabled)
+        {
+            lookupPage.addAction(TFMConstants::LicensePlateInfo(),1);
+        }
+
+        lookupPage.addAction('DeleteJournalLine',1);
+        Name pageName = MobInventJournalTableCommon::journalType2CreateJournalPageName(_journalType);
+        unplannedPage = ret.getPage(pageName);
+        unplannedPage.parmAvailableForMenuPages(false);
+        unplannedPage.parmIcon(resourceStr(TFMStatePlus));
+
+        unplannedPage = ret.getPage(MobInventJournalTableCommon::journalType2CreateJournalLinePageName(_journalType));
+        unplannedPage.parmAvailableForMenuPages(false);
+        unplannedPage.parmIcon(resourceStr(TFMStatePlus));
+
+        unplannedPageConfig = unplannedPage.getConfiguration();
+        unplannedPageConfig.parmClose(false);
+    
+        return ret;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupInventJournals</Name>
+				<Source><![CDATA[
+    public static TFMLookupResponseElement lookupInventJournals(InventJournalType _journalType, InventJournalId _inventJournalId, InventlocationId _warehouse = '')
+    {
+        TFMDocumentContentSubject   content         = TFMHelper::enumName(enumNum(InventJournalType), _journalType);
+        TFMLookupResponseElement    lookupResponse  = TFMLookupResponseElement::Construct(classStr(TFMLookup), MobInventJournalTableCommon::journalType2JournalPageName(_journalType));
+        TFMBackendId                backendId;
+        InventJournalTable          inventJournalTable;
+    
+        while select * from inventJournalTable
+            order by journalId desc
+            where inventJournalTable.JournalType            == _journalType &&
+                  inventJournalTable.Posted                 == false &&
+                  inventJournalTable.MobReleasedToMobile   == true &&
+                  (!_warehouse || inventJournalTable.InventLocationId       == _warehouse) &&
+                  (!_inventJournalId || inventJournalTable.journalId == _inventJournalId)
+        {
+            backendId = tableStr(inventJournalTable) + '/' + fieldStr(inventJournalTable,JournalId) + '/' + inventJournalTable.JournalId + '/' + content;
+            lookupResponse.addResponse(inventJournalTable,backendId,null);
+        }
+        return lookupResponse;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupInventJournalLines</Name>
+				<Source><![CDATA[
+    public static TFMLookupResponseElement lookupInventJournalLines(InventJournalId _inventJournalId, TFMDocumentHandler _handler = null)
+    {
+        TFMLookupResponseElement    lookupResponse;
+        TFMBackendId                backendId = '';
+        InventJournalType           journalType;
+        TFMDocumentContentSubject   content;
+        Common                      inventJournalTrans;
+        WHSLicensePlate             licensePlate;
+        SysDictTable                sdt;
+        Query                       q;
+        QueryBuildDataSource        qbds;
+        QueryRun                    qr;
+        InventDim                   iDim, iDimTo;
+        Set                         lps = new Set(Types::String);
+
+        // Validate that the journal exists
+        if (!_inventJournalId || !InventJournalTable::exist(_inventJournalId))
+        {
+            throw error(strfmt(InventJournalTable::txtNotExist(),_inventJournalId));
+        }
+        journalType         = InventJournalTable::find(_inventJournalId).JournalType;
+        content             = TFMHelper::enumName(enumNum(InventJournalType), journalType);
+        lookupResponse      = TFMLookupResponseElement::Construct(classStr(TFMLookup), MobInventJournalTableCommon::journalType2JournalLinesPageName(journalType));
+        sdt                 = new SysDictTable(journalType == InventJournalType::TagCounting ? tableNum(InventJournalTrans_Tag) : tableNum(InventJournalTrans));
+        inventJournalTrans  = sdt.makeRecord();
+
+        q = new Query();
+        qbds = q.addDataSource(sdt.id());
+        qbds.addRange(fieldName2Id(sdt.id(), fieldStr(InventJournalTrans, JournalId))).value(_inventJournalId);
+        qbds.addSortField(fieldName2Id(sdt.id(), fieldStr(InventJournalTrans, LineNum)),SortOrder::Ascending);
+        qr = new QueryRun(q);
+        while (qr.next())
+        {
+            inventJournalTrans = qr.get(sdt.id());
+            iDim = inventDim::find(inventJournalTrans.(fieldName2Id(inventJournalTrans.TableId, fieldStr(inventJournalTrans, inventdimid))));
+            if (fieldName2Id(inventJournalTrans.TableId, fieldStr(inventJournalTrans, toInventdimid)))
+            {
+                iDimTo = inventDim::find(inventJournalTrans.(fieldName2Id(inventJournalTrans.TableId, fieldStr(inventJournalTrans, toInventdimid))));
+            }
+            if (iDim.LicensePlateId && !lps.in(iDim.LicensePlateId) && (iDim.LicensePlateId == iDimTo.LicensePlateId || !iDimTo))
+            {
+
+                licensePlate = WHSLicensePlate::find(iDim.LicensePlateId);
+                backendId = tableStr(WHSLicensePlate) + '/' + fieldStr(WHSLicensePlate,LicensePlateId) + '/' + licensePlate.LicensePlateId + '/' + 'LicensePlateLookup';
+                if (iDimTo)
+                {
+                    licensePlate.LicensePlateParent  = iDimTo.InventLocationId +TFMConstants::lineBreak()+iDimTo.wMSLocationId;
+                }
+                lookupResponse.addResponse(licensePlate,backendId,_handler);
+                lps.add(licensePlate.LicensePlateId);
+            }
+            else if (!iDim.LicensePlateId || (iDim.LicensePlateId != iDimTo.LicensePlateId))
+            {
+                backendId = sdt.name() + '/' + fieldStr(inventJournalTrans,RecID) + '/' + int642Str(inventJournalTrans.recid) + '/' + content;
+                lookupResponse.addResponse(inventJournalTrans,backendId,_handler);
+            }
+        }
+        return lookupResponse;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>journalType2JournalPageName</Name>
+				<Source><![CDATA[
+    public static Name journalType2JournalPageName(InventJournalType _journalType)
+    {
+        Name pageName = TFMHelper::enumName(enumNum(InventJournalType), _journalType) + 'Journal';
+        switch(_journalType)
+        {
+            case InventJournalType::LossProfit :
+                pageName = TFMConstants::ProfitLossJournal();
+                break;
+            
+        }
+        return pageName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>journalType2JournalLinesPageName</Name>
+				<Source><![CDATA[
+    public static Name journalType2JournalLinesPageName(InventJournalType _journalType)
+    {
+        return MobInventJournalTableCommon::journalType2JournalPageName(_journalType) + 'Line';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>journalType2CreateJournalPageName</Name>
+				<Source><![CDATA[
+    public static Name journalType2CreateJournalPageName(InventJournalType _journalType)
+    {
+        return 'Create' + MobInventJournalTableCommon::journalType2JournalPageName(_journalType);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>journalType2CreateJournalLinePageName</Name>
+				<Source><![CDATA[
+    public static Name journalType2CreateJournalLinePageName(InventJournalType _journalType)
+    {
+        return 'Create' + MobInventJournalTableCommon::journalType2JournalPageName(_journalType) + 'Line';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>journalLinesHeader</Name>
+				<Source><![CDATA[
+    public static TFMReferenceDataConfiguration journalLinesHeader()
+    {
+        TFMReferenceDataConfiguration refConf = new TFMReferenceDataConfiguration();
+        
+        TFMRegistrationCollectorList    fromWarehouse = TFMGetReferenceData::createDefaultWarehouseReferenceData(10, strLwr(extendedTypeStr(InventLocationId)), "@SYS25253", methodStr(TFMGetReferenceData,WarehouseList));
+        fromWarehouse.parmLocked(false);
+        refConf.addCollector(TFMGetReferenceData::defaultJournalIdCollector(2, extendedTypeStr(JournalId), true, extendedTypeStr(InventJournalId)));
+        refConf.addCollector(fromWarehouse);
+
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

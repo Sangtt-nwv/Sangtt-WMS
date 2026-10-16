@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMSearchTypeAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMSearchTypeAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    TFMOrderTypes   orderType;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(TFMOrderTypes _type)
+    {
+        super();
+ 
+        orderType = _type;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    ///<summary>
+    /// Returns the key used for storing cached data for this attribute.
+    /// </summary>
+    /// <returns>
+    /// A string representing the cache key.
+    /// </returns>
+    public str parmCacheKey()
+    {
+        return classStr(TFMSearchTypeAttribute)+';'+orderType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmType</Name>
+				<Source><![CDATA[
+    public TFMOrderTypes parmType(TFMOrderTypes _type = orderType)
+    {
+        orderType = _type;
+ 
+        return orderType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    ///<summary>
+    /// Determines if the same instance should be returned by the extension framework.
+    /// </summary>
+    /// <returns>
+    /// true if the same instance should be returned; otherwise false.
+    /// </returns>
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

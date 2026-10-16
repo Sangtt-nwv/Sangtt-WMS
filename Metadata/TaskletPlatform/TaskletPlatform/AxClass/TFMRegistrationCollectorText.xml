@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectorText</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegistrationCollectorText extends TFMRegistrationCollector
+{
+    int                       length;
+    TFMPrimaryInputMethod     primaryInputMethod;
+    boolean                   performCalculation;
+    str						  searchType;
+    str						  validationValues;
+    str                       splitBarcodeBySeparator;
+    TFMOverDeliveryValidation validationWarningType;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmValidationWarningType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Validates if the lotNumber, serial number, to and from bin can change.
+    /// </summary>
+    [TFMCategory("@SYS4440", "Which action to take when validation fails.  Warn - Ask for permission if validation fails.  Block - Block further progress until validation is successful.  None - Accepts whether or not a value matches the default or not")]
+    public TFMOverDeliveryValidation parmValidationWarningType(TFMOverDeliveryValidation _validationWarningType = validationWarningType)
+    {
+        validationWarningType = _validationWarningType;
+        return validationWarningType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmValidationValues</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS4440", "Values used to validate input in e.g. a string input field, a quantity by scan input field etc.")]
+    public str parmValidationValues(str _validationValues = validationValues)
+    {
+        validationValues = _validationValues;
+        return validationValues;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPerformCalculation</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414", "Allow calculation inside input area. Validation will still occur after calculation.")]
+    public boolean parmPerformCalculation(boolean _performCalculation = performCalculation)
+    {
+        performCalculation = _performCalculation;
+        return performCalculation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSplitBarcodeBySeparator</Name>
+				<Source><![CDATA[
+    public str parmSplitBarcodeBySeparator(str _splitBarcodeBySeparator = splitBarcodeBySeparator)
+    {
+        splitBarcodeBySeparator = _splitBarcodeBySeparator;
+        return splitBarcodeBySeparator;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLength</Name>
+				<Source><![CDATA[
+    public int parmLength(int _length = length)
+    {
+        length = _length;
+        return length;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSearchType</Name>
+				<Source><![CDATA[
+    public str parmSearchType(str _searchType = searchType)
+    {
+        searchType = _searchType;
+        return searchType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromDictType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_type"></param>
+    public void initFromDictType(SysDictType _type)
+    {
+        super(_type);
+        length = _type.stringLen();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_id"></param>
+    /// <param name = "_name"></param>
+    /// <param name = "_header"></param>
+    /// <param name = "_label"></param>
+    /// <param name = "_helpLabel"></param>
+    public void new(int _id, str _name, str _header, str _label, str _helpLabel)
+    {
+        super(_id, _name, _header, _label, _helpLabel);
+        length = 100;
+        primaryInputMethod = TFMPrimaryInputMethod::Scan;
+        validationWarningType = TFMOverDeliveryValidation::Warn;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmprimaryInputMethod</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414", "The input method sets how the control is shown and works. ScanOnly - the text is not editable only by scan. Scan - The Scan Icon is displayed but can be edited. Control - No scan icon.")]
+    public TFMPrimaryInputMethod parmprimaryInputMethod(TFMPrimaryInputMethod   _primaryInputMethod = primaryInputMethod)
+    {
+        primaryInputMethod = _primaryInputMethod;
+        return primaryInputMethod;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TextStep</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Builds a registration collector for text input
+    /// </summary>
+    /// <param name="_stepsElement"></param>
+    /// <param name="_id"></param>
+    /// <param name="_name"></param>
+    /// <param name="_header"></param>
+    /// <param name="_label"></param>
+    /// <param name="_helpLabel"></param>
+    /// <param name="_length"></param>
+    /// <param name="_optional"></param>
+    /// <param name="_defaultValue"></param>
+    /// <param name = "_GS1valueId_Text">
+    /// identifiers for GS1-barcode prefixes
+    /// </param>
+    public static TFMRegistrationCollectorText TextStep(                      boolean  _setEmpty,
+                                                            int      _id,
+                                                            str      _name,
+                                                            str      _header,
+                                                            str      _label,
+                                                            str      _helpLabel,
+                                                            int      _length,
+                                                            boolean  _optional=false,
+                                                            str      _defaultValue='',
+                                                            str      _GS1valueId_Text = '',
+                                                            TFMPrimaryInputMethod _primaryInputMethod = TFMPrimaryInputMethod::Scan
+        )
+    {
+
+        TFMRegistrationCollectorText collector = new TFMRegistrationCollectorText(_id, _name, _header, _label, _helpLabel);
+            
+        
+        collector.parmlength(_length);
+        collector.parmEanAI(_GS1valueId_Text);
+        collector.SetEmptyParm(_setEmpty);
+        collector.parmprimaryInputMethod(_primaryInputMethod);
+        collector.parmOptional(_optional);
+        collector.parmDefaultValue(_defaultValue);
+        
+        return collector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TextStepMap</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Builds a registration collector for text input
+    /// </summary>
+    /// <param name="_stepsElement"></param>
+    /// <param name="_id"></param>
+    /// <param name="_name"></param>
+    /// <param name="_header"></param>
+    /// <param name="_label"></param>
+    /// <param name="_helpLabel"></param>
+    /// <param name="_length"></param>
+    /// <param name="_optional"></param>
+    /// <param name="_defaultValue"></param>
+    /// <param name = "_GS1valueId_Text">
+    /// identifiers for GS1-barcode prefixes
+    /// </param>
+    client server static Map TextStepMap(                   boolean  _setEmpty,
+                                                            int      _id,
+                                                            str      _name,
+                                                            str      _header,
+                                                            str      _label,
+                                                            str      _helpLabel,
+                                                            int      _length,
+                                                            boolean  _optional=false,
+                                                            str      _defaultValue='',
+                                                            str      _GS1valueId_Text = '',
+                                                            TFMPrimaryInputMethod _primaryInputMethod = TFMPrimaryInputMethod::Scan
+        )
+    {
+        return TFMRegistrationCollectorText::TextStep(_setEmpty,_id, _name,_header,_label,_helpLabel,_length,_optional,_defaultValue, _GS1valueId_Text,_primaryInputMethod).getMap();        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>collectorSearchHeader</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration collectorSearchHeader()
+    {
+        SysDictType                     sdt = new SysDictType(extendedTypeName2Id(edtName));
+        TFMReferenceDataConfiguration   conf = new  TFMReferenceDataConfiguration();
+        TableName                       tblName;
+        SysDictTable                    sdTable;
+
+
+        if (!sdt || (!sdt.lookupTable(true) && !TFMSearchEDTsToLookupTable::EDTs2Tables().exists(sdt.name())) || searchType)
+        {
+            return null;
+        }
+        tblName = TFMSearchEDTsToLookupTable::EDTs2Tables().exists(sdt.name()) ? TFMSearchEDTsToLookupTable::EDTs2Tables().lookup(sdt.name()) : sdt.lookupTable(true);
+        
+        searchType = tblName + '_' + TFMConstants::Search();
+        sdTable = new SysDictTable(tableName2Id(tblName));
+        conf.addCollector(new TFMRegistrationCollectorText(10,TFMConstants::SearchValue(),sdTable.label(),sdTable.label(),sdTable.labelDefined()));
+        conf.parmKey(searchType);
+        return conf;        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

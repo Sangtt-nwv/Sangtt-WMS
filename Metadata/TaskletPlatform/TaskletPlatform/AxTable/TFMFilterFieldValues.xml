@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMFilterFieldValues</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMFilterFieldValues extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addValue</Name>
+				<Source><![CDATA[
+    public static void addValue(MethodName _filterName, Name _filterFieldName, Name _fieldAttributeName, str _value)
+    {
+        TFMFilterFieldValues fieldValue;
+        ttsbegin;
+        select firstonly forupdate fieldValue where fieldValue.FilterName == _filterName && fieldValue.FilterFieldName == _filterFieldName && fieldValue.FilterAttributeName == _fieldAttributeName;
+
+        fieldValue.FilterName = _filterName;
+        fieldValue.FilterFieldName = _filterFieldName;
+        fieldValue.FilterAttributeName = _fieldAttributeName;
+        fieldValue.Value = _value;
+        if (fieldValue.RecId)
+        {
+            fieldValue.update();
+        }
+		else
+        {
+            fieldValue.insert();
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getValue</Name>
+				<Source><![CDATA[
+    public static str getValue(MethodName _filterName, Name _filterFieldName, Name _fieldAttributeName)
+    {
+        TFMFilterFieldValues fieldValue;
+
+        select firstonly fieldValue where fieldValue.FilterName == _filterName && fieldValue.FilterFieldName == _filterFieldName && fieldValue.FilterAttributeName == _fieldAttributeName;
+        return fieldValue.Value;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addSavedValuesToCollector</Name>
+				<Source><![CDATA[
+    public static void addSavedValuesToCollector(MethodName _filterName, Name _filterFieldName, TFMRegistrationCollector	_collector)
+    {
+        TFMFilterFieldValues fieldValue;
+        anytype             convertedValue;
+        SysDictMethod       sdm;
+        SysDictClass		sdc;
+        Types               baseType;
+
+        while select fieldValue where fieldValue.FilterName == _filterName && fieldValue.FilterFieldName == _filterFieldName
+        {
+            sdc = new SysDictClass(classIdGet(_collector));
+		    if (SysTest::hasMethod(_collector, 'parm' + fieldValue.FilterAttributeName))
+            {
+                sdm = new SysDictMethod(UtilElementType::ClassInstanceMethod,sdc.id(),'parm'+ fieldValue.FilterAttributeName);
+                    
+                baseType = sdm.returnType();
+                if (baseType == Types::UserType && sdm.returnTypeName())
+                {
+                    baseType = new DictType(extendedTypeName2Id(sdm.returnTypeName())).baseType();
+                }
+                convertedValue = TFMDocCustomFunctionFlow::ConvertToType(fieldValue.Value, baseType,baseType != Types::Enum ? extendedTypeId2name(sdm.returnId()) : enumId2Name(sdm.returnId()) );
+                sdc.callObject('parm' + fieldValue.FilterAttributeName,_collector,convertedValue);
+            }
+        }
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@SYS117986</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>FilterFieldName</TitleField1>
+	<TitleField2>FilterAttributeName</TitleField2>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FilterName</Name>
+			<ExtendedDataType>MethodName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FilterFieldName</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FilterAttributeName</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Value</Name>
+			<ExtendedDataType>Notes</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

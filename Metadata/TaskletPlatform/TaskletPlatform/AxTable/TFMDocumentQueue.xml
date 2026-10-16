@@ -1,0 +1,664 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentQueue</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMDocumentQueue extends common
+{
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    public void insert()
+    {
+        XML request = this.RequestXML;
+        XML answer = this.AnswerXML;
+        XML result = this.ResultXML;
+
+        this.RequestXML = '';
+        this.AnswerXML = '';
+        this.ResultXML = '';
+        super();
+        if (request)
+        {
+            TFMXMLTable::StoreXML(request,this,fieldStr(TFMDocumentQueue,RequestXML));
+            TFMXMLTable::StoreXML(request,this,fieldStr(TFMDocumentQueue,RequestXMLOriginal));
+        }
+        if (answer)
+        {
+            TFMXMLTable::StoreXML(answer,this,fieldStr(TFMDocumentQueue,AnswerXML));
+            
+        }
+        if (result)
+        {
+            TFMXMLTable::StoreXML(result,this,fieldStr(TFMDocumentQueue,ResultXML));
+            
+        }
+
+        // Telemetry logging
+        this.logTelemetry();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update</Name>
+				<Source><![CDATA[
+    public void update()
+    {
+        XML request = this.RequestXML;
+        XML answer = this.AnswerXML;
+        XML result = this.ResultXML;
+
+        this.RequestXML = '';
+        this.AnswerXML = '';
+        this.ResultXML = '';
+        super();
+        if (request)
+        {
+            TFMXMLTable::StoreXML(request,this,fieldStr(TFMDocumentQueue,RequestXML));
+            
+        }
+        if (answer)
+        {
+            TFMXMLTable::StoreXML(answer,this,fieldStr(TFMDocumentQueue,AnswerXML));
+            
+        }
+        if (result)
+        {
+            TFMXMLTable::StoreXML(result,this,fieldStr(TFMDocumentQueue,ResultXML));
+            
+        }
+        
+        // Telemetry logging
+        this.logTelemetry();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>logTelemetry</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Log telemetry for document queue processing
+    /// </summary>
+    protected void logTelemetry()
+    {
+        if(this.Status == TFMDocumentQueueStatus::Completed ||
+           this.Status == TFMDocumentQueueStatus::Error)
+        {   
+            TFMAppInsightsDocQueueTelemetry docQueueTelemetry = TFMAppInsightsDocQueueTelemetry::newFromDocumentQueue(this);
+            TFMAppInsightsTelemetryLogger::instance().trackDocQueue(docQueueTelemetry);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resetStatus</Name>
+				<Source><![CDATA[
+    public void resetStatus()
+    {
+        if (this.Status == TFMDocumentQueueStatus::Processing)
+        {
+            ttsbegin;
+            this.Status = TFMDocumentQueueStatus::ReadyForProcessing;
+            if (this.validateWrite())
+            {
+                this.update();
+            }
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+	/// <summary>
+	/// Method to find a Queue entry from a Message ID.
+	/// </summary>
+	/// <param name = "_messageId">Unique Message ID to find message by. Is a GUID.</param>
+	/// <param name = "_forUpdate">Should the record be selected for update?</param>
+	/// <returns>Found TFMDocumentQueue record</returns>
+    public static TFMDocumentQueue find(TFMDocumentMessageId _messageId, boolean _forUpdate = false)
+    {
+        TFMDocumentQueue    queue;
+        ;
+        if (_messageId)
+        {
+            if (_forUpdate)
+            {
+                queue.selectForUpdate(_forUpdate);
+            }
+            select firstonly queue
+                index hint MessageIdIdx
+                where queue.MessageId == _messageId;
+        }
+    
+        return queue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateStatusError</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Method to set error message on incoming document
+    /// </summary>
+    /// <param name = "_messageId">Message ID of the incoming document.</param>
+    /// <param name = "_returnStr">The error message to be written on the document.</param>
+    /// <returns>The resulting error XML</returns>
+    public static TFMDocumentXML updateStatusError(TFMDocumentMessageId _messageId, TFMDocumentXML _returnStr)
+    {
+        TFMDocumentQueue                documentQueue;
+        //UserConnection                  connection;
+    
+    
+        ttsBegin;
+        documentQueue                = TFMDocumentQueue::find(_messageId,true);
+        documentQueue.Status         = TFMDocumentQueueStatus::Error;
+        documentQueue.AnswerXML      = TFMDocumentConnector::createReturnXml(_returnStr, '', documentQueue.MessageId, TFMDocumentQueueStatus::Error);
+        documentQueue.ResultXML      = documentQueue.AnswerXML;
+        documentQueue.AnswerDateTime = DateTimeUtil::getSystemDateTime();
+    
+        documentQueue.update();
+        ttsCommit;
+    
+        return documentQueue.AnswerXML();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AnswerXML</Name>
+				<Source><![CDATA[
+    public XML AnswerXML()
+    {
+        return this.AnswerXML ? this.AnswerXML : TFMXMLTable::getXML(this,fieldStr(TFMDocumentQueue,AnswerXML));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RequestXML</Name>
+				<Source><![CDATA[
+    public XML RequestXML()
+    {
+        return this.RequestXML ? this.RequestXML : TFMXMLTable::getXML(this,fieldStr(TFMDocumentQueue,RequestXML));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RequestXMLOriginal</Name>
+				<Source><![CDATA[
+    public XML RequestXMLOriginal()
+    {
+        return this.RequestXMLOriginal ? this.RequestXMLOriginal : TFMXMLTable::getXML(this,fieldStr(TFMDocumentQueue,RequestXMLOriginal));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ResultXML</Name>
+				<Source><![CDATA[
+    public XML ResultXML()
+    {
+        return this.ResultXML ? this.ResultXML : TFMXMLTable::getXML(this,fieldStr(TFMDocumentQueue,ResultXML));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>jumpToMainTable</Name>
+				<Source><![CDATA[
+    public void jumpToMainTable()
+    {
+        SysDictTable dt = new SysDictTable(this.refTableId);
+        Common			common = dt.makeRecord();
+        str formRef = dt.formRef();
+        Args args = new Args();
+        FormRun		formRun;
+        select firstonly common where common.RecId == this.refRecId;
+
+        args.record(common);
+        args.name(formRef);
+        formRun = classfactory.formRunClass(args);
+        formRun.init();
+        formRun.run();
+
+        formRun.wait();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHtmlMessage</Name>
+				<Source><![CDATA[
+    public str getHtmlMessage()
+    {
+        XmlDocument xmlDoc = XmlDocument::newXml(this.AnswerXML());
+        XmlElement	response = xmlDoc.getNamedElement('response');
+        XmlElement	description,responseData,image;
+        str			startText	= 'src="data:image/';
+        str			endText		= '" alt="';
+        str			resNameEnd	= '" />';
+        str			htmlText;
+        int			posStart, posEnd, resEnd;
+        str			resName;
+        str			errorTxt;
+
+        if (response && this.DocumentType == methodStr(TFMDocGetMedia,GetMedia) && this.Status == TFMDocumentQueueStatus::Completed)
+        {
+            responseData = response.getNamedElement('responseData');
+            image = responseData.getNamedElement('media').getNamedElement('image');
+            return TFMImageHelper::base64ToHtml(image.innerText(), 170, image.getAttribute('id'));
+        }
+        else if (response)
+        {
+            description = response.getNamedElement('description');
+            htmlText = description ? description.innerText() : '';
+            posStart = 1;
+            while (posStart)
+            {
+                posStart	= strScan(htmlText,startText,1,strLen(htmlText));
+                posEnd		= strScan(htmlText,endText,posStart,strLen(htmlText));
+                resEnd		= strScan(htmlText,resNameEnd,posEnd,strLen(htmlText));
+                if (posStart)
+                {
+                    resName		= subStr(htmlText,posEnd + strLen(endText),resEnd-posEnd - strLen(endText));
+                    if (!SysResource::checkIfResourceExists(resName))
+                    {
+                        resName = resourceStr(TFMPaperHole);
+                    }
+                    htmlText	= subStr(htmlText,1,posStart-1) +'src="'+ SysResource::getImagePath(resName) +  subStr(htmlText,posEnd,strLen(htmlText));
+                }
+            }
+            if (!strScan(htmlText,'<html>',1,10000))
+            {
+                //htmlText = '<pre>'+ htmlText + '</pre>';
+                htmlText = strReplace(strReplace(htmlText,' ' , '&nbsp;'),'\n','<br>');
+            }
+        }
+
+        /*if (this.Status == TFMDocumentQueueStatus::Error)
+        {
+            errorTxt = con2Str(this.CallStack, ';');
+            if (!strScan(htmlText,'<html>',1,10000))
+            {
+                htmlText += errorTxt;
+            }
+            else
+            {
+                htmlText = strReplace(htmlText, '</html>',errorTxt + '</html>');
+            }
+        }*/
+        return htmlText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showMessageinHTMLViewer</Name>
+				<Source><![CDATA[
+    public void showMessageinHTMLViewer(TFMHtmlViewerCtrl _htmlViewer)
+    {
+        _htmlViewer.parmHtml(this.getHtmlMessage());
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:DocumentQueueDevDesc</DeveloperDocumentation>
+	<FormRef>TFMDocumentQueue</FormRef>
+	<Label>@TFM:TFM2</Label>
+	<TableGroup>Transaction</TableGroup>
+	<Tags>NoExport</Tags>
+	<TitleField1>DocumentType</TitleField1>
+	<TitleField2>Status</TitleField2>
+	<CacheLookup>NotInTTS</CacheLookup>
+	<ClusteredIndex>MessageIdIdx</ClusteredIndex>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedTransactionId>Yes</ModifiedTransactionId>
+	<PrimaryIndex>MessageIdIdx</PrimaryIndex>
+	<ReplacementKey>MessageIdIdx</ReplacementKey>
+	<DeleteActions>
+		<AxTableDeleteAction>
+			<Name>SessionLinkDeleteAction</Name>
+			<DeleteAction>Cascade</DeleteAction>
+			<Relation></Relation>
+			<Table>TFMDocumentQueueSessionLink</Table>
+			<Tags></Tags>
+		</AxTableDeleteAction>
+		<AxTableDeleteAction>
+			<Name>MessageLogDeleteAction</Name>
+			<DeleteAction>Cascade</DeleteAction>
+			<Relation></Relation>
+			<Table>TFMMessageLog</Table>
+			<Tags></Tags>
+		</AxTableDeleteAction>
+	</DeleteActions>
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>createdDateTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MessageId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DocumentType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Status</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Answer</Name>
+			<Label>@TFM:TFM50</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>AnswerXML</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Answered</Name>
+			<Label>@TFM:TFM23</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>AnswerDateTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>msProccessingEnd</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Created</Name>
+			<Label>@SYS12659</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>createdDateTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>msProccessingStart</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Identification</Name>
+			<Label>@SYS5711</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DeviceId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DocumentType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ContentSubject</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Original</Name>
+			<Label>@SYS5301</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>RequestXMLOriginal</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS50012</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Status</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>createdDateTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ContentSubject</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DocumentType</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Request</Name>
+			<Label>@TFM:TFM49</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ResultXML</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Result</Name>
+			<Label>@SYS6769</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ResultXML</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Status</Name>
+			<Label>@SYS25532</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Status</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Rest</Name>
+			<Label>@SYS2801</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>RequestXML</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>AnswerDateTime</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentAnswerDateTime</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>AnswerXML</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentXML</ExtendedDataType>
+			<HelpText>@TFM:TFM75</HelpText>
+			<Label>@TFM:TFM50</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ContentSubject</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentContentSubject</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DeviceId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentDeviceId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>RefTableId</Name>
+			<ExtendedDataType>RefTableId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>RefRecId</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DocumentType</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentTypeId</ExtendedDataType>
+			<HelpText>@TFM:TFM8</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldGuid">
+			<Name>MessageId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentMessageId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>RequestXML</Name>
+			<ExtendedDataType>TFMDocumentXML</ExtendedDataType>
+			<HelpText>@TFM:TFM74</HelpText>
+			<Label>@TFM:TFM49</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>RequestXMLOriginal</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>TFMDocumentXML</ExtendedDataType>
+			<HelpText>@TFM:TFM128</HelpText>
+			<Label>@TFM:TFM127</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ResultXML</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentXML</ExtendedDataType>
+			<HelpText>@TFM:TFM76</HelpText>
+			<Label>@SYS6769</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Status</Name>
+			<EnumType>TFMDocumentQueueStatus</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>UserId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>UserId</ExtendedDataType>
+			<HelpText>@TFM:TFM3</HelpText>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldContainer">
+			<Name>CallStack</Name>
+			<ExtendedDataType>SysContainer</ExtendedDataType>
+			<Label>@SYS65092</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SessionID</Name>
+			<ExtendedDataType>TFMProcessSessionID</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>msProccessingStart</Name>
+			<HelpText>@SYS325924</HelpText>
+			<Label>Request construct time</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>msProccessingEnd</Name>
+			<HelpText>@SYS325924</HelpText>
+			<Label>Total processing time</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>MessageIdIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>MessageId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>UserIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>createdDateTime</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>UserId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>Devices</Name>
+			<RelatedTable>TFMDeviceTable</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>DeviceId</Name>
+					<Field>DeviceId</Field>
+					<RelatedField>DeviceId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

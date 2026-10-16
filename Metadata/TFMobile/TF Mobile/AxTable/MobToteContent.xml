@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobToteContent</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobToteContent extends common
+{
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addContent</Name>
+				<Source><![CDATA[
+    public static void addContent(MobToteId _toteId, InventQty _qty, refrecid _refRecID, InventDimId _inventDimId)
+    {
+        MobToteContent content;
+        ttsbegin;
+        select forupdate content where content.ToteId == _toteId && content.RefRecId == _refRecID && content.OrgInventDimId == _inventDimId;
+        content.ToteId = _toteId;
+        content.Qty += _qty;
+        content.RefRecId = _refRecID;
+        content.OrgInventDimId = _inventDimId;
+        content.write();
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateContent</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Updates the qty by moving the ToteContent from old line to the new line. The existing line will be deleted or updated and the new will be added.
+    /// </summary>
+    /// <param name = "_toteId"></param>
+    /// <param name = "_qty"></param>
+    /// <param name = "_refRecIDFrom"></param>
+    /// <param name = "_refRecIDTo"></param>
+    public static void updateContent(MobToteId _toteId, InventQty _qty, refrecid _refRecIDFrom, refrecid _refRecIDTo)
+    {
+        MobToteContent content;
+        ttsbegin;
+        select forupdate content where content.ToteId == _toteId && content.RefRecId == _refRecIDFrom;
+        content.ToteId = _toteId;
+        content.RefRecId = _refRecIDFrom;
+        if (content.RecId)
+        {
+            if(content.Qty == _qty) // All content is moved so old tote line is deleted
+            {
+                content.delete();
+            }
+            else // Otherwise adjust the amount on the original tote line
+            {
+                content.Qty -= _qty;
+                content.update();
+            }
+        }
+
+        // Move to the new MobToteContent
+        content.ToteId = _toteId;
+        content.Qty = _qty;
+        content.RefRecId = _refRecIDTo;
+        content.insert();
+
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateWeight</Name>
+				<Source><![CDATA[
+    public boolean updateWeight()
+    {
+        boolean				ret;
+        ItemId				idTo;
+        InventTable			iTbl;
+        WMSOrderTrans		orderTrans;
+        MobToteTable		toteTable;
+        MobDocPackingItems	parmDoc = new MobDocPackingItems();
+        boolean				useGrossWeight = parmDoc.parmUseGrossWeight();
+        
+        if (this.Qty != this.orig().Qty || !this.orig().Qty)
+        {
+            select firstonly RouteId, itemId, RecId from orderTrans where orderTrans.RecId == this.RefRecId;
+            idTo = orderTrans.itemId;
+            iTbl = InventTable::find(idTo);
+            ttsbegin;
+            toteTable = MobToteTable::FindOrCreate(this.ToteId,null,true);
+            iTbl.NetWeight = useGrossWeight ? iTbl.grossWeight() : iTbl.NetWeight;
+            toteTable.Weight += (iTbl.netWeight*this.Qty - iTbl.NetWeight*this.orig().Qty);
+            toteTable.RefId = orderTrans.RouteId;
+            toteTable.update();
+            ttscommit;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update</Name>
+				<Source><![CDATA[
+    public void update()
+    {
+        this.updateWeight();
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    public void insert()
+    {
+        this.updateWeight();
+        super();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@MobileWMS:ToteContent</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<CacheLookup>FoundAndEmpty</CacheLookup>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ToteId</Name>
+			<ExtendedDataType>MobToteId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>Qty</Name>
+			<ExtendedDataType>Qty</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>RefRecId</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OrgInventDimId</Name>
+			<ExtendedDataType>InventDimId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>Index1</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ToteId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>MobToteTable</Name>
+			<RelatedTable>MobToteTable</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ToteId</Name>
+					<Field>ToteId</Field>
+					<RelatedField>ToteId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>WmsOrderTrans</Name>
+			<NavigationPropertyMethodNameOverride>WmsOrderTrans</NavigationPropertyMethodNameOverride>
+			<RelatedTable>WmsOrderTrans</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>RefRecId</Name>
+					<Field>RefRecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>InventDim</Name>
+			<RelatedTable>InventDim</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>OrgInventDimId</Name>
+					<Field>OrgInventDimId</Field>
+					<RelatedField>inventDimId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

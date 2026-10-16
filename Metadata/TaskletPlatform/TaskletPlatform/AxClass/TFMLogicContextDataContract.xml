@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContextDataContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMLogicContextDataContract
+{
+    ClassName               logicContextCls;
+    TFMLogicContextObject   obj;
+    Description255          objDesc;
+    str                     inputsAndOutputs;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>contractObject</Name>
+				<Source><![CDATA[
+    protected TFMLogicContextObject contractObject()
+    {
+        SysDictClass    sdc;
+        if (!obj)
+        {
+            sdc = new SysDictClass(className2Id(logicContextCls));
+            obj = sdc.makeObject();
+            obj.parmDataContract(this);
+        }
+        return obj;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLogicContextClass</Name>
+				<Source><![CDATA[
+    public ClassName parmLogicContextClass(ClassName _logicContextCls = logicContextCls)
+    {
+        SysDictClass    sdc = new SysDictClass(className2Id(logicContextCls));
+        SetEnumerator   sEnum;
+        str             typesHandled;
+        
+        TFMDescriptionAttribute descAttr;
+        logicContextCls = _logicContextCls;
+        if (!sdc)
+        {
+            return logicContextCls;
+        }
+        descAttr = sdc.getAttribute(classStr(TFMDescriptionAttribute));
+        if (descAttr)
+        {
+            objDesc = descAttr.parmDescription();
+        }
+
+        
+
+        if (this.contractObject())
+        {
+            obj.parmDataContract(this);
+            
+            sEnum = obj.inputTypes().getEnumerator();
+            while (sEnum.moveNext())
+            {
+                typesHandled += (typesHandled ? ', ' : '') + strFmt('%1',sEnum.current());
+            }
+            typesHandled += '<br>' + strFmt("@TFM:Takes1inputs",(obj.noOfInputs() == -1 ? "@TFM:Infinite" : int2Str(obj.noOfInputs())));
+
+            inputsAndOutputs = '<table><tr><th style="padding: 4px"><b><u>'+ "@TFM:Inputs" +'</u></b></th><th style="padding: 4px"><b><u>'+"@TFM:Output"+'</u></b></th></tr><tr><td style="padding: 4px">'+(obj.noOfInputs() == 0 ? strFmt('%1',TFMLogicContextTypes::None) : typesHandled)+'</td><td style="padding: 4px">'+strFmt('%1', obj.outputType())+'</td></tr></table>';
+        }
+        return logicContextCls;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return objDesc;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>outputType</Name>
+				<Source><![CDATA[
+    public TFMLogicContextTypes outputType()
+    {
+        if (!this.contractObject())
+        {
+            return TFMLogicContextTypes::None;
+        }
+        return obj.outputType();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>inputTypes</Name>
+				<Source><![CDATA[
+    public Set inputTypes()
+    {
+        Set retset = new Set(Types::Enum);
+        if (this.contractObject())
+        {
+            retset = obj.inputTypes();
+        }
+        return retset;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>noOfinputs</Name>
+				<Source><![CDATA[
+    public int noOfinputs()
+    {
+        int ret = 0;
+        if (this.contractObject())
+        {
+            ret = obj.noOfinputs();
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>displayValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Which text should the node display on the User Interface
+    /// </summary>
+    /// <returns>A string with the name to display for the node.</returns>
+    public str displayValue()
+    {
+        str ret = this.contractObject().Name();
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>detailsValue</Name>
+				<Source><![CDATA[
+    public str detailsValue()
+    {
+        str ret;
+        //ret = '<i>'+ objDesc + '</i>';
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>iconUrl</Name>
+				<Source><![CDATA[
+    public str iconUrl()
+    {        
+        return TFMDocGetMedia::getURLFromIconName(this.contractObject().icon());
+     }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMWorkflowBlockDimensions</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMWorkflowBlockDimensions extends TFMWorkflowBlock
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>steps</Name>
+				<Source><![CDATA[
+    public Set steps()
+    {
+        Set ret = super();
+        int locationOrLPLength = max(new SysDictType(extendedTypeNum(WmsLocationId)).stringLen(), new SysDictType(extendedTypeNum(WHSLicensePlateId)).stringLen());
+        ret.add(TFMRegistrationCollectorText::TextStep(false,10,TFMConstants::FromBin(),'@{RegistrationCollectorFromBinHeader}', "'{FromBin}'", '@{RegistrationCollectorFromBinHelpLabel}', locationOrLPLength, false,'{FromBin}','', TFMPrimaryInputMethod::Scan));
+        ret.add(TFMRegistrationCollectorText::TextStep(false,20,TFMConstants::ToBin(),'@{RegistrationCollectorToBinHeader}', "'{ToBin}'", '@{RegistrationCollectorToBinHelpLabel}', locationOrLPLength, false,'{ToBin}','', TFMPrimaryInputMethod::Scan));
+        ret.add(TFMRegistrationCollectorDate::DateStep(false,31,TFMConstants::ExpirationDate(),'@{RegistrationCollectorExpirationDateHeader}', "@TFM:ExpirationDate", '@{RegistrationCollectorExpirationDateHelpLabel}', TFMHelper::today(), dateMax(),TFMGS1Table::AIsfromName(TFMConstants::ExpirationDate()),dateNull()));
+        ret.add(TFMRegistrationCollectorText::TextStep(false,32,TFMConstants::LotNumber(),'@{ScanBatchNumber}', "'{LotNumber}'", '@{ScanBatchNumberHelp}', new SysDictType(extendedTypeNum(InventBatchId)).stringLen(), false,'{LotNumber}',TFMGS1Table::AIsfromName(TFMConstants::LotNumber()), TFMPrimaryInputMethod::Scan));
+        //validationWarningType="Warn"/>
+        ret.add(TFMRegistrationCollectorText::TextStep(false,35,'ToteId','@{RegistrationCollectorToteHeader}', "", '@{RegistrationCollectorToteHelpLabel}', new SysDictType(extendedTypeNum(TFMToteId)).stringLen(), false,'',TFMGS1Table::AIsfromEDT(extendedTypeStr(TFMToteId)), TFMPrimaryInputMethod::Scan));
+        ret.add(TFMRegistrationCollectorText::TextStep(false,40,TFMConstants::SerialNumber(),'@{RegistrationCollectorSerialNumberHeader}', '', '@{RegistrationCollectorSerialNumberHelpLabel}', new SysDictType(extendedTypeNum(InventSerialId)).stringLen(), false,'{SerialNumber}',TFMGS1Table::AIsfromName(TFMConstants::SerialNumber()), TFMPrimaryInputMethod::Scan));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AdditionalValues</Name>
+				<Source><![CDATA[
+    public Map AdditionalValues(Common _common = null)
+    {
+        FieldName       fn;
+        Map				additionalValues = super();
+        Set				dimensionFields;
+        SetEnumerator	sEnum;
+        SysDictField	sdf;
+        InventDim		inventDim;
+        SysDictTable	sdt = new SysDictTable(_common.tableId);        
+        str				label, value;
+        if (_common.tableId == tableNum(InventDim))
+        {
+            inventDim = _common;
+        }
+        if (sdt.fieldName2Id(extendedTypeStr(InventDimId)))
+        {
+            inventDim = InventDim::find(_common.(sdt.fieldName2Id(extendedTypeStr(InventDimId))));
+        }
+        if (!inventDim && _common != null)
+        {
+            return additionalValues;
+        }
+		
+        dimensionFields = Set::union(TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, StorageDimensions)), TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, ProductDimensions)));
+        dimensionFields = Set::union(dimensionFields, TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, TrackingDimensions)));
+        sEnum = dimensionFields.getEnumerator();
+		while (sEnum.moveNext())
+        {
+			fn = sEnum.current();
+            fn = strLwr(fn);
+            sdf = inventDim ? new SysDictField(tableNum(InventDim),fieldName2Id(tableNum(InventDim),fn)) : null;
+            label = sdf != null ? sdf.label() : '{'+fn+'_label}';
+            value = sdf != null ? inventDim.(sdf.id()) : '{'+fn+'}';
+		    additionalValues.insert(fn+'_label', label);
+            additionalValues.insert(fn, value);
+        }
+
+        if (sdf != null)
+        {
+            return additionalValues;
+        }
+
+        additionalValues.insert('Description', '{Description}');
+        additionalValues.insert('imageId', '{imageId}');
+        additionalValues.insert(extendedTypeStr(ItemId), '{itemId}');
+        additionalValues.insert(extendedTypeStr(InventTransId), '{' + extendedTypeStr(InventTransId) + '}');
+        additionalValues.insert(TFMConstants::processSessionID(), '{'+TFMConstants::processSessionID()+'}');
+
+        return additionalValues;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxResource xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMenuGroupingBackShadow</Name>
+	<FileName>semi-transparent-back_shadow.png</FileName>
+	<RelativeUriInModelStore>TaskletPlatform\TaskletPlatform\AxResource\ResourceContent\Images\semi-transparent-back_shadow.png</RelativeUriInModelStore>
+</AxResource>

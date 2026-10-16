@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMAppInsightsDocQueueTelemetry</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using DataContracts = Microsoft.ApplicationInsights.DataContracts;
+using TraceTelemetry = Microsoft.ApplicationInsights.DataContracts.TraceTelemetry;
+using EnvironmentFactory = Microsoft.Dynamics.ApplicationPlatform.Environment.EnvironmentFactory;
+
+/// <summary>
+/// Telemetry data contract class containing the information context when writing custom traces to Application Insights.
+/// </summary>
+public class TFMAppInsightsDocQueueTelemetry extends SysApplicationInsightsTelemetryContractBase
+{
+    private TraceTelemetry traceTelemetry;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    private void new()
+    {
+        traceTelemetry = new TraceTelemetry();
+        this.initializeTelemetryContext(traceTelemetry.Context);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>newFromDocumentQueue</Name>
+				<Source><![CDATA[
+    public final static TFMAppInsightsDocQueueTelemetry newFromDocumentQueue(TFMDocumentQueue _documentQueue)
+    {
+        TFMAppInsightsDocQueueTelemetry telemetry = new TFMAppInsightsDocQueueTelemetry();
+        Microsoft.Dynamics.BusinessPlatform.ProductInformation.Provider.ProductInfoProvider provider = Microsoft.Dynamics.BusinessPlatform.ProductInformation.Provider.ProductInfoProvider::get_Provider();
+        str platformName = provider.get_PlatformVersion();
+        str platformBuildVersion = provider.get_PlatformBuildVersion();
+        str productVersion = provider.get_ApplicationVersion();
+        str productBuildVersion = provider.get_ApplicationBuildVersion();
+        TFMDocumentXML requestXML = _documentQueue.RequestXML();
+
+        telemetry.setMessage(strFmt("Document queue - %1",_documentQueue.DocumentType));
+        telemetry.setSeverityLevel( _documentQueue.Status == TFMDocumentQueueStatus::Error ?
+                                        Microsoft.ApplicationInsights.DataContracts.SeverityLevel::Error :
+                                        Microsoft.ApplicationInsights.DataContracts.SeverityLevel::Information);
+        if(_documentQueue.Status == TFMDocumentQueueStatus::Error)
+        {
+            telemetry.addPropertyRequest(TFMHelper::formatXml(requestXML));
+        }
+        telemetry.addPropertyAadTenantId();
+        telemetry.addPropertyActivityId();
+        telemetry.addPropertyEnvironmentId();
+        telemetry.addPropertyCompanyName(CompanyInfo::find().name());
+        telemetry.addPropertyProductVersion(strFmt('%1 (%2)', productVersion, productBuildVersion));
+        telemetry.addPropertyPlatformVersion(strFmt('%1 (%2)', platformName, platformBuildVersion));
+        telemetry.addPropertyTFMVersion();
+        telemetry.addPropertyFeatureName('TFM');
+        telemetry.addPropertyDeviceId(_documentQueue.DeviceId);
+        telemetry.addPropertyDocumentTypeId(_documentQueue.DocumentType);
+        telemetry.addPropertyContentSubject(_documentQueue.ContentSubject);
+        telemetry.addPropertyMessageId(_documentQueue.MessageId);
+        telemetry.addPropertyProcessMS(_documentQueue.msProccessingStart);
+        telemetry.addPropertyCompleteMS(_documentQueue.msProccessingEnd);
+        telemetry.addPropertyDeviceAppVersion(TFMDeviceCapabilities::getValue(_documentQueue.DeviceId, TFMConstants::application(), TFMConstants::version()));
+        telemetry.addPropertyDevicePlatformVersion(TFMDeviceCapabilities::getValue(_documentQueue.DeviceId, TFMConstants::platform(), TFMConstants::version()));
+        telemetry.addPropertyDocumentSize(strLen(requestXML));
+        
+        
+        return telemetry;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addProperty</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Builder method adding a property to the existing telemetry data contract.
+    /// </summary>
+    /// <param name = "_property">Property object to add.</param>
+    /// <returns>The current telemetry contract.</returns>
+    public final TFMAppInsightsDocQueueTelemetry addProperty(SysApplicationInsightsProperty _property)
+    {
+        this.addPropertyBase(_property);
+        return this;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>traceTelemetryContract</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the current native Application Insights trace telemetry contract.
+    /// </summary>
+    /// <returns>An instance of <c>Microsoft.ApplicationInsights.DataContracts.TraceTelemetry</c></returns>
+    public final TraceTelemetry traceTelemetryContract()
+    {
+        return traceTelemetry;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setMessage</Name>
+				<Source><![CDATA[
+    private void setMessage(str _message)
+    {
+        traceTelemetry.Message = _message;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setSeverityLevel</Name>
+				<Source><![CDATA[
+    private void setSeverityLevel(DataContracts.SeverityLevel _severityLevel)
+    {
+        System.Nullable<Microsoft.ApplicationInsights.DataContracts.SeverityLevel> sl = System.Nullable<Microsoft.ApplicationInsights.DataContracts.SeverityLevel>::op_implicit(_severityLevel);
+        traceTelemetry.set_SeverityLevel(sl);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSupportPropertiesObject</Name>
+				<Source><![CDATA[
+    protected Microsoft.ApplicationInsights.DataContracts.ISupportProperties getSupportPropertiesObject()
+    {
+        return traceTelemetry;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyProductVersion</Name>
+				<Source><![CDATA[
+    protected void addPropertyProductVersion(str _version)
+    {
+        this.addPropertyBase(TFMAppInsightsProductVersionProperty::newFromValue(_version));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyPlatformVersion</Name>
+				<Source><![CDATA[
+    protected void addPropertyPlatformVersion(str _version)
+    {
+        this.addPropertyBase(TFMAppInsightsPlatformVersionProperty::newFromValue(_version));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyMessageId</Name>
+				<Source><![CDATA[
+    protected void addPropertyMessageId(guid _messageId)
+    {
+        this.addPropertyBase(TFMAppInsightsMessageIdProperty::newFromValue(guid2Str(_messageId)));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyDeviceId</Name>
+				<Source><![CDATA[
+    protected void addPropertyDeviceId(str _deviceId)
+    {
+        this.addPropertyBase(TFMAppInsightsDeviceIdProperty::newFromValue(_deviceId));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyDocumentTypeId</Name>
+				<Source><![CDATA[
+    protected void addPropertyDocumentTypeId(TFMDocumentTypeId _documentTypeId)
+    {
+        this.addPropertyBase(TFMAppInsightsDocumentTypeIdProperty::newFromValue(_documentTypeId));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyCallStack</Name>
+				<Source><![CDATA[
+    protected void addPropertyCallStack(container _callStack)
+    {
+        this.addPropertyBase(SysApplicationInsightsCallStackProperty::newFromValue(con2Str(_callStack)));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyProcessMS</Name>
+				<Source><![CDATA[
+    protected void addPropertyProcessMS(int _processMS)
+    {
+        this.addPropertyBase(TFMAppInsightsProcessMSCountProperty::newFromValue(int2Str(_processMS)));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyCompleteMS</Name>
+				<Source><![CDATA[
+    protected void addPropertyCompleteMS(int _completeMS)
+    {
+        this.addPropertyBase(TFMAppInsightsCompleteMSCountProperty::newFromValue(int2Str(_completeMS)));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyTFMVersion</Name>
+				<Source><![CDATA[
+    protected void addPropertyTFMVersion()
+    {
+        this.addPropertyBase(TFMAppInsightsTFMVersionProperty::addPropertyVersion());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyDeviceAppVersion</Name>
+				<Source><![CDATA[
+    protected void addPropertyDeviceAppVersion(str _version)
+    {
+        this.addPropertyBase(TFMAppInsightsDeviceAppVersionProperty::newFromValue(_version));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyDevicePlatformVersion</Name>
+				<Source><![CDATA[
+    protected void addPropertyDevicePlatformVersion(str _version)
+    {
+        this.addPropertyBase(TFMAppInsightsDevicePlatformVersionProperty::newFromValue(_version));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyDocumentSize</Name>
+				<Source><![CDATA[
+    protected void addPropertyDocumentSize(int _size)
+    {
+        this.addPropertyBase(TFMAppInsightsDocumentSizeProperty::newFromValue(int2Str(_size)));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyContentSubject</Name>
+				<Source><![CDATA[
+    protected void addPropertyContentSubject(str _content)
+    {
+        this.addPropertyBase(TFMAppInsightsContentSubjectProperty::newFromValue(_content));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyCompanyName</Name>
+				<Source><![CDATA[
+    protected void addPropertyCompanyName(str _name)
+    {
+        this.addPropertyBase(TFMAppInsightsCompanyNameProperty::newFromValue(_name));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyRequest</Name>
+				<Source><![CDATA[
+    protected void addPropertyRequest(str _xml)
+    {
+        this.addPropertyBase(TFMAppInsightsXMLRequestProperty::newFromValue(_xml));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPropertyFeatureName</Name>
+				<Source><![CDATA[
+    protected void addPropertyFeatureName(str _featureName)
+    {
+        this.addPropertyBase(TFMAppInsightsFeatureNameProperty::newFromValue(_featureName));
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

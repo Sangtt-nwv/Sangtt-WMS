@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMProcessTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMProcessTable extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    public void insert()
+    {
+        TFMProcessVersion pVersion;
+        super();
+
+        pVersion.ProcessID = this.ProcessID;
+        pVersion.Version = 1;
+        pVersion.insert();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>currentVersion</Name>
+				<Source><![CDATA[
+    public display Version currentVersion()
+    {
+        return TFMProcessVersion::newestVersion(this.ProcessID);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deltaLevel</Name>
+				<Source><![CDATA[
+    public display TFMDeltaLevel deltaLevel()
+    {
+        TFMProcess process = TFMProcessProvider::GetAllProcessesImpl().getProcessInfo(this.ProcessID);
+        return process ? process.parmDeltaLevel() : TFMDeltaLevel::Custom;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processIdDisplayName</Name>
+				<Source><![CDATA[
+    display str processIdDisplayName()
+    {
+        str value = this.ProcessID;
+        if(this.RevertToClassic)
+        {
+            value = strFmt('%1 %2', value, "(Classic)");
+        }
+        return value;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@TFM:DynamicProcesses</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>ProcessID</TitleField1>
+	<TitleField2>Description</TitleField2>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<DeleteActions>
+		<AxTableDeleteAction>
+			<Name>TFMProcessVersion</Name>
+			<DeleteAction>Cascade</DeleteAction>
+			<Relation></Relation>
+			<Table>TFMProcessVersion</Table>
+			<Tags></Tags>
+		</AxTableDeleteAction>
+	</DeleteActions>
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@TFM:Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ProcessID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>currentVersion</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>deltaLevel</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Header</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ProcessID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>currentVersion</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>deltaLevel</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OriginClass</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RevertToClassic</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>SysRowVersionNumber</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>SysRowVersionNumber</ExtendedDataType>
+			<Null>Yes</Null>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ProcessID</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMProcessID</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Description</Name>
+			<ExtendedDataType>Description255</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OriginClass</Name>
+			<ExtendedDataType>ClassName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>RevertToClassic</Name>
+			<ExtendedDataType>TFMRevertToClassic</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>ProcessIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ProcessID</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

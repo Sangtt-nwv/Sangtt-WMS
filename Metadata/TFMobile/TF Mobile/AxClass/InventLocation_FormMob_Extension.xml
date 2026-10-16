@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>InventLocation_FormMob_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Extension class to capture when the user checks whsEnabled checkbox, to delete a record in the MobInventLocationsPickReceiveTypes table
+/// </summary>
+[ExtensionOf(formStr(InventLocation))]
+final class InventLocation_FormMob_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>InventLocation_WHSEnabled_OnModified</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Event Handler for when user checks a whsEnabled checkbox
+    /// </summary>
+    /// <param name = "_sender">A reference to the checkbox formControl.</param>
+    /// <param name = "_e">Event Args, tell what action has transpired.</param>
+    [FormControlEventHandler(formControlStr(InventLocation, InventLocation_WHSEnabled),FormControlEventType::Modified)]
+    public void InventLocation_WHSEnabled_OnModified(FormControl _sender, FormControlEventArgs _e)
+    {
+        FormCheckBoxControl whsEnabled = _sender as FormCheckBoxControl;
+        if (whsEnabled.checked())
+        {
+            MobInventLocationsPickReceiveTypes  pickReceiveInfo = MobInventLocationsPickReceiveTypes::find(this.InventLocation.InventLocationId,true);
+            if (pickReceiveInfo)
+            {
+                pickReceiveInfo.delete();
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

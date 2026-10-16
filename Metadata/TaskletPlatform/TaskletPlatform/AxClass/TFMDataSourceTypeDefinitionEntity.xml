@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDataSourceTypeDefinitionEntity</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDataSourceTypeDefinitionEntity extends TFMDataSourceTypeDefinition
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>typeName</Name>
+				<Source><![CDATA[
+    public Name typeName()
+    {
+        return 'Entity';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

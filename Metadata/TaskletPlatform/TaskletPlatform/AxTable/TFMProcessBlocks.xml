@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMProcessBlocks</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMProcessBlocks extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public display Name blockName()
+    {
+        TFMLogicBlock block = new SysDictClass(className2Id(this.BlockClass)).makeObject();
+
+        return block.blockName();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>versionIncrement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Called whenever a new version is made of a process. This copies the old versions blocks to the new version, and all its derived data.
+    /// </summary>
+    /// <param name = "_processId">Process that has a new Version</param>
+    /// <param name = "_oldVersion">The version number to copy from</param>
+    /// <param name = "_newVersion">The version number to copy to</param>
+    public static void versionIncrement(TFMProcessID _processId, Version _oldVersion, Version _newVersion)
+    {
+        TFMProcessBlocks            blocks;
+        TFMProcessBlockchainLinks   links;
+        Map                         linkIds = new Map(Types::Int64, Types::Int64);
+        TFMProcessBlockRef          bRef;
+        MapEnumerator               mEnum;
+        TFMProcess                  process;
+        TFMProcessBlockAddons       addons;
+        TFMGenericParms             genericParms;
+
+        if(!TFMProcessProvider::GetAllProcessesImpl().processExists(_processId))
+        {
+            return;
+        }
+    
+        process = TFMProcessProvider::GetAllProcessesImpl().getProcess(_processId, _oldVersion);
+
+        if (!_oldVersion && process.parmDeltaLevel() == TFMDeltaLevel::Code)
+        {
+            //Create from Code object
+            process.writeBlocksToData(_newVersion);
+            mEnum = process.blockCollection().blocksSet().getEnumerator();
+            while (mEnum.moveNext())
+            {
+                TFMProcessBlocks::incrementVersionForGenericParametersForBlock(process, mEnum.currentKey());
+            }
+        }
+        
+        while select blocks where blocks.ProcessID == _processId && blocks.Version == _oldVersion
+        {
+            bRef = blocks.RecId;
+            blocks.Version = _newVersion;
+            blocks.insert();
+            linkIds.insert(bRef, blocks.RecId);
+
+            // update generic parms for block
+            TFMProcessBlocks::incrementVersionForGenericParametersForBlock(process, blocks.BlockName);
+
+        }
+
+        while select addons where addons.ProcessID == _processId && addons.Version == _oldVersion
+        {
+            addons.Version = _newVersion;
+            addons.insert();
+        }
+        if (_oldVersion < 1)
+        {
+            // get from code version
+            process.blockCollection().convertAddonsFromCodeToDelta(_newVersion);
+        }
+
+        mEnum = linkIds.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            bRef = mEnum.currentKey();
+            while select links where links.FromBlock == bRef
+            {
+                links.FromBlock = mEnum.currentValue();
+                links.ToBlock = linkIds.lookup(links.ToBlock);
+                links.insert();
+            }
+        }
+
+        TFMConditionsTable::versionIncrement(_processId, _oldVersion, _newVersion);
+        TFMProcessCombinedFields::IncrementVersion(_processId, _oldVersion, _newVersion);
+        TFMProcessCollectorDeviations::IncrementVersion(_processId, _oldVersion, _newVersion);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>incrementVersionForGenericParametersForBlock</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Increments the Generic Parameters for Blocks
+    ///
+    /// The generic parms for blocks are stored like:
+    /// Content: process:AddPickLine/1/If Operator
+    ///
+    ///  Therefore when incrementing the number is incremented by one.
+    /// </summary>
+    /// <param name = "_process"></param>
+    /// <param name = "_blockName"></param>
+    public static void incrementVersionForGenericParametersForBlock(TFMProcess _process, str _blockName)
+    {
+        TFMGenericParms genericParms;
+        str blockContentKey = TFMProcessBlocksParametersEdit::GetProcessContentForGenericParmsForBlocks(_process, _blockName);
+        str newBlockContentKey = strReplace(blockContentKey, '/' + int2Str(_process.parmVersion()) + '/', '/' + int2Str(_process.parmVersion() +1) + '/');
+        str oldDomainKey        = TFMProcessBlocksParametersEdit::GetProcessKeyForGenericParms(_process);
+        str newDomainKey        = strReplace(oldDomainKey, '/' + int2Str(_process.parmVersion()), '/' + int2Str(_process.parmVersion() +1));
+
+        while select genericParms where genericParms.Domain == blockContentKey
+        {
+            genericParms.Domain = newBlockContentKey;
+            genericParms.insert();
+        }
+
+        while select genericParms where genericParms.Domain == oldDomainKey
+        {
+            genericParms.Domain = newDomainKey;
+            genericParms.insert();
+        }
+
+        if (_process.parmVersion() < 1)
+        {
+            // Code layer to delta initialize
+            TFMLogicBlock                   block = _process.blockCollection().blockFromName(_blockName);
+            SysDictClass                    sdc = new SysDictClass(classIdGet(block));
+            SetEnumerator                   sEnum = TFMFormLookupHelper::parmMethodsOnClass(sdc.id(),false, Types::Class).getEnumerator();
+            SysDictMethod                   DM;
+            Array                           array;       
+            MapEnumerator                   components;
+            TFMLogicComponent               component;
+            TFMParameterAttribute           parmAttr;
+            ClassName                       blockClassName = classId2Name(classIdGet(block));
+            
+            while (sEnum.moveNext())
+            {
+                DM = sEnum.current();
+                parmAttr = DM.getAttribute(classstr(TFMParameterAttribute));
+                if (parmAttr != null)
+                {
+                    if (DM.returnType() == Types::Enum)
+                    {
+                        TFMGenericParms::CreateOrUpdateParameter(newBlockContentKey, blockClassName,DM.name(), TFMDocCustomFunctionFlow::ConvertToType(strFmt('%1',sdc.callObject(DM.name(),block)),Types::Enum, DM.returnTypeName()));
+                    }
+                    else
+                    {
+                        TFMGenericParms::CreateOrUpdateParameter(newBlockContentKey, blockClassName,DM.name(), sdc.callObject(DM.name(),block));
+                    }
+                }
+            }
+            //Find subcomponents parameters
+            components = block.components().componentSet().getEnumerator();
+
+            while (components.moveNext())
+            {
+                component = components.currentValue();
+                sdc = new SysDictClass(classIdGet(component));
+                sEnum = TFMFormLookupHelper::parmMethodsOnClass(sdc.id(),false, Types::Class).getEnumerator();
+                while (sEnum.moveNext())
+                {
+                    DM = sEnum.current();
+                    parmAttr = DM.getAttribute(classstr(TFMParameterAttribute));
+                    if (parmAttr != null)
+                    {
+                        if (DM.returnType() == Types::Enum)
+                        {
+                            TFMGenericParms::CreateOrUpdateParameter(newBlockContentKey, blockClassName,DM.name(), TFMDocCustomFunctionFlow::ConvertToType(strFmt('%1',sdc.callObject(DM.name(),component)),Types::Enum, DM.returnTypeName()));
+                        }
+                        else
+                        {
+                            TFMGenericParms::CreateOrUpdateParameter(newBlockContentKey, blockClassName,DM.name(), sdc.callObject(DM.name(),component));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DeleteAllGenericParmsForBlocks</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Deletes all Generic parameters for a process.
+    /// </summary>
+    /// <param name = "_processId"></param>
+    public static void DeleteAllGenericParmsForBlocks(TFMProcessID _processId)
+    {
+        TFMGenericParms genericParms;
+
+        str startOfContentForProcess = TFMProcess::GetProcessDomainName(_processId) + '/*';
+
+        while select forUpdate genericParms where genericParms.Domain like startOfContentForProcess
+        {
+            genericParms.delete();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    public void insert()
+    {
+        this.checkBlockName();
+
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkBlockName</Name>
+				<Source><![CDATA[
+    public void checkBlockName()
+    {
+        int addition;
+        
+        TFMProcessBlocks procBlock;
+        //Test if name already exists in process
+        
+        select firstonly BlockName from procBlock where procBlock.ProcessID == this.ProcessID && procBlock.BlockClass == this.BlockClass && procBlock.Version == this.Version && procBlock.BlockName == this.BlockName;
+        while (procBlock)
+        {
+            select firstonly BlockName from procBlock where procBlock.ProcessID == this.ProcessID && procBlock.BlockClass == this.BlockClass && procBlock.Version == this.Version && procBlock.BlockName == (this.BlockName + int2Str(addition));
+            
+            if (!procBlock)
+            {
+                this.blockName += int2Str(addition);
+            }
+            addition++;
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>BlockClass</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>blockName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ProcessID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Version</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>BlockClass</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>blockName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ProcessID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Version</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>blockName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>SysRowVersionNumber</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>SysRowVersionNumber</ExtendedDataType>
+			<Null>Yes</Null>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>BlockClass</Name>
+			<ExtendedDataType>ClassName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ProcessID</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMProcessID</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Version</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>Version</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>BlockName</Name>
+			<ExtendedDataType>NAme</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>BlockIdx</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>BlockClass</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>ProcessID</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>Version</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>BlockName</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>TFMProcessVersion</Name>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>TFMProcessVersion</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ProcessID</Name>
+					<Field>ProcessID</Field>
+					<RelatedField>ProcessID</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>Version</Name>
+					<Field>Version</Field>
+					<RelatedField>Version</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>TFMProcessBlockChainLinksTo</Name>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>TFMProcessBlockChainLinks</RelatedTable>
+			<Validate>No</Validate>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>RecId</Name>
+					<Field>RecId</Field>
+					<RelatedField>ToBlock</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>TFMProcessBlockChainLinksFrom</Name>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>TFMProcessBlockChainLinks</RelatedTable>
+			<Validate>No</Validate>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>RecId</Name>
+					<Field>RecId</Field>
+					<RelatedField>FromBlock</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPostOrderPromptOverrideLines</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMPostOrderPromptOverrideLines extends common
+{
+    
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>modifiedField</Name>
+				<Source><![CDATA[
+    public void modifiedField(FieldId _fieldId)
+    {
+        if (_fieldId == fieldNum(TFMPostOrderPromptOverrideLines, InputType) && this.inputType != this.orig().inputType)
+        {
+            TFMPostOrderPromptOverrideLineFields::createFromLinesRecord(this);
+        }
+        if (_fieldId == fieldNum(TFMPostOrderPromptOverrideLines, Name))
+        {
+            this.Name = strKeep(this.Name,'1234567890qwertyuioplkjhgfdsazxcvbnm');
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindRecID</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Find method using RecID as key.
+    /// </summary>
+    public static TFMPostOrderPromptOverrideLines FindRecID(RefRecId _recID)
+    {
+        TFMPostOrderPromptOverrideLines line;
+        select firstonly line where line.RecId == _recID;
+        return line;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCollectorMap</Name>
+				<Source><![CDATA[
+    public Map getCollectorMap()
+    {        
+        TFMPostOrderPromptOverrideLineFields    fields;
+        Map                                     fieldMap = new Map ( Types::String, Types::String);
+        #tfm
+        fieldMap.insert(TFMConstants::AttributeName(),this.Name);
+        fieldMap.insert(TFMConstants::AttributeId(),int2Str(this.LineID));
+        fieldMap.insert(TFMConstants::AttributeInputType(),enum2Symbol(enumNum(TFMInputTypes),this.InputType));
+        while select fields where fields.LinesRecId == this.RecId
+        {
+            fieldMap.insert(fields.FieldName, fields.Value);
+        }
+        return fieldMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void insert()
+    {
+        super();
+        TFMPostOrderPromptOverrideLineFields::createFromLinesRecord(this);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:PostorderPromptLinesDevDoc</DeveloperDocumentation>
+	<Label>@TFM:CollectionSteps</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>Name</TitleField1>
+	<TitleField2>InputType</TitleField2>
+	<ReplacementKey>uniqueIdx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>InputType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LineID</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>InputType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LineID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TFMPostOrderPromptOverrideRecID</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LineID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InputType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>HeadingLine</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Reference</Name>
+			<Label>@SYS41041</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>TFMPostOrderPromptOverrideRecID</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>InputType</Name>
+			<EnumType>TFMInputTypes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Name</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>LineID</Name>
+			<ExtendedDataType>TFMMenuSorting</ExtendedDataType>
+			<Label>@SYS5468</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>TFMPostOrderPromptOverrideRecID</Name>
+			<ExtendedDataType>TFMPostOrderPromptOverrideRecID</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>HeadingLine</Name>
+			<EnumType>HeadingLine</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>uniqueIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>InputType</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>LineID</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>Name</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>TFMPostOrderPromptOverrideRecID</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>TFMPostOrderPromptOverride</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>TFMPostOrderPromptOverride</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>TFMPostOrderPromptOverrideRecID</Name>
+					<Field>TFMPostOrderPromptOverrideRecID</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+			<Index>RecId</Index>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

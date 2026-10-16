@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContext</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMLogicContext
+{
+    Map ContextObjects;
+    Map aliases;
+    Map DataContext;
+    Map fieldsAndContent;
+    Set fieldsToTransfer;
+    boolean                     executedFromDevice;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmExecutedFromDevice</Name>
+				<Source><![CDATA[
+    public boolean parmExecutedFromDevice(boolean _executedFromDevice = executedFromDevice)
+    {
+        executedFromDevice = _executedFromDevice;
+        return executedFromDevice;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    private void new()
+    {        
+        ContextObjects      = new Map(Types::String, Types::Class);
+        DataContext         = new Map(Types::String, Types::Class);
+        aliases             = new Map(Types::String, Types::String);
+        fieldsAndContent    = new Map(Types::String, Types::String);
+        fieldsToTransfer    = new Set(Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMLogicContext Construct()
+    {
+        return new TFMLogicContext();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addContextObject</Name>
+				<Source><![CDATA[
+    public void addContextObject(TFMLogicContextObject _object)
+    {
+        ContextObjects.insert(_object.Name(), _object);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addFieldContent</Name>
+				<Source><![CDATA[
+    public void addFieldContent(str _key, str _value, boolean _transferVariable = false)
+    {
+        fieldsAndContent.insert(_key, _value);
+        if (_transferVariable && _value)
+        {
+            fieldsToTransfer.add(_key);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDataSourcesToTransfer</Name>
+				<Source><![CDATA[
+    public str getDataSourcesToTransfer()
+    {
+        MapEnumerator       mEnum = DataContext.getEnumerator(), inlineMEnum;
+        Map                 inlineDataContext;
+        str                 transferData = '';
+        Common              data;
+        while (mEnum.moveNext())
+        {
+            inlineDataContext = mEnum.currentValue();
+            inlineMEnum = inlineDataContext.getEnumerator();
+            while (inlineMEnum.moveNext())
+            {
+                data = inlineMEnum.currentValue();
+                transferData += (transferData? '[;]' : '') + mEnum.currentKey() + '[=]' + inlineMEnum.currentKey() + '[=]' + int642Str(data.RecId);
+            }
+        }
+        return transferData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDataContextMap</Name>
+				<Source><![CDATA[
+    public Map getDataContextMap()
+    {
+        return DataContext;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>extractTableData</Name>
+				<Source><![CDATA[
+    public container extractTableData(str _value)
+    {
+        anytype tableFieldValue;
+        str tableName;
+        str tableFieldName;
+        str methodName;
+        boolean foundValue;
+        [tableName, tableFieldName, methodName] = TFMLogicContext::splitString2TableFieldAndMethod(_value);
+        int fieldId = fieldName2Id(tableName2Id(tableName), tableFieldName);
+        Common tableToUse = this.getTableFromAnyBlock(tableName);
+        if (fieldId && tableToUse.tableid == tableName2Id(tableName))
+        {
+            tableFieldValue = tableToUse.tableid == tableName2Id(tableName) ? tableToUse.(fieldId) : '';
+            foundValue = true;
+        }
+        else if (methodName && tableToUse.tableid == tableName2Id(tableName))
+        {
+            tableFieldValue = new SysDictTable(tableToUse.TableId).callObject(methodName, tableToUse);
+            foundValue = true;
+        }
+        return [tableFieldValue, foundValue];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>replaceWithValue</Name>
+				<Source><![CDATA[
+    public anytype replaceWithValue(str _value, Map _additionalValues = new Map(Types::String, Types::String), boolean _outputString = true)    
+    {
+        str varValue    = this.getFieldContent(_value); // replaces, if variable
+        str fieldName   = TFMHelper::matchRegex(_value, @'{(.*?)}');
+        str fieldValue  = _additionalValues.exists(fieldName) ? _additionalValues.lookup(fieldName) : '';
+        anytype tableFieldValue;
+        boolean foundTableValue; 
+
+        if (!varValue && !fieldValue)
+        {
+            //Try data
+            [tableFieldValue,foundTableValue] = this.extractTableData(_value);
+            
+        }
+        if (_outputString)
+        {
+            return strFmt('%1',varValue ? varValue : (fieldValue ? fieldValue : (foundTableValue ? tableFieldValue : _value)));
+        }
+        return varValue ? varValue : (fieldValue ? fieldValue : (foundTableValue ? tableFieldValue : _value));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>splitString2TableFieldAndMethod</Name>
+				<Source><![CDATA[
+    public static container splitString2TableFieldAndMethod(str _inputStr)
+    {
+        str tableName = TFMHelper::matchRegex(_inputStr, @'(.*?)\.');
+        str tableFieldName = TFMHelper::matchRegex(_inputStr, @'\.(.*)');
+        str methodName = strScan(tableFieldName, '()', 1,1000) ? strReplace(tableFieldName, '()','') : '';
+
+        return [tableName, tableFieldName, methodName];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initiateTransferedData</Name>
+				<Source><![CDATA[
+    public void initiateTransferedData(str _dataTransfer)
+    {
+        ListEnumerator      lEnum = TFMHelper::strSplit(_dataTransfer, '[;]').getEnumerator();
+        List                keyAndValue;
+        ListEnumerator      kvEnum;
+        str                 blockName, tableName, recId;
+        while (lEnum.moveNext())
+        {
+            keyAndValue = TFMHelper::strSplit(lEnum.current(),'[=]');
+            if (keyAndValue.elements() == 3)
+            {
+                kvEnum = keyAndValue.getEnumerator();
+                kvEnum.moveNext();
+                blockName = kvEnum.current();
+                kvEnum.moveNext();
+                tableName = kvEnum.current();
+                kvEnum.moveNext();
+                recId = kvEnum.current();
+                if (strScan(tableName, '(',0,100))
+                {
+                    tableName = TFMHelper::matchRegex(tableName, @'(.*?)\(');
+                }
+                this.addDataContext(this.getData(tableName, recId),blockName);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getData</Name>
+				<Source><![CDATA[
+    protected Common getData(TableName _tableName, str _recID)
+    {
+        SysDictTable sdt = new SysDictTable(tableName2Id(_tableName));
+        Common common = sdt.makeRecord();
+        RecId recid = str2Int64(_recID);
+        select firstonly common where common.RecId == recid;
+
+        return common;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getValuesToTransfer</Name>
+				<Source><![CDATA[
+    public str getValuesToTransfer()
+    {
+        SetEnumerator       sEnum = fieldsToTransfer.getEnumerator();
+        str                 transferValues = '';
+        while (sEnum.moveNext())
+        {
+            transferValues += (transferValues? '[;]' : '') + sEnum.current() + '[=]' + fieldsAndContent.lookup(sEnum.current());
+        }
+        return transferValues;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>transferValuesAndData</Name>
+				<Source><![CDATA[
+    public void transferValuesAndData(TFMRequestElement _request)
+    {
+        int                                         varsCounter = 1;
+        int                                         dataCounter = 1;
+        this.initiateTransferedData(_request.getFieldValue(TFMConstants::dataSources()));
+        while (_request.getFieldMap().exists(TFMConstants::dataSources()+ int2Str(dataCounter)))
+        {
+            this.initiateTransferedData(_request.getFieldValue(TFMConstants::dataSources()+ int2Str(dataCounter)));
+            dataCounter++;
+        }
+        this.initiateTransferedValues(_request.getFieldValue(TFMConstants::variables()), _request);
+        while (_request.getFieldMap().exists(TFMConstants::variables()+ int2Str(varsCounter)))
+        {
+            this.initiateTransferedValues(_request.getFieldValue(TFMConstants::variables()+ int2Str(varsCounter)), _request);
+            varsCounter++;
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initiateTransferedValues</Name>
+				<Source><![CDATA[
+    public void initiateTransferedValues(str _transferValues, TFMRequestElement _request)
+    {
+        ListEnumerator      lEnum = TFMHelper::strSplit(_transferValues, '[;]').getEnumerator();        
+        List                keyAndValue;
+        ListEnumerator      kvEnum;
+        str                 key, value;
+        while (lEnum.moveNext())
+        {
+            keyAndValue = TFMHelper::strSplit(lEnum.current(),'[=]');
+            if (keyAndValue.elements() == 2)
+            {
+                kvEnum = keyAndValue.getEnumerator();
+                kvEnum.moveNext();
+                key = kvEnum.current();
+                kvEnum.moveNext();
+                value = kvEnum.current();
+                this.addFieldContent(key, value, true);
+                
+                _request.addField(key,value,true);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFieldContent</Name>
+				<Source><![CDATA[
+    public str getFieldContent(str _key)
+    {
+        return fieldsAndContent.exists(_key) ? fieldsAndContent.lookup(_key) : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addMultipleFields</Name>
+				<Source><![CDATA[
+    public void addMultipleFields(Map _additionalFields)
+    {
+        TFMHelper::mergeMaps(fieldsAndContent, _additionalFields);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getContextObject</Name>
+				<Source><![CDATA[
+    public TFMLogicContextObject getContextObject(str _key)
+    {
+        TFMLogicContextObject   contextObject;
+        ListEnumerator          lEnum = new SysDictClass(classNum(TFMLogicContextObject)).extendedBy(true).getEnumerator();
+        SysDictClass            sdc;
+        str                     key = aliases.exists(_key) ? aliases.lookup(_key) : _key;
+        
+        while (!ContextObjects.exists(key) && lEnum.moveNext())
+        {
+            sdc = new SysDictClass(lEnum.current());
+            if (sdc.isAbstract())
+            {
+                continue;
+            }
+            contextObject = sdc.makeObject();
+            if (contextObject.Name() == key || sdc.name() == key)
+            {
+                if (!ContextObjects.exists(contextObject.Name())) //Making sure there is an object, if programmer hasn't added it from component, or only added it in a step.
+                {
+                    ContextObjects.insert(contextObject.Name(),contextObject); // Only one in context
+                }
+                aliases.insert(sdc.name(),contextObject.Name());
+                
+            }
+        }
+        return ContextObjects.exists(key) ? ContextObjects.lookup(key) : (aliases.exists(key) ? ContextObjects.lookup(aliases.lookup(key)) : null);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ObjectList</Name>
+				<Source><![CDATA[
+    public Map ObjectList()
+    {        
+        return ContextObjects;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDataContext</Name>
+				<Source><![CDATA[
+    public void addDataContext(Common _common, Name _originBlockName)
+    {
+        Map internalDataContext = DataContext.exists(_originBlockName) ? DataContext.lookup(_originBlockName) : new Map(Types::String, Types::Record);
+        int postFix = 0;
+        Common  commonExisting;
+        while (internalDataContext.exists(tableId2Name(_common.TableId) + (postFix ? '('+int2Str(postFix)+')' : '')))
+        {
+            
+            commonExisting = internalDataContext.lookup(tableId2Name(_common.TableId) + (postFix ? '('+int2Str(postFix)+')' : ''));
+            if (commonExisting.RecId == _common.RecId)
+            {
+                //Same Table. No Reason to add;
+                return;
+            }
+            postFix++;
+        }
+        internalDataContext.insert(tableId2Name(_common.TableId) + (postFix ? '('+int2Str(postFix)+')' : ''), _common);
+        DataContext.insert(_originBlockName, internalDataContext);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDataContext</Name>
+				<Source><![CDATA[
+    public Common getDataContext(TableName _tableName, Name _blockName)
+    {
+        Map     internalDataContext = DataContext.exists(_blockName) ? DataContext.lookup(_blockName) : null;
+        Common  record;
+        if (!internalDataContext)
+        {
+            return null;
+        }
+        record = internalDataContext.exists(_tableName) ? internalDataContext.lookup(_tableName) : null;
+
+        if (!record)
+        {
+            record = this.getTableFromAnyBlock(_tableName);
+        }
+
+        return record;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTableFromAnyBlock</Name>
+				<Source><![CDATA[
+    public Common getTableFromAnyBlock(TableName _tableName)
+    {
+        Map internalDataContext;
+        MapEnumerator mEnum = DataContext.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            internalDataContext = mEnum.currentValue();
+            if (internalDataContext.exists(_tableName))
+            {
+                return internalDataContext.lookup(_tableName);
+            }
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

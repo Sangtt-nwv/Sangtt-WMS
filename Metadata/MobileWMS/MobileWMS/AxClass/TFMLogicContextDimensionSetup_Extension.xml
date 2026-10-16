@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContextDimensionSetup_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classStr(TFMLogicContextDimensionSetup))]
+final class TFMLogicContextDimensionSetup_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public Object process(TFMInventDimFieldName _fieldName, ItemId _itemId)
+    {
+        TFMInventDimensionSetupContract contract = next process(_fieldName, _itemId);
+        InventTable inventTable = InventTable::find(_itemId);
+        TFMInventDimSetup inventDimSetup = TFMInventDimSetup::Construct(inventTable);
+        if( _fieldName == fieldStr(InventDim, WMSLocationId))
+        {
+            contract.parmActive(inventDimSetup.registerWMSLocation() && !inventDimSetup.registerLicensePlate());
+        }
+        else if (_fieldName == fieldStr(InventDim, LicensePlateId))
+        {            
+            contract.parmActive(inventDimSetup.registerLicensePlate());
+        }
+        InventDim inventDim = context.getTableFromAnyBlock(tableStr(InventDim));
+        InventBatch     batchTbl;
+        batchTbl = InventBatch::find(inventDim.inventBatchId, _itemId);
+        //Batch Expiration with condition: if (((iTbl.BatchNumGroupId && InventNumGroup::find(iTbl.BatchNumGroupId).MobInclExpectedDate)) && dimSetup.registerBatchID() && (!batchTbl || (!batchTbl.expDate)))
+        if (((inventTable.BatchNumGroupId && InventNumGroup::find(inventTable.BatchNumGroupId).MobInclExpectedDate)) && inventDimSetup.registerBatchID() && (!batchTbl || (!batchTbl.expDate)))
+        {
+            contract.parmExpDateActive(true);
+        }
+
+        return contract;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMOrderListPostOrderDocumentTypeAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMOrderListPostOrderDocumentTypeAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    MethodName	methodName;
+    TFMPageID	pageId;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(TFMPageID	_pageId, MethodName _methodName)
+    {
+        super();
+ 
+        methodName = _methodName;
+        pageId = _pageId;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMethodName</Name>
+				<Source><![CDATA[
+    public MethodName parmMethodName(MethodName	_methodName = methodName)
+    {
+        methodName = _methodName;
+ 
+        return methodName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPageID</Name>
+				<Source><![CDATA[
+    public TFMPageID parmPageID(TFMPageID	_pageId = pageId)
+    {
+        pageId = _pageId;
+ 
+        return pageId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classid2name(classIdGet(this))+';'+pageId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

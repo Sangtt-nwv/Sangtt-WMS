@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowBlockStyleCondition</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDrawFlowBlockStyleCondition extends TFMDrawFlowBlockStyle
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>styleProvidedForThisClass</Name>
+				<Source><![CDATA[
+    public ClassName styleProvidedForThisClass()
+    {
+        return classStr(TFMCondition);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>htmlForClass</Name>
+				<Source><![CDATA[
+    public str htmlForClass(Object _object)
+    {
+        TFMCondition condition = _object;
+        str outputDivsHtml = TFMDrawFlowBlockStyleCondition::addOutputLabels(condition);
+        str boxText = condition.parmDataContract().detailsValue();
+        str html = outputDivsHtml + '<div><div class="title-box"><i class="fab fa-logicblock"></i><img src="'+ condition.parmDataContract().iconUrl() + '" width="35px"><b>' + condition.nodeDisplay() + '</b></div>'+ (boxText ? '<div class="box"><p>'+ boxText + '</p></div>' : '')+'</div>';
+        return html;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addOutputLabels</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Adds returns output labels divs.
+    /// </summary>
+    /// <param name = "_condition">A condition object, to find the output from</param>
+    /// <returns>The html necessary to show output type on the node.</returns>
+    public static str addOutputLabels(TFMCondition _condition)
+    {
+        
+        str             inputLabel = _condition.parmDataContract().inputTypes().elements() > 1 ? "@TFM:Multiple" : strFmt('%1', _condition.parmDataContract().inputTypes());
+        str             inputDivs;
+        inputLabel = strReplace(strReplace(inputLabel,'{',''), '}', '');
+        for (int i = 0; i < _condition.parmDataContract().noOfinputs(); i++)
+        {
+            inputDivs += '<div class="logicblockinput stroketext logicblockinputoutput_' + int2Str(i) + '" style="height: 0px">' + inputLabel + '</div>';
+        }
+        return inputDivs + '<div class="logicblockoutput stroketext logicblockinputoutput_1" style="height: 0px">' + strFmt('%1', _condition.parmDataContract().outputType()) + '</div>';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

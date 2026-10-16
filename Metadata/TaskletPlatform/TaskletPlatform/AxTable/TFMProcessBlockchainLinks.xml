@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMProcessBlockchainLinks</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMProcessBlockchainLinks extends common
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    public void insert()
+    {
+        super();
+        if (TFMProcessBlockchainLinks::loopCheck(this.ToBlock))
+        {
+            throw Error("@TFM:Cycledetected");
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>loopCheck</Name>
+				<Source><![CDATA[
+	public static boolean loopCheck(RefRecId _fromLink)
+    {
+        Set setVisited = new Set(Types::Int64);
+        Set setStack = new Set(Types::Int64);
+        return TFMProcessBlockchainLinks::hasLoop(_fromLink,setVisited, setStack);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>hasLoop</Name>
+				<Source><![CDATA[
+    protected static boolean hasLoop(RefRecId _fromLink, Set _setVisited, Set _setStack)
+    {
+        
+        TFMProcessBlockchainLinks   blockLinks;
+        
+        _setVisited.add(_fromLink);
+        _setStack.add(_fromLink);
+
+        while select blockLinks where blockLinks.FromBlock == _fromLink
+        {
+            
+            if (!_setVisited.in(blockLinks.ToBlock))
+            {
+                if (TFMProcessBlockchainLinks::hasLoop(blockLinks.ToBlock, _setVisited, _setStack))
+                    return true;
+            }
+            else if (_setStack.in(blockLinks.ToBlock))
+            {
+                return true;
+            }
+        }
+
+        _setStack.remove(_fromLink);
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processId</Name>
+				<Source><![CDATA[
+    public display TFMProcessID processId()
+    {
+        TFMProcessBlocks blocks;
+
+        select firstonly ProcessID, RecId from blocks where blocks.RecId == this.FromBlock;
+        return blocks.ProcessID;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>version</Name>
+				<Source><![CDATA[
+    public display Version version()
+    {
+        TFMProcessBlocks blocks;
+
+        select firstonly Version, RecId from blocks where blocks.RecId == this.FromBlock;
+        return blocks.Version;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>SysRowVersionNumber</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>SysRowVersionNumber</ExtendedDataType>
+			<Null>Yes</Null>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>FromBlock</Name>
+			<ExtendedDataType>TFMProcessBlockRef</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>ToBlock</Name>
+			<ExtendedDataType>TFMProcessBlockRef</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FromName</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>toName</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>TFMProcessBlocks</Name>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>TFMProcessBlocks</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>FromBlock</Name>
+					<Field>FromBlock</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+			<Index>RecId</Index>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>TFMProcessBlocks1</Name>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>TFMProcessBlocks</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ToBlock</Name>
+					<Field>ToBlock</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+			<Index>RecId</Index>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

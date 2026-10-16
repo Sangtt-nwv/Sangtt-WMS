@@ -1,0 +1,1247 @@
+Accumulateitems=Accumulate items
+Accumulatelines=Accumulate lines
+Action=Action
+ActiononEmptyList=Action on Empty List
+ ;created from MobActionOnEmptyList, //AxEnum/Label
+Actions=Actions
+ ;created from MobPageOverview, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Caption
+ActionType=Action Type
+ ;New Comment
+AddClientID=Add Client ID
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+AddCountLine=Add Count Line
+addDefaultMenuItems=Add default menu items
+AddedToDocumentType=Added %1 '%2' to document type: '%3'
+ ;New Comment
+Additionalconfigurationsfortheme=Additional configurations for the menu item
+ ;created from MobPageConfigurator, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Caption
+AdditionalHelp=<br><br><h4><b>Additional Help</b></h4>For further help please look at our documentation <a href="https://docs.taskletfactory.com/label/TFSK/%1">online</a>.
+AdditionalMaterials=Additional materials picked with Mobile WMS
+AdditionalProperties=Additional Properties
+Additionalpropertiesformenuitemi=Additional properties for menu item (if any):
+additionalValues=Additional Values
+AddLabelidsfromLabelFilesfortoTr=Add Label ids from Label Files for to Translation labelID Lookup Table
+ ;created from MobTranslations, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+addMenuItem=Add Menu Item
+AddnewClientID=Add new Client ID
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+AddShowAllInFilter=Add Show All In Filter
+ ;created from MobDocLocateItem, //AxClass/SourceCode/Methods
+Addtionalorderlevelregistrations=Addtional order level registrations
+AddtoOrder=Add to Order
+ ;created from MobConsolidatePickingRoutes, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Addusergroup=Add user/group
+Adhoc=Adhoc
+AdhocAction=Adhoc Action
+AdjustmentCause=Adjustment Cause
+AdjustSignInTime=Adjust Sign In Time
+ ;created from MobDocShopFloorIPC, //AxClass/SourceCode/Methods
+Advancedsettings=Advanced settings
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Caption
+AIs=AIs
+AllowLocationChange=Allow Location Change
+ ;parameter, order lines datasource
+Allthemenuitemsfortheselectedpag=All the menu items for the selected page(s) will be deleted and the standard and mandatory menu items will be restored. Do you want to continue?
+ ;created from MobApplicationConfigImporter, //AxForm/SourceCode/DataControls/Control/Methods
+Android=Android
+AnerroroccurredPleasetryagain=An error occurred. Please try again.
+ ;created from MobDeviceConnectionGuideFormClass, //AxClass/SourceCode/Methods
+AnyRegistration=Any registration
+ ;Line completion definition type
+ApplicationConfiguration=Application Configuration
+ApplicationIdentifierSetup=Application Identifier Setup
+ ;created from MobPageConfiguratorFormClass, //AxClass/SourceCode/Methods
+ApplyDirectly=Apply Directly
+Areyousureyouwanttodeleteallthes=Are you sure you want to delete all the settings and parameters set up for TF Mobile WMS?
+ ;created from MobFeedbackPart, //AxForm/SourceCode/DataControls/Control/Methods
+AttachImage=Attach Image
+ ;New Comment
+AttachToCart=Attach To Cart
+Attributes=Attributes
+Auto=Auto
+AutomaticAccept=Automatic Accept
+Automaticacceptonopen=Automatic accept on open
+ ;created from MobFeedbackPart, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Label
+Autosave=Auto save
+AvailableExpressions=Available Expressions
+AvailableItems=Available Items
+AvailableonMenupages=Available on Menu pages
+Back=Back
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Backslash_N=\n
+BarcodeFormat=Barcode Format (Regular Expression)
+Barcodeforscanningusername=Barcode for scanning user name
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+BatchDoesNotExistOnItem=Batch %1 does not exist on item %2
+ ;New Comment
+BatchHasExpired=Batch has expired
+ ;New Comment
+BatchNotAvailable=Only %1 of the %5 exists at location %2. %4 has been reserved for this order. You can not pick the entire expected quantity of %3 from this location.
+ ;New Comment
+BCC128HDNarrow=BC C128 HD Narrow
+ ;created from Mob2DBarcodeGenerator, //AxClass/SourceCode/Methods
+Bug=Bug
+Cachevalue=Cache value
+ ;created from MobFeedbackPart, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Label
+CancelBehaviour=Cancel Behaviour
+CancelPickLine=Cancel Pick Line
+CantremoveCartreferenceitemsoncart=Can't remove reference. There are items on the cart
+Caption=Caption
+Cart=Cart
+CartContents=Cart Contents
+Cartcreated=Cart created
+CartCurrentlyUsedBy=Cart is currently used by 
+CartID=Cart ID
+CartModeSwitched=Cart Mode Switched
+CartPickListLink=Cart Pick List Link
+ ;created from MobCartPicklistLink, //AxTable/Label
+Carts=Carts
+Carts_DevDoc=Table of carts and their locations and LP
+Cartupdated=Cart updated
+CellModifications=Cell Modifications
+CellName=Cell Name
+CenterXinpercentage=Center X (percentage)
+CenterYInPercentage=Center Y (Percentage)
+Choosetheconfigurationstoimport=Choose the configurations to import
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Choosethepagestoimport=Choose the pages to import
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+clearallmobcaches=Clear all MobileWMS Caches
+Clearandrestoredefaultmenuitems=Clear and restore (default) menu items
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Clearandrestoremenuitems=Clear and restore menu items
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Clearcache=Clear cache
+ ;created from MobFeedbackPart, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+clearCompletedOrders=Clear completed orders
+Clearsallmenuitemsandrestoresthe=Clears all menu items and restores the standard menu items for the selected pages
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+ClientId=Client Id
+ ;created from MobDeviceConnectionGuideFormClass, //AxClass/SourceCode/Methods
+ClientIDalreadycreated=Client ID already created
+ ;created from MobDeviceConnectionGuideFormClass, //AxClass/SourceCode/Methods
+ClosePage=Close Page
+ ;created from MobActionOnEmptyList, //AxEnum/EnumValues/AxEnumValue/Label
+CodeOrigin=Code Origin
+CollectionSteps=Collection Steps
+ ;New Comment
+CombineImages=Combine Images
+Command=Command
+Commands=Commands
+CompleteLicensePlateOnQOrder=You need to put the entire license plate in quarantine, or move the quarantined goods to its own license plate first
+Configurationstoimport=Configurations to import
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+ConfigureAppRegistration=Configure App Registration
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+ConfigureMicrosoftAzureAppRegist=Configure Microsoft Azure App Registration
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Configurepage=Configure page
+Consolidatedorders=Consolidated orders
+Consolidatedpickingrouteorders=Consolidated picking route orders
+Consolidatedpickingroutes=Consolidated picking routes
+ConsolidatePickingRoutes=Consolidate Picking Routes
+Containssomehelptoolsbutshouldon=Contains some help tools but should only be used when instructed to.
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+ContentMoved=Content Moved
+CouldNotFindAppropriateClass=Could not find an appropriate class for %1, %2
+CouldNotFindAppropriateMethod=Could not find an appropriate method for %1, %2 on class %3
+CouldNotFindAppropriatePostingMethod=Could not find an appropriate Posting method for %1, content type %2 on class %3
+CountingPosted=The Counting journal was succesfully posted.
+CountOrderHandler=Count Order Handler
+ ;New Comment
+Create=Create
+CreateAPage=Create A Page
+CreateAppRegistration=Create App Registration
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+CreateClientID=Create Client ID
+ ;created from MobDeviceConnectionGuideFormClass, //AxClass/SourceCode/Methods
+CreateConsolidatedPickingList=Create Consolidated Picking List
+CreateDocumentHandlers=Create Document Handlers
+Createlabel=Create label
+ ;created from MobCreateTranslationForm, //AxForm/Design/Caption
+Createmandatorymenuitemsonallpag=Create mandatory menu items on all pages
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+CreateMenuSettings=Create Menu Settings
+CreateMovementJournal=Create Movement Journal
+CreateNewJournal=Create New Journal
+ ;created from MobDocPickOrder, //AxClass/SourceCode/Methods
+Createnewlabel=Create new label
+ ;created from MobCreateTranslationForm, //AxForm/Design/Controls/AxFormControl/Caption
+CreateorupdateMovementJournalLine=Create or update Movement Journal Line
+CreateorUpdateTransferJournalLine=Create or Update Transfer Journal Line
+createQuarantineOrder=Create Quarantine Orders
+ ;New Comment
+CreateSuggestedMenuItems=Create Suggested Menu Items
+CreateTransferJournal=Create Transfer Journal
+CreateTransferJournalLinewithLicensePlate=Create Transfer Journal Line with License Plate
+CreateTranslationLabelfile=Start - Create Translation Label file Lookup table
+ ;created from MobTranslationLookupCreationProcessBatch, //AxClass/SourceCode/Methods
+CreateTranslationLabelfileLookup=Create Translation Label file Lookup table
+ ;created from MobTranslationLookupCreationProcessBatch, //AxClass/SourceCode/Methods
+CreatingTranslationLabelfile=End - Creating Translation Label file Lookup table
+ ;created from MobTranslationLookupCreationProcessBatch, //AxClass/SourceCode/Methods
+CurrentExpression=Current Expression
+CurrentMenu=Current Menu
+Currentvalue=Current value: 
+ ;created from MobApplicationConfigImporter, //AxForm/SourceCode/Methods
+CustomDesigns=Custom Designs
+CustomFunctionFlowDevDesc=The Flow Function Customization table contains the definition of new funkctions to be added in the Mobile WMS app, and which method it should use for the logic when posting.
+ ;New Comment
+Customised= (Customised)
+ ;created from MobPageListDataBindingFormHelper, //AxClass/SourceCode/Methods
+Customizations=Customizations
+data=data
+ ;created from MobHtmlViewerCtrl, //AxClass/SourceCode/Methods
+DataandDisplayMethods=Data and Display Methods
+DataBinding=Data Binding
+DataMemberValue=Data Member Value
+ ;created from MobListValueElement, //AxClass/SourceCode/Methods
+DataSetField=Data Set Field
+Datasource=Datasource
+DataSources=Data Sources
+datasourcesonpage=%1 data sources on page
+Datatodesign=Data to design
+Declaredintheclass1=Declared in the class %1
+DefaultbarcodeSetup=Default barcode Setup
+Defaultcontainer=Default container
+Delete=Delete
+ ;created from MobConsolidatePickingRoutes, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Deleteentries=Delete entries
+ ;created from MobTranslations, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+DesignDataBinding=Design Data Binding
+DesignView=Design View
+DeveloperMode=Developer Mode
+ ;created from MobParameters, //AxTable/Fields/AxTableField/Label
+DeviceConnectionGuide=Device Connection Guide
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+DeviceLabel=Device label
+deviceStringID=Label File ID
+ ;The Id corresponding to an id in a label file.  Eg. MobileWMS:THEID. The reason that the label ID is deviceStringID is due to legacy compatibility.
+DeviceTableDevDesc=Table containing the mobile devices that have been used in the system.
+ ;New Comment
+DisplayLineOverrideDevDesc=The display line override header table
+ ;New Comment
+DisplayName=Display Name
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Label
+DisplayOverride=Display Override
+ ;New Comment
+DisplayOverrideLines=Display Override Lines
+ ;New Comment
+DisplayOverrideLinesDevDesc=The Display Lines Override Lines table contains the setup for overriding or appending to what is being displayed on the mobile device when looking at data from the AX.
+ ;New Comment
+DisplayStatus=Display Status
+ ;created from MobListEditor, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Label
+DocumentAccessRightDevDesc=The Access rights table contains info of which users or user groups has access to which document types.
+ ;New Comment
+DocumentOverview=Document Overview
+DocumentParameters=Document Parameters
+DocumentQueueDevDesc=The Document Queue Table contains the entire communication history between the ERP and the mobile device
+ ;New Comment
+DocumentTypeDevDesc=The DocumentType table connects a document type definition to a compatible class.
+ ;New Comment
+doesnotexiston=%1 does not exist on %2
+Done=Done.
+ ;created from MobApplicationConfigImporter, //AxForm/SourceCode/DataControls/Control/Methods
+DrawCells=Draw cells
+Drawflow=Draw flow
+ ;created from MobDrawFlow, //AxForm/Design/Caption
+DrawMobileDevice=Draw Mobile Device
+DynamicStep=Dynamic Step
+EditQuery=Edit Query
+ ;created from MobPageCreator, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+EnableBarcodeQuantity=Enable Barcode Quantity
+EnableFetchApplicationConfigurationHelpText=Enable to make the Mobile WMS request an application configuration file from the server. \r\nIf disabled no request will be sent and the file on the device will not be touched.
+ ;Helptext for the parameter for enabling the Mobile WMS to request application configuration information from the backend.
+EnableFetchApplicationConfigurationText=Enable Request application file
+ ;Text for the parameter for enabling the Mobile WMS to request application configuration information from the backend.
+EnableRegisterQuantityByScan=Enable Register Quantity By Scan
+EnableTweakFile=Enable Tweak File
+ ;Text for the parameter for enabling the Mobile WMS to request application configuration information from the backend.
+EnableTweakFileHelpText=Enable to make the Mobile WMS request an application tweak configuration file from the server. \r\nIf disabled no request will be sent and the file on the device will not be touched.
+ ;Helptext for the parameter for enabling the Mobile WMS to request application configuration information from the backend.
+Endpoint=Endpoint
+ ;created from Mob2DBarcodeGenerator, //AxClass/SourceCode/Methods
+EndpointDisplayName=Endpoint Display Name
+ ;created from MobParameters, //AxTable/Fields/AxTableField/Label
+EndpointJsonoutput=Endpoint Json output
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Caption
+Endpointsetup=Endpoint set up
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+EndpointTenantID=Endpoint Tenant ID
+ ;created from MobParameters, //AxTable/Fields/AxTableField/Label
+Equals=Equals
+ErrorLog=Error Log
+ExpirationDate=Expiration Date
+Export=Export
+Exportopenversions=Export open versions
+face=face
+ ;created from MobHtmlViewerCtrl, //AxClass/SourceCode/Methods
+Failedtocreatetheoutboundlicenseplateusingthevalue=Failed to create the outbound license plate using the value '{0}'.
+FastForwardMode=Fast Forward Mode
+fieldsanddata=fields and data
+Filterheader=Filter/header
+FilteronOperator=Filter on Operator
+FindClass=Find Class
+ ;created from MobDocumentQueue, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+FinishPacking=Finish Packing
+FinishQuarantine=Finish Quarantine Order
+firstlogin=Where to go - first login
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+FirstParameterText=First Parameter Text
+ ;created from MobExpressionEditor, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Label
+Frame=Frame
+ ;New Comment
+FunctionFlowCustomization=Function Flow Customization
+ ;New Comment
+FunctionFlowCustomizationLines=Function Flow Customization Lines
+ ;New Comment
+FunctionFlowCustomizationLinesDevDesc=Function Flow Customization Lines contains a line for each parameter in the function referenced on the header table. Here you can choose if the parameter should be used as a filter value, or have its behaviour replaced by an EDT.
+ ;New Comment
+FunctionFlowCustomizationLinesReplacementDevDesc=The replacement lines is used to replace a parameter with other input fields.
+ ;New Comment
+Generalmenuitemconfigurations=General menu item configurations
+ ;created from MobPageConfigurator, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Caption
+GenerateFromDocuments=Generate From Documents
+GeneratePagefromDocuments=Generate Page from Documents
+GoodsinTransitposted=Goods in Transit posted
+GreaterThan=Greater Than
+GroupByVendor=Group By Vendor
+GroupField=Group Field
+ ;created from MobPageDatasources, //AxTable/Fields/AxTableField/Label
+GS1AI=GS1 AI
+GS1AISetup=GS1 AI Setup
+GS1AITypeBarcodeSetup=GS1 AI Type Barcode Setup
+ ;created from MobGS1AITypeBarcodeSetup, //AxTable/Label
+GS1References=GS1 References
+ ;created from MobGS1References, //AxTable/Label
+Height=Height
+Help=Help
+Helptools=Help tools
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+Html=Html
+ ;created from MobHtmlViewerCtrl, //AxClass/SourceCode/Methods
+HtmlAddCopyLink=HtmlAddCopyLink
+ ;created from MobHtmlViewerCtrl, //AxClass/SourceCode/Methods
+Icon=             Icon                              
+Iconname=Icon name
+ID=ID
+Ideas=Ideas
+ImageAggregateLines=Image Aggregate Lines
+ImageAttachedto=Image attached to %1
+ ;New Comment
+ImageCapture=Image Capture
+ImageCollector=Image Collector
+ ;New Comment
+ImageService=Image Service
+ ;New Comment
+ImageTableDevDesc=The ImageTable contains definitions of images, that you want on the mobile device.
+ ;New Comment
+Import=Import
+Importapplicationconfigurationcf=Import application configuration cfg file
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Caption
+Importselectedconfigurations=Import selected configurations
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Importselectedmenuitems=Import selected menu items
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Importselectedpages=Import selected pages
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+InboundFunctions=Inbound Functions
+IncludeHiddenStepsInSummary=Include Hidden Steps In Summary
+IncompatibleField=Incompatible Field
+Incrementcachevalue=Increment cache value
+ ;created from MobFeedbackPart, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Information=Information
+ ;created from MobPageOverview, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Caption
+InformationismissingUnabletogene=Information is missing. Unable to generate barcode. Make sure the ClientID has been added in the previous step.
+ ;created from MobDeviceConnectionGuideFormClass, //AxClass/SourceCode/Methods
+InputAndScanValues=Input And Scan Values
+InteractionPermission=Interaction Permission
+Interpretedtranslationvalues=Interpreted translation values
+ ;created from MobTranslations, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Caption
+InventLocationsGroupRightsDevDesc=The InventLocationGroupRights table has the setup for which warehouses each user group has access to.
+ ;New Comment
+InventLocationsPickReceiveTypesDevDesc=The InventLocationPickReceiveTypes table contains overridden parameters per location.
+ ;New Comment
+InventoryAdjustmentLines=Inventory Adjustment Lines
+ItemAlreadyExists=Item already exists on journal
+ItemorLicenseplate=Item or License plate
+ ;created from TFMGetReferenceData, //AxClass/SourceCode/Methods
+items=%1 items
+ItemsLabel=Items
+ ;created from MobXMLFormatLookupLicensePlate, //AxClass/SourceCode/Methods
+JobType=Job Type
+JournalName=Journal Name
+ ;created from MobDocMovementJournal, //AxClass/SourceCode/Methods
+Labelfileid=Label file id
+ ;created from MobTranslations, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Label
+LabelfilenameprefixtofilltheTran=Label file name prefix to fill the Translation LabelId Lookup table. The label file names must be separated by a semicolon.
+ ;created from MobTranslationLookupCreationProcessBatch, //AxClass/SourceCode/Methods
+LabelId=Label Id: 
+ ;created from MobTranslations, //AxTable/SourceCode/Methods
+Labeltranslation=Label translation
+ ;created from MobTranslationLabelIdLookupTable, //AxTable/Fields/AxTableField/Label
+LessThan=Less Than
+Licenseplate1doesnotexist=License plate %1 does not exist
+Licenseplatehasfollowingcontent=License plate %1 has the following content
+LicensePlateInfo=License Plate Information
+LicensePlateInquiry=License Plate Inquiry
+lineBreak=\r\n
+Linecreatedwithtag=Line created with tag # '%1'
+Linenotfoundin=Line not found in %1
+LineSelection=Line Selection
+linesOnOrderDoYouWishToPost=There are remaining lines on the order, do you wish to post?
+List=List
+List1isusedonthefollowingpages=List %1 is used on the following pages
+ListalreadyexistsMakingnewVersion=List %1 already exists. Making new Version
+Listdesign=List design
+Listexists=List exists
+ ;created from MobListOverview, //AxForm/SourceCode/DataSources/DataSource/Methods
+Lists=Lists
+ ;created from MobListEditor, //AxForm/Design/Caption
+Listtocopyfrom=List to copy from
+ListUnapprovedVersionExists=Cannot create new version of List %1 because an unapproved version exists.
+ListValueIFEnum=List Value IF Enum
+ ;created from MobListValueIfEnum, //AxEdt/Label
+ListXAlign=List X Align
+ ;created from MobListXAlign, //AxEdt/Label
+LIstYAlign=LIst Y Align
+ ;created from MobListYAlign, //AxEdt/Label
+LocalFirst=LocalFirst
+LocalizedString=Localized String
+LocalOnly=LocalOnly
+LocateItem=Locate Item
+LocationDoesNotExist=Location does not exist
+ ;New Comment
+LockCarts=Lock Carts
+LockedOrders=Locked Orders
+ ;New Comment
+LockedOrdersDevDesc=The Locked Orders table keeps track of which users has locked a specific order.
+ ;New Comment
+Loginuserforbarcode=Login user (for barcode):
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Label
+Lookup=Lookup
+ ;created from MobNewPageWizard, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+LookupRelations=Lookup Relations
+ ;created from MobSearchEDTsToTablesRelation, //AxTable/Label
+LPShort=LP: %1
+mailto=mailto
+ ;created from MobHtmlViewerCtrl, //AxClass/SourceCode/Methods
+MainMenu=Mobile WMS
+MaintainMobileWMS=Maintain Mobile WMS
+ ;New Comment
+MediaQueue=Media Queue
+ ;New Comment
+MediaQueueDevDoc=The Media Queue table has a record for all media being sent to the AX asynchronously.
+ ;New Comment
+MEL0=Backend Id
+MEL1=None
+ ;Enum TFMUnderDeliveryValidation
+MEL10=The order (%1) of type (%2) is not locked.
+MEL11=XML element '%1' and/or '%2'.
+MEL12=Order (%1) type (%2) has already been locked by user (%3).
+MEL13=Could not lock order '%1'
+MEL14=Picking list journal '%1' does not exists.
+MEL15=Unknown reference table.
+MEL16=Underdelivery validation
+MEL17=Pick for production
+MEL18=Mobile WMS
+MEL19=Receiveorder fetched
+MEL2=Warning
+ ;Enum TFMUnderDeliveryValidation
+MEL20=Could not determine ordertype.
+MEL21=receiveorderlines fetched
+MEL22=Packingslip is posted successfully.
+MEL23=pickorderlines fetched
+MEL24=Pickorder fetched
+MEL25=Could not find recid.
+MEL26=Picking list is posted successfully.
+MEL27=Use Expiration date
+MEL28=Lot number will contain both the lot number and expiration date (dd-mm-yyy) separated by ",".
+MEL29=InventJournal
+MEL3=Block
+ ;Enum TFMUnderDeliveryValidation
+MEL30=Released to Mobile
+MEL31=The journal will be visible on the mobile devices.
+MEL32=Registered on mobile
+MEL33=Registered on mobile.
+MEL34=The Counting journal was succesfully updated.
+MEL35=Order fetched
+MEL36=Journal from Mobile WMS
+MEL37=Enter Location (from)
+MEL38=FROM
+ ;Mob
+MEL39=Location:
+MEL4=TAKE
+ ;Enum MobActionTypes
+MEL40=Enter Batch number
+MEL41=Exp. date
+MEL42=Enter exp. date
+MEL43=Enter Serial number
+MEL44=Enter Location (to)
+MEL45=TO
+ ;Mob
+MEL46=Item Number:
+MEL47=The Transfer journal was succesfully updated.
+MEL48=Enter Location
+MEL49=Location
+ ;MOB
+MEL5=PLACE
+ ;Enum MobActionTypes
+MEL50=Unplanned counting of serial numbers is not supported!
+MEL51=Show Sales
+MEL52=Show sales orders on mobile devices.
+MEL53=Show purchase
+MEL54=Show purchase orders on mobile devices.
+MEL55=Show transfer
+MEL56=Show transfer orders on mobile devices.
+MEL57=Show production orders on mobile devices.
+MEL58=Show picking
+MEL59=Show picking routes on mobile devices.
+MEL6=Receive
+ ;Enum MobOrderTypes
+MEL60=Mobile WMS parameters
+MEL61=Show arrival
+MEL62=Show arrival purchase orders on mobile devices.
+MEL63=Location must be specified.
+MEL64=License Plate must be specified.
+MEL65=Error in creation of License Plate.
+MEL66=Arrival order
+MEL67=No Pallet transports exist for pallet %1.
+MEL68=To location cannot be changed for transport %1.
+ ;MSA
+MEL69=Arrival journal %1 has not been posted because of errors.
+MEL7=Pick
+ ;Enum MobOrderTypes
+MEL70=%1 line(s)  is not registered from Journal %2 have been transferred to journal %3.
+MEL71=A new License Plate has been created.
+MEL72=The pallet transport was succesfully updated.
+MEL73=Shipment
+MEL74=From warehouse
+MEL75=To warehouse
+MEL76=Select configuration
+MEL77=Configuration
+MEL78=The Profit/loss journal was succesfully updated.
+MEL79=Show production input
+MEL8=Not enough remaining quantity to post.
+MEL80=Show production input journals on the mobile devices
+MEL81=Report as finished completed
+MEL82=Production order %1 was not found
+MEL83=All
+MEL84=The sum of scrap and quantity exceeds the remaining quantity
+MEL85=Warehouse setup
+MEL86=Overwrite default
+MEL87=Menu Option
+MEL88=Menu Options
+MEL89=Menu permission
+MEL9=Ok
+ ;Login/LockedOrders
+MEL90=Menu Configuration
+MEL91=Warehouse setup
+MEL92=Show production
+MEL93=Menu items
+Menuitem=Menu item
+MenuItemchanges=Menu Item changes
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+MenuItemschanges=Menu Items changes
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+Menuitemscreated=Menu items created.
+ ;created from MobApplicationConfigImporter, //AxForm/SourceCode/DataControls/Control/Methods
+Menuitemsetup=Menu item setup
+ ;created from MobPageConfigurator, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Caption
+MenuItemType=Menu Item Type
+MenuOptionsDevDesc=The MenuOptions table has the menu definitions.
+ ;New Comment
+MenuPremissionsDevDesc=The MobMenuPermissions table contains the setup of which user groups are allowed to open which menus.
+ ;New Comment
+MethodParameters=Method Parameters
+ ;New Comment
+MiscellaneousFunctions=Miscellaneous Functions
+MissingHelp=Missing Help
+MobCartsHelp=<h2>Carts</h2>The menu ‘Unplanned cart move’ can move multiple items at the same time. It is done by moving items onto the cart one by one. What happens is a transfer journal is posted to move the quantity onto the cart. On the mobile device the user can see the content of the cart and unload items to new locations.<br><br>To make the user experience as light as possible we need to establish some parameters here. Each cart must have a location and in some cases a license plate.
+MobConsolidatedPickingRoutesDeveloperDocumentation=Header table used when creating consolidated picking routes
+ ;created from MobConsolidatedPickingRoutes, //AxTable/DeveloperDocumentation
+MobConsolidatePickingRoutesHelp=<h2>Consolidated Picking Routes</h2>The Mobile WMS application can consolidate multiple picking lists onto a single picking list.<br><br>Click the create button to select orders based on ranges and filters.<br><br><h4><b>Consolidated Order</b></h4>The consolidated picking route id’s are listed here.<br>br>In the section below, called ‘Orders’ a list of original picking routes is shown. Here it is possible to remove a picking route by marking it and use the Alt+F9 keys to remove it from the consolidated list.<br><br>If you want to add additional picking routes to an already created consolidated picking list, you have to delete it first and create from the start.
+MobDataSourcesHelp=<h2>Data Sources</h2>If you want to add extra fields to the data sent to the device, or change behaviour when data is shown for a specific data source on the device, this is the place to do it.<br><br>Depending on the page the data source is binded to, the options to change behaviour matches those of the specific page type. E.g. a data source for a page showing order lines gives you options on how data should be collected for the line, whereas a data source for an Order List page can give you options regarding order locking.<br><br><h4><b>Parameters</b></h4>This is where you setup parameters for the data source, specific to the page type the data source belongs to.<br><br><h4><b>Fields</b></h4>Under the fields tab you can add new or modify existing fields that are output to the device.<br><br>An example could be, that from the page you are on, you have added a button to open another page on the device. But you need to transfer a certain value to the related page. In Fields you can add that value to the data source, which will in turn transfer the value to the page, that should be opened.<br><br><h4><b>Menu Items</b></h4>In the "Menu Items" fast tab, you can set up which menu items should be available on this data source. This is menu items that should only be available on this specific data source, and it will automatically blend in to whichever menu items that has already been setup on the page itself.
+MobDeltaLevelCode=Code
+MobDeltaLevelCustom=Custom
+MobDeltaLevelOverridden=Overridden
+MobDocumentQueueHelp=<h2>Document queue</h2>Every communication from the mobile devices is documented here. From the overview you will find device name to filter in the search of a specific event from a known device.<br><br>In the tab ‘Request’ you will find the XML file that are sent from the mobile device and from the tab ‘Answer’ you will find the XML file that is sent to the mobile device.<br><br>On the tabs you have a button that downloads the XML message as a file. This is helpful when you want to use Tasklet Service Desk and attaching the communication for the actual issue.<br><br><h4><b>Process a request</b></h4>If you have a request that returns an error, you have the possibility to process it from the queue to hopefully collect more intel on the reason for the error.<br><br><h4><b>Clean up queue</b></h4>The document queue is good for investigation purposes. But the older the records the less valuable they become. You can setup batch processing to automatically clean up the queue.
+MobFontsDeveloperDocumentation=The MobFonts table contains all font definitions used on the lists
+ ;created from MobFonts, //AxTable/DeveloperDocumentation
+MobGS1AISetupHelp=<h2>GS1 AI setup</h2>Making registrations on a mobile device is done by using workflows that determine which steps are required to fulfil the registration. These workflows can be optimized by using GS1 barcodes with identifiers. An identifier must be specified for the mobile device to be able to read the barcode correctly.<br><br>This setup page allows to change or add new identifiers to a specific registration step.<br><br><h4><b>References</b></h4>The references are used to identify where AI’s should be used when sending information’s to the mobile device. For each step there can be multiple references, covering different wordings, extended data types and table fields.
+MobHtmlViewerCtrl=MobHtmlViewerCtrl
+ ;created from MobHtmlViewerCtrl, //AxClass/SourceCode/Methods
+MobileWMS1=Label files created on 31-05-2006
+ ;By user admin
+MobileWMS10=Submit type
+MobileWMS100=Sample: Create customer
+MobileWMS101=Error executing code:
+MobileWMS102=Stack trace
+MobileWMS103=%1 - line %2
+MobileWMS104=Process marked requests in the document queue.
+MobileWMS105=Content subject
+MobileWMS106=Customer name: '%1'
+MobileWMS107=Parameters set up for the document type.
+MobileWMS108=Set up parameters for the handler class selected for the document type.
+MobileWMS109=Customer '%1', Item '%2'
+MobileWMS11=How was the document submitted to the queue, for direct or enqueued handling?
+MobileWMS110=Handler schema
+MobileWMS111=Shows the imported XML schema.
+MobileWMS112=A short description of the contents of the document.
+MobileWMS113=Schema ID.
+MobileWMS114=Document schemas
+MobileWMS115=Schema namespace
+MobileWMS116=XML namespace for the schema.
+MobileWMS117=Set up schemas that can be used to validate incoming documents.
+MobileWMS118=Assign XML schemas to the handler. These schemas are used to validate incoming documents.
+MobileWMS119=Selected schemas
+MobileWMS12=Enqueued
+MobileWMS120=Remaining schemas
+MobileWMS121=Import XML schema from an external file.
+MobileWMS122=Strict schema validation
+MobileWMS123=Should documents of this type be validated using strict schema validation? The default is relaxed validation (elements in namespaces outside the assigned schemas are accepted).
+MobileWMS124=Reset the status of a document from Processing to Ready for processing.
+MobileWMS125=Do you want to reset the status to Ready for processing?
+MobileWMS126=Unable to return an answer for the request �%1� because it has not been processed yet.
+MobileWMS127=Original request
+MobileWMS128=Original XML request submitted to the queue from a mobile device.
+MobileWMS129=Request cannot be processed. The user does not have sufficient rights in Microsoft Dynamics AX.
+MobileWMS13=Default submit type
+MobileWMS130=Ready for processing
+MobileWMS131=Answered date and time
+MobileWMS132=**Missing label**
+MobileWMS133=Show production
+MobileWMS134=Mobile WMS User
+MobileWMS135=Service integration for mobile
+MobileWMS136=Submit to service
+MobileWMS137=Maintain the mobile solution
+MobileWMS138=Invoke Mobile service
+MobileWMS139=Maintain mobile settings
+MobileWMS14=The class handling this document type.
+MobileWMS140=Request text
+ ;The XML Request in raw text form.
+MobileWMS141=Realtime registrations
+MobileWMS142=Mobile registration id
+MobileWMS143=Mobile WMS: Add user or group
+MobileWMS144=Specify
+MobileWMS145=Add user/group
+MobileWMS146=Added %1: '%2' to documenttype: '%3'
+MobileWMS147=Show return orders on the mobile device
+MobileWMS148=Production/Job
+ ;Entering production number or Job ID
+MobileWMS149=Barcode "%1" is registered on item "%2".
+MobileWMS15=Scanning for document handlers
+MobileWMS150=License plate already exists.
+MobileWMS151=Parent license plate already exists.
+MobileWMS152=Parent license plate is expired.
+MobileWMS153=A License plate has been created.
+MobileWMS154=Optional, specify parent LP
+MobileWMS155=B/N: %1
+ ;Batchnumber
+MobileWMS156=S/N: %1
+ ;Serialnumber
+MobileWMS157=PL: %1
+ ;Pallet
+MobileWMS158=Receive journals
+MobileWMS159=Picking journals
+MobileWMS16=Document handlers
+MobileWMS160=Counting journals
+MobileWMS161=Unplanned counting
+MobileWMS162=Scrap item/product
+MobileWMS163=Unplanned moving items inside warehouse
+MobileWMS164=Location content
+MobileWMS165=Log out of Mobile WMS
+MobileWMS166=Locate Item
+MobileWMS167=Create a License Plate
+MobileWMS168=Planned pallet transports
+MobileWMS169=Production/Route report finished
+MobileWMS17=Unknown document type.
+MobileWMS170=Process Quarantine orders
+MobileWMS171=Unplanned pallet transport
+MobileWMS172=Assign barcode to item/product
+MobileWMS173=Profit/Loss
+MobileWMS174=Tag counting
+MobileWMS175=Barcode diagnostics
+MobileWMS176=Print label collector
+MobileWMS177=Mobile WMS Administrator
+MobileWMS178=Mobile WMS User
+MobileWMS18=Message ID already exists.
+MobileWMS19=Invalid setup for document type '%1'.
+MobileWMS2=Document queue
+MobileWMS20=Handler '%1' does not support enqueued submittals. Change the default submit type to 'Direct'.
+MobileWMS21=The request failed with the following error message: %1
+MobileWMS22=Document type users
+MobileWMS23=Answered
+MobileWMS24=Document queue processor
+MobileWMS25=Cannot find document type '%1'.
+MobileWMS26=Custom: Create customer
+MobileWMS27=Your document will be processed as soon as possible.
+MobileWMS28=No message ID in the document submitted to AX.
+MobileWMS29=User '%1' is not enabled for request type '%2'.
+MobileWMS3=Microsoft Dynamics AX user who submitted the document to the queue.
+MobileWMS30=Default document handler
+MobileWMS31=Default enqueued answer
+MobileWMS32=RolePad: Create customer
+MobileWMS33=RolePad: Main request handler
+MobileWMS34=Unsupported RolePad document type '%1'.
+MobileWMS35=Set up the users and user groups who are allowed to submit this type of document.
+MobileWMS36=Unique identifier of the message that was received.
+MobileWMS37=View a queue of documents submitted to the system.
+MobileWMS38=Set up the document types that can be submitted to the system.
+MobileWMS39=Mobile documents
+MobileWMS4=Status of the document in the queue.
+MobileWMS40=Show in overview
+MobileWMS41=Should this field be shown in the overview on the device?
+MobileWMS42=QueryValue
+MobileWMS43=MBA Queries
+MobileWMS44=The AIF request can contain only one parent node.
+MobileWMS45=The root node of the AIF message has to be of type 'envelope'.
+MobileWMS46=The MBA request can contain only one parent node
+MobileWMS47=Your request has been received and will be processed.
+MobileWMS48=ID of the device that submitted the document to the queue.
+MobileWMS49=Request
+MobileWMS5=ID for the document type.
+MobileWMS50=Answer
+MobileWMS51=Status
+MobileWMS52=The string is too long for the %1 data type.
+MobileWMS53='%1' is not a valid '%2'.
+MobileWMS54=Message ID
+MobileWMS55=Application user or group
+MobileWMS56=The ID of the application user or user group.
+MobileWMS57=Device ID
+MobileWMS58=Document type
+MobileWMS59=User type
+MobileWMS6=Answer time
+MobileWMS60=Type of user: User group or single user.
+MobileWMS61=User
+MobileWMS62=Completed
+MobileWMS63=Miscellaneous
+MobileWMS64=Reports
+MobileWMS65=AIF
+MobileWMS66=Custom: Create sales order
+MobileWMS67=Process all new enqueued documents in the queue.
+MobileWMS68=Inquire on documents from mobile devices.
+MobileWMS69=Jobs on documents from mobile devices.
+MobileWMS7=Answer date
+MobileWMS70=Set up mobile documents.
+MobileWMS71=Delete documents older than the history limit.
+MobileWMS72=Clean up queue
+MobileWMS73=Delete old entries in the document queue.
+MobileWMS74=XML request submitted to the queue from a mobile device.
+MobileWMS75=Answer returned to the mobile device when the request is received.
+MobileWMS76=Actual result of the request. For direct processing, the result is set when document is submitted; for enqueued processing, the result is set when the document queue is processed.
+MobileWMS77=Staging database
+MobileWMS78=Name of the table in the staging database.
+MobileWMS79=Staging database tables
+MobileWMS8=Type of the document submitted to the queue.
+MobileWMS80=Set up tables for this staging database.
+MobileWMS81=Read database schema
+MobileWMS82=Read database schema from the staging database.
+MobileWMS83=Name of the field in the staging database.
+MobileWMS84=Type of the field in the staging database.
+MobileWMS85=Staging database fields
+MobileWMS86=Set up fields for this staging database table.
+MobileWMS87=Enter the file name of the SSIS package (.dtsx file) to use as a template for the generated packages.
+MobileWMS88=Select the SSIS package
+MobileWMS89=Mapping table
+MobileWMS9=Enter a description of the document type.
+MobileWMS90=Select a primary table against which to map the staging database table.
+MobileWMS91=No mapping
+MobileWMS92=Normal field
+MobileWMS93=Fixed value
+MobileWMS94=Mapping type
+MobileWMS95=How should the field in the staging database be mapped to the Microsoft Dynamics AX table?
+MobileWMS96=Mapping field
+MobileWMS97=Select the field against which to map the staging database field.
+MobileWMS98=No valid result from handler '%1'.
+MobileWMS99=Invalid data in '%1' request.
+MobileWMSDeviceConnectionGuide=Mobile WMS Device Connection Guide
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Caption
+MobListNodeDeveloperDocumentation=The MobListNode table contains the nodes to the List
+ ;created from MobListNode, //AxTable/DeveloperDocumentation
+MobListsDeveloperDocumentation=The MobLists table contains the list definitions
+ ;created from MobLists, //AxTable/DeveloperDocumentation
+MobListsVersionDeveloperDocumentation=The MobLists table contains the list definitions
+ ;created from MobListsVersion, //AxTable/DeveloperDocumentation
+MobMaintainRoleHelpText=Setup and maintain Tasklet Factory Mobile WMS module
+ ;New Comment
+MobMaintainRoleLabel=Maintain Mobile WMS
+ ;New Comment
+MobMediaQueueHelp=<h2>Media queue</h2>When uploading images from the mobile device a record of the image is stored in the media queue.<br><br>Uploading images is done in the background to ensure that the mobile device user does not wait for the process to complete.<br><br>The posting is built in 3 steps. First a link to the record is established. Secondly the image is downloaded and third the image is stored on the record.<br><br>When the process is completed the status also will show ‘Completed’. If errors occur the status will show ‘Error’, and further investigation must be conducted.
+MobPackingStationHelp=<h2>Packing stations</h2>From the ‘Packing station’ menu items can be picked.<br><br>To make the user experience as light as possible we need to establish some parameters here. Each packing station must have a location and in some cases a license plate.
+MobPageConfiguratorHelp=<h2>Page Configurator</h2>Here you can adjust the behaviour of a given page on the Mobile WMS.<br><br>Depending on the type of page you are trying to change properties for, different options becomes available in this form. A page showing data has other options than a page meant for data collection.<br><br><h4><b>Changing behaviour</b></h4>The options to change the behaviour is in the Configuration Tab of the page.<br><br><h4><b>Seeing the output</b></h4>The changes made can be seen on the XML tab, which shows what will be sent to the mobile devices.<br><br>This option is mostly relevant for developers in debugging purposes.
+MobPageListDataBindingHelp=<h2>Data Binding</h2>This page sets up the binding between the datasource, and what is displayed on the output on the device.<br><br><h4><b>Adding data to the design</b></h4>Data is normally populated from the standard Mobile WMS source, but in the grid, changes can be made. <br><br>If you want to add or replace data displayed you can make a new record in the grid, indicating which cell in the design you want to modify.<br><br><h4><b>Example Data</b></h4> in the bottom fast tab, you have an overview of data on the given data source that is active.<br><br>If you want to change which record is being used for the example, the button in the top "Select Data for Data Source" can be used for this.
+MobPageOverviewHelp=<h2>Page Overview</h2>Any changes you want to make to a page in Mobile WMS starts here.<br><br>A change is done to either your data on the page, the behaviour of the page, and the look on the page.<br><br><h4><b>Changing behaviour</b></h4>If you want to change the behaviour of a given page, you should go to customizations in the "Customizations" tile.<br><br>If the page in question is showing data, some behaviour can also be changed on the data source for the page.<br><br><h4><b>Changing Design</b></h4>If the page has data sources, a list design is set up for the page, to show the data for the user.<br><br>If you want to change how the data is presented to the user, you can use the link in the "List Design" tile to either change design completely, or modify which data is represented.<br><br><h4><b>Modifying data</b></h4>In the "Data Sources" tile you can modify which data is being output to the device. Some data output affects the behaviour of the user experience.<br><br><h4><b>Menu Items</b></h4>In the "Menu Items" fast tab, you can set up which menu items should be available on each page.
+MobParametersHelp=<h2>Parameters</h2>General parameters where you can choose which document types should be used in receiving and picking processes.<br><h4><b>Documents</b></h4>Having specific document requirements, you can find various configurations here that might suit the need.<br><h4><b>Warehouse setup</b></h4>In cases where you need to setup specific document types per warehouse, you can here override the default and select the required document types.
+MobPinnableValuesDeveloperDocumentation=The PinnableValues table contains definitions of pinnable values used per page.
+ ;created from MobPinnableValues, //AxTable/DeveloperDocumentation
+MobToteOverviewHelp=<h2>Outbound license plate</2>When parameters/documents/pick has been setup to use outbound license plates, users of the mobile device are asked during picking to register an outbound license plate id. This is also in popular terms a box id.<br><br>While picking and identifying which outbound license plate each item is placed into, you can ensure packing and shipping is done correct.<br><br>The list gives an overview of each outbound license plate id’s and corresponding shipment.<br><br>Normally shipping the outbound license plate is done from the mobile device, but you can also use the button called ‘Ship’ to do it from the client.
+MobWorkflowsHelp=<h2>Workflows</h2>Workflows are used by planned processes, and these are typical receiving, picking and counting.<br><br>The workflow is constructed by required dimensions and quantity to ensure registrations are fulfilling during posting.<br><br><h4><b>Steps</b></h4>The dimensions and quantity are called steps in workflows. Each step can be setup individually.<br><br>Notice that ‘Ean Ai’ inherits values from the page ‘GS1 AI Setup’ and when changes happen here it will be visible in the workflow. But you can override these values per step. This is important to notice.<br><br><h4><b>Online validation</b></h4>Typical used in picking scenarios and is a part of standard Mobil WMS setup. Online validation requires network access, so offline scenarios can not benefit this feature.<br><br><h4><b>Visual Flow and XML</b></h4>The workflow will be step by step asking for registrations and the visual flow can help see the sequence on the device.<br><br>The XML is the result of the setup and can give you more insight into what is sent to the mobile device.
+MobWorkflowsTableDeveloperDocumentation=Table containing header definitions for static and dynamic workflows.
+ ;created from MobWorkflowsTable, //AxTable/DeveloperDocumentation
+MoveLicensePlate=Move License Plate
+MoveMultipleLicensePlates=Move Multiple License Plates
+Movetoorfromcart=Move to or from cart
+Nameofnewlist=Name of new list
+NewCart=New Cart
+NewList=New List
+NewOutboundLicensePlate=New Outbound License Plate
+NewOutboundLicensePlateID=New Outbound License Plate ID
+Newoutboundlicenseplatescanned=New outbound license plate scanned
+NewPageWizard=New Page Wizard
+Newtranslation=New translation
+ ;created from MobTranslations, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Next=Next
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Noactionsdefined=No actions defined
+NoDatasourcechosen=No Data source chosen
+Nodatasourceshasbeencreatedforth=No datasources has been created for this page. The data source is created the first time it is used. Please use the Mobile Device to enter the page this will create the data source.
+ ;created from MobDataSources, //AxForm/SourceCode/DataSources/DataSource/Methods
+Nohandlersetupfortheadhocregistr=No handler set up for the adhoc registration
+Notready=Not ready!
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+NotReserved=Not Reserved
+NumberOfItems=%1 items
+Numberoflabelentries=Number of label entries
+ ;created from MobTranslations, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Label
+NumberOfPromotedItems=Number Of Promoted Menu Items
+OfflineAdhocRegistrationshandler=Offline Adhoc Registrations
+OfflineManagement=Offline Management
+Offlinemodeenabled=Offline mode enabled
+OfflinePageMenuItem=Offline Page Menu Item
+OfflineServices=Offline Services
+ ;Header in the page overview for offline setup
+OmitFieldInSum=Omit Field In Sum
+ ;created from MobDocLocateItem, //AxClass/SourceCode/Methods
+onclick=onclick
+ ;created from MobHtmlViewerCtrl, //AxClass/SourceCode/Methods
+OnlineFirst=OnlineFirst
+Onlinevalidation=Online validation
+OnlineValidator=Online Validator
+ ;New Comment
+OnlinewithLiveupdate=Online with Live update
+OnlyexportSelectedList=Only export Selected List
+OnlyScanValues=Only Scan Values
+OnNoOrders=On No Orders
+OnorderlinesitispossibletoaddPin=On order lines it is possible to add Pinnable values for differnt options. A pinnable value is a value that will be pinned in the top of an order lines page and will be applied to all order lines throughout registration. Select either a GS1-Application-Identifier or a regular expression for the values to pin.
+ ;created from MobPageConfigurator, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+OpenAction=Open Action
+Opensthepagei1i=Opens the page <i>%1</i>
+Opensupaflow=Opens up a flow
+OperationMode=Operation Mode
+orderlinesretrieved=%1 - %2 order lines retrieved
+OrderListAndLines=Order List And Lines
+ ;created from MobNewPageWizard, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Orderlockedby=Order locked by %1
+OrderPosted=Order %1 posted
+Orders=Orders
+OrdersRetrieved=%1 orders retrieved
+ordersToQuarantine=This item has quarantine requirement, and must be placed at warehouse %1
+ ;New Comment
+OriginModel=Origin Model
+OutboundFunctions=Outbound Functions
+OutboundLicensePlatealreadyexists=Outbound License Plate already exists
+Outboundlicenseplates=Outbound license plates
+OutboundLicensePlatesGroupingFie=Outbound License Plates Grouping Field
+OutboundLicensePlateShipping=Outbound License Plate Shipping
+OutboundLicensePlate_to=Outbound License Plate (to)
+OutputCacheSetup=Output Cache Setup
+Overridden=Overridden
+OverrideExistingPage=Override Existing Page
+ ;created from MobPageCreator, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+OverrideLine=Override line
+ ;New Comment
+Overview=Overview
+PackedQuery=PackedQuery
+ ;created from MobQueryPages, //AxTable/Fields/AxTableField/Label
+PackingSlipNotPosted=Packing slip not posted
+ ;New Comment
+PackingStationID=Packing Station
+PackingStations=Packing Stations
+PageConfigurationParameters=Page Configuration Parameters
+ ;created from MobPageConfigParms, //AxTable/Label
+PageConfigurator=Page configurator
+PageCreator=Page Creator
+PageCreatorDisclaimer=Be aware, that pages created or edited in this screen, are not transfered to the devices. You have to copy the XML manually.
+PageID=PageID
+ ;created from MobGS1AITypeBarcodeSetup, //AxTable/Fields/AxTableField/Label
+PageImage=Page Image
+ ;created from MobPageImage, //AxTable/Label
+PageMap=Page Map
+PageMenuItem=Page Menu Item
+PageOverview=Page Overview
+Pages=Pages
+Pagescacheinvalidated=Pages cache invalidated.
+ ;created from MobApplicationConfigImporter, //AxForm/SourceCode/DataControls/Control/Methods
+Pagespecificmenuitem=Page specific menu item
+Pagestoimport=Pages to import
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+Pagesusingvalidation=Pages using validation
+ParametersDevDesc=The parameters table for the Mobile WMS module.
+ ;New Comment
+PeriodicMaintenance=Periodic Maintenance
+ ;created from MobPeriodicMaintenance, //AxSecurityPrivilege/Label
+PickFrom=Pick From:
+PickMode=Pick Mode
+PickOrderHandler=Pick Order Handler
+ ;New Comment
+PickOtherdesign=Pick Other design
+ ;created from MobPageListDataBinding, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+PickOutboundlicenseplateforshipping=Pick Outbound license plate for shipping
+PinnableValues=Pinnable Values
+ ;created from MobPageConfigurator, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+PlannedMove=Planned Move
+PlannedMoveLines=Planned Move Lines
+PleaseaddtheIDforthetranslation=Please add the ID for the translation
+ ;created from MobCreateTranslationForm, //AxForm/SourceCode/DataControls/Control/Methods
+Pleaseaddthetranslationforthesys=Please add the translation for the system langauge
+ ;created from MobCreateTranslationForm, //AxForm/SourceCode/DataControls/Control/Methods
+Possibledatatoenrichwith=Possible data to enrich with
+PossibleDisplaymethodstouse=Possible Display methods to use
+PossibleFieldstouse=Possible Fields to use
+PossibleRelatedTablestouse=Possible Related Tables to use
+postfix=Postfix
+PostJournal=Post Journal?
+Postmovementjournal=Post movement journal?
+PostorderPromptLinesDevDoc=In this table you can register which data should be added as collector when being prompted for posting orders.
+ ;New Comment
+PostOrderPromptOverride=Posting Flow Editor
+ ;New Comment
+PostPromptOverrideDevDesc=This table contains an entry for each post prompt override to be set up in Mobile WMS.
+ ;New Comment
+PostPromptOverrideFieldsDevDesc=This table contains the attributes and their corresponding values for the registration collectors.
+ ;New Comment
+PrefillExpectedValueOnLocationSc=Prefill Expected Value On Location Scan
+Previewnotavailable=Preview not available
+ProdOrderNotStarted=Production Order %1 does not have status started.
+ ;New Comment
+ProdReceiptPosted=Product receipt posted successfully
+ProductionFunctions=Production Functions
+ProductreceiptPrefix=Product receipt Prefix
+ProfitLossJournalcreatedsucessfully=Profit / Loss Journal created sucessfully
+Promoted=Promoted
+PromptforbarcodeSetup=Prompt for barcode Setup
+PromptforLocation=Prompt for Location
+ ;created from MobDocProductionOrders, //AxClass/SourceCode/Methods
+PromptforProductreceipt=Prompt for Product receipt
+PromptforQuantity=Prompt for Quantity
+PromptforReportasFinished=Prompt for Report as Finished
+PromptForUnit=Prompt for unit
+Properties=Properties
+QuantityByScan=Quantity By Scan
+Quantity_to=Quantity (to)
+QuarantineOrderCreated=Quarantine order %1 created
+ ;New Comment
+Ready=Ready
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+RealtimeRegistrationsDevDesc=The Realtime Registered Quantity table is where realtime registrations are stored, if it has been enabled.
+ ;New Comment
+ReceiveOrderHandler=Receive Order Handler
+ ;New Comment
+Refresh=Refresh
+ ;created from MobFeedbackPart, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Registerbarcode=Register barcode
+Registerclockout=Register clock-out
+RegisterIndirectActivities=Register Indirect Activities
+RegisterItemImage=Register Item Image
+ ;New Comment
+RegisterProductionJobs=Register Production Jobs
+RegisterProjectJobs=Register Project Jobs
+RegistrationCollectorFromBinHeader=Scan From Location
+ ;New Comment
+RegistrationCollectorFromBinHelpLabel=Scan the location you are taking the item from.
+ ;New Comment
+RegistrationCollectorToBinHeader=Scan To Location
+ ;New Comment
+RegistrationCollectorToBinHelpLabel=Scan the location where you are placing the item.
+ ;New Comment
+RegistrationErrors=Registration Errors
+ ;created from MobRegistrationsErrors, //AxTable/Label
+RegistrationsDevDesc=Common table used when handling registrations from the Mobile Device.
+ ;New Comment
+Relations=Relations
+Reloadpagescache=Reload pages cache
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+removeAll=Remove all
+RemoveReservation=Remove Reservation
+Repack=Repack
+ReplaceOrAppend=Replace or Append
+ ;New Comment
+RequestTypeDoesNotExist=Request of the Type %1 does not exist
+ ;New Comment
+ReservedCarts=Reserved Carts
+ReservedCarts_devDoc=Keeps record of which carts are reserved
+Reservedline=Reserved line
+ResetCache=Reset Cache
+ ;created from MobFeedbackPart, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Text
+ResetMenuItems=Reset Menu Items
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+resourceshtmlMobHtmlViewerCtrl=/resources/html/MobHtmlViewerCtrl
+ ;created from MobHtmlViewerCtrl, //AxClass/SourceCode/Methods
+Routeonpackingstationcartmovementnotallowed=Route is on packing station, cart movement not allowed.
+RunbatchjobtoimportLabelfileentr=Run batch job to import Label file entries
+ ;created from MobTranslations, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+SavedExpression=Saved Expression
+Savegroupsetup=Save group setup
+ ;created from MobMenuConfig, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+saveSortingSetupButton=Save sorting setup
+ScalerelativetoCanvas=Scale relative to Canvas
+Scananexistingoutboundlicenseplate=Scan an existing outbound license plate.
+ScanBatchNumber=Scan Batch Number
+ ;New Comment
+ScanBatchNumberHelp=Scan the batch number for the item.
+ ;New Comment
+ScanBehaviourWhenRegisteringQuan=Scan Behaviour When Registering Quantity
+ScanemptyOutboundlicenseplate=Scan empty Outbound license plate
+ScannedValue=Scanned Value
+ScanNextItem=Scan Next Item
+ScantheemptyOutboundlicenseplateyouareplacingtheiteminto=Scan the empty Outbound license plate you are placing the item into.
+ScanToSelectBehaviour=Scan To Select Behaviour
+SearchService=Search Service
+secMaintainModule=Tasklet Factory Mobile WMS setup and maintain module.
+ ;New Comment
+SegregateJournalsintoOperations=Segregate Journals into Operations
+ ;created from MobDocPickOrder, //AxClass/SourceCode/Methods
+Selectall=Select all
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Selectandedit=Select and edit
+ ;created from MobTranslationLookup, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Selectapplicationconfigurationfi=Select application configuration file
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+Selectapplicationfile=Select application file
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+SelectDataforDataSource=Select Data for Data Source
+ ;created from MobPageListDataBinding, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Selecttheapplicationcfgfiletoimp=Select the application.cfg file to import. On the next tabs you can choose which pages, configurations  and menu items to import from the file.
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Selectthemenuitemstoimportfromth=Select the menu items to import from the application file to the page
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Selectthepagesthatshouldbeimport=Select the pages that should be imported to the system. Please consider the pages to import instead for importing them all. Import only the pages that will be used.
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Send=Send
+ ;created from MobFeedbackPart, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Text
+SerialNotAvailable=Serial number not available
+ ;New Comment
+Services=Services
+setActiveMenuItemsToJavascript=setActiveMenuItemsToJavascript
+ ;created from MobMenuItemsCtrl, //AxClass/SourceCode/Methods
+SetCurrentDateWhenPostingFromDevice=Set current date when posting
+SetupAPIPermissions=Set up API Permissions
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+SetupAzureDevicesClientid=Setup Azure Devices - Clientid
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Caption
+SetupMenu=Setup menu
+SetuptheWarehouselocationsforeac=Set up the Warehouse locations for each user group. 
+ ;created from MobInventLocationSetup, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Setuptranslations=Setup translations
+ ;created from MobTranslations, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Caption
+SetuptranslationsIfthetranslatio=Set up translations. If the translation derives from a label file the translations can be overridden.
+ ;created from MobTranslations, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Ship=Ship
+ShipUnstagedOutboundLicensePlates=Ship unstaged Outbound License Plates
+ShopFloorJobs=Shop Floor Jobs
+Showexportformat=Show export format
+ ;created from MobListEditor, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Label
+ShowHideLabelIdcreationtab=Show/Hide LabelId creation tab
+ ;created from MobTranslations, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+ShowImage=Show Image
+ShowInfo=Show Info
+ShowInfoonclockin=Show Info on clock-in
+ShowReturnOrders=Show Return Orders
+ ;New Comment
+StagingLines=Staging Lines
+StandardDesigns=Standard Designs
+Standardversion=Standard version
+StayOnPage=Stay On Page
+ ;created from MobActionOnEmptyList, //AxEnum/EnumValues/AxEnumValue/Label
+style=style
+ ;created from MobHtmlViewerCtrl, //AxClass/SourceCode/Methods
+SubLists=Sub Lists
+SuggestBatchNumber=Suggest Batch Number
+ ;Text for the parameter for the batch number to be suggested in if present in the Landed Cost module.
+Suggestion=Suggestion
+ ;created from MobRegexLookup, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Label
+SuggestRegularExpression=Suggest Regular Expression
+ ;created from MobRegexLookup, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Suggesttranslations=Suggest translations
+ ;created from MobTranslations, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Summation=Summation
+ ;created from MobDocLocateItem, //AxClass/SourceCode/Methods
+Suppressrefreshaftersuccesfulpos=Suppress refresh after succesful post
+Supressrefreshingthispagewhenret=Supress refreshing this page when returning from the associated page and the command was successful
+Switchtodesign1onthepage2=Switch to design %1 on the page %2?
+SystemLabel=System label
+TableNameandfield=Table Name and field
+Tag=Tag
+ ;created from MobXMLFormatLookupTagCountingLine, //AxClass/SourceCode/Methods
+TagCountingJournalcreatedsucessfully=Tag Counting Journal created sucessfully
+ ;New Comment
+TagCountingLines=Tag Counting Lines
+TaskletFactoryExportFormat=Tasklet Factory Export Format
+TaskletFactoryReset=(Tasklet) Factory Reset
+ ;created from MobFeedbackPart, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Text
+TenantID=Tenant ID
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Label
+TestDocument=Test Document
+TeteRelatedDataTemporaryTable=Tete Related Data Temporary Table
+ ;created from MobToteRelatedDataTempTable, //AxTable/Label
+TheCartOverviewgivesyouanovervie=The Cart Overview gives you an overview of the carts available for movement in the warehouse
+Theclientidanduseridmustbeprovid=The client id and user id must be provided
+ ;created from MobDeviceConnectionGuideFormClass, //AxClass/SourceCode/Methods
+TheClientIDhasbeensetupandtheref=The ClientID has been set up and therefore you are at the step where you can scan the endpoint. If you need to change the clientID, tenantID or the display name for the barcode generated below then please use the back button. 
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+TheClientIDhasnotbeensetupPlease=!!The ClientID has not been set up!! Please make sure to add the clientID in the previous step.
+ ;created from MobDeviceConnectionGuideForm, //AxForm/SourceCode/DataControls/Control/Methods
+Theconfigurationsthatdiffersfrom=The configurations that differs from the configurations in the system compared to the selected application configuration file.
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Thelist1doesnotexist=The list %1 does not exist
+ ;created from MobListVisualization, //AxClass/SourceCode/Methods
+Thelistalreadyexists=The list already exists.
+ ;created from MobListOverview, //AxForm/SourceCode/DataSources/DataSource/Methods
+TheLookuppageismadefordisplaying=The Lookup page is made for displaying data, and is a very flexible page type. When lines are selected it can navigate to a flow on another page, or a flow can be embedded.
+Themenuitem1cannotbedeletedbecau=The menu item:  %1 cannot be deleted because it is a mandatory menu item. Please uncheck Enabled if you want to hide the menu item on the device.
+TheOrderLinespageismadefororderl=The Order Lines page is made for order lines data and data collection. The order lines are always navigated to, from an order list page.
+TheOrderListpageismadefororderda=The Order List page is made for order data, that has lines. The order list typically navigates to an equivalent Order lines page, but it can navigate to other page types.
+Theoutboundlicenseplateisinuseby=The outbound license plate '{0}' is in use by '{1}'.
+TheOutboundLicensePlateyouwanttomovetheitemto=The Outbound License Plate you want to move the item to
+Thepickinglineisgroupedonthedata=The picking line is grouped on the datasource. To cancel a pick you must first ungroup the lines.
+ ;created from MobDocCancelPickLine, //AxClass/SourceCode/Methods
+ThequantityyouwanttomovetoanotherOutboundLicensePlate=The quantity you want to move to another Outbound License Plate
+Thescannedvaluemustexistinthecan=The scanned value must exist in the candidate list (fetched from the reference data)
+Thescannedvaluewillbeaddedasatyp=The scanned value will be added as a type and the quantity is incremented by 1.
+Thesystemlanguagemaynotbedeleted=The system language may not be deleted.
+ ;created from MobTranslations, //AxForm/SourceCode/DataSources/DataSource/Methods
+TheUnplannedItemRegistrationpage=The Unplanned Item Registration page is made for collecting data, It always has a header, with fields you have to fill, once filled, it can open a flow, with steps reflecting what you entered in the header, or it can post directly.
+TheUsernamebarcodecanbeusedtosca=The 'Username barcode' can be used to scan the user name in the Mobile WMS App on the device. The user name can also be typed directly in to the field on the device.
+ ;created from MobDeviceConnectionGuideForm, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Thisdemodeviceisonlyallowedinsan=This demo device is only allowed in sandbox and development environments.
+ ;created from TFMRequestCapabilities, //AxClass/SourceCode/Methods
+Thisisa1page=This is a %1 page.
+Timeused=Time used
+Title=Title
+ ;created from MobPageConfigurator, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Label
+TitleFields=Title Fields
+toggleOrderLineGrouping=Toggle Order Line Grouping
+toggleShowPostedOrders=Toggle Show Posted Order
+ToLicensePlate=To License Plate
+ ;created from MobXmlFormatLookupTransferJournals, //AxClass/SourceCode/Methods
+ToLocation=To Location
+ ;created from MobXMLFormatLookupLicensePlate, //AxClass/SourceCode/Methods
+Tote=Outbound License Plate
+ToteContent=Tote Content
+ ;created from MobToteContent, //AxTable/Label
+ToteID=Outbound License Plate ID
+Totes=Outbound license plates
+ToWarehouse=To Warehouse
+ ;created from MobXMLFormatLookupLicensePlate, //AxClass/SourceCode/Methods
+TracingUsers=Tracing Users
+ ;created from MobTracingUsers, //AxTable/Label
+Translatedtitle=Translated title
+ ;created from MobPageConfigurator, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Label
+Translatelabels=Translate labels
+ ;created from MobPageConfigurator, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Label
+Translation=Translation 
+ ;created from MobCreateTranslationForm, //AxForm/SourceCode/Methods
+TranslationID=Translation ID
+ ;created from MobTranslations, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Label
+Translationinformation=Translation information
+ ;created from MobTranslations, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Caption
+TranslationlabelIDlookupcreation=Translation labelID lookup creation from label files
+ ;created from MobSystemStartupEvent, //AxClass/SourceCode/Methods
+Translations=Translations
+ ;created from MobTranslations, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Caption
+TranslationsDevDesc=The Translations table contains translations to be used in the mobile App.
+ ;New Comment
+TranslationService=Translation Service
+ ;New Comment
+Type=Type
+TypeandQuantity=Type and Quantity
+TypeBarcode=Type Barcode
+UnableToCreatePackingSlip=Unable to create Packing Slip for '{0}'.
+Unabletoloadfile=Unable to load file
+ ;created from MobGraphicsHelper, //AxClass/SourceCode/Methods
+Unabletoopentheconfiguratorforth=Unable to open the configurator for the page because the page was not found
+ ;created from MobPageConfigurator, //AxForm/SourceCode/Methods
+UnableToPost=Unable to post '%1'.
+UnableToPostAllGitRegistrations=Unable to register all git registrations from the device. %1 not registered
+ ;Error message displayed when not all GIT registrations could be published. GIT is a part of the Landed Cost Module.
+Unabletotranslate=Unable to translate.
+ ;created from MobTranslationProvider, //AxClass/SourceCode/Methods
+UnavailableintheMenu=Unavailable in the Menu
+UnloadCart=Unload Cart
+UnloadMode=Unload Mode
+UnplannedCartMove=Unplanned Cart Move
+UnplannedCount=Unplanned Count
+UnplannedItemRegistration=UnplannedItemRegistration
+ ;created from MobNewPageWizard, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+UnplannedMove=Unplanned Move
+Unreferencedpages=Unreferenced pages
+Unselectall=Unselect all
+ ;created from MobApplicationConfigImporter, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Controls/AxFormControl/Text
+Unshipped=Unshipped
+UpdateMode=Update Mode
+Uploadall=Upload all
+Usage=Usage
+UsageoftheTranslation=Usage of the Translation
+ ;created from MobTranslations, //AxForm/SourceCode/DataSources/DataSource/Methods
+UseDataset=Use dataset
+Usedin=Used in
+ ;created from MobTranslations, //AxForm/SourceCode/DataSources/DataSource/Methods
+usedtochangeitclick=used, to change it click 
+UseLabelId=Use Label Id
+ ;created from MobCreateTranslationForm, //AxForm/Design/Controls/AxFormControl/Caption
+UseOrderLocking=Use Order Locking
+UseOutboundLicensePlateswhenpick=Use Outbound License Plates when picking
+UsePackingSlipforPackinglist=Use Packing Slip for Packing list
+ ;created from MobDocPickOrder, //AxClass/SourceCode/Methods
+User=User
+UserID=User ID
+ ;created from MobDeviceConnectionGuideFormClass, //AxClass/SourceCode/Methods
+Username=Username
+ ;created from Mob2DBarcodeGenerator, //AxClass/SourceCode/Methods
+UseSingleselection=Use Single selection
+ ;created from MobListEditor, //AxForm/Design/Controls/AxFormControl/Controls/AxFormControl/Label
+ValidateCurrentItem=Validate Current Item
+ValidatingtheOutboundlicenseplateonlinefailed=Validating the Outbound license plate online failed. {0}
+ValidationWarningTypes=Validation Warning Types
+ ;created from MobValidationWarningTypes, //AxEdt/Label
+Value=Value
+ ;created from MobPageConfigParms, //AxTable/Fields/AxTableField/Label
+Valueinfile= Value in file: 
+ ;created from MobApplicationConfigImporter, //AxForm/SourceCode/Methods
+ValueInteractionPermission=Value Interaction Permission
+VisbleWhenNoData=Visible When No Data
+VisualFlow=Visual Flow
+WarehouseFunctions=Warehouse Functions
+Whenlineisselected=When line is selected
+Whenpickingfromthedevice=When picking from the device the Date of the BOM Journal will be set to current date
+Whenselectingline=When selecting line
+Width=Width
+WindowsMobile=Windows Mobile
+Workflow=Workflow
+WorkflowStepID=Workflow Step ID
+ ;created from MobWorkflowSteps, //AxTable/Fields/AxTableField/Label
+XML=XML
+XMLfiles=XML files
+XMLTableDevDoc=Table to store XML files.
+Youhaveaddedthelicenseplate1=You have added the license plate %1
+ ;created from MobDocTagCounting, //AxClass/SourceCode/Methods
+Youhavescannedanewoutboundlicenseplate=You have scanned a new outbound license plate '{0}'. Do you want to start using it?
+Youmustpicktheentirepickinglistb=You must pick the entire picking list before you can unload the cart.
+
+AddPickLine=Add Pick Line
+ ;created from MobDocAddPickLine, //AxClass/SourceCode/Methods
+MovementJournalcreatedsuccesfull=Movement Journal created succesfully
+ ;created from MobDocMovementJournal, //AxClass/SourceCode/Methods
+TransferJournalcreatedsuccesfull=Transfer Journal created succesfully
+ ;created from MobDocTransferJournal, //AxClass/SourceCode/Methods
+CreatedfromMobileWMS=Created from Mobile WMS
+ ;created from MobHelper, //AxClass/SourceCode/Methods
+Youcannotmove0ofthisitemcheckifi=You can not move 0 of this item, check if it is reserved, and try again.
+ ;created from MobPostHelper, //AxClass/SourceCode/Methods
+MOBregistrationRecId=MOB registration RecId
+ ;created from MobRegistrationsExtraInfo, //AxTable/Fields/AxTableField/Label
+Key=Key
+ ;created from MobRegistrationsExtraInfo, //AxTable/Fields/AxTableField/Label
+Log=Log
+ ;created from MobRegistrationLog, //AxMenuItemDisplay/Label

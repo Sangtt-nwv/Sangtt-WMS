@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMImageHandlerIconTitle</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMImageHandlerIconTitle extends TFMImageHandler
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public str process(str _imageId)
+    {
+        str ret;
+        System.Drawing.Image iconImage;
+        str resName;
+        str title;
+        container imgCon;
+        if (subStr(_imageId,1,14) != 'IconWithTitle_')
+        {
+            return ret;
+        }
+        imgCon = strSplit(resName,'|').pack();
+        resName = strReplace(conPeek(imgCon,conLen(imgCon)-1),'IconWithTitle_','');
+        title = conPeek(imgCon,conLen(imgCon));
+        if (SysResource::checkIfResourceExists(resName))
+        {
+            iconImage = TFMImageHelper::base64ToImage(TFMImageHelper::resource2Base64(resName));
+        }
+		else
+        {
+            iconImage = TFMImageHelper::base64ToImage(TFMImageHelper::resource2Base64(resourceStr(TFMMissingImage)));
+        }
+        System.Drawing.Image    image =  new System.Drawing.Bitmap(250,300);
+        System.Drawing.Graphics Graphics =  System.Drawing.Graphics::FromImage(image);
+
+        
+        System.Drawing.Rectangle rect = new System.Drawing.Rectangle(0,0,250,250);
+        Graphics.DrawImage(iconImage,rect);
+
+        TFMGraphicsHelper::drawText(Graphics,125,275,255<<24,title,10,SysChartHorizontalAlignment::Center,SysChartVerticalAlignment::Middle,true);
+        ret = TFMImageHelper::Image2Base64(image);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Data Entities"
+  short_description: "Scaffold OData and DMF data entities for D365FO"
+  default_prompt: "Use $data-entity-scaffolding to create a D365FO data entity."

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxFormExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DocuView.TFMobile</Name>
+	<ControlModifications />
+	<Controls>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControlaokjcjkg1</Name>
+			<FormControl>
+				<Name>TFMImageViewer</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<Visible>No</Visible>
+				<FormControlExtension>
+					<Name>TFMHtmlViewerCtrl</Name>
+					<ExtensionComponents />
+					<ExtensionProperties>
+						<AxFormControlExtensionProperty>
+							<Name>htmlField</Name>
+							<Type>String</Type>
+						</AxFormControlExtensionProperty>
+					</ExtensionProperties>
+				</FormControlExtension>
+			</FormControl>
+			<Parent>Preview</Parent>
+		</AxFormExtensionControl>
+	</Controls>
+	<DataSourceModifications />
+	<DataSourceReferences />
+	<DataSources />
+	<Parts />
+	<PropertyModifications />
+</AxFormExtension>

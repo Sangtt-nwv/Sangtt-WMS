@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMProcessHandler</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// This class is the entry point for requests to be handled by process logic
+/// </summary>
+class TFMProcessHandler extends TFMInputHandler
+{
+
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Runs the process logic
+    /// </summary>
+    public void run()
+    {
+        TFMProcess      process;
+        TFMProcessID    processId;
+        //Find the relevant process, and execute.
+        process = TFMProcessProvider::GetAllProcessesImpl().getProcess(request.ContentType(), TFMProcessVersion::newestVersion(request.ContentType(), true));
+        
+        if (!process)
+        {
+            return;
+        }
+
+        processId = process.parmProcessName();
+        request.makeLogEntry('Using process ' + processId);
+        
+
+        responseElement = process.runProcess(request);
+
+        
+        /*if (classIdGet(responseElement) == classNum(TFMPostResponseData))
+        {
+            TFMProcessProvider::instance().invalidateProvider();
+        }*/
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentContentSubject</Name>
+				<Source><![CDATA[
+    public TFMDocumentContentSubject getDocumentContentSubject()
+    {
+        return request.ContentType();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResultTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the resulting buffer if any.
+    /// </summary>
+    /// <returns>A table buffer</returns>
+    public Common getResultTable()
+    {
+        Common ret = null;
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsProcessMoveInventory</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+internal final class MwmsProcessMoveInventory extends TFMProcess
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsProcessMoveInventory Construct()
+    {
+        return new MwmsProcessMoveInventory();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaders</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration getHeaders()
+    {
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        processName = 'MoveInventory';
+        MwmsLogicBlockMoveLicensePlate              LPBlock   = MwmsLogicBlockMoveLicensePlate::Construct();
+        MwmsLogicBlockMoveInvent                    itemBlock = new MwmsLogicBlockMoveInvent();
+        super();
+        MwmsProcessCreateTransferJournalLine::addBlocksForHandlingLicenseAndItems(this, itemBlock, LPBlock);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

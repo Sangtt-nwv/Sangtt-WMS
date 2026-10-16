@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMAppInsightsTFMVersionProperty</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMAppInsightsTFMVersionProperty extends SysApplicationInsightsProperty
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addPropertyVersion</Name>
+				<Source><![CDATA[
+    static TFMAppInsightsTFMVersionProperty addPropertyVersion()
+    {
+        return new TFMAppInsightsTFMVersionProperty(TFMVersion::Construct().getModelVersion());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initialize</Name>
+				<Source><![CDATA[
+    protected container initialize()
+    {
+        return ['TaskletPlatformVersion', SysApplicationInsightsComplianceDatatype::SystemMetadata];
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

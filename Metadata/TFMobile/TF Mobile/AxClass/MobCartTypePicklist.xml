@@ -1,0 +1,629 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobCartTypePicklist</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobCartTypePicklist extends MobCartType
+{
+    boolean rereserve;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>typeOfCart</Name>
+				<Source><![CDATA[
+    public InventTransType typeOfCart()
+    {
+        return InventTransType::WMSOrder;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleScan</Name>
+				<Source><![CDATA[
+    public str handleScan(str _scannedValue)
+    {
+        str ret;
+        if (WMSPickingRoute::find(_scannedValue) || MobConsolidatedPickingRoutes::Exists(_scannedValue))
+        {
+            if (!MobCartTypePicklist::isRouteOnPackingStation(_scannedValue))
+            {
+                ret = _scannedValue;
+            }
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRouteOnPackingstation</Name>
+				<Source><![CDATA[
+    public static boolean isRouteOnPackingstation(WMSPickingRouteID _routeId)
+    {
+        //WMSPickingRoute         wMSPickingRoute;
+        WmsOrderTrans			wMSOrderTrans;
+        InventDim				inventDim;
+        MobPackingStation		pStation;
+        WMSPickingRouteID		routeId = _routeId;
+        SetEnumerator			sEnum = MobConsolidatedPickingRouteOrders::getRouteSiblings(routeId).getEnumerator();
+
+        while (sEnum.moveNext())
+        {
+            routeId = sEnum.current();
+            select firstonly pStation
+                join inventDim where inventDim.InventLocationId == pStation.InventLocationId && inventDim.wMSLocationId == pStation.WMSLocationId
+                join wmsOrderTrans where wMSOrderTrans.routeId == routeId && inventDim.inventDimId == wMSOrderTrans.inventDimId;
+            if (pStation)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CartModePostOverride</Name>
+				<Source><![CDATA[
+    public boolean CartModePostOverride(TFMRequestBasicElement	_cartRequest)
+    {
+        TFMRequestBasicElement	context = _cartRequest.parmContextValues();
+        WMSOrderTrans			orderTrans = context.getReferredRecord();
+        RecId					recId = orderTrans.RecId;
+
+        if (!orderTrans.isReserved)
+        {
+            return true;
+        }
+
+
+        MobCartTypePicklist::removeReservedQty(orderTrans);
+
+        ttsbegin;
+        select firstonly forupdate orderTrans where orderTrans.RecId == recId;
+
+        orderTrans.isReserved = false;
+
+        orderTrans.doUpdate();
+
+        ttscommit;
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postAddOrMoveItemToOrFromCartPostProcess</Name>
+				<Source><![CDATA[
+    public boolean postAddOrMoveItemToOrFromCartPostProcess(TFMRequestItemAndDimensionElement _cartRequest, InventJournalTable _inventJournalTable)
+    {
+        boolean				ret = super(_cartRequest,_inventJournalTable);
+        InventJournalTrans	trans;
+        WMSOrderTrans		orderTrans;
+        TFMRequestElement	context = _cartRequest.parmContextValues();
+        MobBackendId		backendID = context.getFieldValue(MobConstants::BackendId());
+        Qty					qty = _cartRequest.parmQuantity();
+        Qty					qtyForLine;
+        Set					SiblingLines;
+        SetEnumerator		sEnum;
+        int					lines = 1;
+        //InventTransSplit	inventTransSplit;
+        WMSOrderTransSplit	splitter;
+        InventDimId			orgInventDimId;
+        //_cartRequest.parmQuantity(str2Num(_cartRequest.getFieldValue(MobConstants::Quantity()+'2Pick')));
+        
+        //Split lines!!
+
+        select firstonly orderTrans where orderTrans.RecId == str2Int64(strKeep(backendID,'1234567890'));
+        SiblingLines = MobPickOrderTypePicklist::accumulateLineSiblings(orderTrans);
+        sEnum = SiblingLines.getEnumerator();
+        ttsbegin;
+        while (sEnum.moveNext() && qty > 0)
+        {
+            //select firstonly forupdate orderTrans where orderTrans.RecId == str2Int64(strKeep(backendID,'1234567890'));
+            orderTrans = sEnum.current();
+            orderTrans.selectForUpdate(true);
+
+            select firstonly trans where trans.JournalId == _inventJournalTable.JournalId;
+            orgInventDimId = orderTrans.inventDimId;
+            orderTrans.inventDimId = trans.ToInventDimId;
+            if (rereserve)
+            {
+                qtyForLine = orderTrans.qty;
+                orderTrans.qty = qty;
+                MobCartTypePicklist::unreserveItemFromLine(orderTrans,true);//,orderTrans.qty);
+                orderTrans.qty = qtyForLine;
+            }
+            orderTrans.doUpdate();
+            qtyForLine = orderTrans.qty;
+            
+            qty -= orderTrans.qty;
+            
+            if (qty > 0 && lines == SiblingLines.elements())
+            {
+                //Last line, put all on this
+                qtyForLine += qty;
+                qty = 0;
+            }
+            else if (qty < 0 && lines == SiblingLines.elements())
+            {
+                //Last line, but not all is picked, split it.
+                //less quantity (split needed)
+                //split
+                orderTrans.inventDimId = orgInventDimId;
+                orderTrans.doUpdate();
+                splitter = WMSOrderTransSplit::newStandard(orderTrans);
+                splitter.parmSplitQty(abs(qty));
+                splitter.runOperation();
+                qtyForLine += qty;
+                select firstonly orderTrans where orderTrans.RecId == str2Int64(strKeep(backendID,'1234567890'));
+                orderTrans.inventDimId = trans.ToInventDimId;
+                orderTrans.doUpdate();
+            }
+
+            MobCartPicklistLink::addLink(orderTrans.RecId,_cartRequest.getFieldValue(extendedTypeStr(MobCartID)),qtyForLine);
+
+            lines++;
+        }
+        ttscommit;
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InventTransFromInventTransId</Name>
+				<Source><![CDATA[
+    public static inventTrans InventTransFromInventTransId(InventTransId _transId)
+    {
+        inventTransOrigin	inventTransOrigin;
+        inventTrans			inventTrans;
+        select RecId from inventTransOrigin
+            where inventTransOrigin.InventTransId  == _transId
+            && inventTransOrigin.ReferenceCategory == InventTransType::Sales
+        join inventTrans
+            where (inventTrans.StatusIssue  == StatusIssue::ReservPhysical ||
+                    inventTrans.StatusIssue  == StatusIssue::OnOrder) &&
+                    inventTransOrigin.RecId == inventTrans.InventTransOrigin;
+
+        return inventTrans;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postAddOrMoveItemToOrFromCartPreProcess</Name>
+				<Source><![CDATA[
+    public boolean postAddOrMoveItemToOrFromCartPreProcess(TFMRequestItemAndDimensionElement _cartRequest)
+    {
+        boolean				ret = super(_cartRequest);
+        //InventDim			inventDimReceipt;
+        TFMRequestElement	context = _cartRequest.parmContextValues();
+        MobBackendId		backendID = context.getFieldValue(MobConstants::BackendId());
+        WMSOrderTrans		orderTrans;
+
+        //MobCarts			cart = MobCarts::Find(_cartRequest.getFieldValue(extendedTypeStr(MobCartID)));
+        //Qty					qty = _cartRequest.parmQuantity();
+        //inventJournalTable	inventJournalTable;
+        UserConnection		uc = new UserConnection(true);
+
+        uc.ttsbegin();
+        select firstonly orderTrans where orderTrans.RecId == str2Int64(strKeep(backendID,'1234567890'));
+
+        if (orderTrans.isReserved)
+        {
+            //MobCartTypePicklist::unreserveItemFromLine(orderTrans);
+            orderTrans.qty = _cartRequest.parmQuantity();
+            MobCartTypePicklist::removeReservedQty(orderTrans);
+            rereserve = true;
+        }
+        uc.ttscommit();
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unreserveItemFromLine</Name>
+				<Source><![CDATA[
+    public static void unreserveItemFromLine(WmsOrderTrans _trans, boolean _invert = false )
+    {
+        // Inventory dimensions for 'On order' transactions
+        InventDim			inventDimFrom = InventDim::find(_trans.InventDimId);
+        InventTransOrigin	ito;
+        InventTrans			it;
+        InventDimParm		inventDimParm;
+        Common				common;
+
+        /*select firstonly it where it.inventDimId == _trans.inventDimId && it.inventDimId == _trans.inventDimId
+            join ito where ito.RecId == it.inventTransOrigin && ito.InventTransId == _trans.inventTransId;
+        
+        if(it.RecId != 0)
+        {
+            common = it;
+        }
+        else*/
+        {
+            common = _trans;
+        }
+        // Create movement for the reservation
+        InventMovement movement = InventMovement::construct(_trans);//InventTrans::findTransId(_trans.InventTransId).inventMovement(true);
+
+        // Match on all fields
+        inventDimParm.initFromInventDim(movement.inventdim());
+
+        // Create reservation class
+        InventUpd_Reservation reservation = InventUpd_Reservation::newMovementWMS(movement,
+                                               inventDimFrom,
+                                               inventDimParm,
+                                               InventDimFixedClass::inventDimParm2InventDimFixed(inventDimParm),
+                                               _trans.qty* (_invert ? -1 :1)  );/*,
+                                               false);*/
+                                               // Set inventory dimension criteria to reserve against at the input location
+                                               reservation.parmInventDimOnHandSelectionCriteria(inventDimFrom);
+        reservation.updateNow();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>reservePickingListLine</Name>
+				<Source><![CDATA[
+    public static void reservePickingListLine(WmsOrderTrans _trans)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeReservedQty</Name>
+				<Source><![CDATA[
+    public static void removeReservedQty(WmsOrderTrans _trans)
+    {
+        InventTrans inventTrans;
+        InventTransOrigin inventTransOrigin;
+        InventMovement inventMovement;
+        InventUpd_Reservation inventUpd_Reservation;
+        InventQty inventQtyReserved;
+ 
+        //Calculate the Qty from inventTrans which are reserved ordered or reserved physical
+        select sum(Qty) from inventTrans
+        where inventTrans.StatusReceipt             == StatusReceipt::None
+           && (inventTrans.StatusIssue              == StatusIssue::ReservPhysical
+           ||  inventTrans.StatusIssue              == StatusIssue::ReservOrdered)
+           && inventTrans.inventDimId               == _trans.InventDimId
+        exists join inventTransOrigin
+            where inventTransOrigin.RecId           == inventTrans.InventTransOrigin
+        && inventTransOrigin.InventTransId          == _trans.InventTransId;
+ 
+        inventQtyReserved = inventTrans.Qty;
+ 
+        if (!inventQtyReserved || (abs(_trans.qty) < abs(inventQtyReserved)))
+        {
+            inventQtyReserved = -_trans.qty;
+        }
+        //Remove reservations and markings on a reserved salesorder
+        inventTrans.clear();
+        inventTransOrigin.clear();
+ 
+        while select inventTrans
+        where inventTrans.StatusReceipt             == StatusReceipt::None
+           && (inventTrans.StatusIssue              == StatusIssue::ReservPhysical
+           ||  inventTrans.StatusIssue              == StatusIssue::ReservOrdered)
+           && inventTrans.inventDimId               == _trans.InventDimId
+        exists join inventTransOrigin
+            where inventTransOrigin.RecId           == inventTrans.InventTransOrigin
+                && inventTransOrigin.InventTransId  == _trans.InventTransId
+        {
+            if (inventTrans.MarkingRefInventTransOrigin)
+            {
+                InventTransOrigin::deleteMarking(inventTrans.MarkingRefInventTransOrigin, inventTrans.InventTransOrigin, -inventQtyReserved, true);
+                InventTransOrigin::deleteMarking(inventTrans.InventTransOrigin, inventTrans.MarkingRefInventTransOrigin, inventQtyReserved, true);
+            }
+ 
+            if (inventTrans.StatusIssue == StatusIssue::ReservPhysical || inventTrans.StatusIssue == StatusIssue::ReservOrdered)
+            {
+                //inventMovement = InventMov_ProdLine_JournalBOM::newFromProdTable(_prodJournalBOm.prodBOM(), _prodJournalBOm);
+                inventMovement = InventMovement::construct(_trans);
+                inventUpd_Reservation = InventUpd_Reservation::newInventDim(inventmovement, inventTrans.inventDim(), -1 * inventQtyReserved, false);
+                inventUpd_Reservation.updatenow();
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddorRemoveItemPromptOverride</Name>
+				<Source><![CDATA[
+    public Map AddorRemoveItemPromptOverride(TFMRequestItemAndDimensionElement	_cartRequest)
+    {
+        InventDimParm						parm,inventDimParm;
+        TFMRequestElement					context = _cartRequest.parmContextValues();
+        MobBackendId						backendID = context.getFieldValue(MobConstants::BackendId());
+        Map									returnMap = super(_cartRequest);
+        WMSOrderTrans						orderTrans;
+        ItemId								itemId;
+        InventDim							iDim;
+        int									add = 10;
+        Map									replaceLabels = new Map(Types::String, Types::String);
+        SysDictType							dictType;
+        MapEnumerator						mEnum;
+        Map									stepMap;
+        int									decimalPrecision;
+        str									qtyToPick = strReplace(context.getFieldValue('QuantityToPick'),'/','');
+
+        select firstonly orderTrans where orderTrans.RecId == str2Int64(strKeep(backendID,'1234567890'));
+
+        itemId = orderTrans.itemId;
+        iDim = orderTrans.inventDim();
+        parm =  InventDimParm::activeDimFlag(InventDimGroupSetup::newInventTable(InventTable::find(itemId)));
+        
+        inventDimParm.initFromInventDim(iDim);
+        //parm = InventDimParm::xorParms(inventDimParm,parm);
+        parm.InventSiteIdFlag = NoYes::No;
+        parm.InventLocationIdFlag = NoYes::No;
+        //parm.WMSLocationIdFlag = NoYes::Yes;
+        
+        //To or from basket?
+        replaceLabels.insert(extendedTypeStr(WMSLocationId),"@MobileWMS:MEL37");
+        returnMap = MobInventDimHelper::GetInventDimCollectors(add,TFMInventDimSetup::Construct(InventTable::find(itemId)),parm,replaceLabels,null,iDim,orderTrans.isReserved);
+        add = returnMap.elements() *10 + 100;
+        dictType = new SysDictType(extendedTypeNum(Qty));
+        decimalPrecision = unitOfMeasure::findBySymbol(InventTable::find(itemId).inventUnitId()).DecimalPrecision;
+        if (!decimalPrecision)
+        {
+            returnMap.insert('QuantityRemaining',TFMRegistrationCollectorInteger::IntegerStepMap(add,'QuantityRemaining',"@SYS130676",dictType.label(),'',false,qtyToPick,0,str2Int(qtyToPick),14));
+        }
+        else
+        {
+            returnMap.insert('QuantityRemaining', TFMRegistrationCollectorDecimal::DecimalStepMap(add,'QuantityRemaining',"@SYS130676",dictType.label(),'',false,qtyToPick,0,str2Num(qtyToPick),14));
+        }
+        if (!orderTrans.isReserved)
+        {
+            return returnMap;
+        }
+        mEnum = returnMap.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            stepMap = mEnum.currentValue();
+            if ( stepMap.lookup('inputType') == 'list')
+            {
+                stepMap.insert('listValues', stepMap.lookup('defaultValue'));
+            }
+        }
+        //returnMap.insert('info', TFMRegistrationCollectorInformation::InformationStepMap(1,'info',"Info","Info",this.getInfoHtml(orderTrans)));
+        
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInfoHtml</Name>
+				<Source><![CDATA[
+    public str getInfoHtml(WMSOrderTrans _orderTrans)
+    {
+        Map				prodDims = MobInventDimHelper::getProductDimensions(_orderTrans.itemId,_orderTrans.InventDim());
+        Map				tracDims = MobInventDimHelper::getTrackingDimensions(_orderTrans.itemId,_orderTrans.InventDim());
+        MapEnumerator	mEnum = tracDims.getEnumerator();
+        str				html;
+
+        html = 'Pick from:';
+        html += _ordertrans.inventDim().wMSLocationId;
+        while (mEnum.moveNext())
+        {
+            if (!mEnum.currentValue())
+            {
+                continue;
+            }
+            html += (html ? "@MobileWMS:lineBreak" : '') + mEnum.currentKey() + ':';
+            html += mEnum.currentValue();
+        }
+        mEnum = prodDims.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            if (!mEnum.currentValue())
+            {
+                continue;
+            }
+
+            html += (html ? "@MobileWMS:lineBreak" : '') + mEnum.currentKey() + ':';
+            html += mEnum.currentValue();
+        }
+        return html;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>scannedItemBackendOverride</Name>
+				<Source><![CDATA[
+    public boolean scannedItemBackendOverride(str _scannedValue, MobCartID _cartId, XmlDocument _resultXML)
+    {
+        //MobBackendId	ret;
+        WMSOrderTrans	ordertrans;
+        TFMXMLFormat	xmlFormat;
+        MobCarts		cart			= MobCarts::Find(_cartId);
+        Map				compareLines	= MobPickOrderTypePicklist::accumulateLines(MobPickOrderTypePicklist::getRouteLines(cart.ReferenceId,false));
+        MapEnumerator	mEnum			= compareLines.getEnumerator();
+        InventQty		qty;
+        while (mEnum.moveNext())
+        {
+            ordertrans = mEnum.currentValue();
+            qty = MobCartPicklistLink::totalQty(ordertrans.RecId,_cartId);
+            if (orderTrans.itemId == _scannedValue && qty < ordertrans.qty) // && not already picked
+            {
+                xmlFormat = TFMXMLFormat::constructFromCommon(_resultXML,ordertrans,1,'CartContent');
+                xmlFormat.parmPageID('CartContent');
+                xmlFormat.run();
+                return true;
+            }
+        }
+
+        return _scannedValue != '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postProcess</Name>
+				<Source><![CDATA[
+    public void postProcess(Map _contentLines, MobCartID _cartId, XmlDocument _resultXML)
+    {
+        WMSOrderTrans				ordertrans;
+        TFMXMLFormat				xmlFormat;
+        MobCarts					cart = MobCarts::Find(_cartId);
+        Map							compareLines = MobPickOrderTypePicklist::accumulateLines(MobPickOrderTypePicklist::getRouteLines(cart.ReferenceId,false));
+        MapEnumerator				mEnum = compareLines.getEnumerator();
+        int							i;
+        while (mEnum.moveNext())
+        {
+            ordertrans = mEnum.currentValue();
+            xmlFormat = TFMXMLFormat::constructFromCommon(_resultXML,ordertrans,i,'CartContent');
+            xmlFormat.parmPageID('CartContent');
+            xmlFormat.run();
+            i++;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UnloadCartPromptOverride</Name>
+				<Source><![CDATA[
+    public Map UnloadCartPromptOverride(TFMRequestBasicElement	_cartRequest)
+    {
+        Map								returnMap = new Map(Types::string, Types::class);
+        MobCartID						cartId = _cartRequest.getFieldValue(extendedTypeStr(MobCartID));
+        //MobRegistrationCollectorText	packingStationId = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(WHSPackProfileId));
+        TFMRegistrationCollectorList	packList = new TFMRegistrationCollectorList(5,extendedTypeStr(MobPackingStationId), "@MobileWMS:PackingStationID", "@MobileWMS:PackingStationID","@MobileWMS:PackingStationID");
+        MobCarts						cart = MobCarts::Find(cartId);
+        MobPackingStation				stations;
+        str								packingStr;
+        Map								compareLines = MobPickOrderTypePicklist::accumulateLines(MobPickOrderTypePicklist::getRouteLines(cart.ReferenceId,false));
+        MapEnumerator					mEnum = compareLines.getEnumerator();
+        WMSOrderTrans					orderTrans;
+        real							uSumOfAB;
+        MobDocUnplannedCartMove         cartMove = new MobDocUnplannedCartMove();
+
+        while (mEnum.moveNext())
+        {
+            orderTrans= mEnum.currentValue();
+            uSumOfAB += (orderTrans.qty - MobCartPicklistLink::totalQty(orderTrans.recid, cart.CartID));
+        }
+        if (uSumOfAB > 0 && !cartMove.parmAllowUnderDelivery())
+        {
+            throw error("@MobileWMS:Youmustpicktheentirepickinglistb");
+        }
+
+        while select stations where stations.InventSiteId == cart.InventSiteId && stations.InventLocationId == cart.InventLocationId
+        {
+            packingStr += (packingStr ? ';' : '') + stations.PackingStationId;
+        }
+        packList.parmListValues(packingStr);
+
+        returnMap.insert(packList.parmName(),packList.getMap());
+
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getOnhandQty</Name>
+				<Source><![CDATA[
+    protected InventQty getOnhandQty(ItemId _itemId, InventDim _iDim)
+    {
+        InventDimParm   inventDimParm;
+        InventOnhand    inventOnhand;
+        inventDimParm.initFromInventDim(_iDim);
+        
+        inventOnhand = InventOnhand::newParameters(_itemId, _iDim, inventDimParm);
+
+        return inventOnhand.physicalInvent();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postCartUnloadOverride</Name>
+				<Source><![CDATA[
+    public boolean postCartUnloadOverride(TFMRequestBasicElement	_cartRequest)
+    {
+        MobCartID						cartId = _cartRequest.getFieldValue(extendedTypeStr(MobCartID));
+        MobCarts						cart = MobCarts::Find(cartId);
+        MobPackingStation				pStation = MobPackingStation::Find(_cartRequest.getFieldValue(extendedTypeStr(MobPackingStationId)));
+        Map								compareLines = MobPickOrderTypePicklist::getRouteLines(cart.ReferenceId,false);
+        MapEnumerator					mEnum = compareLines.getEnumerator();
+        WMSOrderTrans					orderTrans, orderTransUpdate;
+        int								i;
+        Set								reserveTranses = new Set(Types::Int64);
+        //SetEnumerator					sEnum;
+        RecId							RecId;
+        InventDim						iDim, iDimTo;
+        boolean							doRereserve;
+                
+        ttsbegin;
+        while (mEnum.moveNext())
+        {
+            doRereserve = false;
+            orderTrans = mEnum.currentValue();
+            //remove all reservations first
+            
+            iDim = orderTrans.inventDim();
+            if (iDim.wMSLocationId != cart.WMSLocationId)
+            {
+                continue;
+            }
+            iDimTo = orderTrans.inventDim();
+            iDim.wMSLocationId		= cart.WMSLocationId;
+            iDim.InventLocationId	= cart.InventLocationId;
+            iDim = InventDim::findOrCreate(iDim);
+            orderTrans.inventDimId = iDim.InventDimId;
+            iDimTo.wMSLocationId		= pStation.WMSLocationId;
+            iDimTo.InventLocationId	= cart.InventLocationId;
+            iDimTo = InventDim::findOrCreate(iDimTo);
+            if ( orderTrans.isReserved)
+            {
+                MobCartTypePicklist::removeReservedQty(orderTrans);
+                doRereserve = true;
+            }
+            
+            MobPostHelper::inventJournalTransfer(orderTrans.qty,orderTrans.itemId,iDim,iDimTo);
+            if (doRereserve)
+            {
+                orderTrans.inventDimId = iDimTo.InventDimId;
+                MobCartTypePicklist::unreserveItemFromLine(orderTrans,true);//,orderTrans.qty);
+            }
+            RecId = orderTrans.RecId;
+            select forupdate firstonly orderTrans where orderTrans.RecId == RecId;
+            orderTrans.inventDimId = iDimTo.InventDimId;
+            orderTrans.doUpdate();
+            
+            i++;
+        }
+
+        ttscommit;
+
+        MobReservedCarts::unreserveCart(cart.CartID);
+
+        MobCartPicklistLink::removeLinks(cart.CartID);
+        ttsbegin;
+        cart.selectForUpdate(true);
+        cart.ReferenceId = '';
+        cart.update();
+        ttscommit;
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

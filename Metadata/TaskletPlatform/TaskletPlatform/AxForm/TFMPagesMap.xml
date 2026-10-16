@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMPagesMap</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMPagesMap extends FormRun
+{
+    TFMPagesMapHelper pageHelper;
+
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        
+		super();
+        
+        pageHelper = new TFMPagesMapHelper();
+
+        pageHelper.init();
+        
+        pageMapHtml.parmHtml('<html><body>' + pageHelper.generateHtml('MainMenu') + '</body></table>');
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="" />
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<UseCaptionFromMenuItem xmlns="">Yes</UseCaptionFromMenuItem>
+		<Controls xmlns="">
+			<AxFormControl>
+				<Name>PageMapHtml</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<FormControlExtension>
+					<Name>TFMHtmlViewerCtrl</Name>
+					<ExtensionComponents />
+					<ExtensionProperties>
+						<AxFormControlExtensionProperty>
+							<Name>htmlField</Name>
+							<Type>String</Type>
+						</AxFormControlExtensionProperty>
+					</ExtensionProperties>
+				</FormControlExtension>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

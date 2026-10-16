@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMWorkflowProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMWorkflowProvider extends TFMProvider
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>invalidateProvider</Name>
+				<Source><![CDATA[
+    public void invalidateProvider(boolean _requestedByOtherAOS)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>loadDefaultWorkflows</Name>
+				<Source><![CDATA[
+    public static void loadDefaultWorkflows()
+    {
+        TFMWorkflowsTable::defaultSetup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllWorkflowsXML</Name>
+				<Source><![CDATA[
+    public static XmlElement getAllWorkflowsXML()
+    {
+        TFMWorkflowsTable mobWorkflowsTable;
+        XmlDocument xmlDoc = XmlDocument::newBlank();
+        XmlElement  wfs = xmlDoc.createElement('workflows');
+        wfs.setAttribute('tweak','replace');
+        TFMWorkflowsTable::firstTimeSetup();
+        while select mobWorkflowsTable
+        {
+            mobWorkflowsTable.appendToXml(wfs);
+        }
+        return wfs;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>version</Name>
+				<Source><![CDATA[
+    public str version()
+    {
+        TFMWorkflowsTable                workflowTable;
+        TFMWorkflowStepsOnlineValidation onlineValidation;
+        TFMWorkflowSteps                 workflowSteps;
+
+        select firstonly workflowTable order by ModifiedDateTime desc;
+        select firstonly onlineValidation order by ModifiedDateTime desc;
+        select firstonly workflowSteps order by ModifiedDateTime desc;
+
+
+        return strFmt('W%1', this.formatDateForVersion(workflowSteps.ModifiedDateTime, onlineValidation.ModifiedDateTime, workflowTable.ModifiedDateTime));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formatDateForVersion</Name>
+				<Source><![CDATA[
+    private str formatDateForVersion(ModifiedDateTime dateTime1, ModifiedDateTime dateTime2, ModifiedDateTime dateTime3)
+    {
+        int64 date2Number;
+        date2Number = str2Int64(strKeep(System.String::Format('{0:s}', dateTime1), '1234567890'));
+        date2Number += str2Int64(strKeep(System.String::Format('{0:s}', dateTime2), '1234567890'));
+        date2Number += str2Int64(strKeep(System.String::Format('{0:s}', dateTime3), '1234567890'));
+        return int642Str(date2Number);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

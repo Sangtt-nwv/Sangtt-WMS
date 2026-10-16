@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockPostInventoryJournal</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic block needed to post inventory journals from the device
+/// </summary>
+public class MwmsLogicBlockPostInventoryJournal extends MwmsLogicBlock implements TFMLogicBlockPostAdhocRegistrationInterface, TFMTranslationDeclarantInterface
+{
+    str postJournalId = 'PostJournal';
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>autoCreatedProcesses</Name>
+				<Source><![CDATA[
+    public Set autoCreatedProcesses()
+    {
+        Set ret = super();
+
+        TFMProcess process = TFMProcess::Construct(postJournalId);
+
+        process.addBlock(this);
+        ret.add(process);
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map translations = new Map(Types::String, Types::String);
+        translations.add(postJournalId, TFMTranslationProvider::getTFDeviceLabelValue(postJournalId, null));
+        return translations;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicBlockPostInventoryJournal Construct()
+    {
+        return new MwmsLogicBlockPostInventoryJournal();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method executed when all data has been collected, and contains the posting logic.
+    /// </summary>
+    /// <returns>A MobPostResponseData object.</returns>
+    public TFMPostResponseData post()
+    {
+        InventJournalTable  inventJournal;
+        Common              refTable = request.getReferredRecord();
+        TFMPostResponseData postResponse= TFMPostResponseData::Construct();
+
+        if (!refTable)
+        {
+            refTable = request.logicContext().getTableFromAnyBlock(tableStr(InventJournalTable));
+        }
+        if (!refTable && InventJournalTable::exist(request.getFieldValue(extendedTypeStr(JournalId))))
+        {
+            refTable = InventJournalTable::find(request.getFieldValue(extendedTypeStr(JournalId)));
+        }
+
+        if (refTable.TableId != tableNum(InventJournalTable))
+        {
+            throw Error ("@TaskletMobileWMS:ThisfunctiononlyworkswithInvento");
+        }
+
+        inventJournal = refTable;
+
+        ttsbegin;
+        inventJournal.selectForUpdate(true);
+
+        MobPostHelper::postInventJournalTransfer(inventJournal);
+        ttscommit;
+        postResponse.parmResponseText(strFmt("@TaskletMobileWMS:Journal1postedsuccessfully", inventJournal.JournalId));
+        return postResponse;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMPost);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

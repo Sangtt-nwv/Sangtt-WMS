@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageOverviewSubPageNavigator</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Microsoft.Dynamics.ApplicationPlatform.Environment;
+class TFMPageOverviewSubPageNavigator
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Main</Name>
+				<Source><![CDATA[
+    public static void Main(Args _args)
+    {
+        FormRun		formRun;
+        TFMPageID	pageName	= new URLUtility().getQueryParamValue('PageId');
+        FormName	formName	= new URLUtility().getQueryParamValue('FormName');
+        CompanyId   cmpName		= new URLUtility().getQueryParamValue('cmp');
+        str			baseUrl		= EnvironmentFactory::GetApplicationEnvironment().Infrastructure.HostUrl;
+        //Call the form using a Menu Item
+        Args	Args = new Args(formName);
+            
+        formRun = New FormRun(Args);
+        formRun.init();
+        formRun.run();
+        formRun.wait();
+        
+        
+        //new Browser().navigate(baseUrl + '/?cmp='+cmpName+'&mi=TFMPageOverview&PageId='+pageName);
+        Args = new Args(formStr(TFMPageOverview));
+            
+        formRun = New FormRun(Args);
+        formRun.init();
+        formRun.run();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

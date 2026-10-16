@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_InventCountTag</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for Tag counting lines.
+/// </summary>
+[TFMTableNameAttribute(tableStr(InventJournalTrans_Tag))]
+class MobXMLFormatOrderLines_InventCountTag extends MobXMLFormatOrderLines_Invent
+{
+    InventJournalTrans_Tag      inventJournalTrans_Tag;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        super();
+    
+        inventJournalTrans_Tag  = common;
+        inventDim               = inventJournalTrans_Tag.inventDim();
+    
+        this.setInventDim(inventJournalTrans_Tag.ItemId);
+    
+        orderBackendId          = MobOrder::constructFromTableName(tableStr(InventJournalTable),orderType).getBackendID(InventJournalTable::find(inventJournalTrans_Tag.JournalId));//#InventJournalCountTagPrefix + inventJournalTrans_Tag.JournalId;
+        lineNumber              = int642str(inventJournalTrans_Tag.RecId);
+        itemNumber              = inventJournalTrans_Tag.ItemId;
+        JournalID               = inventJournalTrans_Tag.JournalId;
+        description             = InventTable::find(inventJournalTrans_Tag.itemId).productName(new xInfo().language());
+        quantity                = MobHelper::formatItemQty(inventJournalTrans_Tag.qty,inventJournalTrans_Tag.unitID);
+        registeredQuantity      = MobConstants::NotUsed0();
+        unitOfMeasure           = inventJournalTrans_Tag.unitID;
+        
+        status                  = MobConstants::NotUsed0();
+        displayLine1            = new DictField(tablenum(InventJournalTrans), fieldnum(InventJournalTrans, ItemId)).Label() + ': ' + inventJournalTrans_Tag.ItemId;
+        displayLine2            = InventTable::find(inventJournalTrans_Tag.itemId).productName(new xInfo().language());
+        displayLine3            = new DictField(tablenum(WmsLocation), fieldnum(WmsLocation, WmsLocationId)).Label() + ': ' +inventDim.wMSLocationId;
+        underDeliveryValidation = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),TFMUnderDeliveryValidation::None);
+        fieldsToAdd.insert(extendedTypeStr(JournalId), JournalId);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

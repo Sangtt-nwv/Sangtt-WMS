@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMOutputCacheSetup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMOutputCacheSetup extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>tableOverride</Name>
+				<Source><![CDATA[
+    public edit TFMTableName tableOverride(boolean _set, TableName _tableName)
+    {
+        TableName tblName;
+        
+        if (_set)
+        {
+            this.ClassOverrideID = className2Id(_tableName);
+            
+        }
+        tblName = TFMDisplayLineOverride::classId2Attribute(this.ClassOverrideID);
+        
+        return tblName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isCacheActive</Name>
+				<Source><![CDATA[
+	public static boolean isCacheActive(ClassId _classId, TFMOrderTypes _orderTypes = '')
+    {
+        TFMOutputCacheSetup cacheSetup;
+
+        select firstonly cacheSetup where cacheSetup.ClassOverrideID == _classId && cacheSetup.Active && (cacheSetup.OrderType == _orderTypes || !_orderTypes || _orderTypes=='*');
+
+        return cacheSetup.Active;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@TFM:OutputCacheSetup</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<CacheLookup>FoundAndEmpty</CacheLookup>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>tableOverride</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Active</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OrderType</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>ClassOverrideID</Name>
+			<ExtendedDataType>ClassID</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Active</Name>
+			<Label>@SYS14584</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OrderType</Name>
+			<ExtendedDataType>TFMOrderTypes</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>Index1</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ClassOverrideID</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>OrderType</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobReceiveOrderTypePurchOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+#mob
+/// <summary>
+/// The MobReceiveOrderTypePurchOrder class handles the REceive Purchase Order data and posting logic.
+/// </summary>
+[TFMTableNameAttribute(tableStr(PurchTable),staticMethodStr(MobConstants,Receive))]
+class MobReceiveOrderTypePurchOrder extends MobReceiveOrderType
+{
+    #mob
+    Set orderSet;
+    VendPackingSlipJour packingSlipJour;
+    PurchTable          purchTableForPost;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getBackendID</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_common"></param>
+    /// <returns></returns>
+    public str getBackendID(Common _common)
+    {
+        PurchTable purchTable = _common;
+        return tableStr(PurchTable) + '/' + fieldStr(PurchTable,PurchId) + '/' + purchTable.PurchId + '/' + MobConstants::Receive();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaderRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_inventLocationID"></param>
+    /// <param name = "_deliveryDate"></param>
+    /// <param name = "_scannedValue"></param>
+    /// <returns></returns>
+    public Map getHeaderRecords(TFMRequestFiltersElement _filters, str _scannedValue)
+    {        
+        InventLocation  inventLocation;
+        Map             returnMap = new Map(Types::string, Types::Record);
+        str				orgWareHouse = _filters.parmWarehouse();
+        orderSet = new Set (Types::String);
+        inventLocation = MobHelper::getAllowedInventLocations(curUserId());
+        while select inventLocation where (inventLocation.InventLocationId == orgWareHouse || orgWareHouse == MobConstants::all())
+        {
+            // Check if sales orders are enabled for this warehouse            
+            if (MobHelper::IsPurchaseOrderEnabled(inventLocation.InventLocationId))
+            {
+                _filters.parmWarehouse(inventLocation.InventLocationId);
+                // Use the warehouse from the current iteration
+                returnMap = MobHelper::mergeMaps(returnMap,this.getPurchaseOrders(_filters,_scannedValue));
+            }
+        }
+        _filters.parmWarehouse(orgWareHouse);
+        
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPurchId</Name>
+				<Source><![CDATA[
+    protected PurchId getPurchId(str _backendID)
+    {
+        return conPeek(MobHelper::strSplit(_backendID,'/').pack(),6);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPostPromptCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to indicate whether or not the user should be prompted for information when posting.
+    /// </summary>
+    /// <returns>A set of registration collectors to prompt the user with when posting.</returns>
+    public Map getPostPromptCollectors(str _backendID)
+    {
+        Map             ret;
+        
+        ret = super(_backendID);
+        if (new MobDocReceiveOrder().parmPromptForPackingSlip())
+        {
+            ret.insert(extendedTypeStr(ProductReceiptId),TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(ProductReceiptId)).getMap());
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLineRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_backendID"></param>
+    /// <returns></returns>
+    public Map getLineRecords(TFMRequestGetOrderLinesElement _request)
+    {
+        Map                 returnMap = new Map(Types::string, Types::Record);
+        PurchId             purchId = this.getPurchId(_request.parmBackendID());//,2,strlen(backendId)); // Remove the prefix
+        PurchLine           purchLine;
+        InventLocationId    locationID;
+        Date                latestFilterDate;
+
+        if (! purchId || !PurchTable::exist(purchId))
+        {
+            throw error(strfmt(PurchTable::txtNotExist(),purchId));
+        }
+                
+        locationID = this.getLatestLocation(_request);//ClassFactory.globalCache().get(TFMDocumentConnector::getDeviceID(requestXml.xml()) , 'GetReceiveOrders', #All);
+        latestFilterDate = MobReceiveOrderTypePurchOrder::getLatestDeliveryDate(_request);
+        while select purchLine
+                    where purchLine.PurchId == purchId &&
+                          purchLine.PurchStatus == PurchStatus::Backorder &&
+                          purchLine.RemainInventPhysical >= 0 &&
+                          purchLine.PurchQty > 0 &&
+			 #ifnot.isAx6
+                        	  (!purchLine.ITMId) && // the if the ITMId is present then it is handled by the voyage order.
+		         #endif
+                          ((PurchLine.ConfirmedDlv && PurchLine.ConfirmedDlv <= latestFilterDate) || (!PurchLine.ConfirmedDlv && PurchLine.DeliveryDate <= latestFilterDate))
+        {
+            if(purchLine.isStocked() && (locationID == MobConstants::All() || locationID == PurchLine.inventDim().InventLocationId))
+            {
+                //sorting ++;
+                returnMap.insert(tableStr(purchLine) + ';' + int642Str(purchLine.RecId), purchLine);
+            }
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lineTableId</Name>
+				<Source><![CDATA[
+    public TableId lineTableId()
+    {
+        return tableNum(PurchLine);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_backendID"></param>
+    /// <param name = "_orderElement"></param>
+    /// <returns></returns>
+    public str post(str _backendID, XmlElement _orderElement)
+    {
+        str ret;
+
+     
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postRequest</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_orderElement"></param>
+    /// <returns></returns>
+    public str postRequest(TFMRequestOrdersElement _orderElement)
+    {
+        PurchId                     purchId = this.getPurchId(_orderElement.parmBackendID());//,2,strlen(backendId)); // Remove the prefix
+        PurchFormLetter_PackingSlip purchFormLetter;
+        ProductReceiptId               packingSlipId;
+        //XMLNodeList                 lineNodeList;
+        MobRegistrations            mobRegistrations;
+        CreatedTransactionId        transID;
+        PurchFormLetterContract		contract;
+
+        if (! purchId || !PurchTable::exist(purchId))
+        {
+            throw error(strfmt(PurchTable::txtNotExist(),purchId));
+        }
+    
+        select count(RecId) from packingSlipJour where packingSlipJour.PurchId == purchId;
+
+        // Extract the packing slip from the XML
+        packingSlipId       = _orderElement.parmProductReceiptId() ? _orderElement.parmProductReceiptId() : ((new MobDocReceiveOrder().parmPackingSlipPrefix()) + purchId + strFmt('-%1',packingSlipJour.recid+1));// .getAttribute(#PackingSlip);
+        _orderElement.makeLogEntry('saving registrations for order ' + purchId + ' with packing slip ' + packingSlipId);
+        transID = MobRegistrations::SaveRequest(_orderElement.Lines(), MobInventRefType::Purch, purchId).CreatedTransactionId; // Moved iteration/registration of xml here
+        messageId = _orderElement.parmmessageId();//TFMDocumentConnector::getMessageID(_orderElement.ownerDocument().xml());
+        _orderElement.makeLogEntry('finished saving registrations for order ' + purchId + ' with packing slip ' + packingSlipId);
+        while select forupdate mobRegistrations
+                    index OrderLineNumIdx
+                    where mobRegistrations.InventRefType == MobInventRefType::Purch &&
+                          mobRegistrations.InventRefId  == purchId &&
+                          mobRegistrations.MessageId      == messageID &&
+                          mobRegistrations.CreatedTransactionId == transID &&
+                          mobRegistrations.handled == NoYes::No
+        {
+            mobRegistrations.register();
+            mobRegistrations.handled = NoYes::Yes;
+            mobRegistrations.Update();
+        }
+    
+        //post purchase order
+        _orderElement.makeLogEntry('starting posting for order ' + purchId + ' with packing slip ' + packingSlipId);
+        purchFormLetter = this.purchFormLetter();
+        contract = purchFormLetter.getPurchFormLetterContract();
+        contract.parmLineListPacked('');
+        purchTableForPost = PurchTable::find(purchId);
+		if (purchFormLetter != null)
+        {
+            
+            purchFormLetter.update( purchTableForPost,              //Common         source,
+                                        packingSlipId,                          //Num           _number,
+										MobHelper::today(),            //TransDate     _transDate          = this.transDate(),
+                                        PurchUpdate::Recorded,                  //PurchUpdate   _specQty            = PurchUpdate::All,
+										AccountOrder::None,                     //AccountOrder  _accountOrder       = AccountOrder::None,
+                                        NoYes::No,                              //NoYes         _proforma           = purchParmUpdate.Proforma,
+                                        NoYes::No);                             //NoYes         _printFormLetter    = printFormLetter,
+            
+            if(!purchFormLetter.parmJournalRecord().RecId)
+            {
+                throw error(strFmt("@MobileWMS:UnableToPost", purchId));
+            }
+        }
+        else
+        {
+            throw error(strFmt("@MobileWMS:UnableToCreatePackingSlip", purchId));
+        }
+
+        select firstonly packingSlipJour order by RecId desc where packingSlipJour.PackingSlipId == packingSlipId && packingSlipJour.PurchId == purchId;
+
+        return SysLabel::labelId2String2("@MobileWMS:ProdReceiptPosted");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>purchFormLetter</Name>
+				<Source><![CDATA[
+	public PurchFormLetter purchFormLetter()
+    {
+		return PurchFormLetter::construct(DocumentStatus::PackingSlip);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResultingPackingSlipJour</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(VendPackingSlipJour))]
+    public VendPackingSlipJour getResultingPackingSlipJour()
+    {
+        return packingSlipJour;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPurchTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(PurchTable))]
+    public PurchTable getPurchTable()
+    {
+        return purchTableForPost;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPurchaseOrders</Name>
+				<Source><![CDATA[
+    protected Map getPurchaseOrders(TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+        PurchTable              purchTable;
+        Map                     returnMap = new Map (Types::String, Types::Record);
+        Query                   q = new Query();
+        QueryRun                qr;
+        QueryBuildDataSource    qbdsPurchTable;
+        QueryBuildDataSource    qbdsPurchLine;
+        QueryBuildDataSource    qbdsInventDim;
+        PurchID                 pID;
+        int                     sorting;
+        InventDim				iDim;
+        ItemId					itemId = MobHelper::string2ItemID(_scannedValue,iDim);
+        
+        InventLocationId locationId;
+
+        qbdsPurchTable = q.addDataSource( tableNum( PurchTable ) );
+        qbdsPurchTable.addSortField(fieldNum(purchTable, PurchId), SortOrder::Descending);
+        qbdsPurchTable.addRange(fieldNum(PurchTable, PurchStatus)).value( queryValue(PurchStatus::Backorder) );
+        qbdsPurchTable.addRange(fieldNum(purchTable, DocumentState)).value( queryValue(VersioningDocumentState::Confirmed) );
+        
+    
+        qbdsPurchLine = qbdsPurchTable.addDataSource( tableNum(purchLine) );
+        qbdsPurchLine.joinMode( JoinMode::ExistsJoin );
+        qbdsPurchLine.addLink(fieldNum(purchTable, PurchId), FieldNum(purchLine, PurchId));
+        
+        #ifnot.isAX6
+            qbdsPurchLine.addRange(fieldNum(PurchLine, ITMId)).value(sysquery::valueEmptyString());
+        #endif
+
+        qbdsPurchLine.addRange(fieldNum(PurchLine, PurchStatus)).value(queryValue(PurchStatus::Backorder));
+        qbdsInventDim = qbdsPurchLine.addDataSource(tableNum( InventDim ));
+        qbdsInventDim.joinMode( JoinMode::ExistsJoin );
+        qbdsInventDim.addLink( fieldNum(purchLine,InventDimId), fieldNum(InventDim,InventDimId));
+        if (_filters.parmWarehouse())
+        {
+            
+            qbdsInventDim.addRange(fieldNum(InventDim, InventSiteId)).value( queryValue(InventLocation::find(_filters.parmWarehouse()).InventSiteId) );
+            qbdsInventDim.addRange(fieldNum(InventDim, inventLocationId)).value(queryValue(_filters.parmWarehouse()));
+        }
+        else
+        {
+            qbdsPurchLine.addRange(fieldNum(InventDim, inventLocationId)).value('');
+        }
+
+        if (itemId)
+        {
+            qbdsPurchLine.addRange(fieldNum(purchLine,itemId)).value( queryValue(itemId) );
+        }
+        else if (_scannedValue)
+		{
+            qbdsPurchTable.addRange(fieldNum(PurchTable, PurchId)).value( queryValue(_scannedValue) );
+		}
+
+        TFMFilterAdditionsDataBinding::modifyQuery(methodStr(MobDocReceiveOrder, ReceiveOrderFilters) + strReplace(_filters.getFieldValue(extendedTypeStr(TFMOrderTypes)),';',''),q,_filters);
+            
+        qr = new QueryRun( q );
+        while(qr.next())
+        {
+            purchTable = qr.get(tableNum(purchTable));
+            if (returnMap.exists(this.getBackendID(purchTable)))
+            {
+                continue;
+            }
+            pID = purchTable.PurchId;
+            if (orderSet.in(pID) || !this.anyRelevantDates(pID,_filters.parmDeliveryDate()))
+            {
+                continue;
+            }
+
+            locationId = this.getLocationID(pID);
+            
+            if (locationId && ( _filters.parmWarehouse() == MobConstants::All() || _filters.parmWarehouse() ) && MobInventLocationsGroupRights::existsUser(curUserId(), locationId) )
+            {
+                Sorting++;
+                returnMap.insert(this.getBackendID(purchTable),purchTable);
+                
+            }
+            orderSet.add(pID);
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>anyRelevantDates</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks if the PurchLine for remaining quantity is above 0 
+    /// and that Confirm delivery date i set and the date is before the provided deliveryDate or if the confirm delivery date is not set and the Delivery date on the line is before the provided delivery date.
+    /// </summary>
+    /// <param name = "_pID"></param>
+    /// <param name = "_deliveryDate"></param>
+    /// <returns></returns>
+    protected boolean anyRelevantDates(PurchID _pID, Date _deliveryDate)
+    {
+        PurchLine purchLineChk;
+        while select purchLineChk
+                where purchLineChk.PurchId == _pID
+                    #ifnot.isAX6
+                        && !purchLineChk.ITMId
+                    #endif
+                    && purchLineChk.RemainInventPhysical >= 0
+                    && ((purchLineChk.ConfirmedDlv && purchLineChk.ConfirmedDlv <= _deliveryDate) || (!purchLineChk.ConfirmedDlv && purchLineChk.DeliveryDate <= _deliveryDate))
+        {
+            if (purchLineChk.ordered() > 0)
+            {
+				return true;
+            }
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLocationID</Name>
+				<Source><![CDATA[
+    protected WMSLocationID getLocationID(PurchID _pID)
+    {
+        PurchLine purchLineChk;
+        while select purchLineChk
+                where purchLineChk.PurchId == _pID
+                    && purchLineChk.RemainInventPhysical >= 0
+        {
+            if (purchLineChk.ordered() > 0)
+            {
+                return purchLineChk.inventDim().inventLocationId;
+            }
+        }
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLatestLocation</Name>
+				<Source><![CDATA[
+    protected str getLatestLocation(TFMRequestGetOrderLinesElement _request)
+    {
+        TFMDocumentQueue dQueue;
+        InventLocationId location = MobConstants::All();
+
+        select firstonly RequestXML, DeviceId, DocumentType, RecID from dQueue order by CreatedDateTime desc
+            where dQueue.DeviceId == _request.parmRoot().parmdeviceID() && dQueue.DocumentType == methodStr(mobdocReceiveOrder,GetReceiveOrders);
+        if (dQueue.RecId)
+        {
+            Location = MobHelper::FilterXml2String(dQueue.RequestXML(),MobConstants::Warehouse());
+        }
+        return location ? location : MobConstants::All();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLatestDeliveryDate</Name>
+				<Source><![CDATA[
+    public static date getLatestDeliveryDate(TFMRequestGetOrderLinesElement _request)
+    {
+        TFMDocumentQueue    dQueue;
+        Date                retDate = MobHelper::today();
+
+        select firstonly RequestXML, DeviceId, DocumentType, RecID from dQueue order by CreatedDateTime desc
+            where dQueue.DeviceId == _request.parmRoot().parmdeviceID() && dQueue.DocumentType == methodStr(mobdocReceiveOrder,GetReceiveOrders);
+        if (dQueue.RecId)
+        {
+            retDate = str2Date(MobHelper::FilterXml2String(dQueue.RequestXML(),MobConstants::DeliveryDate()),123);
+        }
+        return retDate == dateNull() ? MobHelper::today() : retDate;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

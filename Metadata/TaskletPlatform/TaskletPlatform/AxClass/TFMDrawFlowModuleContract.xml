@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowModuleContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute('Home')]
+class TFMDrawFlowModuleContract
+{
+    TFMDrawFlowDataContract dataContract;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        dataContract = TFMDrawFlowDataContract::Construct();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMDrawFlowModuleContract Construct()
+    {
+        return new TFMDrawFlowModuleContract();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDataContract</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('Home')]
+    public TFMDrawFlowDataContract parmDataContract(TFMDrawFlowDataContract _dataContract = dataContract)
+    {
+        dataContract = _dataContract;
+        return dataContract;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

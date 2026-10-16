@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO CoC Extensions"
+  short_description: "Author verified D365FO Chain of Command wrappers"
+  default_prompt: "Use $coc-extension-authoring to implement a verified D365FO CoC wrapper."

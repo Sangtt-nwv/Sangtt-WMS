@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDeltaLevel</Name>
+	<Label>@TFM:DeltaLevel</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>Code</Name>
+			<Label>@TFM:TFMDeltaLevelCode</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Overridden</Name>
+			<Label>@TFM:TFMDeltaLevelOverridden</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Custom</Name>
+			<Label>@TFM:TFMDeltaLevelCustom</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+	</EnumValues>
+	<IsExtensible>true</IsExtensible>
+</AxEnum>

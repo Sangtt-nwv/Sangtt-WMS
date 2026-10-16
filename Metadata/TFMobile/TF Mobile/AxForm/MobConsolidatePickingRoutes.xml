@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>MobConsolidatePickingRoutes</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class MobConsolidatePickingRoutes extends FormRun
+{
+
+    
+}
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>MobConsolidatedPickingRouteOrders</Name>
+				<Methods>
+					<Method>
+						<Name>write</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void write()
+        {
+
+            /*MobConsolidatedPickingRouteOrders routeOrder;
+            routeOrder.ConsolidatedPickingRouteId = MobConsolidatedPickingRoutes.ConsolidatedPickingRouteId;
+            routeOrder.PickingRouteID = MobConsolidatedPickingRouteOrders.PickingRouteID;
+            routeOrder.write();*/
+            //WMSPickingRoute_DS.linkType(DataSourceLinkTypePropertyValues::Delayed);
+            super();
+            //WMSPickingRoute_DS.linkType(DataSourceLinkTypePropertyValues::Outer);
+            WMSPickingRoute_DS.executeQuery();
+            //MobConsolidatedPickingRouteOrders_DS.executeQuery();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>MobConsolidateOrderCreate</Name>
+				<Type>MenuFunctionButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            MobConsolidatedPickingRoutes_DS.executeQuery();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>MobConsolidateOrderCreateCopy1</Name>
+				<Type>MenuFunctionButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            MobConsolidatedPickingRoutes_DS.executeQuery();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>MobConsolidatedPickingRoutes</Name>
+			<Table>MobConsolidatedPickingRoutes</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Accumulate</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ConsolidatedPickingRouteId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Description</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>GroupToteFields</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<StartPosition>Last</StartPosition>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>MobConsolidatedPickingRouteOrders</Name>
+			<Table>MobConsolidatedPickingRouteOrders</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>ConsolidatedPickingRouteId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PickingRouteID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>MobConsolidatedPickingRoutes</JoinSource>
+			<AllowCreate>No</AllowCreate>
+			<AllowEdit>No</AllowEdit>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>WMSPickingRoute</Name>
+			<Table>WMSPickingRoute</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>ActivationDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>autoDecreaseQty</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedTransactionId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>currentPickPalletId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>customer</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DeliveryName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DeliveryPostalAddress</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DlvDate</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DlvModeId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DlvTermId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>endDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>expectedExpeditionTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>expeditionStatus</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>handlingType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InterCompanyPosted</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>inventLocationId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MCRPackingBoxName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MCRPickingWaveRef</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedTransactionId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>operatorWorker</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>optimizedPicking</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ParmId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>pickingAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>pickingRouteID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PrintMgmtSiteId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>priority</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>shipmentId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>shipmentType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>startDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>transRefId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>transType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>volume</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>MobConsolidatedPickingRouteOrders</JoinSource>
+			<LinkType>OuterJoin</LinkType>
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@MobileWMS:ConsolidatePickingRoutes</Caption>
+		<Pattern xmlns="">SimpleDetails-FastTabsContainer</Pattern>
+		<PatternVersion xmlns="">1.4</PatternVersion>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>FormActionPaneControl1</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>FormButtonGroupControl1</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>MobConsolidateOrderCreate</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MenuItemName>MobConsolidateOrderCreate</MenuItemName>
+								<MenuItemType>Action</MenuItemType>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>FormTabControl1</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>ConsolidatedOrdersTab</Name>
+						<Pattern>ToolbarList</Pattern>
+						<PatternVersion>1.2</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>ConsolidatedRoutes</Name>
+								<Type>Grid</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>ConsolidatedRoutes_ConsolidatedPickingRouteId</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ConsolidatedPickingRouteId</DataField>
+										<DataSource>MobConsolidatedPickingRoutes</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>ConsolidatedRoutes_Description</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Description</DataField>
+										<DataSource>MobConsolidatedPickingRoutes</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>ConsolidatedRoutes_Accumulate</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Accumulate</DataField>
+										<DataSource>MobConsolidatedPickingRoutes</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>AutoReport</DataGroup>
+								<DataSource>MobConsolidatedPickingRoutes</DataSource>
+							</AxFormControl>
+						</Controls>
+						<Caption>@MobileWMS:Consolidatedorders</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>ConsolidatedOrdersLinesTab</Name>
+						<Pattern>ToolbarList</Pattern>
+						<PatternVersion>1.2</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>FormActionPaneControl1Copy1</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>FormButtonGroupControl1Copy1</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormMenuFunctionButtonControl">
+												<Name>MobConsolidateOrderCreateCopy1</Name>
+												<Type>MenuFunctionButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataSource>MobConsolidatedPickingRoutes</DataSource>
+												<MenuItemName>MobConsolidateOrderCreate</MenuItemName>
+												<MenuItemType>Action</MenuItemType>
+												<Parameters>Add</Parameters>
+												<Text>@MobileWMS:AddtoOrder</Text>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>DeleteButton</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>DeleteRecord</Command>
+												<Text>@MobileWMS:Delete</Text>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+								</Controls>
+								<DataSource>MobConsolidatedPickingRouteOrders</DataSource>
+								<Style>Strip</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>OrdersGrid</Name>
+								<Type>Grid</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>MobConsolidatedPickingRouteOrders_PickingRouteID</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>PickingRouteID</DataField>
+										<DataSource>MobConsolidatedPickingRouteOrders</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>AutoReport</Name>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>AutoReport_pickingRouteID</Name>
+												<Type>String</Type>
+												<Visible>No</Visible>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>pickingRouteID</DataField>
+												<DataSource>WMSPickingRoute</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>AutoReport_inventLocationId</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>inventLocationId</DataField>
+												<DataSource>WMSPickingRoute</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>AutoReport_shipmentId</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>shipmentId</DataField>
+												<DataSource>WMSPickingRoute</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>AutoReport_expeditionStatus</Name>
+												<Type>ComboBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>expeditionStatus</DataField>
+												<DataSource>WMSPickingRoute</DataSource>
+												<Items />
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormDateTimeControl">
+												<Name>AutoReport_startDateTime</Name>
+												<Type>DateTime</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>startDateTime</DataField>
+												<DataSource>WMSPickingRoute</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormDateTimeControl">
+												<Name>AutoReport_endDateTime</Name>
+												<Type>DateTime</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>endDateTime</DataField>
+												<DataSource>WMSPickingRoute</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataGroup>AutoReport</DataGroup>
+										<DataSource>WMSPickingRoute</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataSource>MobConsolidatedPickingRouteOrders</DataSource>
+							</AxFormControl>
+						</Controls>
+						<Caption>@MobileWMS:Orders</Caption>
+					</AxFormControl>
+				</Controls>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts>
+		<AxFormPartReference xmlns="">
+			<Name>HelpPart</Name>
+			<MenuItemName>MobHelpPart</MenuItemName>
+		</AxFormPartReference>
+	</Parts>
+</AxForm>

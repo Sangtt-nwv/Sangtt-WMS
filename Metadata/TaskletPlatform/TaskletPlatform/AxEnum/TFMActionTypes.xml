@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMActionTypes</Name>
+	<Label>@SYS40313</Label>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>TAKE</Name>
+			<Label>@TFM:MEL4</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>PLACE</Name>
+			<Label>@TFM:MEL5</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Both</Name>
+			<Label>@SYS2690</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

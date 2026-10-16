@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_CoBy</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for Co/By Product lines.
+/// </summary>
+[TFMTableNameAttribute(tableStr(PmfProdCoBy))]
+class MobXMLFormatOrderLines_CoBy extends TFMXMLFormatOrderLines
+{
+    PmfProdCoBy               coBy;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        UnitOfMeasureSymbol inventUnit;
+        super();
+        CoBy                    = common;
+        inventDim               = CoBy.inventDim();
+        this.setInventDim(CoBy.ItemId);
+
+        orderBackendId          = MobOrder::constructFromTableName(tableStr(ProdTable),orderType).getBackendID(ProdTable::find(Coby.ProdId));//#ReceivePurchOrderPrefix + purchLine.PurchId;
+        lineNumber              = coBy.InventTransId;
+        itemNumber              = coBy.ItemId;
+        description             = InventTable::find(coBy.itemId).productName(new xInfo().language());
+        registeredQuantity      = MobConstants::NotUsed0();
+        inventUnit              = InventTable::find(coBy.ItemId).inventUnitId();
+        unitOfMeasure           = inventUnit; /*purchLine.PurchUnit;*/
+        quantity                = MobHelper::formatItemQty(coby.QtyCoByStUp - (coby.QtyCoByCalc - coby.RemainCoByPhysical), inventUnit,true);
+        this.addBarcode(coBy.ItemId);
+        status                  = MobConstants::NotUsed0();
+        displayLine2            = coBy.ItemId;
+        displayLine1            = InventTable::find(coBy.itemId).productName(new xInfo().language());
+        displayLine3            = strFmt("@SYS76498","@SYS3794",inventDim.wMSLocationId);
+
+        underDeliveryValidation = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),TFMUnderDeliveryValidation::None);//MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),PurchParameters::find().SubDelivery ? TFMUnderDeliveryValidation::None : TFMUnderDeliveryValidation::Block); //Must be able to handle partial receipt
+        overDeliveryValidation  = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),TFMOverDeliveryValidation::None);//MobHelper::enumName(enumnum(TFMOverDeliveryValidation),PurchParameters::find().OverDelivery ? TFMOverDeliveryValidation::None : TFMOverDeliveryValidation::Block); //Must be able to handle partial receipt
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

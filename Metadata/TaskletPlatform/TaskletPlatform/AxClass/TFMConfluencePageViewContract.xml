@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMConfluencePageViewContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+public class TFMConfluencePageViewContract
+{
+    str value;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>value</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('value')]
+    public str value(str _value = value)
+    {
+        value = _value;
+        return _value;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

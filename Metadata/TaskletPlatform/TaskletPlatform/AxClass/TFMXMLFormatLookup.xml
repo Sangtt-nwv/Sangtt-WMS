@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMXMLFormatLookup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMXMLFormatLookup extends TFMXMLFormat
+{
+    InventDim                   inventDim;
+    TFMRegistrationCollectors   collectors;
+    Map                         additionalValues;    
+    str                         barcode;
+    
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setRegistrationCollector</Name>
+				<Source><![CDATA[
+    public void setRegistrationCollector(TFMRegistrationCollectors _collectors)
+    {
+        collectors = _collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setAdditionalValues</Name>
+				<Source><![CDATA[
+    public void setAdditionalValues(Map _additionalValues)
+    {
+        additionalValues = _additionalValues;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertFieldsToMap</Name>
+				<Source><![CDATA[
+    public void convertFieldsToMap()
+    {
+        int             i;
+        DictTable       DT = new DictTable(tableNum(InventDim));
+        SysDictTable	sysDictTable = new SysDictTable(common.TableId);
+        FieldName       fn;
+        DictField       DF;
+
+        if (!inventDim && sysDictTable.fieldName2Id(extendedTypeStr(InventDimId)))
+        {
+            //Find inventDim from Common record            
+            inventDim = InventDim::find(common.(sysDictTable.fieldName2Id(extendedTypeStr(InventDimId))));
+        }
+
+        if (barcode)
+        {
+            fieldsToAdd.insert('Barcode',barcode);
+        }
+        for (i = 1; i <= DT.fieldCnt();i++)
+        {
+            fn = strLwr(DT.fieldName(DT.fieldCnt2Id(i)));
+            DF = new DictField(DT.id(),DT.fieldCnt2Id(i));
+            if (DF.isSystem() || DF.baseType() == Types::Container || any2Str(inventDim.(DT.fieldName2Id(fn))) == '')
+            {
+                continue;
+            }
+            fieldsToAdd.insert(fn, any2Str(inventDim.(DT.fieldName2Id(fn))));
+        }
+
+        if (ds.ShowImages)
+        {            
+            fieldsToAdd.insert('imageId', fieldsToAdd.exists('imageId') ? fieldsToAdd.lookup('imageId') : imageId);
+        }
+		else
+        {
+            fieldsToAdd.insert('imageId', 'unlocked');
+        }
+        if (!fieldsToAdd.exists('slash'))
+        {
+            fieldsToAdd.insert('slash','/');
+        }
+
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setXML</Name>
+				<Source><![CDATA[
+    protected void setXML()
+    {
+        XmlElement      destination = resultXml.getElementsByTagName('responseData').item(0);
+        this.appendToXML(destination);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _parentNode)
+    {
+        recordLineTag = TFMConstants::LookupResponseElement();
+        super(_parentNode);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addToLineElement</Name>
+				<Source><![CDATA[
+    protected void addToLineElement(XmlElement _parentNode)
+    {  
+	  
+        
+        MapEnumerator   mEnum;
+        XmlElement      dataElement;
+        XmlCDataSection cData;
+        XmlElement      stepsElement;
+        XmlElement      additionalValuesElement;
+        XmlElement      additionalValueElement;
+        XmlAttribute    attr;
+        XmlElement      registrationCollectorElement;
+        super(_parentNode);
+
+        
+
+        if (collectors)
+        {
+            cData = resultXml.createCDataSection('');
+    
+            // The column name is 'registrationCollector'
+            dataElement = resultXml.createElement(TFMConstants::RegistrationCollector());
+    
+            // The root element of the configuration is also named 'registrationCollector'
+            registrationCollectorElement = resultXml.createElement(TFMConstants::registrationCollectorConfiguration());
+            /*
+            // The <steps> element contains the steps to register
+            stepsElement = resultXml.createElement(TFMConstants::steps());
+    
+            // Add the necessary steps for the line
+            mEnum = collectors.getEnumerator();
+            while (mEnum.moveNext())
+            {
+                TFMRegistrationCollector::addGenericRegistrationStep(stepsElement,'add',mEnum.currentValue());
+            }
+    
+            // Add the steps element to the registration collector configuration
+            registrationCollectorElement.appendChild(stepsElement);
+
+            additionalValuesElement = resultXml.createElement('additionalValues');
+            mEnum = additionalValues.getEnumerator();
+            while (mEnum.moveNext())
+            {
+                additionalValueElement = resultXml.createElement('additionalValue');
+                attr = resultXml.createAttribute('name');
+                attr.text(mEnum.currentKey());
+                additionalValueElement.setAttributeNode(attr);
+                attr = resultXml.createAttribute('value');
+                attr.text(mEnum.currentValue());
+                additionalValueElement.setAttributeNode(attr);
+                additionalValuesElement.appendChild(additionalValueElement);
+            }
+            registrationCollectorElement.appendChild(additionalValuesElement);
+            */
+            TFMRegistrationConfigurationResponseElement::appendRegistrationCollectorsToXML(registrationCollectorElement, collectors);
+            //  Store the configuration XML in a CDATA element
+            cData.appendData(registrationCollectorElement.xml());
+    
+            // Add the CDATA content to the value of the <registrationCollector> field in the lookup result
+            dataElement.text(cData.outerXml());
+
+            // Add the <registrationCollector> field to the lookup result
+            _parentNode.appendChild(dataElement);
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

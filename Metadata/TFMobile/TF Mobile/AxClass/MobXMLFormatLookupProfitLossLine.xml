@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatLookupProfitLossLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableName(tableStr(inventJournalTrans), 'ProfitLoss'),
+TFMTableName(tableStr(inventJournalTrans), 'LossProfit'),
+    TFMTableName(tableStr(inventJournalTrans), 'Movement')
+    ]
+class MobXMLFormatLookupProfitLossLine extends TFMXMLFormatLookup
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        inventJournalTrans      inventJournalTrans = common;
+        TFMMenuItemStateConfiguration MenuItemConf;
+        str                     quantityStr;
+                
+        super();
+        if (inventJournalTrans.recid == 0)
+        {
+            displayLine1 = SysLabel::labelId2String2("@SYS35042");
+            fieldsToAdd.insert(MobConstants::Quantity(), '');
+            fieldsToAdd.insert(MobConstants::UnitOfMeasure(), '');
+            fieldsToAdd.insert(extendedTypeStr(JournalId), inventJournalTrans.JournalId);
+            fieldsToAdd.insert(MobConstants::LineNumber(), '');
+            return;
+        }
+        inventDim = inventJournalTrans.inventDim();
+        imageId = MobHelper::imageIDFromDocuref(MobHelper::FindItemDocuref(inventJournalTrans.itemId,inventJournalTrans.InventDimId));
+
+        // Show Configuration / Size / Color / Batch / Serial
+        displayLine3 = '';
+        if (inventDim.configId)
+        {
+            displayLine3 = inventDim.configId + ' ';
+        }
+    
+        if (inventDim.InventSizeId)
+        {
+            displayLine3 += inventDim.InventSizeId + ' ';
+        }
+    
+        if (inventDim.InventColorId)
+        {
+            displayLine3 += inventDim.InventColorId + ' ';
+        }
+    
+        if (inventDim.inventBatchId)
+        {
+            displayLine3 += inventDim.inventBatchId + ' ';
+        }
+    
+        if (inventDim.inventSerialId)
+        {
+            displayLine3 += inventDim.inventSerialId + ' ';
+        }
+    
+        quantityStr = MobHelper::formatItemQty(inventJournalTrans.Qty,inventJournalTrans.unitId());
+    
+        displayLine1 = inventJournalTrans.ItemId;
+        displayLine2 = InventTable::find(inventJournalTrans.ItemId).productName(new xInfo().language());
+        
+        fieldsToAdd.insert(MobConstants::Quantity(), quantityStr);
+        fieldsToAdd.insert(MobConstants::UnitOfMeasure(), inventJournalTrans.unitId());
+        fieldsToAdd.insert(extendedTypeStr(JournalId), inventJournalTrans.JournalId);
+        fieldsToAdd.insert(MobConstants::LineNumber(), MobHelper::formatLineNum(inventJournalTrans.LineNum));
+        fieldsToAdd.insert('slash','');
+        if (MenuItemsConf.exists(MobConstants::LicensePlateInfo()))
+        {
+            MenuItemConf = MenuItemsConf.lookup(MobConstants::LicensePlateInfo());
+            MenuItemConf.parmEnabled(false);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

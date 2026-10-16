@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMTableRelationsProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMTableRelationsProvider extends TFMProvider
+{
+    TFMTableRelationCollection collection;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>instance</Name>
+				<Source><![CDATA[
+    public static TFMTableRelationsProvider instance()
+    {
+        TFMTableRelationsProvider   provider;
+        System.Runtime.Caching.ObjectCache memCache = System.Runtime.Caching.MemoryCache::Default;
+        str cacheId = classId2Name(classIdGet(provider)) + strLwr(curExt());
+        provider = memCache.Get(cacheId);
+
+        if(!provider)
+        {
+            provider = new TFMTableRelationsProvider();
+            memCache.Add(cacheId, provider, new System.Runtime.Caching.CacheItemPolicy());
+        }
+
+        return provider;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllRelationsImpl</Name>
+				<Source><![CDATA[
+    public TFMTableRelationCollection getAllRelationsImpl()
+    {
+        
+        
+        if(!collection)
+        {
+            collection = new TFMTableRelationCollection();
+        }
+        
+        return collection;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InitTableRelationCollection</Name>
+				<Source><![CDATA[
+    protected void InitTableRelationCollection()
+    {
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>invalidateProvider</Name>
+				<Source><![CDATA[
+    public void invalidateProvider(boolean _requestedByOtherAOS)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>version</Name>
+				<Source><![CDATA[
+    public str version()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

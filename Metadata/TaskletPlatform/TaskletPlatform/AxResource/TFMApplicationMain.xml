@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxResource xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMApplicationMain</Name>
+	<FileName>application.cfg</FileName>
+	<RelativeUriInModelStore>TaskletPlatform\TaskletPlatform\AxResource\ResourceContent\Data\application.cfg</RelativeUriInModelStore>
+	<TypeOfResource>Data</TypeOfResource>
+</AxResource>

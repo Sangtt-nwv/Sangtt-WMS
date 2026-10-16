@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMWorkflowBlockQuantity</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMWorkflowBlockQuantity extends TFMWorkflowBlock
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>steps</Name>
+				<Source><![CDATA[
+    public Set steps()
+    {
+        Set ret = super();
+        
+        ret.add(TFMRegistrationCollectorDecimal::DecimalStep(50,TFMConstants::Quantity(),'@{RegistrationCollectorQuantityHeader}','','@{RegistrationCollectorQuantityHelpLabel}',false,'',0.0000000001,10000000,14,TFMGS1Table::AIsfromEDT(extendedTypeStr(Qty))));
+        ret.add(TFMRegistrationCollectorQuantityByScan::QtyByScanStep(51,TFMConstants::Quantity(),'@{RegistrationCollectorQuantityByScanHeader}','','@{RegistrationCollectorQuantityByScanHelpLabel}',''));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

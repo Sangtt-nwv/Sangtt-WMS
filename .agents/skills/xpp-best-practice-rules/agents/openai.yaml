@@ -1,0 +1,4 @@
+interface:
+  display_name: "X++ Best Practices"
+  short_description: "Apply D365FO X++ best-practice checks and fixes"
+  default_prompt: "Use $xpp-best-practice-rules to make this X++ change BP-compliant."

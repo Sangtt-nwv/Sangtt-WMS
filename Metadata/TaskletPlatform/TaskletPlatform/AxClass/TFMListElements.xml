@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListElements</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class to contain a collection of either text elements or image elements
+/// </summary>
+[TFMListElementAttribute('elements')]
+class TFMListElements extends TFMListBase implements TFMListElementHierarchyInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+	public static TFMListElements Construct()
+    {
+        return new TFMListElements();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCustomComponents</Name>
+				<Source><![CDATA[
+    public Set getCustomComponents()
+    {        
+        Set						retSet = new Set(Types::Class);
+        MapEnumerator			mEnum;
+        Object					element;
+        
+        TFMListCustomComponent	customComponent;
+        
+        if (!baseChildren)
+        {
+            return retSet;
+        }
+        mEnum = baseChildren.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            element = mEnum.currentValue();
+			if (new SysDictClass(classIdGet(element)).extend() == classNum(TFMListCustomComponent))
+            {
+                customComponent = element;
+                retSet.add(customComponent);
+            }
+        }
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>render</Name>
+				<Source><![CDATA[
+    public void render(TFMListVisualizationInterface _visualizer)
+    {
+        _visualizer.renderElements(this);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

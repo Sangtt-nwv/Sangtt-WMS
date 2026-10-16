@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobListLookupCartContent</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListIdAttribute('LookupCartContent')]
+class MobListLookupCartContent extends TFMList
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+    public TFMListConfiguration getList()
+    {
+        TFMListConfiguration				listConfig	= TFMListConfiguration::Construct(listName);
+        TFMListRow							row			= listConfig.addRow();
+        TFMListColumn						column;
+        row.makeColumn(100).addElement(TFMListTextElement::ConstructTextElement('{DisplayLine1}',TFMFonts::FindOrCreateFromProperties('contentFontBold',TFMFontSizes::medium,true,false,'').id));
+        row			= listConfig.addRow();
+        column		= row.makeColumn(75);
+        column.addElement(TFMListTextElement::ConstructTextElement('{DisplayLine2}',TFMFonts::FindOrCreateFromProperties('SmallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement('{DisplayLine3}',TFMFonts::FindOrCreateFromProperties('smallFont',TFMFontSizes::small,false,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement('{Quantity}{QuantityToPick} {UnitOfMeasure}',TFMFonts::FindOrCreateFromProperties('SmallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        row.makeColumn(25).addElement(TFMListImageElement::ConstructImageElement('{imageId}','',25,16));
+		
+		row			= listConfig.addRow();        
+        row.makeColumn(50).addElement(TFMListTextElement::ConstructTextElement('{DisplayLine4}',TFMFonts::FindOrCreateFromProperties('SmallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        row.makeColumn(50).addElement(TFMListTextElement::ConstructTextElement('{DisplayLine5}',TFMFonts::FindOrCreateFromProperties('smallFont',TFMFontSizes::small,false,false,'').id));
+        
+
+        return listConfig;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

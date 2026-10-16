@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectorTypeAndQuantity</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegistrationCollectorTypeAndQuantity extends TFMRegistrationCollectorListValues
+{
+    TFMScanBehaviour	scanBehavior;
+    boolean				uniqueValues;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmScanBehavior</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414")]
+    public TFMScanBehaviour parmScanBehavior(TFMScanBehaviour _scanBehavior = scanBehavior)
+    {
+        scanBehavior = _scanBehavior;
+        return scanbehavior;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUniqueValues</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414")]
+    public boolean parmUniqueValues(boolean _uniqueValues = uniqueValues)
+    {
+        uniqueValues = _uniqueValues;
+        return uniqueValues;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TypeAndQuantity</Name>
+				<Source><![CDATA[
+    /*/// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public Map getMap()
+    {
+        Map stepMap = new Map(Types::String, Types::String);
+        
+        stepMap.insert(#AttributeId,int2str(id));
+        stepMap.insert(#AttributeName,name);
+        stepMap.insert(#AttributeHeader,header);
+        stepMap.insert(#AttributeLabel, label);
+        stepMap.insert(#AttributeHelpLabel, help);
+        stepMap.insert(#AttributeInputType,'Text');
+        stepMap.insert('scanBehavior',TFMHelper::enumName(enumName2Id(enumStr(TFMScanBehavior)),scanBehavior));
+        stepMap.insert(#AttributeOptional,optional ? 'true' : 'false');
+        stepMap.insert(#AttributeEanAi,eanAI);
+        return stepMap;
+    }*/
+
+    public static TFMRegistrationCollectorTypeAndQuantity TypeAndQuantity(
+                                        int _id,
+                                        str _name,
+                                        str _header,
+                                        str _label,
+                                        str _helpLabel,
+                                        TFMScanBehaviour _scanBehaviour = TFMScanBehaviour::Add,
+                                        boolean  _optional=false,
+                                        str _eanAI = '')
+    {
+        TFMRegistrationCollectorTypeAndQuantity collector = new TFMRegistrationCollectorTypeAndQuantity(_id,_name,_header,_label,_helpLabel);
+        collector.parmEanAI(_eanAI);
+        collector.parmScanBehavior(_scanBehaviour);
+        collector.parmOptional(_optional);
+        return collector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TypeAndQuantityMap</Name>
+				<Source><![CDATA[
+    public static Map TypeAndQuantityMap(
+                                        int _id,
+                                        str _name,
+                                        str _header,
+                                        str _label,
+                                        str _helpLabel,
+                                        TFMScanBehaviour _scanBehaviour = TFMScanBehaviour::Add,
+                                        boolean  _optional=false,
+                                        str _eanAI = '')
+    {
+        return TFMRegistrationCollectorTypeAndQuantity::TypeAndQuantity(_id,_name,_header,_label,_helpLabel,_scanBehaviour,_optional,_eanAI).getMap();
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

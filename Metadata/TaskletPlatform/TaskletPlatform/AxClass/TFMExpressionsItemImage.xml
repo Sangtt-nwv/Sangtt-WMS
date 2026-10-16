@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMExpressionsItemImage</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// An expression class used to retrieve an item image based on the input it gets.
+/// </summary>
+[TFMDescription("An expression class used to retrieve an item image based on the input it gets. Takes either item ID or a table with a ItemId field")]
+class TFMExpressionsItemImage  extends TFMExpressions
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processExpressionCommon</Name>
+				<Source><![CDATA[
+    public str processExpressionCommon(Common _common)
+    {
+        DictTable dt = new DictTable(_common.tableId);
+        FieldId   fieldId  = (dt != null ? dt.fieldName2Id(identifierStr(ItemId)) : 0);
+
+
+        return this.processExpressionValue(fieldId ? _common.(fieldId) : '');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processExpressionValue</Name>
+				<Source><![CDATA[
+    public str processExpressionValue(str _value)
+    {
+        str base64str = '';
+        System.Drawing.Image    image;
+        System.Drawing.Image    newImage;
+        System.Drawing.Bitmap   bmp;
+        System.Drawing.Graphics g;
+        int                     newX,newY, i, j;
+        DocuRef         docuRef = TFMHelper::findDefaultImageDocuRef(InventTable::find(_value));
+        if (docuRef)
+        {
+            image = TFMHelper::getAttachmentAsImage(docuRef);
+            newImage = TFMImageHelper::scaleImage(image,250,250);
+            bmp = new System.Drawing.Bitmap(250,250);
+            g = System.Drawing.Graphics::FromImage(bmp);
+            g.DrawRectangle(new System.Drawing.Pen(new System.Drawing.SolidBrush(System.Drawing.Color::FromArgb(255,255,255,255))), 0, 0, 250, 250);
+            for (i = 0; i <250; i++)
+            {
+                for (j= 0; j < 250; j++)
+                {
+                    bmp.SetPixel(i,j,System.Drawing.Color::White);
+                }
+            }
+            newX = real2int((250 - newImage.Width) / 2);
+            newY = real2int((250 - newImage.Height)/2);
+            g.DrawImage(newImage,newX,newY,newImage.Width,newImage.Height);
+            base64str = TFMImageHelper::Image2Base64(bmp);
+        }
+        return base64str;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

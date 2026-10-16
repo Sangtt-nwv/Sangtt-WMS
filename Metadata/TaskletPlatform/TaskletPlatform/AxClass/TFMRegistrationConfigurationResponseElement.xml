@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationConfigurationResponseElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegistrationConfigurationResponseElement extends TFMResponseElement
+{
+    TFMRegistrationCollectors   collectors;
+    TFMWorkflowCancelBehaviour  cancelBehaviour;
+    NoYes                       saveData;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setCollectors</Name>
+				<Source><![CDATA[
+    public void setCollectors(TFMRegistrationCollectors   _collectors)
+    {
+        collectors = _collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSaveData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Determines if the flow should save Data when closed, to be reinitialized when reopening flow
+    /// </summary>
+    /// <param name = "_saveData">NoYes enum, yes to save data in flow</param>
+    /// <returns>Yes, if data should be saved, otherwise no</returns>
+    public NoYes parmSaveData(NoYes _saveData = saveData)
+    {
+        saveData = _saveData;
+        return saveData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCancelBehaviour</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to determine if the user should be warned, when they are exiting a flow, or not
+    /// </summary>
+    /// <param name = "_cancelBehaviour">Warn, when user should be warned, otherwise Close</param>
+    /// <returns>Warn, when user should be warned, otherwise Close</returns>
+    public TFMWorkflowCancelBehaviour parmCancelBehaviour(TFMWorkflowCancelBehaviour _cancelBehaviour = cancelBehaviour)
+    {
+        cancelBehaviour = _cancelBehaviour;
+        return cancelBehaviour;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors getCollectors()
+    {
+        return collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getXML</Name>
+				<Source><![CDATA[
+    public XmlDocument getXML()
+    {
+        XmlDocument                                 xmlDoc = new XmlDocument();
+        XmlElement                                  registrationCollectorConfigurationElement;
+        XmlElement                                  respData = XMLDoc.createElement(TFMConstants::responseData());
+        // Create the registrationCollectorConfiguration element
+        registrationCollectorConfigurationElement = xmlDoc.createElement(TFMConstants::registrationCollectorConfiguration());
+        registrationCollectorConfigurationElement.setAttribute('cancelBehaviour', TFMHelper::enumName(enumNum(TFMWorkflowCancelBehaviour), cancelBehaviour));
+        registrationCollectorConfigurationElement.setAttribute('autoSave', saveData?'true' : 'false');
+        this.appendToXML(registrationCollectorConfigurationElement);
+        respData.appendChild(registrationCollectorConfigurationElement);
+        xmlDoc.appendChild(respData);
+        return xmlDoc;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _registrationCollectorConfigurationElement)
+    {
+        
+        
+        TFMRegistrationConfigurationResponseElement::appendRegistrationCollectorsToXML(_registrationCollectorConfigurationElement, collectors);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendRegistrationCollectorsToXML</Name>
+				<Source><![CDATA[
+    public static void appendRegistrationCollectorsToXML(XmlElement _registrationCollectorConfigurationElement, TFMRegistrationCollectors _collectors)
+    {
+        MapEnumerator               collectorMapEnum = _collectors.collectorMap().getEnumerator();
+        MapEnumerator               additionalValuesEnum = _collectors.AdditionalValues().getEnumerator();
+        XmlElement                  stepsElement = _registrationCollectorConfigurationElement.ownerDocument().createElement(TFMConstants::steps());
+        XmlElement                  additionalValuesElement, additionalValueElement;
+        TFMRegistrationCollector    collector;
+        
+        if (_collectors.parmReplaceCurrentSteps())
+        {
+            _registrationCollectorConfigurationElement.setAttribute('mergeStrategy', 'replace');
+        }
+
+        while (collectorMapEnum.moveNext())
+        {            
+            collector = collectorMapEnum.currentValue();
+            if (!collector.parmActive() || (!collector.parmDisableMatchedSource() && collector.origins().matchedSource())) //If inactive, or a source was matched, don't prompt user
+            {
+                continue;
+            }
+            collector.appendToXml(stepsElement);
+        }
+        if (_collectors.getPagesToOpen())
+        {
+            XmlElement actionsNode = _registrationCollectorConfigurationElement.ownerDocument().createElement('actions');
+            SetEnumerator sEnum = _collectors.getPagesToOpen().getEnumerator();
+            while (sEnum.moveNext())
+            {
+                TFMMenuItemStateConfiguration menuItemStateConfig= sEnum.current();
+                
+                TFMPageMenuItemsHelper::addMenuStateToXml(actionsNode, menuItemStateConfig, TFMPagesProvider::getAllPages(), false, 1, 'adhocRegistration');
+            }
+            _registrationCollectorConfigurationElement.appendChild(actionsNode);
+        }
+        _registrationCollectorConfigurationElement.appendChild(stepsElement);
+        if (!_collectors.AdditionalValues().elements())
+        {
+            return;
+        }
+        additionalValuesElement = _registrationCollectorConfigurationElement.ownerDocument().createElement(TFMConstants::additionalValues());
+
+        while (additionalValuesEnum.moveNext())
+        {
+            additionalValueElement = _registrationCollectorConfigurationElement.ownerDocument().createElement(TFMConstants::additionalValue());
+            additionalValueElement.setAttribute(TFMConstants::AttributeName(), additionalValuesEnum.currentKey());
+            additionalValueElement.setAttribute(TFMConstants::AttributeValue(), additionalValuesEnum.currentValue());
+            additionalValuesElement.appendChild(additionalValueElement);
+        }
+        _registrationCollectorConfigurationElement.appendChild(additionalValuesElement);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

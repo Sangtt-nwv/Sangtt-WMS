@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMSearchVendor</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMSearchType(methodStr(TFMSearchVendor, VendorSearch)), TFMSearchType('VendTable_Search')]
+class TFMSearchVendor extends TFMSearchHandler
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>VendorSearch</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to search for a vendor.
+    /// </summary>
+    /// 
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration VendorSearch()
+    {
+        TFMReferenceDataConfiguration conf = new  TFMReferenceDataConfiguration();
+        conf.addCollector(this.addDefaultSearchField("@SYS9455", 1, TFMConstants::VendorName()));
+        return conf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>performSearch</Name>
+				<Source><![CDATA[
+    public void performSearch()
+    {
+        VendTable vendTable;
+        DirPartyTable partyTable;
+        int maxNum = 50;
+        Str x;
+        AccountNum accSrcWildcard, wildcardAccSrcWildcard;
+        NameAlias nSrcWildcard, wildcardNSrcWildcard;
+        str searchValue = request.parmParameters().getFieldValue(TFMConstants::VendorName());
+        accSrcWildcard = searchValue+'*';
+        wildcardAccSrcWildcard = '*'+searchValue+'*';
+        nSrcWildcard = searchValue+'*';
+        wildcardNSrcWildcard = '*'+searchValue+'*';
+
+        while select Party, AccountNum from vendTable
+            where vendTable.AccountNum like accSrcWildcard
+        {
+            x = vendTable.name();
+            this.addResult(vendTable.AccountNum, x, vendTable,strFmt("@GLS113837", vendTable.accountNum), x);
+    
+            maxNum--;
+            if (maxNum == 0)
+            {
+                break;
+            }
+        }
+    
+        while select Party, AccountNum from vendTable
+            where vendTable.AccountNum like wildcardAccSrcWildcard
+        {
+            x = vendTable.name();
+            this.addResult(vendTable.AccountNum, x, vendTable,strFmt("@GLS113837", vendTable.accountNum), x);
+    
+            maxNum--;
+            if (maxNum == 0)
+            {
+                break;
+            }
+        }
+    
+        while select RecId from partyTable
+            where partyTable.NameAlias like nSrcWildcard
+        {
+            vendTable = VendTable::findByPartyRecId(partyTable.RecId);
+            if (vendTable)
+            {
+                x = vendTable.name();
+                this.addResult(vendTable.AccountNum, x, vendTable,strFmt("@GLS113837", vendTable.accountNum), x);
+    
+                maxNum--;
+                if (maxNum == 0)
+                {
+                    break;
+                }
+            }
+        }
+    
+        while select RecId from partyTable
+            where partyTable.NameAlias like wildcardNSrcWildcard
+        {
+            vendTable = VendTable::findByPartyRecId(partyTable.RecId);
+            if (vendTable)
+            {
+                x = vendTable.name();
+                this.addResult(vendTable.AccountNum, x, vendTable,strFmt("@GLS113837", vendTable.accountNum), x);
+    
+                maxNum--;
+                if (maxNum == 0)
+                {
+                    break;
+                }
+            }
+        }
+    
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

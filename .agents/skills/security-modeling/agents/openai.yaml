@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Security Modeling"
+  short_description: "Model privileges, duties, roles, and XDS policies"
+  default_prompt: "Use $security-modeling to create or extend a privilege, duty, role, or XDS policy for this D365FO change."

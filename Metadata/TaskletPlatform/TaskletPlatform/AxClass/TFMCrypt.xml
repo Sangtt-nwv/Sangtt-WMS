@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMCrypt</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMCrypt
+{
+    #define.fixedPassPhrase('t@skL3T')
+    #define.fixedSaltValue('m@keITh@pp3n')
+    #define.fixedPasswordIterations(2)
+    #define.fixedInitVector('@1B2c3D4e5F6g7H8')
+    #define.fixedKeySize(32)
+ 
+    System.String                                       passPhrase;
+    System.String                                       saltValue;
+    System.Int32                                        passwordIterations;
+    System.String                                       initVector;
+    System.Int32                                        keySize;
+    System.Text.Encoding                                asciiEncoding;
+    System.Text.Encoding                                utf8Encoding;
+    System.Byte[]                                       initVectorBytes;
+    System.Byte[]                                       saltValueBytes;
+    System.Byte[]                                       plainTextBytes;
+    System.Byte[]                                       keyBytes;
+    System.Byte[]                                       cipherTextBytes;
+    System.Security.Cryptography.Rfc2898DeriveBytes     password;
+    System.Security.Cryptography.RijndaelManaged        symmetricKey;
+    System.Security.Cryptography.ICryptoTransform       encryptor;
+    System.Security.Cryptography.ICryptoTransform       decryptor;
+    System.IO.MemoryStream                              memoryStream;
+    System.Security.Cryptography.CryptoStream           cryptoStream;
+    System.String                                       plainText, cipherText;
+    System.Exception                                    e;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    protected void new()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMCrypt Construct()
+    {
+        return new TFMCrypt();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    protected void init()
+    {
+        passPhrase          = #fixedPassPhrase;         // can be any string
+        saltValue           = #fixedSaltValue;          // can be any string
+        passwordIterations  = #fixedPasswordIterations; // can be any number
+        initVector          = #fixedInitVector;         // must be 16 bytes
+        keySize             = #fixedKeySize;            // 32 = 256b, 24=192b or 16=128b
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>encrypt</Name>
+				<Source><![CDATA[
+    public str encrypt(str _plainText)
+    {
+        System.String cipherValue;
+ 
+        this.init();
+ 
+        cipherValue = this.doencrypt(
+        _plainText,
+        passPhrase,
+        saltValue,
+        passwordIterations,
+        initVector,
+        keySize);
+ 
+        return cipherValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>doEncrypt</Name>
+				<Source><![CDATA[
+    protected System.String doEncrypt(
+    str             _plainText,
+    System.String   _passPhrase,
+    System.String   _saltValue,
+    System.Int32    _passwordIterations,
+    System.String   _initVector,
+    System.Int32    _keySize)
+    {
+        try
+        {
+            new InteropPermission(InteropKind::ClrInterop).assert();
+ 
+            asciiEncoding       = System.Text.Encoding::get_ASCII();
+            utf8Encoding        = System.Text.Encoding::get_UTF8();
+            initVectorBytes     = asciiEncoding.GetBytes(_initVector);
+            saltValueBytes      = asciiEncoding.GetBytes(_saltValue);
+            plainTextBytes      = utf8Encoding.GetBytes(_plainText);
+            password            = new System.Security.Cryptography.Rfc2898DeriveBytes(
+            _passPhrase,
+            saltValueBytes,
+            _passwordIterations);
+         
+            keyBytes            = password.GetBytes(_keySize);
+            symmetricKey        = new System.Security.Cryptography.RijndaelManaged();
+            symmetricKey.set_Mode(System.Security.Cryptography.CipherMode::CBC);
+            encryptor           = symmetricKey.CreateEncryptor(
+            keyBytes,
+            initVectorBytes);
+         
+            memoryStream        = new System.IO.MemoryStream();
+            cryptoStream        = new System.Security.Cryptography.CryptoStream(memoryStream,
+            encryptor,
+            System.Security.Cryptography.CryptoStreamMode::Write);
+         
+            cryptoStream.Write(plainTextBytes, 0, plainTextBytes.get_Length());
+            cryptoStream.FlushFinalBlock();
+         
+            cipherTextBytes     = memoryStream.ToArray();
+            cipherText          = System.Convert::ToBase64String(cipherTextBytes);
+ 
+            memoryStream.Close();
+            cryptoStream.Close();
+ 
+        }
+        catch (Exception::CLRError)
+        {
+            e = CLRInterop::getLastException();
+ 
+            while( e )
+            {
+                info( e.get_Message() );
+                e = e.get_InnerException();
+            }
+        }
+ 
+        return cipherText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>decrypt</Name>
+				<Source><![CDATA[
+    public str decrypt(str _cipherText)
+    {
+        System.String plainValue;
+ 
+        this.init();
+ 
+        plainValue = this.doDecrypt(
+        _cipherText,
+        passPhrase,
+        saltValue,
+        passwordIterations,
+        initVector,
+        keySize);
+ 
+        return plainValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>doDecrypt</Name>
+				<Source><![CDATA[
+    protected System.String doDecrypt(
+    str             _cipherText,
+    System.String   _passPhrase,
+    System.String   _saltValue,
+    System.Int32    _passwordIterations,
+    System.String   _initVector,
+    System.Int32    _keySize)
+    {
+        System.Int32 plainTextBytesLength, cipherTextBytesLength, decryptedByteCount;
+ 
+        try
+        {
+            new InteropPermission(InteropKind::ClrInterop).assert();
+ 
+            asciiEncoding           = System.Text.Encoding::get_ASCII();
+            utf8Encoding            = System.Text.Encoding::get_UTF8();
+            initVectorBytes         = asciiEncoding.GetBytes(_initVector);
+            saltValueBytes          = asciiEncoding.GetBytes(_saltValue);
+            cipherTextBytes         = System.Convert::FromBase64String(_cipherText);
+         
+            password = new System.Security.Cryptography.Rfc2898DeriveBytes(
+            _passPhrase,
+            saltValueBytes,
+            _passwordIterations);
+
+         
+            keyBytes                = password.GetBytes(_keySize);
+            symmetricKey = new System.Security.Cryptography.RijndaelManaged();
+            symmetricKey.set_Mode(System.Security.Cryptography.CipherMode::CBC);
+            decryptor               = symmetricKey.CreateDecryptor(
+            keyBytes,
+            initVectorBytes);
+         
+            memoryStream = new System.IO.MemoryStream(cipherTextBytes);
+            cryptoStream = new System.Security.Cryptography.CryptoStream(
+            memoryStream,
+            decryptor,
+            System.Security.Cryptography.CryptoStreamMode::Read);
+         
+            cipherTextBytesLength   = cipherTextBytes.get_Length();
+            plainTextBytes          = System.Convert::FromBase64String(_cipherText);
+            plainTextBytesLength    = plainTextBytes.get_Length();
+            decryptedByteCount      = cryptoStream.Read(plainTextBytes, 0, plainTextBytesLength);
+            plainText = utf8Encoding.GetString(plainTextBytes, 0, decryptedByteCount);
+            memoryStream.Close();
+            cryptoStream.Close();
+         
+        }
+        catch (Exception::CLRError)
+        {
+            e = CLRInterop::getLastException();
+ 
+            while( e )
+            {
+                info( e.get_Message() );
+                e = e.get_InnerException();
+            }
+        }
+ 
+        return plainText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>computeMD5Hash</Name>
+				<Source><![CDATA[
+    public static str computeMD5Hash(str _inputString)
+    {
+        System.Security.Cryptography.MD5CryptoServiceProvider md5Provider;
+        System.Byte[] inputBytes;
+        System.Byte[] hashBytes;
+        str hashString;
+
+        md5Provider = new System.Security.Cryptography.MD5CryptoServiceProvider();
+        inputBytes = System.Text.Encoding::UTF8.GetBytes(_inputString);
+        hashBytes = md5Provider.ComputeHash(inputBytes);
+
+        // Convert the hash bytes to a hexadecimal string
+        int i;
+        for (i = 0; i < hashBytes.Length; i++)
+        {
+            hashString += strFmt('%1', hashBytes.GetValue(i));
+        }
+
+        return hashString;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMCommandResponseNotify</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMCommandResponseNotify extends TFMCommandResponse
+{
+    str notificationId;
+    str header;
+    str message;
+    str backgroundColor;
+    str icon;
+    int duration;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMCommandResponseNotify Construct(str _notificationId, str _header, str _message = '', str _backgroundColor = '', str _icon = '', int _duration = 0)
+    {
+        TFMCommandResponseNotify response = new TFMCommandResponseNotify();
+        response.notificationId = _notificationId;
+        response.header = _header;
+        response.message = _message;
+        response.backgroundColor = _backgroundColor;
+        response.icon = _icon;
+        response.duration = _duration;
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _element)
+    {
+        XmlDocument xmlDoc = _element.ownerDocument();
+        XmlElement notifyElement = xmlDoc.createElement('notify');
+        notifyElement.setAttribute('id', notificationId);
+        notifyElement.setAttribute('header', header);
+        if (message)
+        {
+            notifyElement.setAttribute('text', message);
+        }
+        
+        notifyElement.setAttribute('backgroundColor', this.parmBackgroundColor());
+        
+        if (icon)
+        {
+            notifyElement.setAttribute('icon', icon);
+        }
+        if (duration)
+        {
+            notifyElement.setAttribute('duration', int2Str(duration));
+        }
+        _element.appendChild(notifyElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmNotificationId</Name>
+				<Source><![CDATA[
+    public str parmNotificationId(str _notificationId = notificationId)
+    {
+        notificationId = _notificationId;
+        return notificationId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHeader</Name>
+				<Source><![CDATA[
+    public str parmHeader(str _header = header)
+    {
+        header = _header;
+        return header;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMessage</Name>
+				<Source><![CDATA[
+    public str parmMessage(str _message = message)
+    {
+        message = _message;
+        return message;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBackgroundColor</Name>
+				<Source><![CDATA[
+    public str parmBackgroundColor(str _backgroundColor = backgroundColor)
+    {
+        backgroundColor = _backgroundColor;
+        return backgroundColor ? backgroundColor : '#639754';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIcon</Name>
+				<Source><![CDATA[
+    public str parmIcon(str _icon = icon)
+    {
+        icon = _icon;
+        return icon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDuration</Name>
+				<Source><![CDATA[
+    public int parmDuration(int _duration = duration)
+    {
+        duration = _duration;
+        return duration;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

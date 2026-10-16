@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMGraphTreeNode</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMGraphTreeNode
+{
+    
+    int                     maxNodesBefore;
+    int                     maxNodesAfter;
+    int                     depthPos;
+    int                     breadthPos;
+    int                     maxBreadth;
+    Map                     prevNodes;
+    Map                     nextNodes;
+    TFMGraphRectInteraction rect;
+    str                     label;
+    str                     subText;
+    str                     returnVariable;
+    int                     forcedUpColor, forcedLowerColor;
+    int                     forcedRectHeight;
+    real					arrowGraphScale;
+    ClassName				RectClassName;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>draw</Name>
+				<Source><![CDATA[
+    public void draw(System.Drawing.Graphics _bmpDC, Map _treeNodes)
+    {
+        InteropPermission       perm = new InteropPermission(InteropKind::ClrInterop);
+        System.Drawing.Pen      pen;
+        System.Drawing.Color    color;
+        MapEnumerator           mEnum, tEnum;
+        TFMGraphTreeNode        tNode, tmpNode;
+        boolean                 directDraw;
+        System.Drawing.RectangleF netRect;
+        int                     depthDiff, i, lastY, newY, lastX, newX, dAdd;
+        real                    xDiff;
+
+        int                     height, width;
+
+        if (rect == null)
+        {
+            return;
+        }
+
+        netRect = _bmpDC.get_VisibleClipBounds();
+        width = netRect.get_Width();
+        height = netRect.get_Height();
+        perm.assert();
+        color = System.Drawing.Color::FromArgb(TFMGraphicsHelper::switchTOBGR(TFMGraphicsHelper::dampenRGB(rect.parmUpperColor(),arrowGraphScale))+128<<24);
+        Pen = new System.Drawing.Pen(color,2);
+        _bmpDC.set_SmoothingMode(System.Drawing.Drawing2D.SmoothingMode::AntiAlias);
+        mEnum = nextNodes.getEnumerator();
+        while(mEnum.moveNext())
+        {
+            if (_treeNodes.exists(mEnum.currentKey()))
+            {
+                directDraw = true;
+                tNode =  _treeNodes.lookup(mEnum.currentKey());
+                if (tNode.parmDepthPos() > depthPos + 1)
+                {
+                    //child is more than one node away
+                    //find out if current parent node and child node is at the sides or not
+                    if (tNode.parmBreadthPos() == 1 && breadthPos == 1)
+                    {
+                        // Both nodes are in the top
+                        directDraw = false;
+                        dAdd = (depthPos+tNode.parmDepthPos())*2;
+                        /*_bmpDC.DrawLine(pen,
+                                    rect.iCenterX()+dAdd,
+                                    rect.iTop(),
+                                    rect.iCenterX()+dAdd,
+                                    (depthPos+ tNode.parmDepthPos())*2);*/
+                        this.drawArrow(_bmpDC,pen,
+                                    rect.iCenterX()+dAdd,
+                                    rect.iTop(),
+                                    rect.iCenterX()+dAdd,
+                                    (depthPos+ tNode.parmDepthPos())*2,true);
+                        /*_bmpDC.DrawLine(pen,
+                                    rect.iCenterX()+dAdd,
+                                    (depthPos+ tNode.parmDepthPos())*2,
+                                    tNode.parmRect().iCenterX()-dAdd,
+                                    (depthPos+ tNode.parmDepthPos())*2);
+                    _bmpDC.DrawLine(pen,
+                                    tNode.parmRect().iCenterX()-dAdd,
+                                    (depthPos+ tNode.parmDepthPos())*2,
+                                    tNode.parmRect().iCenterX()-dAdd,
+                                    tNode.parmRect().iTop());*/
+                        this.drawArrow(_bmpDC,pen,
+                                    rect.iCenterX()+dAdd,
+                                    (depthPos+ tNode.parmDepthPos())*2,
+                                    tNode.parmRect().iCenterX()-dAdd,
+                                    (depthPos+ tNode.parmDepthPos())*2,true);
+                        this.drawArrow(_bmpDC,pen,
+                                    tNode.parmRect().iCenterX()-dAdd,
+                                    (depthPos+ tNode.parmDepthPos())*2,
+                                    tNode.parmRect().iCenterX()-dAdd,
+                                    tNode.parmRect().iTop());
+                    }
+                    else if (tNode.parmBreadthPos() == tNode.parmMaxBreadth() && breadthPos == maxBreadth)
+                    {
+                        // Both nodes are in the bottom
+                        directDraw = false;
+                        dAdd = (depthPos+tNode.parmDepthPos())*2;
+                        /*_bmpDC.DrawLine(pen,
+                                    rect.iCenterX()+dAdd,
+                                    rect.iBottom(),
+                                    rect.iCenterX()+dAdd,
+                                    height - (depthPos+ tNode.parmDepthPos())*2);
+                    _bmpDC.DrawLine(pen,
+                                    rect.iCenterX()+dAdd,
+                                    height - (depthPos+ tNode.parmDepthPos())*2,
+                                    tNode.parmRect().iCenterX()-dAdd,
+                                    height - (depthPos+ tNode.parmDepthPos())*2);
+                    _bmpDC.DrawLine(pen,
+                                    tNode.parmRect().iCenterX()-dAdd,
+                                    height - (depthPos+ tNode.parmDepthPos())*2,
+                                    tNode.parmRect().iCenterX()-dAdd,
+                                    tNode.parmRect().iBottom());*/
+
+                        this.drawArrow(_bmpDC,pen,
+                                    rect.iCenterX()+dAdd,
+                                    rect.iBottom(),
+                                    rect.iCenterX()+dAdd,
+                                    height - (depthPos+ tNode.parmDepthPos())*2,true);
+                        this.drawArrow(_bmpDC,pen,
+                                    rect.iCenterX()+dAdd,
+                                    height - (depthPos+ tNode.parmDepthPos())*2,
+                                    tNode.parmRect().iCenterX()-dAdd,
+                                    height - (depthPos+ tNode.parmDepthPos())*2,true);
+                        this.drawArrow(_bmpDC,pen,
+                                    tNode.parmRect().iCenterX()-dAdd,
+                                    height - (depthPos+ tNode.parmDepthPos())*2,
+                                    tNode.parmRect().iCenterX()-dAdd,
+                                    tNode.parmRect().iBottom());
+                    }
+                    else// if (breadthPos < maxBreadth && breadthPos > 1)
+                    {
+                        //Parent node is in the middle of other nodes in its layer
+                        directDraw = false;
+                        depthDiff = tNode.parmDepthPos() - depthPos;
+                        xDiff = (tNode.parmRect().rCenterX() - rect.rCenterX())/(2*depthDiff);
+                        lastY = rect.iCenterY();
+                        lastX = rect.iCenterX()+real2int(xDiff);
+
+                        /*_bmpDC.DrawLine(pen,
+                                    rect.iRight(),
+                                    lastY,
+                                    lastX,
+                                    lastY);*/
+                        this.drawArrow(_bmpDC, pen,
+                                    rect.iRight(),
+                                    lastY,
+                                    lastX,
+                                    lastY);
+                        for (i = depthPos + 1; i < depthPos + depthDiff; i++)
+                        {
+                            //i is current depthPos
+                            tEnum = _treeNodes.getEnumerator();
+                            newY = lastY;
+                            while (tEnum.moveNext())
+                            {
+                                tmpNode = tEnum.currentValue();
+                                if (tmpNode.parmDepthPos() == i)
+                                {
+                                    if(tmpNode.parmRect().iTop() < newY && tmpNode.parmRect().iBottom() > newY)
+                                    {
+                                        newY = real2int(tNode.parmRect().rCenterY() > newY ? tmpNode.parmRect().iBottom()+tmpNode.parmRect().height()*0.5  : tmpNode.parmRect().iTop() - tmpNode.parmRect().height()*0.5);
+                                    }
+                                }
+                            }
+                            if (newY != lastY)
+                            {
+                                this.drawArrow(_bmpDC, pen,
+                                lastX,
+                                lastY,
+                                lastX,
+                                newY);
+                            }
+                            newX = real2int(lastX + 2*xDiff);//*(i - depthPos);
+                            /*_bmpDC.DrawLine(pen,
+                                lastX,
+                                newY,
+                                newX,
+                                newY);*/
+                            this.drawArrow(_bmpDC, pen,
+                                lastX,
+                                newY,
+                                newX,
+                                newY);
+                            lastX = newX;
+                            lastY = newY;
+
+                        }
+                        if (lastY != tNode.parmRect().iCenterY())
+                        {
+                            /*_bmpDC.DrawLine(pen,
+                                        lastX,
+                                        lastY,
+                                        lastX,
+                                        tNode.parmRect().iCenterY());*/
+                                        this.drawArrow(_bmpDC, pen,
+                                        lastX,
+                                        lastY,
+                                        lastX,
+                                        tNode.parmRect().iCenterY());
+                            lastY = tNode.parmRect().iCenterY();
+                        }
+                        /*_bmpDC.DrawLine(pen,
+                                    lastX,
+                                    lastY,
+                                    tNode.parmRect().iLeft(),
+                                    lastY);*/
+                        this.drawArrow(_bmpDC, pen,
+                                    lastX,
+                                    lastY,
+                                    tNode.parmRect().iLeft(),
+                                    lastY);
+                    }
+
+                }
+                if (directDraw)
+                {
+                    //child is next in hierarchy
+                    /*_bmpDC.DrawLine(pen,
+                                rect.iRight(),
+                                rect.iCenterY(),
+                                tNode.parmRect().iLeft(),
+                                tNode.parmRect().iCenterY());*/
+                                this.drawArrow(_bmpDC, pen,
+                                tNode.parmRect().iCenterX() > rect.iCenterX() ?  rect.iRight() : rect.iLeft(),
+                                rect.iCenterY(),
+                                tNode.parmRect().iCenterX() > rect.iCenterX() ? tNode.parmRect().iLeft() : tNode.parmRect().iRight(),
+                                tNode.parmRect().iCenterY());
+                }
+            }
+        }
+        Pen.Dispose();
+        rect.draw(_bmpDC,true);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawArrow</Name>
+				<Source><![CDATA[
+    void drawArrow(System.Drawing.Graphics _bmpDC, System.Drawing.Pen _pen, int _x0, int _y0, int _x1, int _y1, boolean _justline = false, str _text = '')
+    {
+        real    vecLen,uX,uY;
+        int     rX,rY;
+        _bmpDC.DrawLine(_pen, _x0, _y0, _x1, _y1);
+        if (!_justline)
+        {
+            //get Unit vector
+            vecLen = sqrt(power(abs(_x0 - _x1),2)+power(abs(_y0-_y1),2));
+            if (veclen)
+            {
+                uX = (_x0 - _x1) / vecLen;
+                uY = (_y0 - _y1) / vecLen;
+                rX = (uX * cos(0.25) - uY * sin(0.25))*(vecLen/5);
+                rY = (uX * sin(0.25) + uY * cos(0.25))*(vecLen/5);
+                _bmpDC.DrawLine(_pen, _x1, _y1, (_x1+rX), (_y1+rY));
+                rX = (uX * cos(-0.25) - uY * sin(-0.25))*(vecLen/5);
+                rY = (uX * sin(-0.25) + uY * cos(-0.25))*(vecLen/5);
+                _bmpDC.DrawLine(_pen, _x1, _y1, (_x1+rX), (_y1+rY));
+            }
+        }
+        TFMGraphicsHelper::drawText(_bmpDC,real2int((_x0+_x1)/2),real2int((_y0+_y1)/2),255+255<<24,_text,10,SysChartHorizontalAlignment::Auto,  SysChartVerticalAlignment::Auto,true,true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new()
+    {
+        forcedUpColor       = -5;
+        forcedLowerColor    = -5;
+        forcedRectHeight    = -5;
+        arrowGraphScale		= 0.85;
+        RectClassName		= classStr(TFMGraphRectInteraction);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRectClassName</Name>
+				<Source><![CDATA[
+    public ClassName parmRectClassName(ClassName _RectClassName = RectClassName)
+    {
+        RectClassName = _RectClassName;
+        return RectClassName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBreadthPos</Name>
+				<Source><![CDATA[
+    public int parmBreadthPos(int _breadthPos = breadthPos)
+    {
+        breadthPos = _breadthPos;
+        return breadthPos;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDepthPos</Name>
+				<Source><![CDATA[
+    public int parmDepthPos(int _depthPos = depthPos)
+    {
+        depthPos = _depthPos;
+        return depthPos;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmforcedLowerColor</Name>
+				<Source><![CDATA[
+    public int parmforcedLowerColor(int _forcedLowerColor = forcedLowerColor)
+    {
+        forcedLowerColor = _forcedLowerColor;
+        return forcedLowerColor;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmforcedRectHeight</Name>
+				<Source><![CDATA[
+    public int parmforcedRectHeight(int _forcedRectHeight = forcedRectHeight)
+    {
+        forcedRectHeight = _forcedRectHeight;
+        return forcedRectHeight;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmforcedUpColor</Name>
+				<Source><![CDATA[
+    public int parmforcedUpColor(int _forcedUpColor = forcedUpColor)
+    {
+        forcedUpColor = _forcedUpColor;
+        return forcedUpColor;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLabel</Name>
+				<Source><![CDATA[
+    public str parmLabel(str _label = label)
+    {
+        ;
+        label = _label;
+        return label;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMaxBreadth</Name>
+				<Source><![CDATA[
+    public int parmMaxBreadth(int _maxBreadth = maxBreadth)
+    {
+        maxBreadth = _maxBreadth;
+        return maxBreadth;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMaxNodesAfter</Name>
+				<Source><![CDATA[
+    public int parmMaxNodesAfter(int _maxNodesAfter = maxNodesAfter)
+    {
+        maxNodesAfter = _maxNodesAfter;
+        return maxNodesAfter;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmNextNodes</Name>
+				<Source><![CDATA[
+    public Map parmNextNodes(Map _nextNodes = nextNodes)
+    {
+        nextNodes = _nextNodes;
+        return nextNodes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPrevNodes</Name>
+				<Source><![CDATA[
+    public Map parmPrevNodes(Map _prevNodes = prevNodes)
+    {
+        prevNodes = _prevNodes;
+        return prevNodes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRect</Name>
+				<Source><![CDATA[
+    public TFMGraphRectInteraction parmRect(TFMGraphRectInteraction _rect = rect)
+    {
+        rect = _rect;
+        return rect;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSubText</Name>
+				<Source><![CDATA[
+    public str parmSubText(str _subText = subText)
+    {
+        ;
+        subText = _subText;
+        return subText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmreturnVariable</Name>
+				<Source><![CDATA[
+    public str parmreturnVariable(str _returnVariable = returnVariable)
+    {
+    
+        returnVariable = _returnVariable;
+        return returnVariable;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

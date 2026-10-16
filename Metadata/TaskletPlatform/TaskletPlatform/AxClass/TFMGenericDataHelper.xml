@@ -1,0 +1,502 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMGenericDataHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class to have generic data handling.
+/// </summary>
+class TFMGenericDataHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>makeCommonFromDatasetClass</Name>
+				<Source><![CDATA[
+	public static Common makeCommonFromDatasetClass(classId _classId)
+    {
+        return new SysDictTable(tableName2Id(TFMGenericDataHelper::tableNameFromDatasetClass(_classId))).makeRecord();
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tableNameFromDatasetClass</Name>
+				<Source><![CDATA[
+    public static TableName tableNameFromDatasetClass(classId _classId)
+    {
+        SysDictClass			sDC = new SysDictClass(_classId);
+        //TFMXMLFormat			formatClass = sDC.makeObject();
+        TFMTableNameAttribute	attr = sDC.getAttribute(classStr(TFMTableNameAttribute));
+        return attr.parmTableName();
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findValue</Name>
+				<Source><![CDATA[
+    public static str findValue(Common _buffer, TableName _refTableName, fieldName _refFieldName, MethodName _methodName, TFMExpression _expression, str _collectedValue = '', str _domain = '', TFMValuePurpose _purpose = TFMValuePurpose::Display)
+    {
+        Common							lineTable = null;
+        str								fieldValue;
+        str								orgFieldValue;
+        SysDictField					dF;
+        container						dmReturnValue;
+        Types							dmReturnType;
+        QueryRun						qr;
+        SurrogateFKReplacementHelper    surrogateHelper;
+
+		if (!lineTable && _buffer.TableId == tableName2Id(_refTableName))
+        {
+            lineTable = _buffer;
+        }
+        else if (!lineTable && _refTableName)
+        {
+            qr = TFMGenericDataHelper::getRelatedTable(_buffer,_refTableName);
+            while (qr.next())
+            {
+                lineTable = qr.get(tableName2id(_refTableName));
+                break;
+            }
+        }
+
+
+        if (_refFieldName && lineTable != null)
+        {
+            
+            dF = new SysDictField(lineTable.TableId,fieldname2id(lineTable.TableId,_refFieldName));
+            if (dF == null)
+            {
+                return '❗'+strfmt("@SYS77716",_refFieldName+' ',tableid2name(lineTable.TableId));
+            }
+            if (dF != null && df.enumId() == enumnum(NoYes))
+            {
+
+                fieldValue = (lineTable.(fieldname2id(lineTable.TableId,_refFieldName)) ? 'true' : 'false');
+            }
+            else if (DF.typeId() == extendedTypeName2Id(extendedTypeStr(Bitmap)))
+            {
+                return '';
+            }
+            else if (DF.baseType() == Types::Container)
+            {
+                fieldValue = con2StrUnlimited(lineTable.(fieldname2id(lineTable.TableId,_refFieldName)),';');
+            }
+            else if (DF.baseType() == Types::Date)
+            {
+                if(_purpose == TFMValuePurpose::Sorting)
+                {
+                    fieldValue = date2str(lineTable.(fieldname2id(lineTable.TableId,_refFieldName)),321,DateDay::Digits2,DateSeparator::None,DateMonth::Digits2,DateSeparator::None,DateYear::Digits4);
+                }
+                else
+                {
+                    fieldValue = date2str(lineTable.(fieldname2id(lineTable.TableId,_refFieldName)),123,2,DateSeparator::Slash,2,DateSeparator::Hyphen,4);
+                }
+            }
+            else if (DF.baseType() == Types::Real)
+            {
+                if(_purpose == TFMValuePurpose::Sorting)
+                {
+                    // Expanding to 20 digits should be plenty of zero padding to maintain sort order
+                    fieldValue = num2Str(lineTable.(fieldname2id(lineTable.TableId,_refFieldName)),20,2,DecimalSeparator::Dot,ThousandSeparator::None);
+                }
+                else
+                {
+                    fieldValue = num2str(lineTable.(fieldname2id(lineTable.TableId,_refFieldName)),1,2,DecimalSeparator::Dot,ThousandSeparator::None);
+                }
+            }
+            else if (dF.baseType() == Types::Int64 && dF.isSurrogateForeignKey())
+            {
+                // Perform surrogate FK replacement.
+                surrogateHelper = SurrogateFKReplacementHelper::construct(AbsoluteFieldBinding::construct(dF.name(), dF.tableName()));
+                fieldValue = TFMGenericDataHelper::getSurrogateReplacement(surrogateHelper, lineTable.(dF.id()));
+                orgFieldValue = strfmt('%1',lineTable.(fieldname2id(lineTable.TableId,_refFieldName)));
+            }
+            else
+            {
+                fieldValue = strfmt('%1',lineTable.(fieldname2id(lineTable.TableId,_refFieldName)));
+            }
+        }
+        else if (_methodName && lineTable)
+        {
+            new ExecutePermission().assert();
+            dmReturnValue = conNull();
+            dmReturnValue += new DictTable(lineTable.tableId).callObject(_methodName,lineTable);
+            dmReturnType = typeOf(conPeek(dmReturnValue,1));
+
+            if(dmReturnType == Types::Real)
+            {
+                if(_purpose == TFMValuePurpose::Sorting)
+                {
+                    fieldValue = num2Str(conPeek(dmReturnValue,1),20,2,DecimalSeparator::Dot,ThousandSeparator::None);
+                }
+                else
+                {
+                    fieldValue = num2str(conPeek(dmReturnValue,1),1,2,DecimalSeparator::Dot, ThousandSeparator::None);
+                }
+            }
+            else if(dmReturnType == Types::Date)
+            {
+                if(_purpose == TFMValuePurpose::Sorting)
+                {
+                    fieldValue = date2str(conPeek(dmReturnValue,1),321,DateDay::Digits2,DateSeparator::None,DateMonth::Digits2,DateSeparator::None,DateYear::Digits4);
+                }
+                else
+                {
+                    fieldValue = date2str(conPeek(dmReturnValue,1),123,2,DateSeparator::Slash,2,DateSeparator::Hyphen,4);
+                }
+            }
+            else
+            {
+                fieldValue = strfmt('%1',conPeek(dmReturnValue,1));
+            }
+
+            CodeAccessPermission::revertAssert();
+        }
+        
+        //Is there an expression?
+        if (_expression)
+        {
+            FieldValue = TFMExpressions::evaluateExpression(_expression,lineTable,_collectedValue ? _collectedValue : (orgFieldValue ? orgFieldValue : FieldValue));
+        }
+
+        return fieldValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindRelation</Name>
+				<Source><![CDATA[
+    public static SysDictRelation FindRelation(RefTableName _primaryTableName, RefTableName _refTableName)
+    {
+        SysDictRelation            dr = new SysDictRelation(tableName2Id(_primaryTableName));
+
+        dr.loadTableRelation(tableName2Id(_refTableName));
+        if (!_refTableName)
+        {
+            return null;
+        }
+        
+        if (!dr.externTable())
+        {
+            //Try reverse relation
+            dr = new SysDictRelation(tableName2id(_refTableName));
+            dr.loadTableRelation(tableName2id(_primaryTableName));
+        }
+
+        return dr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRelatedTable</Name>
+				<Source><![CDATA[
+    public static QueryRun getRelatedTable(common _table, RefTableName _refTableName)
+    {
+        //Common                  subTable = new DictTable(tableName2Id(_refTableName)).makeRecord();
+        SysDictRelation         dr = TFMGenericDataHelper::FindRelation(tableId2Name(_table.tableId),_refTableName);
+        
+        if (dr && !dr.externTable() && _table.tableId == tableName2Id(_refTableName))
+        {
+            //Self Relation
+            Query                   q = new Query();
+            QueryBuildDataSource    qbds = q.addDataSource(tableName2Id(_refTableName));
+            qbds.addRange(fieldName2Id(tableName2Id(_refTableName),'RecId')).value(strFmt('%1',_table.recID));
+            return new QueryRun(q);
+        }
+
+        if (dr == null || !dr.externTable())
+        {
+            return null;
+        }
+        return TFMGenericDataHelper::getRelatedTablethroughExistingRelation(_table, dr);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRelatedTablethroughExistingRelation</Name>
+				<Source><![CDATA[
+    public static QueryRun getRelatedTablethroughExistingRelation(common _table, SysDictRelation _dr)
+    {
+        //Relation exist
+        int                     relationIndex = 1;
+        TableRelation           relation;
+        DictField               field, relatedField;
+        Query                   q = new Query();
+        QueryRun                qr;
+        QueryBuildDataSource    qbds = q.addDataSource(_dr.externTable());
+        QueryBuildRange         qbr;
+        
+        if (_table.tableId == _dr.externTable())
+        {
+            //Self Relation
+   
+            qbds.addRange(fieldName2Id(_dr.externTable(),'RecId')).value(strFmt('%1',_table.recID));
+
+        }
+        for (RelationIndex = 1; RelationIndex <= _dr.lines(); RelationIndex++)
+        {
+            relation = _dr.lineType(RelationIndex);
+            Field = new DictField(_dr.table(), _dr.lineTableValue(RelationIndex));
+
+            RelatedField = new DictField(_dr.externTable(), _dr.lineExternTableValue(RelationIndex));
+                
+            if (TableRelation::Field == relation)
+            {
+                qbr = qbds.addRange(RelatedField.id());
+                qbr.value(queryValue(_table.(Field.id())));
+            }
+            else if (TableRelation::ThisFixed == relation)
+            {
+                qbr = qbds.addRange(RelatedField ?  RelatedField.id() : Field.id());
+            }
+
+        }
+
+        qr = new QueryRun(q);
+        return qr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRelatedTablethroughKnownRelation</Name>
+				<Source><![CDATA[
+    public static QueryRun getRelatedTablethroughKnownRelation(common _table, RefTableName _refTableName, Map _relationMap)
+    {
+        //Common                  subTable = new DictTable(tableName2Id(_refTableName)).makeRecord();
+        int                     relationIndex;
+        TableRelation           relation;
+        SysDictRelation         dr = TFMGenericDataHelper::FindRelation(tableId2Name(_table.tableId),_refTableName);
+        DictField               field, relatedField;
+        Query                   q = new Query();
+        QueryRun                qr;
+        QueryBuildDataSource    qbds = q.addDataSource(tablename2id(_refTableName));
+        QueryBuildRange         qbr;
+        MapEnumerator           mEnum = _relationMap.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            Field = new DictField(_table.TableId, fieldName2Id(tablename2id(_refTableName),mEnum.currentValue()));
+
+            RelatedField = new DictField(tablename2id(_refTableName), fieldName2Id(_table.TableId,mEnum.currentKey()));
+                
+           
+            qbr = qbds.addRange(RelatedField.id());
+            qbr.value(queryValue(_table.(Field.id())));
+            
+        }
+
+        qr = new QueryRun(q);
+        return qr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tableNameFromRelation</Name>
+				<Source><![CDATA[
+    public static TableName tableNameFromRelation(TFMTableRelation _relation, TableName _tableFrom)
+    {
+        TableName tableName;
+        SysDictTable sdtFrom = new SysDictTable(tableName2Id(_tableFrom));
+        
+        if (strScan(_relation,'()',1,1000))
+        {
+            // Method
+            SetEnumerator sEnum = sdtFrom.methods(true, false,false).getEnumerator();
+            while (sEnum.moveNext())
+            {
+                SysDictMethod sdm = sEnum.current();
+                if (sdm.name() + '()' == _relation && sdm.returnType() == Types::Record)
+                {
+                    tableName = sdm.returnTypeName();
+                    break;
+                }
+            }
+            
+        }
+        else
+        {
+            // Relation
+            SetEnumerator sEnum = sdtFrom.relations().getEnumerator();
+            while (sEnum.moveNext())
+            {
+                SysDictRelation sdr = sEnum.current();
+                if (sdr.name() == _relation)
+                {
+                    tableName = sdr.externTableName();
+                    break;
+                }
+            }
+            
+        }
+
+        return tableName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tableBufferFromRelation</Name>
+				<Source><![CDATA[
+    public static Common tableBufferFromRelation(TFMTableRelation _relation, Common _tableFrom)
+    {
+        Common resultTable;
+        SysDictTable sdtFrom = new SysDictTable(_tableFrom.TableId);
+        
+        if (strScan(_relation,'()',1,1000))
+        {
+            // Method
+            SetEnumerator sEnum = sdtFrom.methods(true, false,false).getEnumerator();
+            while (sEnum.moveNext())
+            {
+                SysDictMethod sdm = sEnum.current();
+                if (sdm.name() + '()' == _relation && sdm.returnType() == Types::Record)
+                {
+                    resultTable = sdtFrom.callObject(sdm.name(), _tableFrom);
+                    break;
+                }
+            }
+            
+        }
+        else
+        {
+            // Relation
+            SetEnumerator sEnum = sdtFrom.relations().getEnumerator();
+            while (sEnum.moveNext())
+            {
+                SysDictRelation sdr = sEnum.current();
+                if (sdr.name() == _relation)
+                {
+                    resultTable = new SysDictTable(tableName2Id(sdr.externTableName())).makeRecord();
+                    QueryRun qr = TFMGenericDataHelper::getRelatedTablethroughExistingRelation(_tableFrom, sdr);
+                    while (qr.next())
+                    {
+                        resultTable = qr.get(tableName2Id(sdr.externTableName()));
+                        break;
+                    }
+                    break;
+                }
+            }
+            
+        }
+
+        return resultTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRelatedTableFromspecifiedField</Name>
+				<Source><![CDATA[
+    public static QueryRun getRelatedTableFromspecifiedField(common _table, FieldName _tableField, RefTableName _refTableName, FieldName _relationField)
+    {
+        DictField               field;
+        Query                   q = new Query();
+        QueryRun                qr;
+        QueryBuildDataSource    qbds = q.addDataSource(tablename2id(_refTableName));
+        QueryBuildRange         qbr;
+        
+        Field = new DictField(tablename2id(_refTableName), fieldName2Id(tablename2id(_refTableName),_relationField));
+
+        qbr = qbds.addRange(Field.id());
+        qbr.value(queryValue(_table.(fieldName2Id(_table.TableId, _tableField))));
+        
+        qr = new QueryRun(q);
+        return qr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSFKFieldReplacementsForField</Name>
+				<Source><![CDATA[
+    private static List getSFKFieldReplacementsForField(DictField _field)
+    {
+        List list;
+
+        SysPluginMetadataCollection metadataCollection = new SysPluginMetadataCollection();
+        Array sfkFieldProviders = SysPluginFactory::Instances(
+            identifierStr(Dynamics.AX.Application), classStr(SysQuerySFKFieldReplacementIProvider), metadataCollection);
+
+        for (int i = 1; i <= sfkFieldProviders.lastIndex(); i++)
+        {
+            SysQuerySFKFieldReplacementIProvider provider = sfkFieldProviders.value(i);
+            list = provider.getSFKFieldReplacementsForField(_field);
+
+            if (list)
+            {
+                break;
+            }
+        }
+
+        if (!list)
+        {
+            AbsoluteFieldBinding absoluteFieldBinding =
+                AbsoluteFieldBinding::construct(_field.name(), tableId2name(_field.tableid()));
+            SurrogateFKReplacementHelper replacementHelper = SurrogateFKReplacementHelper::construct(absoluteFieldBinding);
+            list = replacementHelper.displayBindings(SurrogateFKReplacementHelper::implicitReplacementFieldGroupName());
+        }
+
+        return list;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSurrogateReplacement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the surrogate key replacement.
+    /// </summary>
+    /// <param name="_surrogateHelper">
+    /// <c>SurrogateFKReplacementHelper</c> object created based on either the EDT or table field information.
+    /// </param>
+    /// <param name="_refRecId">
+    /// The record ID of the surrogate key.
+    /// </param>
+    /// <returns>
+    /// The string value of the replacement field(s).
+    /// </returns>
+    public static str getSurrogateReplacement(SurrogateFKReplacementHelper _surrogateHelper, int64 _refRecId)
+    {
+        str strValue;
+        FieldFilterValue filterValue;
+        ListEnumerator bindingValuesEnumerator;
+        int countVal;
+        List displayFieldValues;
+
+        displayFieldValues = _surrogateHelper.displayValuesFromRecID(_refRecId, SurrogateFKReplacementHelper::implicitReplacementFieldGroupName());
+        bindingValuesEnumerator = displayFieldValues.getEnumerator();
+        if (bindingValuesEnumerator)
+        {
+            countVal = 1;
+            while (bindingValuesEnumerator.moveNext())
+            {
+                filterValue = bindingValuesEnumerator.current();
+                if (countVal == 1)
+                {
+                    strValue = filterValue.value();
+                }
+                else
+                {
+                    strValue = strValue + ' ' + filterValue.value();
+                }
+                countVal++;
+            }
+        }
+        return strValue;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

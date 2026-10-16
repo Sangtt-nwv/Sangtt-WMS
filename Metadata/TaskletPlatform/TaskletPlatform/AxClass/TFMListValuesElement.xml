@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListValuesElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListELementAttribute('values')]
+class TFMListValuesElement extends TFMListBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>render</Name>
+				<Source><![CDATA[
+    public void render(TFMListVisualizationInterface _visualizer)
+    {
+        _visualizer.renderValues(this);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

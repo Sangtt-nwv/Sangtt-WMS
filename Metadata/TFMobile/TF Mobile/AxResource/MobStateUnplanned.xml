@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxResource xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobStateUnplanned</Name>
+	<FileName>State_unplanned.png</FileName>
+	<RelativeUriInModelStore>TFMobile\TF Mobile\AxResource\ResourceContent\Images\State_unplanned.png</RelativeUriInModelStore>
+</AxResource>

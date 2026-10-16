@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicBlockAddon</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMLogicBlockAddon
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>listOfAddonsAvailable</Name>
+				<Source><![CDATA[
+    public static Map listOfAddonsAvailable(TFMLogicBlock _block)
+    {
+        ListEnumerator      lEnum = new SysDictClass(classNum(TFMLogicBlockAddon)).extendedBy(true).getEnumerator();
+        SysDictClass        sdc;
+        Map                 ret = new Map(Types::String, Types::String);
+        TFMLogicBlockAddon  addon;
+        while (lEnum.moveNext())
+        {
+            sdc = new SysDictClass(lEnum.current());
+            addon = sdc.makeObject();
+            if (addon.compatibleWithBlock(_block))
+            {
+                ret.add(sdc.name(), addon.addonName());
+            }
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addonName</Name>
+				<Source><![CDATA[
+    public abstract Name addonName()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addonDescription</Name>
+				<Source><![CDATA[
+    public abstract Description255 addonDescription()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>compatibleWithBlock</Name>
+				<Source><![CDATA[
+    public abstract boolean compatibleWithBlock(TFMLogicBlock _block)
+    {
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRegistrationCollectors</Name>
+				<Source><![CDATA[
+    public void modifyRegistrationCollectors(TFMRegistrationCollectors _collectors)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyHeaderCollectors</Name>
+				<Source><![CDATA[
+    public void modifyHeaderCollectors(TFMReferenceDataConfiguration _refConf)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyDataBeforePost</Name>
+				<Source><![CDATA[
+    public void modifyDataBeforePost(TFMLogicBlock _block)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRequestBeforePost</Name>
+				<Source><![CDATA[
+    public void modifyRequestBeforePost(TFMRequestElement _request)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRequest</Name>
+				<Source><![CDATA[
+    public void modifyRequest(TFMRequestElement _request)
+    {
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

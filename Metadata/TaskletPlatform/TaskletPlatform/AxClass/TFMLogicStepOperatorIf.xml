@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicStepOperatorIf</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Implements a logic step operator for conditional branching ("If" operator) in the TFM logic flow.
+/// Supports comparison of two values, either numerically or as strings, and routes flow based on the result.
+/// </summary>
+/// <remarks>
+/// The operator can be configured to compare for equality, greater than, or less than.
+/// The output is either "True" or "False" based on the evaluation.
+/// </remarks>
+class TFMLogicStepOperatorIf extends TFMLogicBlock implements TFMLogicStepOperatorInterface
+{
+    
+    TFMListValueIf                  compareOperator;
+    str                             valueName;
+    str                             compareValue;
+    NoYes						    compareNumerically;       
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initializes a new instance of the <c>TFMLogicStepOperatorIf</c> class and sets up output connections.
+    /// </summary>
+    public void new()
+    {
+        super();
+        outputs = TFMLogicInputOutputContainer::Construct();
+        outputs.addConnectionName(TFMConstants::True());
+        outputs.addConnectionName(TFMConstants::False());
+                
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the display name of the block, including comparison details if available.
+    /// </summary>
+    /// <returns>The block name as a string.</returns>
+    public Name blockName()
+    {
+        return valueName ? strFmt("@TFM:If123", valueName, this.operator2ShortString(), compareValue) : "@TFM:IfOperator";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>operator2ShortString</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets a short string representation of the comparison operator.
+    /// </summary>
+    /// <returns>'=', '>', or '<;'.</returns>
+    protected str operator2ShortString()
+    {
+        return compareOperator == TFMListValueIf::equals ? '=' : (compareOperator == TFMListValueIf::greaterThan ? '>' : '<');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the icon resource string for the block.
+    /// </summary>
+    /// <returns>The icon resource string.</returns>
+    public str blockIcon()
+    {
+        return resourceStr(TFMBlobBranching);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCompareNumerically</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets or sets whether the comparison is performed numerically.
+    /// </summary>
+    /// <param name="_compareNumerically">The value to set.</param>
+    /// <returns>The current value.</returns>
+    [TFMParameter(NoYes::No)]
+    public TFMCompareNumerically parmCompareNumerically(TFMCompareNumerically _compareNumerically = compareNumerically)
+    {
+        compareNumerically = _compareNumerically;
+        return compareNumerically;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCompareValue1</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets or sets the left-side value name for comparison.
+    /// </summary>
+    /// <param name="_valueName">The value to set.</param>
+    /// <returns>The current value.</returns>
+    [TFMParameter('', "@TFM:Leftsidevalue")]
+    public TFMFlowVariableContextLookupField parmCompareValue1(TFMFlowVariableContextLookupField _valueName = valueName)
+    {
+        valueName = _valueName;
+        return valueName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCompareOperator</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets or sets the comparison operator.
+    /// </summary>
+    /// <param name="_compareOperator">The operator to set.</param>
+    /// <returns>The current operator.</returns>
+    [TFMParameter(0)]
+    public TFMListValueIfEnum parmCompareOperator(TFMListValueIfEnum _compareOperator = compareOperator)
+    {
+        compareOperator = _compareOperator;
+        return compareOperator;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCompareValue2</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets or sets the right-side value for comparison.
+    /// </summary>
+    /// <param name="_compareValue">The value to set.</param>
+    /// <returns>The current value.</returns>
+    [TFMParameter('',"@TFM:Rightsidevalue")]
+    public TFMFlowVariableContextLookupField parmCompareValue2(TFMFlowVariableContextLookupField _compareValue = compareValue)
+    {
+        compareValue = _compareValue;
+        return compareValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runLogic</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Executes the logic step, evaluates the condition, and returns the result as "True" or "False".
+    /// </summary>
+    /// <param name="_request">The request element containing context and values.</param>
+    /// <returns>"True" if the condition is met; otherwise, "False".</returns>
+    public str runLogic ( TFMRequestElement _request )
+    {
+        str value1 = _request.replaceWithValue(valueName);
+        str value2 = _request.replaceWithValue(compareValue);
+        boolean logicResult = true;
+        real numValue1 = str2Num(value1);
+        real numValue2 = str2Num(value2);
+        
+        //Evaluate if statement is true, activate first connection
+        if (compareOperator == TFMListValueIf::equals)
+        {
+            logicResult = compareNumerically ? (numValue1 == numValue2) : (value1 == value2);
+        }
+        else if (compareOperator == TFMListValueIf::greaterThan)
+        {
+            
+            logicResult = compareNumerically ? (numValue1 > numValue2) : (value1 > value2);
+        }
+        else if (compareOperator == TFMListValueIf::lessThan)
+        {
+            logicResult = compareNumerically ? (numValue1 < numValue2) : (value1 < value2);
+        }
+        _request.makeLogEntry (strFmt('%1(%2) %3 %4 (%5) : %6', valueName, value1, this.operator2ShortString(), compareValue, value2, logicResult));
+        //return outputs.getBlockAtConnectionName(logicResult ? TFMConstants::True() : TFMConstants::False());
+        return logicResult ? TFMConstants::True() : TFMConstants::False();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

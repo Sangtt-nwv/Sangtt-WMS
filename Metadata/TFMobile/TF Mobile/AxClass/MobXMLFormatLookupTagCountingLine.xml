@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatLookupTagCountingLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+#mob
+[TFMTableName(tableStr(InventJournalTrans_Tag), 'TagCounting')]
+class MobXMLFormatLookupTagCountingLine extends TFMXMLFormatLookup
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        InventJournalTrans_Tag  inventJournalTrans = common;
+        TFMMenuItemStateConfiguration MenuItemConf;
+        
+                
+        super();
+        
+        inventDim = inventJournalTrans.inventDim();
+        imageId = MobHelper::imageIDFromDocuref(MobHelper::FindItemDocuref(inventJournalTrans.itemId,inventJournalTrans.InventDimId));
+
+        // Show Configuration / Size / Color / Batch / Serial
+        displayLine3 = '';
+        if (inventDim.InventSizeId)
+        {
+            displayLine4 += SysLabel::labelId2String2("@SYS28127") + ': ' + inventDim.InventSizeId + '  ';
+        }
+        if (inventDim.InventStyleId)
+        {
+            displayLine4 += SysLabel::labelId2String2("@SYS92859") + ': ' + inventDim.InventStyleId + '  ';
+        }
+        if (inventDim.InventColorId)
+        {
+            displayLine4 += SysLabel::labelId2String2("@SYS30436") + ': ' + inventDim.InventColorId + '  ';
+        }
+        //displayline 5:
+       
+        if (inventDim.LicensePlateId)
+        {
+            displayLine5 += SysLabel::labelId2String2("@WAX67") + ': ' + inventDim.LicensePlateId + '  ';
+        }
+        
+        if (inventDim.inventBatchId)
+        {
+            displayLine5 += SysLabel::labelId2String2("@SYS14462") + ': ' + inventDim.inventBatchId + '  ';
+        }
+        if (inventDim.inventSerialId)
+        {
+            displayLine5 += SysLabel::labelId2String2("@SYS477") + ': ' + inventDim.inventSerialId + '  ';
+        }
+    
+        displayLine2 = inventJournalTrans.ItemId;
+        displayLine1 = strFmt('%1 \"%2\"', InventTable::find(inventJournalTrans.ItemId).productName(new xInfo().language()), inventJournalTrans.tagId);
+        displayLine3 = new DictField(tablenum(WmsLocation), fieldnum(WmsLocation, WmsLocationId)).Label() + ': ' + inventJournalTrans.inventDim().wMSLocationId;
+                        
+        fieldsToAdd.insert(MobConstants::Quantity(), MobHelper::formatItemQty(inventJournalTrans.Qty,inventJournalTrans.unitID ? inventJournalTrans.unitID : InventTable::find(inventJournalTrans.ItemId).inventUnitId()));
+        fieldsToAdd.insert(MobConstants::UnitOfMeasure(), inventJournalTrans.unitID ? inventJournalTrans.unitID : InventTable::find(inventJournalTrans.ItemId).inventUnitId());
+        fieldsToAdd.insert(extendedTypeStr(JournalId), inventJournalTrans.JournalId);
+        fieldsToAdd.insert(MobConstants::LineNumber(), MobHelper::formatLineNum(inventJournalTrans.LineNum));
+        fieldsToAdd.insert('slash','');
+        fieldsToAdd.insert('tagLabel', "@MobileWMS:Tag"); 
+        fieldsToAdd.insert('tag', inventJournalTrans.tagId);
+        
+        if (MenuItemsConf.exists(MobConstants::LicensePlateInfo()))
+        {
+            MenuItemConf = MenuItemsConf.lookup(MobConstants::LicensePlateInfo());
+            MenuItemConf.parmEnabled(false);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

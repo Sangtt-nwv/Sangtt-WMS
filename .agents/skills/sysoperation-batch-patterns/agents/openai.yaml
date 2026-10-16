@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Batch Patterns"
+  short_description: "Build D365FO SysOperation and batch workflows"
+  default_prompt: "Use $sysoperation-batch-patterns to implement a D365FO batch process."

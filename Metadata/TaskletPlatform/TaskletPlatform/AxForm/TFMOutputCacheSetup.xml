@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMOutputCacheSetup</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMOutputCacheSetup extends FormRun
+{
+    
+
+}
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>TFMOutputCacheSetup</Name>
+				<Methods />
+				<Fields>
+					<Field>
+						<DataField>OrderType</DataField>
+						<Methods>
+							<Method>
+								<Name>lookup</Name>
+								<Source><![CDATA[
+            public void lookup(FormControl _formControl, str _filterStr)
+            {
+                TFMFormLookupHelper::lookupXMLFormatClassOrderTypes(_formControl,TFMOutputCacheSetup.ClassOverrideID);
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>ClearCache</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            SysDictClass			dc = new SysDictClass(TFMOutputCacheSetup.ClassOverrideID);
+            TableId					tableId;
+            TFMTableNameAttribute	tableNameAttr;
+            TFMXMLTable				theCache;
+			super();
+
+            tableNameAttr = dc.getAttribute(classStr(TFMTableNameAttribute));
+            tableId = tableName2Id(tableNameAttr.parmTableName());
+
+            select count(RecId) from theCache where theCache.reffieldName like TFMOutputCacheSetup.OrderType && theCache.RefTableId == tableId;
+
+            info (strFmt("@SYS113135",theCache.RecId));
+
+            delete_from theCache where theCache.reffieldName like TFMOutputCacheSetup.OrderType && theCache.RefTableId == tableId;
+		}
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Override</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        public void lookup()
+        {
+            TFMDisplayLineOverride::lookupDisplayClasses(this, classnum(TFMXMLFormatOrderLines));
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>TFMOutputCacheSetup</Name>
+			<Table>TFMOutputCacheSetup</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Active</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ClassOverrideID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OrderType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Pattern xmlns="">SimpleList</Pattern>
+		<PatternVersion xmlns="">1.1</PatternVersion>
+		<Style xmlns="">SimpleList</Style>
+		<UseCaptionFromMenuItem xmlns="">Yes</UseCaptionFromMenuItem>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>FormActionPaneControl1</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>FormButtonGroupControl1</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ClearCache</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@SYS4009659</Text>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FilterGroup</Name>
+				<Pattern>CustomAndQuickFilters</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl>
+						<Name>QuickFilterControl1</Name>
+						<Visible>No</Visible>
+						<FormControlExtension>
+							<Name>QuickFilterControl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>targetControlName</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>placeholderText</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>defaultColumnName</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+				<FrameType>None</FrameType>
+				<Style>CustomFilter</Style>
+				<ViewEditMode>Edit</ViewEditMode>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGridControl">
+				<Name>Grid</Name>
+				<Type>Grid</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>Override</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataMethod>tableOverride</DataMethod>
+						<DataSource>TFMOutputCacheSetup</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormCheckBoxControl">
+						<Name>TFMOutputCacheSetup_Active</Name>
+						<Type>CheckBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>Active</DataField>
+						<DataSource>TFMOutputCacheSetup</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>TFMOutputCacheSetup_OrderType</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>OrderType</DataField>
+						<DataSource>TFMOutputCacheSetup</DataSource>
+					</AxFormControl>
+				</Controls>
+				<DataSource>TFMOutputCacheSetup</DataSource>
+				<Style>Tabular</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

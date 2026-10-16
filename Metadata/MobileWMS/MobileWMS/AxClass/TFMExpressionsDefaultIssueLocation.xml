@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMExpressionsDefaultIssueLocation</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDescription("Expression to find the default issue location of a certain item. Takes ItemId, and InventLocationid as Parameters")]
+class TFMExpressionsDefaultIssueLocation extends TFMExpressions
+{
+
+}
+
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processExpressionCommon</Name>
+				<Source><![CDATA[
+    [SysObsolete]
+    public str processExpressionCommon(Common _common)
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processExpressionValue</Name>
+				<Source><![CDATA[
+    public str processExpressionValue(str _value, InventLocationid _inventLocationId = '')
+    {
+        str ret;
+        InventDim inventDimFinalWhs;
+        inventDimFinalWhs.clear();
+        inventDimFinalWhs.InventLocationId = _inventLocationId;
+        inventDimFinalWhs = InventDim::findOrCreate(inventDimFinalWhs);
+        ret = inventDimFinalWhs.inventDimId ? InventItemLocation::findFixedWarehouse(_value,inventDimFinalWhs.inventDimId).WMSLocationIdDefaultIssue : '';
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

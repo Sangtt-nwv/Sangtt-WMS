@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocPlannedMove</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMMenu('PlannedMove', "@MobileWMS:PlannedMove","@MobileWMS:PlannedMove",resourceStr(MobPlannedMoveIcon),true,true,['Warehouse'])]
+class MobDocPlannedMove extends TFMDocumentHandler
+{
+    XML							returningXML;
+    MobDocumentContentSubject	content;
+    NoYes						qtyByScan;
+    NoYes						QtyBarcode;
+    Common						common;
+    InventJournalTable			InventJournalTable;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getCommonTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(Common))]
+    public Common getCommonTable()
+    {
+        return common;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerImage</Name>
+				<Source><![CDATA[
+    public Map registerImage()
+    {
+        Map ret = super();
+        ret.insert('mainmenumove', resourceStr(MobPlannedMoveIcon));
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmQtyByScan</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@MobileWMS:EnableRegisterQuantityByScan")]
+    public MobPromptForUnit parmQtyByScan(MobPromptForUnit _QtyByScan = qtyByScan)
+    {
+        qtyByScan = _QtyByScan;
+        return qtyByScan;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmQtyBarcode</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@MobileWMS:EnableBarcodeQuantity")]
+    public MobPromptForUnit parmQtyBarcode(MobPromptForUnit _QtyBarcode = QtyBarcode)
+    {
+        QtyBarcode = _QtyBarcode;
+        return QtyBarcode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentContentSubject</Name>
+				<Source><![CDATA[
+    public MobDocumentContentSubject getDocumentContentSubject()
+    {
+        return content;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages ret = new TFMPages();
+        TFMPageOrderList	listPage = new TFMPageOrderList();
+        TFMPageOrderLines	linesPage = new TFMPageOrderLines();
+        TFMPageOrderListConfiguration listConfig;
+        
+        listPage.parmId('PlannedMove');
+        listPage.parmFilter(methodStr(MobDocReceiveOrder,ReceiveOrderFilters));
+        listPage.parmIcon('mainmenumove');
+        listPage.parmTitle('@{PlannedMove}');
+        listConfig = listPage.getConfiguration();
+        listConfig.parmNavigateTo('PlannedMoveLines');
+        ret.addPage(listPage);
+
+        linesPage = listPage.createLinesPage();
+        linesPage.parmTitle('@{PlannedMoveLines}');
+        linesPage.parmIcon('mainmenumove');
+        linesPage.addAction(MobConstants::RegisterBarcode(),1,2);
+        linesPage.addAction('RegisterItemImage');
+        ret.addPage(linesPage);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExtraInfoData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to add extra line steps in the flow.
+    /// </summary>
+    /// <returns>A MobDocumentNodes object with the extra required steps, if any.</returns>
+    [TFMReferenceDataMethod]
+    public TFMDocumentNodes ExtraInfoData()
+    {
+        return MobOrder::ExtraInfoData(classStr(MobCountOrderType));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return "@MobileWMS:PlannedMove";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret = super();
+
+        ret.insert('PlannedMove', "@MobileWMS:PlannedMove");
+        ret.insert('PlannedMoveLines', "@MobileWMS:PlannedMoveLines");
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    public Set getDocumentTypes()
+    {
+        Set ret = new Set(Types::String);
+
+        ret.add(methodStr(MobDocPlannedMove,GetMoveOrders));
+        ret.add(methodStr(MobDocPlannedMove,GetMoveOrderLines));
+        ret.add(methodStr(MobDocPlannedMove,PostMoveOrder));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBackendID</Name>
+				<Source><![CDATA[
+    public str getBackendID(Common _common)
+    {
+        InventJournalTable = _common;
+        return tableStr(InventJournalTable) + '/' + fieldStr(InventJournalTable,JournalId) + '/' + InventJournalTable.JournalId + '/' + 'Transfer';//#PickProdOrderPrefix + prodJournalTable.JournalId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetMoveOrders</Name>
+				<Source><![CDATA[
+    public str GetMoveOrders()
+    {
+        TFMRequestGetOrdersElement  orderRequest = request;
+        TFMRequestFiltersElement    filters = orderRequest.parmFilters();
+        str                         scannedValue;
+        int							i;
+        inventJournalTrans			inventJournalTrans;
+        InventLocationId			inventLocationId;
+        InventDim					iDim;
+        TFMXMLFormat				xmlFormat;
+
+        resultXml   = new XmlDocument();
+        resultXml.appendChild(resultXml.createElement(MobConstants::Orders()));
+        if (filters != null)
+        {
+            scannedValue = filters.getFieldValue(MobConstants::ScannedValue());
+            inventLocationId = filters.parmWarehouse();
+        }
+
+        while select inventJournalTable
+            where inventJournalTable.JournalType == InventJournalType::Transfer &&
+                  inventJournalTable.Posted == NoYes::No                  
+            exists join inventJournalTrans
+                where inventJournalTrans.JournalId == inventJournalTable.JournalId &&
+                      !inventJournalTrans.MobRegisteredOnMobile
+            exists join iDim where iDim.inventDimId == inventJournalTrans.InventDimId && iDim.InventLocationId == inventLocationId
+        {
+            xmlFormat = TFMXMLFormat::constructFromBackendID(this.getBackendID(inventJournalTable),classStr(TFMXMLFormatOrders));
+			xmlFormat.initFromCommon(resultXml,inventJournalTable,i,'Transfer');
+            xmlFormat.parmPageID('PlannedMove');
+            xmlFormat.run();
+            i++;            
+        }
+        
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getJournalId</Name>
+				<Source><![CDATA[
+    private InventJournalId getJournalId(str _backendID)
+    {
+        return conPeek(MobHelper::strSplit(_backendID,'/').pack(),6);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetMoveOrderLines</Name>
+				<Source><![CDATA[
+    public str GetMoveOrderLines()
+    {
+        XmlElement                      ordersElement;
+        MobOrder                        mobOrder;
+        TFMRequestGetOrderLinesElement  OrderLinesRequest = request;
+        str                             backendid = OrderLinesRequest.parmBackendID();//requestXml.root().getNamedElement(#requestData).childNodes().item(0).innerText();
+        MapEnumerator                   returnedRecords;
+        int                             i;
+        Map                             postPromptCollectors;
+        Map                             additionalValues = new Map(Types::String, Types::String);
+        container                       backendIDcon = MobHelper::strSplit(backendID,'/').pack();
+        MobOrderTypes                   type = conLen(backendIDcon) == 7 ? conPeek(backendIDcon,7) : '';
+        journalId						journalId = conPeek(backendIDcon,6);
+        TFMXMLFormat					xmlFormat;
+        //inventJournalTrans				inventJournalTrans;
+        //inventDim						inventDim;
+
+    
+        resultXml   = new XmlDocument();
+        ordersElement = resultXml.appendChild(resultXml.createElement(MobConstants::OrderLines()));
+        
+        mobOrder = MobOrder::constructFromBackendID(backendid);
+
+        postPromptCollectors = mobOrder.getPostPromptCollectors(backendid);
+        postPromptCollectors = MobPostOrderPromptOverride::addToCollectors(postPromptCollectors,classIdGet(mobOrder),'',true, additionalValues);
+        MobOrder::addPostPromptCollectors(postPromptCollectors,ordersElement,additionalValues);
+
+        inventJournalTable = inventJournalTable::find(journalId);
+
+        returnedRecords = MobOrder.getLineRecords(request).getEnumerator();
+
+        while (returnedRecords.moveNext())
+        {
+            xmlFormat = TFMXMLFormat::constructFromCommon(resultXml,returnedRecords.currentValue(),i,type, classStr(TFMXMLFormatOrderLines));
+            xmlFormat.parmPageID('PlannedMoveLines');
+            xmlFormat.run();
+            i++;
+        }
+        /*while select inventJournalTrans order by inventDim.wMSLocationId
+                where inventJournalTrans.JournalId == journalId &&
+                        !inventJournalTrans.MobRegisteredOnMobile
+                    join inventDim where inventDim.inventDimId == inventJournalTrans.InventDimId
+                        
+                    //join wmsLocation where (((wmsLocation.wMSLocationId == inventDim.wMSLocationId) && inventDim.InventLocationId == wmsLocation.inventLocationId) || !inventDim.wMSLocationId)
+        {
+
+            TFMXMLFormat::constructFromCommon(resultXml,inventJournalTrans,i,type).run();
+            i++;
+            
+        }*/
+
+        content = strFmt("@MobileWMS:orderlinesretrieved", mobOrder.parmOrderId(), i);
+        returningXML = resultXml.xml();
+        returningXML = strReplace(returningXML,'<' + MobConstants::OrderLines() + '>','');
+        returningXML = strReplace(returningXML,'</' + MobConstants::OrderLines() + '>','');
+
+        resultXml = null;
+    
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResult</Name>
+				<Source><![CDATA[
+    public XML getResult()
+    {
+        if (resultXml)
+        {
+            return resultXml.xml();
+        }
+    
+        return returningXML;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PostMoveOrder</Name>
+				<Source><![CDATA[
+    public str PostMoveOrder()
+    {
+        str                             backendId;
+        MobOrder                        mobOrder;
+        UserConnection                  uc;
+        TFMRequestBasicElement          root = request as TFMRequestBasicElement;
+        
+        backendId       = root.parmOrder().parmBackendID();
+    
+        mobOrder = MobOrder::constructFromBackendID(backendid);
+        ttsbegin;        
+        resultStr = MobOrder.postRequest(root.parmOrder());
+        ttscommit;
+        content = strFmt("@MobileWMS:OrderPosted" ,mobOrder.parmOrderId());
+
+        resultStr = content;
+        uc = new UserConnection();
+        uc.ttsbegin();
+        mobOrder.postPromptExtraStepsExecution(root.parmOrder().getFieldMap());//TFMOrder::getAllAttributes(orderElement));
+        uc.ttscommit();
+        common = mobOrder.getResultTable();
+        resultXml = mobOrder.parmResultXML();
+        return ResultStr;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDataSourceBlock</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMDataSourceBlock
+{
+    TFMPageDatasources	ds;
+    TFMDocumentDeviceId deviceId;
+    Map                 overrideFieldsMap;  
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmDeviceId</Name>
+				<Source><![CDATA[
+    public TFMDocumentDeviceId parmDeviceId(TFMDocumentDeviceId _deviceId = deviceId)
+    {
+        deviceId = _deviceId;
+        return deviceId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDataSource</Name>
+				<Source><![CDATA[
+    public void setDataSource(TFMPageDatasources _ds)
+    {
+        ds = _ds;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDataSource</Name>
+				<Source><![CDATA[
+    public TFMPageDatasources getDataSource()
+    {
+        return ds;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getOverrideFieldsMap</Name>
+				<Source><![CDATA[
+    public Map getOverrideFieldsMap()
+    {
+        if(!overrideFieldsMap)
+        {
+            overrideFieldsMap = new Map(Types::String, Types::String);
+        }
+        return overrideFieldsMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddFields</Name>
+				<Source><![CDATA[
+	public Map AddFields(Common _common)
+    {
+        Map retMap = TFMGenericParms::makeParmsMapFromOverride(classId2Name(classidget(this)),ds.TableName + '/' + ds.OrderType,this);
+        
+        overrideFieldsMap = new Map(Types::String, Types::String);
+        
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

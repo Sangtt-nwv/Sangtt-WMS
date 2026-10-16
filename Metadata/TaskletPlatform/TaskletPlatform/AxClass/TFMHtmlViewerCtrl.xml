@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMHtmlViewerCtrl</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Ganss.XSS;
+
+[FormControlAttribute('TFMHtmlViewerCtrl','/resources/html/TFMHtmlViewerCtrl',classstr(TFMHtmlViewerCtrlBuild))]
+class TFMHtmlViewerCtrl extends FormTemplateControl
+{
+    FormProperty  addCopyLinkProperty;
+    FormProperty  htmlProperty;
+    FormProperty  formatAsXmlProperty;
+    FormProperty  showProgressInformationProperty;
+    HtmlSanitizer sanitizer;
+    boolean       skipSanitizer;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>actionDelegate</Name>
+				<Source><![CDATA[
+    delegate void actionDelegate(str _id)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHtml</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'Html', true, false)]
+    public str parmHtml(str _value = htmlProperty.parmValue())
+    {
+        if(!skipSanitizer && !prmisDefault(_value) && !this.parmFormatAsXml() )
+        {
+            //sanitize before setting
+            sanitizer = this.getSanitizer();
+            str safeHTML = sanitizer.Sanitize(_value, "", null);
+
+            htmlProperty.setValueOrBinding(safeHTML);
+        } 
+        else
+        {
+            htmlProperty.setValueOrBinding(_value);
+        }
+        return htmlProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAddCopyLink</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'HtmlAddCopyLink', true, false)]
+    public str parmAddCopyLink(str _value = addCopyLinkProperty.parmValue())
+    {
+        if(!prmisDefault(_value))
+        {
+            addCopyLinkProperty.setValueOrBinding(_value);
+        }
+        return addCopyLinkProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFormatAsXml</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'FormatAsXml', true, false)]
+    public str parmFormatAsXml(str _value = formatAsXmlProperty.parmValue())
+    {
+        if(!prmisDefault(_value))
+        {
+            formatAsXmlProperty.setValueOrBinding(_value);
+        }
+        return formatAsXmlProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmShowProgressInformation</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'ShowProgressInformation', true, false)]
+    public str parmShowProgressInformation(str _value = showProgressInformationProperty.parmValue())
+    {
+        if(!prmisDefault(_value))
+        {
+            showProgressInformationProperty.setValueOrBinding(_value);
+        }
+        return showProgressInformationProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TFMButtonClicked</Name>
+				<Source><![CDATA[
+    [FormCommandAttribute('TFMButtonClickedCommand')]
+    public void TFMButtonClicked(str _functionId = '')
+    {
+        this.actionDelegate(_functionId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSkipSanitizer</Name>
+				<Source><![CDATA[
+    public boolean parmSkipSanitizer(boolean _skipSanitizer = skipSanitizer)
+    {
+        skipSanitizer = _skipSanitizer;
+        return skipSanitizer;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(FormBuildControl _build, FormRun _formRun)
+    {
+        super(_build, _formRun);
+        
+        this.setTemplateId('TFMHtmlViewerCtrl');
+        this.setResourceBundleName('/resources/html/TFMHtmlViewerCtrl');
+
+        // Create properties for the control
+        addCopyLinkProperty = this.addProperty(methodStr(TFMHtmlViewerCtrl, parmAddCopyLink), Types::String);
+        htmlProperty = this.addProperty(methodStr(TFMHtmlViewerCtrl, parmHtml), Types::String);
+        formatAsXmlProperty = this.addProperty(methodStr(TFMHtmlViewerCtrl, parmFormatAsXml), Types::String);
+        showProgressInformationProperty = this.addProperty(methodStr(TFMHtmlViewerCtrl, parmShowProgressInformation), Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>applyBuild</Name>
+				<Source><![CDATA[
+    public void applyBuild()
+    {
+        TFMHtmlViewerCtrlBuild build;
+
+        super();
+
+        build = this.build() as TFMHtmlViewerCtrlBuild;
+        if(build)
+        {
+            this.parmAddCopyLink(build.addCopyLinkField());
+            this.parmHtml(build.htmlField());
+            this.parmFormatAsXml(build.formatAsXmlField());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSanitizer</Name>
+				<Source><![CDATA[
+    public HtmlSanitizer getSanitizer(){
+
+        if(!sanitizer)
+        {
+            sanitizer = new TFMHtmlSanitizer().getSanitizer();
+        }
+        return sanitizer;
+   }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

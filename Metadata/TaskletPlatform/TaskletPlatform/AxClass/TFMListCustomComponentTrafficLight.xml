@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListCustomComponentTrafficLight</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListElementAttribute('TFMListCustomComponentTrafficLight')]
+class TFMListCustomComponentTrafficLight extends TFMListCustomComponent
+{
+    TFMListWidth	width;
+    FieldName		fieldName;
+    FieldValue		value1, value2, value3;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmwidth</Name>
+				<Source><![CDATA[
+    [TFMParameter(100)]
+    public TFMListWidth parmwidth(TFMListWidth _width = width)
+    {
+        width = _width;
+        return width;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFieldName</Name>
+				<Source><![CDATA[
+    [TFMDataSourceParameter('')]
+    public FieldName parmFieldName(FieldName _fieldName = fieldName)
+    {
+        fieldName = _fieldName;
+        return fieldName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRedLightValue</Name>
+				<Source><![CDATA[
+    [TFMDataSourceParameter('')]
+    public FieldValue parmRedLightValue(FieldValue _value1 = value1)
+    {
+        value1 = _value1;
+        return value1;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmYellowLightValue</Name>
+				<Source><![CDATA[
+    [TFMDataSourceParameter('')]
+    public FieldValue parmYellowLightValue(FieldValue _value2 = value2)
+    {
+        value2 = _value2;
+        return value2;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmGreenLightValue</Name>
+				<Source><![CDATA[
+    [TFMDataSourceParameter('')]
+    public FieldValue parmGreenLightValue(FieldValue _value3 = value3)
+    {
+        value3 = _value3;
+        return value3;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resourceIcon</Name>
+				<Source><![CDATA[
+    public ResourceName resourceIcon()
+    {
+        return resourceStr(TFMClientTrafficIcon);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SubComponents</Name>
+				<Source><![CDATA[
+    public Map SubComponents()
+    {
+        Map					ReplacementElements = new Map(Types::Integer, Types::Class);
+        TFMListImageElement	imageElement = new TFMListImageElement();
+        
+        imageElement.ParmSourceId('{trafficLightStatus}');
+        imageElement.parmwidth(width);
+        imageElement.parmHorizontalAlignment(SysChartHorizontalAlignment::Right);
+        imageElement.parmVerticalAlignment(TFMVerticalAlignment::Top);
+        ReplacementElements.insert(1, imageElement);
+        return ReplacementElements;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>possibleParents</Name>
+				<Source><![CDATA[
+    public Set possibleParents()
+    {
+        Set ret = super();
+        ret.add('elements');
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>name</Name>
+				<Source><![CDATA[
+    public str name()
+    {
+        return "@SYS30051";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>enrichDataset</Name>
+				<Source><![CDATA[
+    public Map enrichDataset(Common _common, Map _existingMap)
+    {
+        Map				ret = super(_common,_existingMap);
+        SysDictField	sdf = new SysDictField(_common.tableId,fieldName2Id(_common.tableId, fieldName));
+        str				resStr = 'trafficlight_pct_';
+        str				value;
+
+		if (!sdf)
+        {
+            return ret;
+        }
+
+        value= strFmt('%1',_common.(sdf.id()));
+
+		if ( value1 == value)
+        {
+            resStr += '0%';
+        }
+        else if ( value2 == value)
+        {
+            resStr += '50%';
+        }
+        else if (value3 == value)
+        {
+            resStr += '100%';
+        }
+        
+
+		ret.insert('trafficLightStatus',resStr);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

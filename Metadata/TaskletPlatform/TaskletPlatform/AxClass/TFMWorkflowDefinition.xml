@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMWorkflowDefinition</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMWorkflowDefinition
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>makeEntry</Name>
+				<Source><![CDATA[
+    protected TFMWorkflowsTable makeEntry(TFMWorkflowName _name)
+    {
+        TFMWorkflowsTable                workflowTable;
+
+        select firstonly workflowTable where workflowTable.WorkflowName == _name;
+
+        if (workflowTable)
+        {
+            return workflowTable;
+        }
+
+        workflowTable.WorkflowName = _name;
+        workflowTable.Description = _name;
+        workflowTable.FastForwardMode = TFMWorkflowFastForwardMode::InputAndScanValues;
+        workflowTable.IncludeHiddenStepsInSummary = NoYes::No;
+        workflowTable.AutoSave = NoYes::No;
+        workflowTable.PrefillExpectedValueOnLocationScan = NoYes::Yes;
+        workflowTable.CancelBehaviour = TFMWorkflowCancelBehaviour::Close;
+        workflowTable.ScanBehaviourWhenRegisteringQuantity = TFMWorkflowScanBehaviourWhenRegisteringQuantity::ScanNextItem;
+        workflowTable.insert();
+
+        return workflowTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeWorkflow</Name>
+				<Source><![CDATA[
+    public abstract void makeWorkflow()
+    {
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMXMLDeserializer</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Deserializer class to convert xml requests into corresponding class instances.
+/// </summary>
+class TFMXMLDeserializer
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getXmlDocument</Name>
+				<Source><![CDATA[
+    public static XmlDocument getXmlDocument(XML _xml)
+    {
+        XmlDocument     requestXml = new XmlDocument();
+        requestXml.loadXml(_xml);
+        return requestXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DeserializeRequestString</Name>
+				<Source><![CDATA[
+    public static TFMRequestElement DeserializeRequestString(XML _xml)
+    {
+        XmlDocument xmlDocument = TFMXMLDeserializer::getXmlDocument(_xml);
+        return TFMXMLDeserializer::DeserializeRequest(xmlDocument);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DeserializeRequest</Name>
+				<Source><![CDATA[
+    public static TFMRequestElement DeserializeRequest(XmlDocument _xmlDocument, ClassName _forcedRequestClass = '')
+    {
+        //Determine which Request Class to use.
+        TFMRequestElement           request;
+        XmlDocument                 requestXml = _xmlDocument;
+        XmlNode                     requestData = requestXml.root().getNamedElement(TFMConstants::requestData());
+        XmlNode                     fieldPrefix = requestXml.root().getNamedElement(TFMConstants::CollectorMapFieldPrefix());
+        name                        name = requestXml.root().getAttribute(TFMConstants::AttributeName());
+        XmlNode                     regType = requestData != null ? requestData.getNamedElement(TFMConstants::RegistrationType()) : null;
+        TFMDocumentTypeId           documentType = TFMDocumentConnector::getDocumentType(_xmlDocument);
+        TFMDocumentContentSubject   contentType = regType != null ? regType.innerText() : '';
+    
+        if (!contentType && regType == null)
+        {
+            regType = requestData != null ? requestData.getNamedElement(TFMConstants::LookupType()) : null;
+            contentType = regType != null ? regType.innerText() : '';
+        }
+
+        if (_forcedRequestClass && className2Id(_forcedRequestClass))
+        {
+            request = new SysDictClass(className2Id(_forcedRequestClass)).makeObject();
+        }
+        else
+        {
+            request = TFMXMLDeserializer::findClass(documentType, contentType);
+        }
+
+        request.parmRoot(request);
+        request.parmOrigXML(requestXml);
+        request.parmDocumentType(documentType);
+        request.parmContentType(contentType);
+        request.parmmessageId(TFMDocumentConnector::getMessageID(_xmlDocument));
+        request.parmdeviceID(TFMDocumentConnector::getDeviceID(_xmlDocument));
+        
+        if(fieldPrefix != null)
+        {
+            request.parmFieldPrefix(fieldPrefix.value());
+        }
+
+        request.parmName(name);
+        
+        if (requestData)
+        {
+            TFMXMLDeserializer::addFieldsToClass(requestData,request);
+        }
+
+        request.makeLogEntry('request object created for '+ documentType +', ' + contentType);
+        return request;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertRequestClass</Name>
+				<Source><![CDATA[
+    public static TFMRequestElement convertRequestClass(TFMRequestElement _request, ClassName _classToConvertTo)
+    {
+        if (classId2Name(classIdGet(_request)) == _classToConvertTo)
+        {
+            return _request;
+        }
+        if (_request.parmOrigXML())
+        {
+            return  TFMXMLDeserializer::DeserializeRequest(_request.parmOrigXML(),_classToConvertTo);
+        }
+        // Convert from maps in origin
+        return TFMXMLDeserializer::convertRequestClassDirect(_request, _classToConvertTo);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertRequestClassDirect</Name>
+				<Source><![CDATA[
+    public static TFMRequestElement convertRequestClassDirect(TFMRequestElement _request, ClassName _classToConvertTo)
+    {
+        TFMRequestElement request = new SysDictClass(className2Id(_classToConvertTo)).makeObject();
+        MapEnumerator mEnum;
+        mEnum = _request.getFieldMap().getEnumerator();
+
+        while (mEnum.moveNext())
+        {
+            request.addField(mEnum.currentKey(), mEnum.currentValue(), true);
+        }
+
+        return request;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findClass</Name>
+				<Source><![CDATA[
+    public static TFMRequestElement findClass(TFMDocumentTypeId _documentType, TFMDocumentContentSubject _contentType)
+    {
+        TFMDocumentTypeAttribute    docTypeAttribute;
+        TFMRequestElement           request;
+        docTypeAttribute = new TFMDocumentTypeAttribute(_documentType, _contentType);
+        request = SysExtensionAppClassFactory::getClassFromSysAttribute(classStr(TFMRequestElement), docTypeAttribute);
+        if (request == null)
+        {
+            request = TFMGetRegistrationConfiguration::getClassFromSysAttribute(classStr(TFMRequestElement), docTypeAttribute);
+        }
+        if (request == null)
+        {
+            request = new TFMRequestBasicElement();
+        }
+        return request;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addFieldsToClass</Name>
+				<Source><![CDATA[
+    public static void addFieldsToClass(XmlNode _requestData, TFMRequestElement _request)
+    {
+        Set                 parmMethods = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(_request));
+        SysDictClass        dC = new SysDictClass(classIdGet(_request));
+        XmlNodeList         nodes = _requestData.childNodes();
+        XmlNode             subNode = nodes.nextNode();
+        XmlNode             child;
+        TFMRequestElement   subRequest;
+
+        InventDim           inventDim;
+        str                 name;
+        str                 xmlValue;
+        int                 attrCount;
+        for (attrCount = 0; attrCount < _requestData.attributes().length(); attrCount++)
+        {
+            child = _requestData.attributes().item(attrCount);
+            name = child.nodeName();
+            xmlValue= child.innerText();
+            TFMXMLDeserializer::addValueToRequest(name,xmlValue,parmMethods,dC,_request);
+        }
+        
+        while (subNode)
+        {
+            child = subNode.firstChild();
+            
+            if ((child != null && child.nodeType() == XmlNodeType::Element) || (subRequest && !(subRequest is TFMRequestBasicElement)) || (_request.getHandledSubRequests().exists(subNode.name())))
+            {
+                //Make subclass
+                subRequest = _request.getSubRequest(subNode.name());
+                subRequest.parmRoot(_request.parmRoot());
+                subRequest.parmmessageId(_request.parmRoot().parmmessageId());
+                subRequest.parmdeviceID(_request.parmdeviceID());
+                 TFMXMLDeserializer::addFieldsToClass(subNode,subRequest);
+                if (parmMethods.in('parm'+ subNode.name()) && new SysDictMethod(UtilElementType::ClassInstanceMethod,dC.id(),'parm'+ subNode.name()).returnType() == Types::Class)
+                {
+                    dC.callObject('parm' + subNode.name(),_request,subRequest);
+                }
+                _request.addSubNodes(subNode.name(),subRequest);
+            }
+            else
+            {
+                name = subNode.name();
+                xmlValue= subNode.innerText();
+                if (!xmlValue && subNode.attributes() && subNode.attributes().getNamedItem('name') && subNode.attributes().getNamedItem('value'))
+                {
+                    name = subNode.attributes().getNamedItem('name').innerText();
+                    xmlValue= subNode.attributes().getNamedItem('value').innerText();
+                }
+                else if (!xmlValue && subNode.attributes())
+                {
+                    for (attrCount = 0; attrCount < subNode.attributes().length(); attrCount++)
+                    {
+                        child = subNode.attributes().item(attrCount);
+                        TFMXMLDeserializer::addValueToRequest(child.nodeName(),child.innerText(),parmMethods,dC,_request);
+                    }
+                }
+                TFMXMLDeserializer::addValueToRequest(name,xmlValue,parmMethods,dC,_request);
+            }
+            subNode = nodes.nextNode();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addValueToRequest</Name>
+				<Source><![CDATA[
+    public static void addValueToRequest(str _name, str _xmlValue, Set _parmMethods,SysDictClass _dC,TFMRequestElement _request)
+    {
+        str     fieldName = _name;
+        str     fieldPrefix = _request.parmFieldPrefix();
+        str     fieldnameExclPrefix = subStr(fieldName, strLen(fieldPrefix) + 1, 1000);
+        anytype result;
+
+        if (!_xmlValue)
+        {
+            return;
+        }
+
+        if(fieldPrefix && subStr(_name, 1, strLen(fieldPrefix)) == fieldPrefix && _parmMethods.in('parm' + fieldnameExclPrefix))
+        {
+            fieldName = fieldnameExclPrefix;
+        }
+
+        result = TFMHelper::addValueToParmMethod(fieldName,_request,_xmlValue,_dC,_parmMethods);
+                
+        _request.addField(fieldName, result ? strFmt('%1',result) : _xmlValue);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>escapeRegExp</Name>
+				<Source><![CDATA[
+    public static str escapeRegExp(str _mask)
+    {
+        return strreplace(_mask,'/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g', '\\$&');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fuzzyComparison</Name>
+				<Source><![CDATA[
+    public static str fuzzyComparison(str test, str _mask)
+    {
+        str regex = '^' + strReplace(TFMXMLDeserializer::escapeRegExp(_mask),'/\*/', @"'.*'") + '$';
+        System.Text.RegularExpressions.Match myMatch;
+        //System.String sysStrOut;
+        
+        myMatch = System.Text.RegularExpressions.Regex::Match(test, regex);
+        myMatch = System.Text.RegularExpressions.Regex::Match(regex, test);
+        
+
+        return '';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

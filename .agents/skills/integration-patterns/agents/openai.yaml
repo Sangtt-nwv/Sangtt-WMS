@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Integration Patterns"
+  short_description: "Choose and implement D365FO integration mechanisms"
+  default_prompt: "Use $integration-patterns to design a D365FO integration."

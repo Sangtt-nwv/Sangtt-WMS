@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocGetItemImages</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Document handler for the Item Image Collector.
+/// </summary>
+class MobDocGetItemImages extends TFMDocGetItemImages
+{
+}
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+</AxClass>

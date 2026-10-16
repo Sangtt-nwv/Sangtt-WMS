@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Model Coupling"
+  short_description: "Analyze D365FO model dependencies and coupling"
+  default_prompt: "Use $model-dependency-and-coupling to analyze D365FO model dependencies."

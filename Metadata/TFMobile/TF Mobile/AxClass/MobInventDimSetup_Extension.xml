@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobInventDimSetup_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class to handle the inventory Dimension setup per item with support for license plating (or using location instead of licence plating)
+/// </summary>
+///
+[ExtensionOf(classStr(TFMInventDimSetup))]
+final class MobInventDimSetup_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>registerWMSPallet</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to validate whether the WMS Pallet dimension is active
+    /// </summary>
+    /// <returns>string, True if dimension is active, otherwise False.</returns>
+    public boolean registerWMSPallet()
+    {
+        return next registerWMSPallet() && new MobDocLicensePlateOverview().parmEnableLicensePlating();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerLicensePlate</Name>
+				<Source><![CDATA[
+    public boolean registerLicensePlate()
+    {
+        return next registerLicensePlate() && new MobDocLicensePlateOverview().parmEnableLicensePlating();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

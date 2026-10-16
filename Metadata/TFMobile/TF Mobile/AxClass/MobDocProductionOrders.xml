@@ -1,0 +1,758 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocProductionOrders</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Document handler class for the Production Orders page.
+/// </summary>
+[
+    TFMTableName(tableStr(ProdJournalTable)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(MobConstants,ReportAsFinished), methodStr(MobDocProductionOrders, postProdReportAsFinished)),
+    TFMDocumentType(classStr(TFMLookup), staticMethodStr(MobConstants,ReportAsFinished), methodStr(MobDocProductionOrders, lookupProductionOrders)),
+    TFMMenu(staticMethodStr(MobConstants,ReportAsFinished),"@SYS9747","@MobileWMS:MobileWMS169",resourceStr(MobProduction),true,true,['Production'])
+]
+class MobDocProductionOrders extends TFMDocumentHandler
+{
+    ProdJournalTable            prodJournalTable;
+    ProdTable                   prodTable;
+    ProdRoute                   prodRoute;
+    boolean                     promptForRAF;
+    NoYes                       showInfo;
+    NoYes                       askForLocation;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getResultingProdJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(ProdJournalTable))]
+    public ProdJournalTable getResultingProdJournalTable()
+    {
+        return prodJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProdTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(ProdTable))]
+    public ProdTable getProdTable()
+    {
+        return prodTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages ret = MobPageHelper::getPagesFromClass(this);
+        TFMPageLookup	lookupPage = ret.getPage(staticMethodStr(MobConstants,ReportAsFinished));
+        TFMPageLookupConfiguration		lookupConfig;
+        
+        lookupPage.parmFilter(methodStr(MobDocProductionOrders,ReportAsFinishedHeader));
+        lookupPage.parmIcon('production');
+        lookupPage.parmTitle('PageReportAsFinishedTitle');
+        lookupPage.setListId(classStr(TFMListLookupJournalHeader));
+        lookupConfig = lookupPage.getConfiguration();
+        lookupConfig.parmAutomaticAccept(TFMAutomaticAccept::OnOpen);
+        lookupConfig.parmRefreshOnSuccess(true);
+        ret.addPage(lookupPage);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmpromptForRAF</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes,"@MobileWMS:PromptforReportasFinished")]
+    public MobPromptForUnit parmpromptForRAF(MobPromptForUnit _promptForRAF = promptForRAF)
+    {
+        promptForRAF = _promptForRAF;
+        return promptForRAF;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmShowInfo</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes, "@MobileWMS:ShowInfo")]
+    public MobPromptForUnit parmShowInfo(MobPromptForUnit _showInfo = showInfo)
+    {
+        showInfo = _showInfo;
+        return showInfo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAskForLocation</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No, "@MobileWMS:PromptforLocation")]
+    public MobPromptForUnit parmAskForLocation(MobPromptForUnit _askForLocation = askForLocation)
+    {
+        askForLocation = _askForLocation;
+        return askForLocation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return "@SYS9747";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret;
+
+        ret = super();
+        ret.insert('MainMenuReportAsFinished', MobHelper::capitalLetterSentence("@SYS89639"));
+        ret.insert('PageReportAsFinishedTitle', "@SYS89639");
+        ret.insert('ProductionOrderTitle', "@SYS89639");
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupProductionOrders</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to return Production Order elements to the mobile client.
+    /// </summary>
+    /// <returns>A MobLookupResponseElement instance containing the data needed for he lookup page on the mobile device.</returns>    
+    protected TFMLookupResponseElement lookupProductionOrders()
+    {
+        TFMLookupResponseElement    lookupResponse = TFMLookupResponseElement::Construct(classStr(TFMLookup), staticMethodStr(MobConstants,ReportAsFinished));
+        ProdId                      prodID = request.getFieldValue(extendedTypeStr(prodID));
+        MobBackendId                backendId;
+        
+        if (!ProdTable::exist(prodID))
+        {
+            prodRoute = ProdRoute::findJobId(prodID);
+            if (prodRoute)
+            {
+                prodID = prodRoute.ProdId;
+            }
+			/*else
+            {
+                prodID = ProdRouteJob::findJobId(prodID).ProdId;
+            }*/
+        }
+        while select prodTable
+            where (prodTable.ProdId like prodID || !prodId) &&
+                  prodTable.ProdStatus == ProdStatus::StartedUp &&
+                    prodTable.RemainInventPhysical
+        {
+            backendId = tableStr(prodTable) + '/' + fieldStr(prodTable,ProdId) + '/' + prodTable.ProdId;//#PickProdOrderPrefix + prodJournalTable.JournalId;
+
+            // Add the necessary steps for the quarantine order
+            lookupResponse.addResponse(prodTable, backendId,this);
+        }
+        return lookupResponse;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createProdReportAsFinishedRegs</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the registration collectors for the Report as Finished (Production) Page.
+    /// </summary>
+    [TFMCollectorMap(classStr(TFMLookup), staticMethodStr(MobConstants,ReportAsFinished))]
+    public Map createProdReportAsFinishedRegs()
+    {
+        Map             returnMap = new Map(Types::String, Types::Class);
+        SysDictField    sdf;
+        InventTable     iTbl = InventTable::find(prodTable.ItemId);
+        TFMInventDimSetup   dimSetup = TFMInventDimSetup::Construct(iTbl);
+        InventBatch     batchTbl = InventBatch::find(prodTable.inventDim().inventBatchId, prodTable.ItemId);
+        TFMRegistrationCollectorTypeAndQuantity serialStep;
+        int add;
+        add+=10;
+        if (prodRoute && showInfo)
+        {
+            returnMap.insert('info',TFMRegistrationCollectorInformation::InformationStepMap(add,MobConstants::AttributeId(),
+                strFmt('%1: %2', "@SYS10657", prodTable.prodId),
+                prodTable.Name,
+                strFmt('%1: %2\n', "@SYS111722",prodRoute.JobIdProcess) +
+                strFmt('%1: %2\n%3', "@SYS4528", prodRoute.OprNum, prodRoute.operationName())));
+        }
+        else if (showInfo)
+        {
+            returnMap.insert('info',TFMRegistrationCollectorInformation::InformationStepMap(add,MobConstants::AttributeId(),
+                strFmt('%1: %2', "@SYS10657", prodTable.prodId),
+                prodTable.Name,
+                /*'<h2>'+prodTable.Name+'</h2><br>' +*/ MobHelper::makeItemHTML(iTbl)));
+        }
+
+        if (dimSetup.registerWMSPallet())
+        {
+            add+=10;
+            sdf = new SysDictField(tableNum(InventDim), fieldNum(InventDim,LicensePlateId));
+            
+            returnMap.insert(sdf.name(),TFMRegistrationCollectorText::TextStepMap(false,add,strLwr(sdf.name()),new SysDictType(sdf.typeId()).label(),new SysDictType(sdf.typeId()).label(),new SysDictType(sdf.typeId()).help(),new SysDictType(sdf.typeId()).stringLen()));
+            
+        }
+        else if (askForLocation)
+        {
+            add+=10;
+            sdf = new SysDictField(tableNum(InventDim), fieldNum(InventDim,WMSLocationId));
+            
+            returnMap.insert(sdf.name(),TFMRegistrationCollectorText::TextStepMap(false,add,strLwr(sdf.name()),new SysDictType(sdf.typeId()).label(),new SysDictType(sdf.typeId()).label(),new SysDictType(sdf.typeId()).help(),new SysDictType(sdf.typeId()).stringLen()));
+                
+        }
+
+        if ((!iTbl.BatchNumGroupId || (iTbl.BatchNumGroupId && InventNumGroup::find(iTbl.BatchNumGroupId).ManualAllocation)) && dimSetup.registerBatchID())
+        {
+            //No batch group indicated but batch is needed
+            add+=10;
+            sdf = new SysDictField(tableNum(InventDim), fieldNum(InventDim,InventBatchId));
+            
+            returnMap.insert(sdf.name(),TFMRegistrationCollectorText::TextStepMap(false,add,strLwr(sdf.name()),new SysDictType(sdf.typeId()).label(),new SysDictType(sdf.typeId()).label(),new SysDictType(sdf.typeId()).help(),new SysDictType(sdf.typeId()).stringLen()));            
+        }
+
+        if (((iTbl.BatchNumGroupId && InventNumGroup::find(iTbl.BatchNumGroupId).MobInclExpectedDate)) && dimSetup.registerBatchID() && (!batchTbl || (!batchTbl.expDate)))
+        {
+            //Ask for expiration
+            add+=10;
+            sdf = new SysDictField(tableNum(InventBatch), fieldNum(InventBatch,expDate));
+            
+            returnMap.insert(sdf.name(),TFMRegistrationCollectorDate::DateStepMap(false,add,strLwr(sdf.name()),new SysDictType(sdf.typeId()).label(),new SysDictType(sdf.typeId()).label(),new SysDictType(sdf.typeId()).help()));
+        }
+
+        if ((!iTbl.SerialNumGroupId || (iTbl.SerialNumGroupId && InventNumGroup::find(iTbl.SerialNumGroupId).ManualAllocation)) && dimSetup.registerSerialNumber())
+        {
+            //No serial group indicated but serial is needed
+            add+=10;
+            sdf = new SysDictField(tableNum(InventDim), fieldNum(InventDim,InventSerialId));
+            serialStep = TFMRegistrationCollectorTypeAndQuantity::TypeAndQuantity(add,strLwr(sdf.name()),new SysDictType(sdf.typeId()).label(),new SysDictType(sdf.typeId()).label(),new SysDictType(sdf.typeId()).help(),TFMScanBehaviour::Add,false);
+            serialStep.parmUniqueValues(true);
+            returnMap.insert(sdf.name(),serialStep.getMap());
+        }
+        else
+        {
+            // Add the step to register the good quantity
+            add+=10;
+            returnMap.insert(MobConstants::GoodQuantity(),TFMRegistrationCollectorDecimal::DecimalStepMap(add,MobConstants::GoodQuantity(),"@SYS4638","@SYS105177",'',true,MobHelper::formatItemQty(prodTable.RemainInventPhysical, prodTable.inventTable().BOMUnitId),0,real2int(prodTable.QtyStUp - prodTable.reportedFinishedGood())));
+        }
+        // Add the step to register the error quantity
+        add+=10;
+        returnMap.insert(MobConstants::ErrorQuantity(),TFMRegistrationCollectorDecimal::DecimalStepMap(add,MobConstants::ErrorQuantity(),"@SYS2083","@SYS105177",'',false));
+    
+        // Add the step to register the error cause
+        add+=10;
+        //returnMap.insert(MobConstants::ErrorCause(),TFMRegistrationCollectorList::ListStepMap(false,add,MobConstants::ErrorCause(),"@SYS13992","@SYS14862",'',MobHelper::getEnumValues(enumNum(ProdErrorCause)),true));
+    
+    
+        // Add the step to register if the job should be ended (reported as finished for the last time)
+        add+=10;
+        if (promptForRAF)
+        {
+            returnMap.insert(extendedTypeStr(ProdReportFinishProd),TFMRegistrationCollectorList::ListStepMap(false,add,extendedTypeStr(ProdReportFinishProd),prodRoute ? "@SYS16507" : "@MCR39986",prodRoute ? "@SYS16507" : "@MCR39986",'',MobHelper::getEnumValues(enumNum(NoYes))));
+        }
+        
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createProdReportAsFinishedRegsFollowup</Name>
+				<Source><![CDATA[
+    public Map createProdReportAsFinishedRegsFollowup()
+    {
+        Map             returnMap = new Map(Types::String, Types::Class);
+        
+        // Add the step to register the error cause
+        int add =1000;
+        returnMap.insert(MobConstants::ErrorCause(),TFMRegistrationCollectorList::ListStepMap(false,add,MobConstants::ErrorCause(),"@SYS13992","@SYS14862",'',MobHelper::getEnumValues(enumNum(ProdErrorCause)),true));
+         
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postProdReportAsFinished</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to post Report as finished journal.
+    /// </summary>
+    /// <returns>Message whether the operation ended in success or error.</returns>
+    [TFMPostMethod(tableStr(ProdJournalTable)), TFMPostMethod(tableStr(ProdTable))]
+    protected str postProdReportAsFinished()
+    {
+        ProdId                      prodId;
+        ProdJournalProd             prodJournalProd;
+        str                         endJob;
+        ProdJournalTableData        prodTableData;
+        ProdJournalName             prodJournalName;
+        ProdJournalCheckPost        journalCheckPost;
+        str                         errorQty;
+        str                         errorCause;
+        int                         startLine;
+        int                         i;
+        str                         errorMessage;
+        //XmlNode                     requestDataNode = requestXml.root().getNamedElement(MobConstants::requestData());
+        ProdErrorCause              prodErrorCause;
+        NoYes                       noYes;
+        ListEnumerator              lEnum;
+        boolean                     serialNumberActive;
+        str                         tmpSerial;
+        InventTable                 iTbl;
+        TFMInventDimSetup           dimSetup;
+        
+        // Get the production/job id from the XML
+        prodId      = request.getFieldValue(extendedTypeStr(ProdId));
+    
+        prodTable = ProdTable::find(prodId);
+        iTbl = InventTable::find(prodTable.ItemId);
+        dimSetup = TFMInventDimSetup::Construct(iTbl);
+        if (!prodTable && prodId)
+        {
+            prodRoute = ProdRoute::findJobId(prodId);
+            if (prodRoute)
+            {
+                prodId = prodRoute.ProdId;
+                prodTable = ProdTable::find(prodId);
+            }
+        }
+    
+        if (prodRoute)
+        {
+            // Fill job
+            return this.postReportAsFinished_Route(prodRoute);
+        }
+        endJob      = promptForRAF && request.getFieldValue(extendedTypeStr(ProdReportFinishProd)) ? request.getFieldValue(extendedTypeStr(ProdReportFinishProd)) : 'No';
+        errorQty    = request.getFieldValue(MobConstants::ErrorQuantity());
+        errorCause  = request.getFieldValue(MobConstants::ErrorCause());
+        
+		if (errorQty != '0' && !errorCause)
+        {
+            this.addFunctionCollectors(methodStr(MobDocProductionOrders,createProdReportAsFinishedRegsFollowup));
+            str xml = this.getResult();
+            resultXml = new XmlDocument();
+            resultXml.loadXml(xml);
+            resultStr = 'theres more';
+            return resultStr;
+        }
+
+        // Get the journal name from the Mobile WMS parameters
+        prodJournalName = ProdJournalName::find(MobParameters::find().ProdJournalNameFinish);
+    
+        prodJournalTable.initValue();
+        prodJournalTable.JournalType        = prodJournalType::ReportFinished;
+    
+        prodTableData = JournalTableData::newTable(ProdJournalTable);
+        prodTableData.initFromJournalName(prodJournalName);
+    
+        prodJournalTable.NumOfLines         = 1;
+        prodJournalTable.Description        = "@MobileWMS:MEL36";
+    
+        prodJournalTable.ProdId             = prodId;
+        prodJournaltable.insert();
+        if ((!iTbl.SerialNumGroupId || (iTbl.SerialNumGroupId && InventNumGroup::find(iTbl.SerialNumGroupId).ManualAllocation)) && dimSetup.registerSerialNumber())        
+        {
+            //1 - Multiple serials collected
+            lEnum  = strSplit(request.getFieldValue(fieldStr(InventDim,InventSerialId)),';').getEnumerator();
+            serialNumberActive = true;
+        }
+        else
+        {
+            lEnum = strSplit('dsfsfsd',';').getEnumerator(); // Ensure only one entry
+        }
+        i = 0;
+        while (lEnum.moveNext())
+        {
+            if ((!iTbl.SerialNumGroupId || (iTbl.SerialNumGroupId && InventNumGroup::find(iTbl.SerialNumGroupId).ManualAllocation)) && dimSetup.registerSerialNumber())
+            {
+                tmpSerial = lEnum.current();
+                request.getFieldMap().insert(fieldStr(InventDim,InventSerialId), subStr(tmpSerial,1,strLen(tmpSerial)-2));
+                request.getFieldMap().insert(MobConstants::GoodQuantity(),'1');
+            }
+            prodJournalProd = this.makeJournalLine(prodJournalTable);
+            prodJournalProd.LineNum = i;
+            prodJournalProd.validateWrite();        
+            prodJournalProd.insert();
+        }
+        prodJournalProd.selectForUpdate(true);
+        prodJournalProd.ProdFinished = str2enum(noYes,endJob);        
+        if (errorQty)
+        {
+            prodJournalProd.QtyError = MobHelper::convertStr2Num(errorQty);
+        }
+        prodJournalProd.ErrorCause = str2enum(prodErrorCause,errorCause);
+        prodJournalProd.write();
+        
+        startLine        = Global::infologLine();
+        journalCheckPost = ProdJournalCheckPostProd::newJournalCheckPost(true,true,JournalCheckPostType::Post,prodJournalTable.TableId,prodJournalTable.JournalId);
+        #ifnot.isAX6
+        JournalCheckPost.runOperation();
+        #endif
+        #if.isAX6
+        JournalCheckPost.run();
+        #endif
+        
+        if (ProdJournalTable::exist (prodJournalTable.JournalId) && ! ProdJournalTable::find(prodJournalTable.JournalId).Posted)
+        {    
+            if(Global::infologLine() > startLine)
+            {
+                for (i = startLine+1; i<=infolog.num();i++)
+                {
+                    
+                    errorMessage += infolog.text(i);
+                }
+            }
+    
+            throw error(strfmt("@SYS74581","@SYS26712"));
+        }
+    
+        return "@MobileWMS:MEL81";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeJournalLine</Name>
+				<Source><![CDATA[
+    protected ProdJournalProd makeJournalLine(ProdJournalTable _prodJournalTable)
+    {
+        ProdJournalProd             prodJournalProd;
+        InventDim                   inventDim;
+        InventBatch                 batchTbl;        
+        ExpirationDate              expDate = dateNull();
+        str                         goodQty;
+        
+        // Get the registration values from the XML
+        goodQty     = request.getFieldValue(MobConstants::GoodQuantity());
+        
+        
+        prodJournalProd.clear();
+        prodJournalProd.initValue();
+        prodJournalProd.initFromProdJournalTable(_prodJournalTable);
+        prodJournalProd.initFromProdTable(prodTable);
+        prodJournalProd.QtyGood = MobHelper::convertStr2Num(goodQty);
+        
+        inventDim = prodJournalProd.inventDim();
+        if (request.getFieldValue(fieldStr(InventDim,LicenseplateId)))
+        {
+            inventDim.LicensePlateId = request.getFieldValue(fieldStr(InventDim,LicenseplateId));
+            WHSLicensePlate::createLicensePlate(inventDim.LicensePlateId);
+        }
+        
+        if (request.getFieldValue(fieldStr(InventDim,InventBatchId)))
+        {
+            inventDim.InventBatchId = request.getFieldValue(fieldStr(InventDim,InventBatchId));
+            batchTbl = InventBatch::findOrCreate(inventDim.InventBatchId,prodJournalProd.ItemId, expDate,true);
+        }
+
+        if (batchTbl && request.getFieldValue(fieldStr(InventBatch,expDate)))
+        {
+            expDate = TFMDocCustomFunctionFlow::ConvertToType(request.getFieldValue(fieldStr(InventBatch,expDate)),Types::Date, extendedTypeStr(InventBatchExpDate));
+            
+            batchTbl.expDate = expDate == dateNull() ? batchTbl.expDate : expDate;
+            batchTbl.update(); // This makes scenarios where batch id is systemgenerated work with expiration date too
+        }
+        if (request.getFieldValue(fieldStr(InventDim,InventSerialId)))
+        {
+            inventDim.InventSerialId = request.getFieldValue(fieldStr(InventDim,InventSerialId));
+            InventSerial::findOrCreate(inventDim.InventSerialId,prodJournalProd.ItemId);
+        }
+        if (request.getFieldValue(fieldStr(inventDim, wMSLocationId)) && askForLocation)
+        {
+            inventDim.wMSLocationId = request.getFieldValue(fieldStr(inventDim, wMSLocationId));
+        }
+        inventDim = InventDim::findOrCreate(inventDim);
+        prodJournalProd.InventDimId = inventDim.inventDimId;
+    
+        return prodJournalProd;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postReportAsFinished_Route</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to post Report as finished route cards.
+    /// </summary>
+    /// <param name = "_requestDataNode">The XML node containing the request XML.</param>
+    /// <param name = "_prodRoute">The ProdTable buffer to use when posting.</param>
+    /// <returns>Message whether the operation ended in success or error.</returns>
+    protected str postReportAsFinished_Route(ProdRoute _prodRoute)
+    {
+        str                 sGoodQty;
+        str                 sErrorQty;
+        str                 sErrorCause;
+        str                 sEndJob;
+        str                 sCreated;
+        ProdReportedError   qtyError;
+        ProdReportedGood    qtyGood;
+        NoYes               endJob;
+        ProdErrorCause      errorCause;
+        ProdJournalName     prodJournalName;
+        ProdJournalRoute    prodJournalRoute;
+        ProdJournalCheckPostRoute     prodJournalCheckPostRoute;
+        utcDateTime         created;
+    
+        // Get the registration values from the XML
+        sGoodQty        = request.getFieldValue(MobConstants::GoodQuantity());
+        sErrorQty       = request.getFieldValue(MobConstants::ErrorQuantity());
+        sErrorCause     = request.getFieldValue(MobConstants::ErrorCause());
+        sEndJob         = request.getFieldValue(MobConstants::EndJob());
+        sCreated        = request.getFieldValue(MobConstants::AttributeCreated());
+    
+        qtyError        = MobHelper::convertStr2Num(sErrorQty);
+        qtyGood         = MobHelper::convertStr2Num(sGoodQty);
+        errorCause      = str2enum(errorCause,sErrorCause);
+        endJob          = str2enum(endJob,sEndJob);
+        created         = MobHelper::convertStr2utcDateTime(sCreated);
+    
+        prodJournalTable.clear();
+        prodJournalTable.initValue();
+        prodJournalTable.JournalType        = ProdJournalType::RouteCard;
+        prodJournalTable.ProdId             = _prodRoute.ProdId;
+        prodJournalTable.JournalNameId      = ProdParametersDim::findDefault().RouteJournalNameId;
+        prodJournalName = ProdJournalName::find(prodJournalTable.JournalNameId);
+        prodJournalTable.Description        = prodJournalName.Description;
+        prodJournalTable.VoucherSeqRecId    = prodJournalName.VoucherSeqRecId;
+        prodJournalTable.VoucherDraw        = JournalVoucherDraw::Post;
+        prodJournalTable.NumOfLines         = 1;
+        prodJournalTable.insert();
+    
+        //Route card entry
+        prodJournalRoute.clear();
+        prodJournalRoute.JournalId          = prodJournalTable.journalId;
+        prodJournalRoute.ProdId             = _prodRoute.ProdId;
+        prodJournalRoute.initValue();
+        prodJournalRoute.TransDate          = DateTimeUtil::date( created );
+        prodJournalRoute.OprNum             = _prodRoute.OprNum;
+        prodJournalRoute.OprId              = _prodRoute.OprId;
+        prodJournalRoute.JobType            = RouteJobType::Process;
+
+        prodJournalRoute.JobFinished        = endJob;
+        prodJournalRoute.CategoryHoursId    = _prodRoute.ProcessCategoryId;
+        prodJournalRoute.CategoryQtyId      = _prodRoute.QtyCategoryId;
+        prodJournalRoute.DefaultDimension   = _prodRoute.DefaultDimension;
+        prodJournalRoute.Worker             = HcmWorker::userId2Worker(curUserId());
+        prodJournalRoute.WrkCtrId           = _prodRoute.WrkCtrIdCost;  //!!
+        if (!prodJournalRoute.WrkCtrId)
+        {
+            prodJournalRoute.WrkCtrId = _prodRoute.activityRequirementSet().firstApplicableResource().WrkCtrId;
+        }
+        prodJournalRoute.QtyGood            = qtyGood;
+        if (qtyError)
+        {
+            prodJournalRoute.QtyError       = qtyError;
+            prodJournalRoute.ErrorCause     = errorCause;
+        }
+        /**
+        // By default : hours used is not a part of Mobile WMS
+        prodJournalRoute.Hours              = 1;
+        **/
+        prodJournalRoute.insert();
+    
+        ProdJournalCheckPostRoute = ProdJournalCheckPostRoute::newPostJournal(prodJournalRoute.journalId,false);
+        #ifnot.isAX6
+        ProdJournalCheckPostRoute.runOperation();
+        #endif
+        #if.isAX6
+        ProdJournalCheckPostRoute.run();
+        #endif
+    
+        return "@MobileWMS:MEL81";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postReportAsFinished_StatusUpdate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates and posts a "report as finished", bom consumption and route consumption journal
+    /// </summary>
+    /// <param name="_requestDataNode">XMLNode containing prodId, goodQty, errorQty, errorCause and endJob.</param>
+    /// <returns>
+    /// Message whether the operation ended in success or error.
+    /// </returns>
+    protected str postReportAsFinished_StatusUpdate(XMLNode _requestDataNode)
+    {
+        ProdId                      prodId;
+        str                         goodQty;
+        str                         errorQty;
+        str                         errorCause;
+        str                         endJob;
+        NoYes                       endRegistration = NoYes::Yes;    //always post bom and route consumption when reporting finished
+        real                        remainingQty;
+        RouteAutoConsump            routeAutoConsump;
+        BOMAutoConsump              bomAutoConsump;
+        Args                        args;
+        
+        ProdMultiReportFinished     prodMultiReportFinished;
+        ProdParmReportFinished      prodParmReportFinished, prodParmReportFinishedUPD;
+        AxdDocumentParameters       AXdDocumentParameters = AxdDocumentParameters::find();
+        
+        // Get the registration values from the XML
+        prodId      = _requestDataNode.getNamedElement(MobConstants::ProdId()).innerText();
+        goodQty     = _requestDataNode.getNamedElement(MobConstants::GoodQuantity()).innerText();
+        errorQty    = _requestDataNode.getNamedElement(MobConstants::ErrorQuantity()).innerText();
+        errorCause  = _requestDataNode.getNamedElement(MobConstants::ErrorCause()).innerText();
+        endJob      = _requestDataNode.getNamedElement(MobConstants::EndJob()).innerText();
+    
+    
+        prodTable = ProdTable::find(prodId);
+    
+        if (!prodTable)
+        {
+            prodRoute = ProdRoute::findJobId(prodId);
+            if (prodRoute)
+            {
+                prodId = prodRoute.ProdId;
+                prodTable = prodRoute.prodTable();
+            }
+        }
+    
+        //find remaining quantity on the production
+        remainingQty = (prodTable.RemainInventPhysical-(str2num(errorQty)+str2Num(goodQty)));
+    
+        //we use the settings under production parameters / AIF to govern registration of consumprion,
+        //here we translate the AIF settings to production parameter settings
+        if(AXdDocumentParameters.ProdPickingListAutoPosting)
+        {
+            routeAutoConsump = RouteAutoConsump::Always;
+        }
+        else
+        {
+            routeAutoConsump = RouteAutoConsump::Never;
+        }
+    
+        if(AXdDocumentParameters.RouteCardAutoPosting)
+        {
+            bomAutoConsump = BOMAutoConsump::Always;
+        }
+        else
+        {
+            bomAutoConsump = BOMAutoConsump::Never;
+        }
+    
+        //settings used for the creating and posting the journal
+        args       = new Args();
+        args.parmEnum(0);
+        args.record(prodTable);
+        prodMultiReportFinished = ProdMultiReportFinished::construct(args);
+        RunBaseMultiParm::initParm(prodMultiReportFinished);
+    
+        prodParmReportFinished = prodMultiReportFinished.defaultParmBuffer();
+        prodMultiReportFinished.insert(prodTable,prodParmReportFinished);
+        prodParmReportFinishedUPD = ProdParmReportFinished::find(prodParmReportFinished.ParmId, prodId, true);
+        prodParmReportFinishedUPD.initFromProdParametersDim(ProdParametersDim::findDefault());
+    
+        //set the parameters (i.e qty, consump)
+        if(prodParmReportFinishedUPD)
+        {
+            if (prodRoute)
+            {
+                prodParmReportFinishedUPD.FromOprNum = prodRoute.OprNum;
+                prodParmReportFinishedUPD.ToOprNum = prodRoute.OprNum;
+            }
+    
+            prodParmReportFinishedUPD.qtyGood          = str2num(goodQty);
+            prodParmReportFinishedUPD.QtyError         = str2num(errorQty);
+            prodParmReportFinishedUPD.ErrorCause       = str2enum(ProdErrorCause::None, errorCause);
+            prodParmReportFinishedUPD.EndRouteCard     = endRegistration;
+            prodParmReportFinishedUPD.RouteAutoConsump = routeAutoConsump;
+            prodParmReportFinishedUPD.BOMAutoConsump   = bomAutoConsump;
+            prodParmReportFinishedUPD.EndPicklist      = endRegistration;
+            prodParmReportFinishedUPD.EndJob           = str2enum(endRegistration, endJob);
+            prodParmReportFinishedUPD.AcceptError      = ProdParameters::find().JournalAcceptError;
+            prodParmReportFinishedUPD.update();
+        }
+        #ifnot.isAX6
+        prodMultiReportFinished.runOperation();
+        #endif
+        #if.isAX6
+        prodMultiReportFinished.run();
+        #endif
+        
+    
+        return "@MobileWMS:MEL81";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ReportAsFinishedHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to add Report As Finished Header reference data.
+    /// </summary>
+    /// <returns>The Report as finished filter fields in an DataConfiguration instance.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration ReportAsFinishedHeader()
+    {
+        TFMReferenceDataConfiguration	conf = new TFMReferenceDataConfiguration();
+		TFMRegistrationCollectorText	prodId = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(ProdId));
+        conf.addCollector(prodId);
+        return conf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ErrorCause</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Error causes added to reference data.
+    /// </summary>
+    /// <returns>
+    /// A filterlist element with the error causes for the reference data.
+    /// </returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataFilterList ErrorCause()
+    {
+        TFMReferenceDataFilterList filterList = new TFMReferenceDataFilterList();
+        DictEnum        dictEnum;
+        int             valueIndex;
+        int             enumId;
+        str             labelId;
+        
+        filterList.parmFilterIdName('id');
+        filterList.parmFilterValueName('Value');
+        enumId      = enumNum(ProdErrorCause);
+        dictEnum    = new DictEnum(enumId);
+    
+        if (dictEnum)
+        {
+            for (valueIndex = 0 ; valueIndex < dictEnum.values(); valueIndex++)
+            {
+                labelId = dictEnum.index2LabelId(valueIndex);
+                filterList.addValue(dictEnum.index2Symbol(valueIndex),SysLabel::labelId2String(labelId));
+            }
+        }
+        return filterList;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

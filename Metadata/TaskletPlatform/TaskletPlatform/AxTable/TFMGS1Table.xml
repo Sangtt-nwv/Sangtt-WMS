@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMGS1Table</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMGS1Table extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>AIsfromName</Name>
+				<Source><![CDATA[
+    public static str AIsfromName(Name _name)
+    {
+        TFMGS1References	refs;
+        TFMGS1AISetup		ais;
+        str					retStr;
+        while select refs where refs.ReferenceValue == _name && refs.ReferenceTypes == TFMGS1ReferenceTypes::Name
+            join ais where ais.Name == refs.Name
+        {
+            retStr = TFMGS1Table::concatAIs(retStr, ais.GS1AI);
+        }
+        return retStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AIsfromEDT</Name>
+				<Source><![CDATA[
+    public static str AIsfromEDT(ExtendedDataTypeName _edtName)
+    {
+        TFMGS1References	refs;
+        TFMGS1AISetup		ais;
+        str					retStr;
+        while select refs where refs.ReferenceValue == _edtName && refs.ReferenceTypes == TFMGS1ReferenceTypes::ExtendedDataType
+            join ais 
+            order by ais.RecId
+            where ais.Name == refs.Name
+        {
+            retStr = TFMGS1Table::concatAIs(retStr, ais.GS1AI);
+        }
+        return retStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AIsfromField</Name>
+				<Source><![CDATA[
+    public static str AIsfromField(SysDictField _dictField)
+    {
+        TFMGS1References	refs;
+        TFMGS1AISetup		ais;
+        Name				fieldName = _dictField.tableName() + '.' + _dictField.name();
+        str					retStr;
+        while select refs where refs.ReferenceValue == fieldName && refs.ReferenceTypes == TFMGS1ReferenceTypes::TableField
+            join ais where ais.Name == refs.Name
+        {
+            retStr = TFMGS1Table::concatAIs(retStr, ais.GS1AI);
+        }
+        return retStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>concatAIs</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns the concatinated string for the AI (Application Identifier);
+    /// </summary>
+    /// <param name = "_resultStr">The result string</param>
+    /// <param name = "_aiNumber">The AI Number</param>
+    /// <returns>The concatinated string</returns>
+    protected static str concatAIs(str _resultStr, int _aiNumber)
+    {
+        str result  = _resultStr;
+        str AIStr   = int2Str(_aiNumber);
+
+        result += (_resultStr ? ',' : '') + strRFix(AIStr, max(2,strLen(AIStr)), '0');
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>defaultSetup</Name>
+				<Source><![CDATA[
+    public static void defaultSetup()
+    {
+        TFMGS1Table::makeEntry('Item Number',[1,2,91,240],[TFMConstants::ItemNumber()],[extendedTypeStr(ItemId)],[tableStr(InventSum)+'.'+fieldStr(InventSum,ItemId), tableStr(InventTable)+'.'+fieldStr(InventTable,ItemId)]);
+        TFMGS1Table::makeEntry('Quantity',[30,37,310],[TFMConstants::Quantity()],[extendedTypeStr(Qty),extendedTypeStr(InventQty)],[tableStr(InventSum)+'.'+fieldStr(InventSum,PhysicalInvent)]);
+        TFMGS1Table::makeEntry('Serial Number',[21],[TFMConstants::SerialNumber()],[extendedTypeStr(InventSerialId)],[tableStr(InventDim) +'.' + fieldStr(InventDim,inventSerialId)]);
+        TFMGS1Table::makeEntry('Batch Number', [10],[TFMConstants::LotNumber(),TFMConstants::BatchId()],[extendedTypeStr(InventBatchId)],[tableStr(InventDim) +'.'+ fieldStr(InventDim,InventBatchId)]);
+        TFMGS1Table::makeEntry('Expiration Date', [15,17,12],[TFMConstants::ExpirationDate()],[extendedTypeStr(InventBatchExpDate)],[tableStr(InventBatch) +'.'+ fieldStr(InventBatch,expDate)]);
+        //TODO: Introduce this setup in Mob Classic: TFMGS1Table::makeEntry('Outbound License Plate', [98],['ToteId'],[extendedTypeStr(TFMToteId)],[tableStr(TFMToteTable) +'.'+ fieldStr(TFMToteTable,ToteId)]);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeEntry</Name>
+				<Source><![CDATA[
+	public static void makeEntry(Name _name, container _AIs, container _names, container _EDTs, container _fields)
+    {
+        TFMGS1Table			gs1Table;
+        TFMGS1AISetup		AISetup;
+        TFMGS1References	refs;
+        int					i;
+        RecordInsertList    recordInsertListAI;
+        RecordInsertList    recordInsertListRefs;
+
+        select firstonly gs1Table where gs1Table.Name == _name;
+
+		if (gs1Table)
+        {
+            return;
+        }
+
+        recordInsertListAI = new RecordInsertList(tableNum(TFMGS1AISetup));
+        recordInsertListRefs = new RecordInsertList(tableNum(TFMGS1References));
+
+        gs1Table.Name = _name;
+        gs1Table.insert();
+        AISetup.Name = _name;
+        for ( i =1; i <= conLen(_AIs); i++)
+        {
+            AISetup.GS1AI = any2Int(conPeek(_AIs,i));
+            recordInsertListAI.add(AISetup);
+        }
+        recordInsertListAI.insertDatabase();
+
+
+        refs.Name = _name;
+        refs.ReferenceTypes = TFMGS1ReferenceTypes::Name;
+        for ( i =1; i <= conLen(_names); i++)
+        {
+            refs.ReferenceValue = conPeek(_names,i);
+            recordInsertListRefs.add(refs);
+        }
+
+        refs.ReferenceTypes = TFMGS1ReferenceTypes::ExtendedDataType;
+        for ( i =1; i <= conLen(_EDTs); i++)
+        {
+            refs.ReferenceValue = conPeek(_EDTs,i);
+            recordInsertListRefs.add(refs);
+        }
+
+        refs.ReferenceTypes = TFMGS1ReferenceTypes::TableField;
+        for ( i =1; i <= conLen(_fields); i++)
+        {
+            refs.ReferenceValue = conPeek(_fields,i);
+            recordInsertListRefs.add(refs);
+        }
+        recordInsertListRefs.insertDatabase();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@TFM:GS1AISetup</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>Name</TitleField1>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Name</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMGS1Name</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>NameIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Name</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

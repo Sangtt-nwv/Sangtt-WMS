@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListPageConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMListPageConfiguration extends TFMPageConfiguration
+{
+    boolean openEnabled;
+    boolean refreshEnabled;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmOpenEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'list/open','enabled'), TFMPageAction]
+    public boolean parmOpenEnabled(boolean _openEnabled = openEnabled)
+    {
+        openEnabled = _openEnabled;
+        return openEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRefreshEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'list/refresh','enabled', true,true,false,true), TFMPageAction]
+    public boolean parmRefreshEnabled(boolean _refreshEnabled = refreshEnabled)
+    {
+        refreshEnabled = _refreshEnabled;
+        return refreshEnabled;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

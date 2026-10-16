@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageMenuItemsHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPageMenuItemsHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addMenuItemsToXML</Name>
+				<Source><![CDATA[
+    public static XmlElement addMenuItemsToXML(TFMPage _page, TFMPages _pages, XmlElement _pageElement, str _configurationPageTypeName)
+    {
+        TFMPageMenuItems		menuItemsTable;
+        XmlElement				actionNode = _pageElement.ownerDocument().createElement('actions');
+        int						placementCounter = 10;        
+        TFMPageConfiguration	config;
+        TFMPageID				navigateToPage;
+
+        boolean dataMemberControlled = _page.isPageMenuItemsDataMemberControlled();
+
+        while select menuItemsTable order by LineNumber where menuItemsTable.PageID == _page.parmId()
+        {
+            if(menuItemsTable.MenuPageID == TFMConstants::MenuItemShowImage())
+            {
+                TFMPageMenuItemsHelper::addActionToXml(actionNode, menuItemsTable, _pages, dataMemberControlled,  placementCounter, TFMConstants::MenuItemShowImage());
+            } 
+            else
+            {
+                // if no menuitem then examine if menu item is a pageItem.
+                if(!menuItemsTable.MenuItemType && TFMPageMenuItemsHelper::findElementForPageSpecificMenuItem(_pageElement, menuItemsTable.MenuPageID, _configurationPageTypeName))
+                {
+                    menuItemsTable.MenuItemType = TFMPageMenuItemTypes::PageMenuItem;
+                } 
+
+                switch(menuItemsTable.MenuItemType)
+                {
+                    case TFMPageMenuItemTypes::OpenAction:
+                        TFMPageMenuItemsHelper::addActionToXml(actionNode, menuItemsTable, _pages, dataMemberControlled, placementCounter);
+                        break;
+                    case TFMPageMenuItemTypes::AdhocAction:
+                        TFMPageMenuItemsHelper::addActionToXml(actionNode, menuItemsTable, _pages, dataMemberControlled, placementCounter, 'adhocRegistration');
+                        break;
+                    case TFMPageMenuItemTypes::typeBarcode:
+                    case TFMPageMenuItemTypes::PageMenuItem:
+                    case TFMPageMenuItemTypes::OfflinePageMenuItem:
+                        // Find and update the page actions xml
+                        TFMPageMenuItemsHelper::replaceXmlForPageSpecificMenuItems(_pageElement, menuItemsTable, placementCounter, _configurationPageTypeName, _page.isPageMenuItemsDataMemberControlled());
+                        break;
+                    default:
+                        break;
+                }
+            }
+            placementCounter += 10;
+        }
+
+		if (_page && _page.parmType() != 'OrderList')
+        {
+            config = _page.getConfiguration();
+            if (config && SysTest::hasMethod(config,methodStr(TFMPageLookupConfiguration,parmNavigateTo)))
+            {
+                navigateToPage = new SysDictClass(classIdGet(config)).callObject(methodStr(TFMPageLookupConfiguration,parmNavigateTo),config);
+				if (navigateToPage)
+                {
+                    menuItemsTable.clear();
+                    menuItemsTable.MenuPageID = navigateToPage;
+                    menuItemsTable.Title = 'Secret menu Item to ensure transfer of values to page that is opened when line is selected';
+                    menuItemsTable.Icon = 'NoIconNeeded';
+                    TFMPageMenuItemsHelper::addActionToXml(actionNode, menuItemsTable, _pages, dataMemberControlled, placementCounter,'open', true);
+                }
+            }
+        }
+        return actionNode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addMenuStateToXml</Name>
+				<Source><![CDATA[
+    public static void addMenuStateToXml(XmlElement _actionsNode, TFMMenuItemStateConfiguration _menuItemState, TFMPages _pages, boolean _dataMemberControlled, int _placement, str _elementName = 'open', boolean _secretMenuItem = false)
+    {
+        TFMPageMenuItems            menuItemsTable;
+        
+        TFMPageMenuItemsAdditionalProperties        addProps = _menuItemState.parmAdditionalProperties();
+
+        TFMPageAdhocMenuItemsAdditionalProperties   adhocProps = addProps is TFMPageAdhocMenuItemsAdditionalProperties ? addProps as TFMPageAdhocMenuItemsAdditionalProperties : null;
+        menuItemsTable.clear();
+        menuItemsTable.Enabled = true;
+        menuItemsTable.Hide = false;
+        menuItemsTable.Icon = _menuItemState.parmIcon();
+        menuItemsTable.Mandatory = false;
+        menuItemsTable.MenuItemType = _menuItemState.getPageActionSetup().parmMenuItemType();
+        menuItemsTable.MenuPageID = _menuItemState.parmMenuItemName();
+        menuItemsTable.PromotedItem = true;
+        menuItemsTable.Title = _menuItemState.parmTitle();
+        menuItemsTable.VisibleWhenNoData= false;
+        TFMPageMenuItemsHelper::addActionToXml(_actionsNode, menuItemsTable, _pages, _dataMemberControlled, _placement, 'adhocRegistration', _secretMenuItem, adhocProps ? adhocProps.parmDocumentType() : TFMConstants::PostAdhocRegistration());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addActionToXml</Name>
+				<Source><![CDATA[
+    public static void addActionToXml(XmlElement _actionsNode, TFMPageMenuItems _menuItemsTable, TFMPages _pages, boolean _dataMemberControlled, int _placement, str _elementName = 'open', boolean _secretMenuItem = false, TFMDocumentTypeId _documentName = TFMConstants::PostAdhocRegistration())
+    {
+        XmlElement		actionNode;
+        XmlElement      onSuccesfullPostElement;
+        XmlElement      returnTransferElement;
+        TFMPage pageThatTheActionPointsTo;
+        str icon;
+        str title;
+
+        // if the action is already in the xml for the configuration e.g. the unlockOrder
+        actionNode = _actionsNode.ownerDocument().createElement(_elementName);
+        title = _menuItemsTable.Title;
+
+        if(_elementName == 'open')
+        {
+            actionNode.setAttribute('id',_menuItemsTable.MenuPageID); //this is not needed for showImage
+            if(!title)
+            {
+                if(_pages.getPages().exists(_menuItemsTable.PageID))
+                {
+                    pageThatTheActionPointsTo = _pages.getPage(_menuItemsTable.MenuPageID);
+                    if(pageThatTheActionPointsTo)
+                    {
+                        title = pageThatTheActionPointsTo.parmTitle();
+                    }
+                }
+            }
+        
+            //check if the a onSuccessfulPost return transfer should be addded.
+            if(!pageThatTheActionPointsTo)
+            {
+                pageThatTheActionPointsTo = _pages.getPage(_menuItemsTable.MenuPageID);
+            }
+            if(pageThatTheActionPointsTo)
+            {
+                str suppressRefreshName = _menuItemsTable.MenuPageID + '/' + TFMConstants::SuppressRefreshAfterSuccessfulPost();
+                TFMPage currentPage = _pages.getPage(_menuItemsTable.PageID);
+
+                if( currentPage)
+                {
+                    anytype methodValue = TFMPageConfigParms::getValue(_menuItemsTable.PageID, classId2Name(classIdGet(currentPage.getConfiguration())), suppressRefreshName, '');
+                    if(!methodValue)
+                    {
+                        if(pageThatTheActionPointsTo.parmType() == TFMConstants::Lookup() || pageThatTheActionPointsTo.parmType() == TFMConstants::UnplannedItemRegistration())
+                        {
+                            returnTransferElement = _actionsNode.ownerDocument().createElement('returnTransfer');
+                            returnTransferElement.setAttribute('property', pageThatTheActionPointsTo.parmType() == TFMConstants::Lookup() ? 'LookupPostCompleted' : 'UnplannedItemRegistrationCompleted');
+                            returnTransferElement.setAttribute('to', 'RefreshOnResume');
+                            actionNode.appendChild(returnTransferElement);
+                        }
+                    }
+                }
+                actionNode.removeAttribute(TFMConstants::SuppressRefreshAfterSuccessfulPost()); // remove the attribute since it is only used for setting the returnTransfer element.
+            }
+        }
+
+        if(_elementName == 'adhocRegistration')
+        {
+
+            actionNode.setAttribute('id',_menuItemsTable.MenuPageID);
+            actionNode.setAttribute('documentName', _documentName);
+            actionNode.setAttribute('registrationType',_menuItemsTable.MenuPageID);
+            title = _menuItemsTable.Title;
+
+            //special handling of onSuccessfulPost for adhocRegistration
+            onSuccesfullPostElement = _actionsNode.ownerDocument().createElement('onSuccessfulPost');
+            TFMPageMenuItemsHelper::setTFMPageConfigParmsAsAttributeOnElement(_menuItemsTable.PageID, _menuItemsTable.MenuPageID + '/onSuccessfulPost', onSuccesfullPostElement);
+            actionNode.appendChild(onSuccesfullPostElement);
+        }
+
+        //find icon
+        icon = _menuItemsTable.Icon;
+        if(!icon)
+        {
+            if(!pageThatTheActionPointsTo && _pages.getPages().exists(_menuItemsTable.PageID))
+            {
+                pageThatTheActionPointsTo = _pages.getPage(_menuItemsTable.MenuPageID);
+       
+            }
+
+            if(pageThatTheActionPointsTo)
+            {
+                icon = pageThatTheActionPointsTo.parmIcon();
+            }
+
+            if(!icon)
+            {
+                icon = _menuItemsTable.MenuPageID;
+            }
+        }
+        actionNode.setAttribute('icon', icon);
+
+        // set menu item attributes
+        TFMPageMenuItemsHelper::setMenuItemsAttributesValues(_menuItemsTable, _dataMemberControlled, _secretMenuItem ? 'Off' : int2Str(_placement), actionNode, title);
+
+        _actionsNode.appendChild(actionNode);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findElementForPageSpecificMenuItem</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds the menu item in the XSD documentation
+    /// </summary>
+    public static XmlElement findElementForPageSpecificMenuItem(XmlElement _pageElement, str _nodeName, str _configurationPageTypeName)
+    {
+        XmlElement configurationElement;
+
+        configurationElement = _pageElement.selectSingleNode(_nodeName);
+        if(!configurationElement)
+        {
+            // search in the page configuration section
+            configurationElement = _pageElement.selectSingleNode(_configurationPageTypeName + '/' + _nodeName);
+        }
+        return configurationElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>replaceXmlForPageSpecificMenuItems</Name>
+				<Source><![CDATA[
+    private static void replaceXmlForPageSpecificMenuItems(XmlElement _pageElement, TFMPageMenuItems _menuItemsTable, int _placement, str _configurationPageTypeName, boolean _dataMemberControlled)
+    {
+        XmlNode configurationElement;
+        str actionXPath = _menuItemsTable.MenuPageID;
+
+        configurationElement = TFMPageMenuItemsHelper::findElementForPageSpecificMenuItem(_pageElement, actionXPath, _configurationPageTypeName);
+
+        if(configurationElement)
+        {
+            TFMPageMenuItemsHelper::setMenuItemsAttributesValues(_menuItemsTable, _dataMemberControlled, int2Str(_placement), configurationElement as XmlElement, _menuItemsTable.Title);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setMenuItemsAttributesValues</Name>
+				<Source><![CDATA[
+    public static void setMenuItemsAttributesValues(TFMPageMenuItems _menuItemsTable, boolean _dataMemberControlled, str _placementStr, XmlElement _menuItemNode, str _title)
+    {
+        _menuItemNode.setAttribute('enabled', (_menuItemsTable.Hide) ? 'false' : _menuItemsTable.VisibleWhenNoData ? 'OnEmptyListUtilizingDataMember' : 'true');
+        
+        if(_title)
+
+        {
+            _menuItemNode.setAttribute('title', TFMTranslationProvider::getTranslationIdFormmattedForDevice(_title));
+        } 
+        else
+        {
+            if(_menuItemNode.hasAttribute('title'))
+            {
+                _menuItemNode.removeAttribute('title');
+            }
+        }
+        if (_menuItemsTable.Icon)
+        {
+            _menuItemNode.setAttribute('icon', _menuItemsTable.Icon);
+        }
+
+        if(_menuItemsTable.Hide)
+        {
+            _menuItemNode.removeAttribute('dataMember');
+        }
+        else
+        {
+            _menuItemNode.setAttribute('dataMember', TFMMenuItemStateConfiguration::GetDataMemberNameAcceptableForXml(_menuItemsTable.MenuPageID));
+        }
+
+        _menuItemNode.setAttribute('menuPlacement', _placementStr);
+        _menuItemNode.setAttribute('contextMenuPlacement', _placementStr);
+
+        TFMPageMenuItemsHelper::setTFMPageConfigParmsAsAttributeOnElement(_menuItemsTable.PageID, _menuItemsTable.MenuPageID, _menuItemNode);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setTFMPageConfigParmsAsAttributeOnElement</Name>
+				<Source><![CDATA[
+    private static void setTFMPageConfigParmsAsAttributeOnElement(str _pageId, str _commandId, XmlElement _element)
+    {
+        TFMPageConfigParms  mobPageConfigParms;
+        str                 attributeName;
+        str                 commandName;
+
+        while select mobPageConfigParms where mobPageConfigParms.Name == _pageId
+        {
+            if(strScan(mobPageConfigParms.MethodName, '/', 0, 20000))
+            {
+                attributeName = TFMFormHelper::getLastPartOfPath(mobPageConfigParms.MethodName);
+
+                if(TFMPageMenuItemsHelper::excludedAttributeNames(attributeName))
+                {
+                    continue;
+                }
+
+                commandName = subStr(mobPageConfigParms.MethodName, 0, strLen(mobPageConfigParms.MethodName) - (strLen(attributeName) + 1));
+                if(commandName == _commandId)
+                {
+                    _element.setAttribute(attributeName, mobPageConfigParms.ValueString);
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isMenuItemElement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks if the xsd field is a menu item element. This is already in the grid so no need to add them again.
+    /// </summary>
+    /// <returns></returns>
+    public static boolean isMenuItemElement(str _nodeName)
+    {
+        container menuItemsElements = ['id', 'enabled', 'icon', 'menuplacement', 'title', 'datamember', 'contextmenuplacement'];
+        return conFind(menuItemsElements, strLwr(_nodeName)) != 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>excludedAttributeNames</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks if the xsd field is a menu item element. This is already in the grid so no need to add them again.
+    /// </summary>
+    /// <returns></returns>
+    public static boolean excludedAttributeNames(str _attributeName)
+    {
+        container excludedElements = [TFMConstants::SuppressRefreshAfterSuccessfulPost()];
+        return conFind(excludedElements, strLwr(_attributeName)) != 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getNumberOfPromotedItems</Name>
+				<Source><![CDATA[
+    public static int getNumberOfPromotedItems(TFMPage _page)
+    {
+        TFMPageMenuItems mobPageMenuItems;
+
+        boolean offlineEnabled = _page.getConfiguration() ? _page.getConfiguration().isOfflineEnabled() : false;
+
+        select count(RecId) from mobPageMenuItems where mobPageMenuItems.PageID == _page.parmId() && mobPageMenuItems.PromotedItem == true 
+            && ((!offlineEnabled && mobPageMenuItems.MenuItemType != TFMPageMenuItemTypes::OfflinePageMenuItem)  || (offlineEnabled));
+        return mobPageMenuItems.RecId;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

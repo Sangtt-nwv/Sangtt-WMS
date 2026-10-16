@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMWorkflowStepsOnlineValidation</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMWorkflowStepsOnlineValidation extends common
+{
+	
+
+        
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>servicesUsingValidation</Name>
+				<Source><![CDATA[
+	public static Set servicesUsingValidation(TFMWorkflowName _wfName, Name _stepName)
+    {
+        TFMWorkflowStepsOnlineValidation	onlineVal;
+        Set									pages = new Set (Types::String);
+        while select onlineVal where onlineVal.WorkflowName == _wfName//
+        {
+            if (strScan(onlineVal.ValidationType, strReplace(_stepName,'id',''),1,100))
+            {
+                pages.add(onlineVal.PageID);
+            }
+        }
+
+
+        return pages;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@TFM:Onlinevalidation</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>WorkflowName</TitleField1>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS50012</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>PageID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DocumentTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ValidationType</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>additionalValues</Name>
+			<Label>@SYS77764</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ValidationLevel</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>WorkflowName</Name>
+			<ExtendedDataType>TFMWorkflowName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ValidationType</Name>
+			<ExtendedDataType>TFMWorkflowValidationType</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DocumentTypeId</Name>
+			<ExtendedDataType>TFMDocumentTypeId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>PageID</Name>
+			<ExtendedDataType>TFMPageID</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ValidationLevel</Name>
+			<EnumType>TFMWorkflowValidationLevel</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>onlineValIdx</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>WorkflowName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>PageID</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>ValidationType</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>TFMWorkflowsTable</Name>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>TFMWorkflowsTable</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>WorkflowName</Name>
+					<Field>WorkflowName</Field>
+					<RelatedField>WorkflowName</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

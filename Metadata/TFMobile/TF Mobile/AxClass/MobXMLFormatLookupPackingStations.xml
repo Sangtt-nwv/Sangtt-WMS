@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatLookupPackingStations</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableNameAttribute(tableStr(MobPackingStation))]
+class MobXMLFormatLookupPackingStations extends TFMXMLFormatLookup
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        MobPackingStation	station = common;
+        Map					stationContent;
+        InventTable			inventTable;
+        MapEnumerator		mEnum;
+        Map					itemSum = new Map(Types::String, Types::Real);
+		InventSum			iSum;
+        str					itemsStr;
+        super();
+        
+        displayLine1 = "@MobileWMS:PackingStationID" + ': ' + station.PackingStationId;
+        displayLine2 = "@SYS14719" + ': ' + station.WMSLocationId;
+        
+        displayLine5 = "@SYS43" + ': ' + (station.Note ? station.Note + "@MobileWMS:lineBreak" : '' );
+
+        fieldsToAdd.insert(extendedTypeStr(MobPackingStationID), station.PackingStationId);
+        stationContent = MobDocUnplannedCartMove::locationContent(WMSLocation::find(station.WMSLocationId,station.InventLocationId));
+        imageID = '';
+        mEnum = stationContent.getEnumerator();
+        while (mEnum.moveNext())
+        {
+   
+            iSum = mEnum.currentValue();            
+            if (!itemSum.exists(iSum.ItemId))
+            {
+                imageID += (imageID ? ',' :'') + iSum.ItemId;
+            }
+            
+            itemSum.insert(iSum.ItemId, (itemSum.exists(iSum.ItemId) ? itemSum.lookup(iSum.ItemId) : 0 ) + iSum.PhysicalInvent);
+        }
+        mEnum = itemSum.getEnumerator();
+		while (mEnum.moveNext())
+        {
+            inventTable = InventTable::find(mEnum.currentKey());
+            itemsStr += (itemsStr ? "@MobileWMS:lineBreak" : '' ) + MobHelper::formatItemQty(mEnum.currentValue(),inventTable.inventUnitId()) + ' ' + inventTable.inventUnitId() + ' ' +inventTable.ItemId;
+        }
+        displayLine3 = "@SYS15649" + ': ' + (itemSum.elements()  > 5 ? strfmt("@MobileWMS:NumberOfItems",itemSum.elements()) : itemsStr);
+        
+
+        imageID = imageID ? imageID : 'emptyBox';
+        fieldsToAdd.insert(tableStr(ReferenceIdentity),station.PackingStationId);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMultiSelectionTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMMultiSelectionTable extends common
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addOrRemoveSelection</Name>
+				<Source><![CDATA[
+    public static void addOrRemoveSelection(UserId	_user, TFMDocumentDeviceId _device, str _ref, str _context)
+    {
+        TFMMultiselectionTable table;
+
+        ttsbegin;
+        table = TFMMultiselectionTable::Find(_user, _ref,_device,true);
+        
+        table.UserId			= _user;
+        table.Reference			= _ref;
+        table.DeviceId			= _device;
+        table.ClassName			= _context;
+        if (table.RecId)
+        {
+            table.delete();
+        }
+        else
+        {
+            table.insert();
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Find</Name>
+				<Source><![CDATA[
+    public static TFMMultiselectionTable Find(UserId	_user, str _ref, TFMDocumentDeviceId _device, boolean _select4Update = false)
+    {
+        TFMMultiselectionTable table;
+        table.selectForUpdate(_select4Update);
+
+        select firstonly table where table.UserId == _user && table.Reference == _ref;
+
+        return table;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RemoveAllInContext</Name>
+				<Source><![CDATA[
+    public static TFMMultiselectionTable RemoveAllInContext(UserId	_user, str _context, TFMDocumentDeviceId _device)
+    {
+        TFMMultiselectionTable table;
+        
+        ttsbegin;
+        delete_from table where table.UserId == _user && table.DeviceId == _device && table.ClassName == _context;
+        ttscommit;
+        return table;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RemoveAllForUserOnDevice</Name>
+				<Source><![CDATA[
+    public static TFMMultiselectionTable RemoveAllForUserOnDevice(UserId _user, TFMDocumentDeviceId _device)
+    {
+        TFMMultiselectionTable table;
+        
+        ttsbegin;
+        delete_from table where table.UserId == _user && table.DeviceId == _device;
+        ttscommit;
+        return table;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetAllInContext</Name>
+				<Source><![CDATA[
+    public static Set GetAllInContext(UserId	_user, str _context, TFMDocumentDeviceId _device)
+    {
+        TFMMultiselectionTable	table;
+        Set						allRefs = new Set(Types::String);
+		
+        while select Reference from table where table.UserId == _user && table.DeviceId == _device && table.ClassName == _context
+        {
+            allRefs.add(table.Reference);
+        }
+        
+        return allRefs;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DeviceId</Name>
+			<ExtendedDataType>TFMDocumentDeviceId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Reference</Name>
+			<ExtendedDataType>TFMBackendId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>UserId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>UserId</ExtendedDataType>
+			<HelpText>@TFM:TFM3</HelpText>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ClassName</Name>
+			<ExtendedDataType>ClassName</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

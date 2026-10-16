@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMWorkflowValidationToLocation</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMWorkflowValidationToLocation extends TFMWorkflowValidation
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>validationType</Name>
+				<Source><![CDATA[
+    public TFMWorkflowValidationType validationType()
+    {
+        return 'toBinValidation';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>label</Name>
+				<Source><![CDATA[
+    public LabelString label()
+    {
+        return "@SYS50351";
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

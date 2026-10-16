@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListCustomComponentProgressBar</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListElementAttribute('TFMListCustomComponentProgressBar')]
+class TFMListCustomComponentProgressBar extends TFMListCustomComponent
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>SubComponents</Name>
+				<Source><![CDATA[
+    public Map SubComponents()
+    {
+        Map ret = new Map(Types::Integer, Types::String);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

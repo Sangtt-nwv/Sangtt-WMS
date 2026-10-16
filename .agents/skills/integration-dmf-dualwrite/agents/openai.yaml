@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO DMF & Dual-write"
+  short_description: "Move data via DMF/DIXF, dual-write, or virtual entities"
+  default_prompt: "Use $integration-dmf-dualwrite to wire a data import/export or dual-write flow for this D365FO change."

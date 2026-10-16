@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMValidationDocumentTypeAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMValidationDocumentTypeAttribute  extends SysAttribute implements SysExtensionIAttribute
+{
+    MethodName			methodName;
+    TFMDocumentTypeId	docId;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(TFMDocumentTypeId	_docId, MethodName _methodName)
+    {
+        super();
+ 
+        methodName = _methodName;
+        docId = _docId;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMethodName</Name>
+				<Source><![CDATA[
+    public MethodName parmMethodName(MethodName	_methodName = methodName)
+    {
+        methodName = _methodName;
+ 
+        return methodName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDocumentType</Name>
+				<Source><![CDATA[
+    public TFMPageID parmDocumentType(TFMDocumentTypeId	_docId = docId)
+    {
+        docId = _docId;
+ 
+        return docId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classid2name(classIdGet(this))+';'+docId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

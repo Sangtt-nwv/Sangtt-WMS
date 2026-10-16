@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMExpressionsGS1Date</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDescription("An expression used to format dates to GS1 barcode format.")]
+class TFMExpressionsGS1Date extends TFMExpressions
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processExpressionCommon</Name>
+				<Source><![CDATA[
+    [SysObsolete]
+    public str processExpressionCommon(Common _common)
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processExpressionValue</Name>
+				<Source><![CDATA[
+    public str processExpressionValue(str _value)
+    {
+        date d = str2Date(_value, 123);
+
+        return date2Str(d,321,2, DateSeparator::None,2,DateSeparator::None,2);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

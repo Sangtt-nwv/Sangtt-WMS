@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMenuItemsCtrlBuild</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[FormDesignControlAttribute(classStr(TFMMenuItemsCtrl))]
+class TFMMenuItemsCtrlBuild extends FormBuildContainerControl
+{
+
+}
+
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+</AxClass>

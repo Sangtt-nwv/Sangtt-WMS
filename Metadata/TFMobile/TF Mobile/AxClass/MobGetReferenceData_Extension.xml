@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobGetReferenceData_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classStr(TFMGetReferenceData))]
+final class MobGetReferenceData_Extension
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>EncryptStringToBytes_Aes</Name>
+				<Source><![CDATA[
+    static str EncryptStringToBytes_Aes(str plainText, str key, str iv)
+    {
+        System.Security.Cryptography.Aes aesAlg;
+        System.Security.Cryptography.ICryptoTransform encryptor;
+        System.IO.MemoryStream msEncrypt;
+        System.Security.Cryptography.CryptoStream csEncrypt;
+        System.IO.StreamWriter swEncrypt;
+        System.Byte[] encrypted;
+
+        aesAlg = System.Security.Cryptography.Aes::Create();
+        aesAlg.set_Key(System.Text.Encoding::UTF8.GetBytes(key));
+        aesAlg.set_IV(System.Text.Encoding::UTF8.GetBytes(iv));
+
+        encryptor = aesAlg.CreateEncryptor(aesAlg.get_Key(), aesAlg.get_IV());
+
+        msEncrypt = new System.IO.MemoryStream();
+        csEncrypt = new System.Security.Cryptography.CryptoStream(msEncrypt, encryptor, System.Security.Cryptography.CryptoStreamMode::Write);
+        swEncrypt = new System.IO.StreamWriter(csEncrypt);
+
+        swEncrypt.Write(plainText);
+        swEncrypt.Close();
+
+        encrypted = msEncrypt.ToArray();
+        return System.Convert::ToBase64String(encrypted);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ReturnDisposition</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod]
+    /// <summary>
+    /// Method to create return disposition reference data.
+    /// </summary>
+    /// <returns>The XML Element with the Return Disposition Reference data.</returns>
+    public XML ReturnDisposition()
+    {
+        XMLElement stepsElement;
+        XMLElement registrationCollectorConfigurationElement;
+        utcDateTime minDate;
+        utcDateTime maximumDate;
+        XmlDocument doc = new XmlDocument();
+        
+        minDate = dateTimeUtil::minValue();
+        maximumDate = dateTimeUtil::maxValue();
+    
+        registrationCollectorConfigurationElement = doc.createElement(TFMConstants::registrationCollectorConfiguration());
+    
+        stepsElement = doc.createElement(TFMConstants::steps());
+    
+        MobHelper::createHeaderConfigurationElement(stepsElement, 1, TFMConstants::RMA_CauseId(), "@SYS104082", "@SYS104082", 100, TFMInputTypes::List, TFMConstants::ReferenceDataTable_ReturnDisposition(), TFMConstants::RMA_CauseId(), TFMConstants::RMA_Name(), false, false, 0, 0, minDate, maximumDate, 0,
+                                           false, '', '', '');
+    
+        registrationCollectorConfigurationElement.appendChild(stepsElement);
+    
+        return registrationCollectorConfigurationElement.xml();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>defaultItemIdOrLPCollector</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectorText defaultItemIdOrLPCollector(int _id = 1, boolean _clearOnClear = true, boolean _locked = false)
+    {
+        TFMRegistrationCollectorText	itemId;
+        TFMRegistrationCollectorText	lpId;
+        TFMRegistrationCollectorText	resultCollector;
+
+        itemId = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(ItemId));
+
+        if(new MobDocLicensePlateOverview().parmEnableLicensePlating())
+        {
+            lpId		= TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(WHSLicensePlateId));
+            resultCollector	= new TFMRegistrationCollectorText(_id, itemId.parmName() + lpId.parmName(), "@TFM:ItemorLicenseplate", "@TFM:ItemorLicenseplate", "@TFM:ItemorLicenseplate");
+            resultCollector.parmLength(max(itemId.parmLength(), lpId.parmLength()));
+        }
+        else
+        {
+            resultCollector	= itemId;
+            resultCollector.parmId(_id);
+            resultCollector.parmLength(itemId.parmLength());
+        }
+
+        resultCollector.parmLocked(_locked);
+        resultCollector.parmSearchType((_locked ? '' : TFMConstants::Search_Item()));
+        resultCollector.parmOptional(false);
+        resultCollector.parmClearOnClear(_clearOnClear);
+        resultCollector.isHeader(true);
+        return resultCollector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>defaultJournalIdCollector</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to add default Journal ID element.
+    /// </summary>
+    /// <param name = "_id">ID of the node to be added.</param>
+    /// <param name = "_elementName">Name of the element to add.</param>
+    /// <param name = "_locked">Locked attribute. Optional.</param>
+    /// <returns>registration Collector for journal</returns>
+    public static TFMRegistrationCollectorText defaultJournalIdCollector(int _id, str _elementName = extendedTypeStr(JournalId), boolean _locked = false, ExtendedDataTypeName _EDTToUse = '')
+    {
+        TFMRegistrationCollectorText text = TFMRegistrationCollector::collectorFromEDT(_EDTToUse ? _EDTToUse : extendedTypeStr(JournalId));
+        text.parmName(_elementName);
+        text.parmId(_id);
+        text.parmClearOnClear(!_locked);
+        text.parmLocked(_locked);
+        return text;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>listNoYes</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataFilterList listNoYes()
+    {
+        return TFMReferenceDataFilterList::createFromEnum(Enumstr(NoYes));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>defaultLocationCollector</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectorText defaultLocationCollector(int _id=1, str _name =TFMConstants::Location(), boolean _clearOnClear = true, boolean _optional = false)
+    {
+        TFMRegistrationCollectorText text = new TFMRegistrationCollectorText(_id, _name, "@SYS14719","@SYS14719","@SYS14719");
+        text.parmOptional(_optional);
+        text.parmClearOnClear(_clearOnClear);
+        
+        return text;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>defaultQuantityElement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to add default Quantity element.
+    /// </summary>
+    /// <param name = "_id">ID of the node to be added.</param>
+    /// <returns>registration Collector for Quan titty</returns>
+    public static TFMRegistrationCollectorDecimal defaultQuantityElement(int _id)
+    {
+        TFMRegistrationCollectorDecimal qty = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(InventQty));
+        qty.parmName(TFMConstants::quantity());
+        qty.parmId(_id);
+        return qty;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>defaultTransRefIdCollector</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectorText defaultTransRefIdCollector(int _id = 1)
+    {
+        TFMRegistrationCollectorText text = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(InventTransRefId));
+        text.parmid(_id);
+        text.parmLabel("@SYS13864");
+        return text;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addReturnDisposition2ReferenceData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to add return disposition reference data.
+    /// </summary>
+    [TFMReferenceDataMethod]
+    protected TFMReferenceDataFilterList addReturnDisposition2ReferenceData()
+    {
+        ReturnDispositionCode       returnDispositionCode;
+        TFMReferenceDataFilterList  filterList = new TFMReferenceDataFilterList();
+        filterList.parmKey(MobConstants::ReferenceDataTable_ReturnDisposition());
+        filterList.parmFilterIdName(MobConstants::RMA_CauseId());
+        filterList.parmFilterValueName(MobConstants::RMA_Name());
+        // ReturnDisposition must be specified (empty entry)
+        filterList.addValue('','');
+    
+        // RMA/QA - Can be enabled.
+        // this.addReturnDispositionLine(referenceDataElement, #ReferenceDataTable_ReturnDisposition, #RMA_QA, strFmt("%1: %2", #RMA_QA, "@SYS58429"));
+    
+        while select returnDispositionCode
+            order by DispositionCodeId
+            where returnDispositionCode.DispositionAction != DispositionAction::CreditOnly
+        {
+            filterList.addValue(returnDispositionCode.DispositionCodeId, strFmt("@SYS76766",returnDispositionCode.DispositionCodeId, returnDispositionCode.Description));
+        }
+        return filterList;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>WarehouseList</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to add warehouse reference data.
+    /// </summary>
+    /// <returns>A filter list instance with the data for the reference data.</returns>
+    public TFMReferenceDataFilterList WarehouseList()
+    {
+        InventLocation inventLocation;
+        TFMReferenceDataFilterList filterlist = next WarehouseList();
+        InventLocationId			deviceLocation = request ? TFMDeviceTable::FindOrCreateDevice(request.parmdeviceID()).InventLocationId : '';
+
+        filterlist = new TFMReferenceDataFilterList();
+
+        filterlist.parmFilterIdName(extendedTypeStr(InventLocationId));
+        filterlist.parmFilterValueName(extendedTypeStr(Name));
+        inventLocation = MobHelper::getAllowedInventLocations(curuserid());
+    
+        while select inventLocation order by RecId
+        {
+            filterlist.addValue(inventLocation.InventLocationId,inventLocation.Name);
+            if (filterlist.getMap().elements() == 1)
+            {
+                filterlist.parmPrimaryId(inventLocation.InventLocationId);
+            }
+        }
+  
+        if (deviceLocation)
+        {
+            filterlist.parmPrimaryId(deviceLocation);
+            if (!filterlist.getMap().exists(deviceLocation))
+            {
+                filterlist.addValue(deviceLocation,InventLocation::find(deviceLocation).Name);
+            }
+        }
+        
+        return filterlist;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

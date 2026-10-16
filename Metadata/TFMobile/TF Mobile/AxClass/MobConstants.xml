@@ -1,0 +1,3176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobConstants</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class for constants. Replacement for the macro.
+/// </summary>
+class MobConstants
+{	
+    public static str GetReceiveOrders= 'GetReceiveOrders';
+    public static str GetRegistrationConfiguration='GetRegistrationConfiguration';
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>GetReceiveOrders</Name>
+				<Source><![CDATA[
+    public static str GetReceiveOrders() {return 'GetReceiveOrders';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetRegistrationConfiguration</Name>
+				<Source><![CDATA[
+    public static str GetRegistrationConfiguration() {return 'GetRegistrationConfiguration';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MobRequestApplicationConfiguration</Name>
+				<Source><![CDATA[
+    /*public static str LockOrder(){return 'LockOrder';}
+    public static str UnlockOrder(){return 'UnlockOrder';}
+    public static str Type(){return 'Type';}
+    public static str TypePick(){return 'Pick';}
+    public static str TypeReceive(){return 'Receive';}
+    public static str TypeCount(){return 'Count';}
+    public static str TypeMove(){return 'Move';}*/
+
+    public static str MobRequestApplicationConfiguration() {return 'applicationConfiguration';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MobRequestConfiguration</Name>
+				<Source><![CDATA[
+    public static str MobRequestConfiguration() {return 'configuration';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>applicationSchemaPath</Name>
+				<Source><![CDATA[
+    public static str applicationSchemaPath(){return 'http://schemas.taskletfactory.com/MobileWMS/Application';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RequestDocumentNamespace</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RequestDocumentNamespace(){return 'http://schemas.microsoft.com/Dynamics/Mobile/2007/04/Documents/Request';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RequestResponseNamespace</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RequestResponseNamespace(){return 'http://schemas.microsoft.com/Dynamics/Mobile/2007/04/Documents/Response';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blocksToPost</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str blocksToPost()
+    {
+        return 'blocksToPost';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>onlineStepBlocksToPost</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str onlineStepBlocksToPost()
+    {
+        return 'onlineStepBlocksToPost';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>OrderElementAttributeValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str OrderElementAttributeValue(){return 'http://schemas.taskletfactory.com/MobileWMS/BaseDataModel';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RegCollectorConfigurationAttributeValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RegCollectorConfigurationAttributeValue(){return 'http://schemas.taskletfactory.com/MDMF/Platform/Controls/RegistrationCollectorConfiguration.xsd';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>online</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str online(){return 'online';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>OrderElementAttributeName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str OrderElementAttributeName(){return 'xmlns';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>responseData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str responseData()
+    {
+        return 'responseData';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processSessionID</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str processSessionID()
+    {
+        return 'processSessionID';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SearchResultNamespace</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str SearchResultNamespace(){return 'http://schemas.taskletfactory.com/MobileWMS/SearchResult';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetFilteredPickOrders</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str GetFilteredPickOrders(){return 'GetFilteredPickOrders';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetPickOrderLines</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str GetPickOrderLines(){return 'GetPickOrderLines';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LicensePlateLookup</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str LicensePlateLookup(){return 'LicensePlateLookup';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LicensePlateInfo</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str LicensePlateInfo(){return 'LicensePlateInfo';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PostPickOrder</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str PostPickOrder(){return 'PostPickOrder';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetFilteredReceiveOrders</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str GetFilteredReceiveOrders(){return 'GetFilteredReceiveOrders';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetReceiveOrderLines</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str GetReceiveOrderLines(){return 'GetReceiveOrderLines';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PostReceiveOrder</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str PostReceiveOrder(){return 'PostReceiveOrder';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parameters</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str parameters()
+    {
+        return 'parameters';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetCountingJournal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str GetCountingJournal(){return 'GetCountOrders';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetFilteredCountingJournal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str GetFilteredCountingJournal(){return 'GetFilteredCountingJournal';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetCountingJournalTrans</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str GetCountingJournalTrans(){return 'GetCountOrderLines';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PostCountingJournal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str PostCountingJournal(){return 'PostCountOrder';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PostAdhocRegistration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str PostAdhocRegistration(){return 'PostAdhocRegistration';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetReferenceData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str GetReferenceData(){return 'GetReferenceData';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ReceiveOrderFilters</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ReceiveOrderFilters(){return 'ReceiveOrderFilters';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PickOrderFilters</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str PickOrderFilters(){return 'PickOrderFilters';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>menuConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str menuConfiguration(){return 'MenuConfiguration';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Lookup</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Lookup(){return 'Lookup';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UnplannedItemRegistration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str UnplannedItemRegistration()
+    {
+        return 'UnplannedItemRegistration';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RegisterRealtimeQuantity</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RegisterRealtimeQuantity(){return 'RegisterRealtimeQuantity';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Key</Name>
+				<Source><![CDATA[
+    //Unplanned keys
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Key(){return 'Key';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UnplannedMoveHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str UnplannedMoveHeader(){return 'UnplannedMoveHeader';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RegistrationType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RegistrationType(){return 'RegistrationType';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UnplannedMove</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str UnplannedMove(){return 'UnplannedMove';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UnplannedPalletMove</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str UnplannedPalletMove(){return 'UnplannedPalletMove';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UnplannedCount</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str UnplannedCount(){return 'UnplannedCount';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>NegativeAdjustment</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str NegativeAdjustment(){return 'NegativeAdjustment';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ReportAsFinished</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ReportAsFinished(){return 'ReportAsFinished';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CancelPickLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str CancelPickLine(){return 'CancelPickLine';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CartOverview</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str CartOverview(){return 'CartOverview';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LookupType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str LookupType(){return 'LookupType';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PalletTransport</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str PalletTransport(){return 'PalletTransport';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LocationContent</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str LocationContent(){return 'LocationContent';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>StockStatus</Name>
+				<Source><![CDATA[
+    public static str StockStatus(){return 'StockStatus';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LocateItem</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str LocateItem(){return 'LocateItem';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>QuarantineOrders</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str QuarantineOrders(){return 'QuarantineOrders';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CreateQuarantineOrders</Name>
+				<Source><![CDATA[
+    public static str CreateQuarantineOrders(){return 'CreateQuarantineOrders';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Shipment</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Shipment(){return 'Shipment';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ShipmentId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ShipmentId(){return 'ShipmentId';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ProdId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ProdId(){return 'ProdId';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>WMSForkLiftId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str WMSForkLiftId(){return 'WMSForkLiftId';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InventTransRefId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str InventTransRefId(){return 'InventTransRefId';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LookupResponseElement</Name>
+				<Source><![CDATA[
+    // XML Elements
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str LookupResponseElement(){return 'LookupResponse';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Name</Name>
+				<Source><![CDATA[
+    //MSA Pallet
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Name(){return 'Name';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UnplannedCreatePallet</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str UnplannedCreatePallet(){return 'UnplannedCreatePallet';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>WMSTransportId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str WMSTransportId(){return 'WMSTransportId';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Login</Name>
+				<Source><![CDATA[
+    //Login
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Login(){return 'Login';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeBackendId</Name>
+				<Source><![CDATA[
+    //Attributes
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeBackendId(){return 'backendID';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeLineNumber</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeLineNumber(){return 'lineNumber';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeId(){return 'id';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeHeader(){return 'header';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeHelpLabel</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeHelpLabel(){return 'helpLabel';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeInputType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeInputType(){return 'inputType';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeElementName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The key to find the xml element name.
+    /// </summary>
+    /// <returns></returns>
+    public static str AttributeElementName(){return 'elementName';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeLabel</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeLabel(){return 'label';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeLength</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeLength(){return 'length';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeName(){return 'name';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeMinDate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeMinDate(){return 'minDate';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeMaxDate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeMaxDate(){return 'maxDate';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeMinValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeMinValue(){return 'minValue';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeMaxValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeMaxValue(){return 'maxValue';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeLabelWidth</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeLabelWidth(){return 'labelWidth';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeResolutionHeight</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeResolutionHeight(){return 'resolutionHeight';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeResolutionWidth</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeResolutionWidth(){return 'resolutionWidth';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeDataTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeDataTable(){return 'dataTable';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributDataKeyColumne</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributDataKeyColumne(){return 'dataKeyColumn';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeDataDisplayColumn</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeDataDisplayColumn(){return 'dataDisplayColumn';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeOptional</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeOptional(){return 'optional';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeDefaultValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeDefaultValue(){return 'defaultValue';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LinkedElement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str LinkedElement(){return 'linkedElement';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LinkColumn</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str LinkColumn(){return 'linkColumn';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeClearOnClear</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeClearOnClear(){return 'clearOnClear';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeAcceptBarcode</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeAcceptBarcode(){return 'acceptBarcode';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeSearchType</Name>
+				<Source><![CDATA[
+    //public static str AttributeOptional(){return 'optional';}
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeSearchType(){return 'searchType';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeValue(){return 'value';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeListValues</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeListValues(){return 'listValues';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeListSeparator</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeListSeparator(){return 'listSeparator';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributePerformCalculation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributePerformCalculation(){return 'performCalculation';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeUniqueValues</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeUniqueValues(){return 'uniqueValues';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeOverDeliveryValidation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeOverDeliveryValidation(){return 'overDeliveryValidation';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeEditable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeEditable(){return 'editable';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeValidationValues</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeValidationValues(){return 'validationValues';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeValidationCaseSensitive</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeValidationCaseSensitive(){return 'validationCaseSensitive';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeEanAi</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeEanAi(){return 'eanAi';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeUpperOrderType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeUpperOrderType(){return 'OrderType';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeCreated</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeCreated(){return 'created';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeItemNumber</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeItemNumber(){return 'itemNumber';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeClearOrderLines</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeClearOrderLines(){return 'clearOrderLines';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeOrderType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeOrderType(){return 'orderType';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeOrderBackendId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeOrderBackendId(){return 'orderBackendId';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttributeQuantity</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AttributeQuantity(){return 'quantity';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectorConfiguration</Name>
+				<Source><![CDATA[
+    //General
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str registrationCollectorConfiguration(){return 'registrationCollectorConfiguration';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>filters</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str filters(){return 'filters';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>steps</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str steps(){return 'steps';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>additionalValues</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str additionalValues()
+    {
+        return 'additionalValues';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>additionalValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str additionalValue()
+    {
+        return 'additionalValue';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Configuration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Configuration(){return 'Configuration';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Value</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Value(){return 'Value';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>variables</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str variables()
+    {
+        return 'variables';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dataSources</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str dataSources()
+    {
+        return 'dataSources';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str headerConfiguration(){return 'headerConfiguration';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lines</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str lines(){return 'lines';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>add</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str add(){return 'add';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ReferenceData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ReferenceData(){return 'ReferenceData';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>requestData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str requestData(){return 'requestData';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>request</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str request(){return 'request';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>BackendId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str BackendId(){return 'BackendID';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>OrderBackendID</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str OrderBackendID(){return 'OrderBackendID';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Orders</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Orders(){return 'Orders';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Order</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Order(){return 'Order';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>BaseOrder</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str BaseOrder(){return 'BaseOrder';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>OrderLines</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str OrderLines(){return 'OrderLines';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>BaseOrderLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str BaseOrderLine(){return 'BaseOrderLine';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Sorting</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Sorting(){return 'Sorting';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Status</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Status(){return 'Status';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>HeaderLabel1</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str HeaderLabel1(){return 'HeaderLabel1';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>HeaderLabel2</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str HeaderLabel2(){return 'HeaderLabel2';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>HeaderValue1</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str HeaderValue1(){return 'HeaderValue1';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>HeaderValue2</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str HeaderValue2(){return 'HeaderValue2';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DisplayLine1</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str DisplayLine1(){return 'DisplayLine1';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DisplayLine2</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str DisplayLine2(){return 'DisplayLine2';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DisplayLine3</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str DisplayLine3(){return 'DisplayLine3';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DisplayLine4</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str DisplayLine4(){return 'DisplayLine4';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DisplayLine5</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str DisplayLine5(){return 'DisplayLine5';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>NotUsed</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str NotUsed(){return '';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>NotUsed0</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str NotUsed0(){return '0';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FromLocation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str FromLocation(){return 'FromLocation';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExpirationDate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ExpirationDate(){return 'ExpirationDate';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Quantity</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Quantity(){return 'Quantity';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ToLocation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ToLocation(){return 'ToLocation';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DeliveryDate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str DeliveryDate(){return 'DeliveryDate';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GoodQuantity</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str GoodQuantity(){return 'GoodQuantity';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ErrorQuantity</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ErrorQuantity(){return 'ErrorQuantity';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ErrorCause</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ErrorCause(){return 'ErrorCause';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EndJob</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str EndJob(){return 'EndJob';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UserLanguage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str UserLanguage(){return 'UserLanguage';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ScrapQuantity</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ScrapQuantity(){return 'ScrapQuantity';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Barcode</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Barcode(){return 'Barcode';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RegistrationCollector</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RegistrationCollector(){return 'RegistrationCollector';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>WMSPalletDimensionID</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str WMSPalletDimensionID(){return 'WMSPalletId';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SigmaCharacter</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str SigmaCharacter(){return '\x2211';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>BarcodeFormat</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str BarcodeFormat(){return 'BarcodeFormat';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>BarcodeQuantity</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str BarcodeQuantity(){return 'BarcodeQuantity';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ScannedValue</Name>
+				<Source><![CDATA[
+    //Values
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ScannedValue(){return 'ScannedValue';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>All</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str All(){return 'All';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TAKE</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str TAKE(){return 'TAKE';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PLACE</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str PLACE(){return 'PLACE';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>True</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str True(){return 'true';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>documentName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str documentName(){return 'documentName';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>includeCollectedValues</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str includeCollectedValues(){return 'includeCollectedValues';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>False</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str False(){return 'false';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Unlocked</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Unlocked(){return '1';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Locked</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Locked(){return '2';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LockOrder</Name>
+				<Source><![CDATA[
+    //LockOrders
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str LockOrder(){return 'LockOrder';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UnlockOrder</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str UnlockOrder(){return 'UnlockOrder';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Type</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Type(){return 'Type';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Pick</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Pick(){return 'Pick';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Receive</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Receive(){return 'Receive';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Count</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Count(){return 'Count';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TypeMove</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str TypeMove(){return 'Move';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ItemBarcode</Name>
+				<Source><![CDATA[
+    //Registration Node
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ItemBarcode(){return 'ItemBarcode';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ActionType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ActionType(){return 'ActionType';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>OpenActionType</Name>
+				<Source><![CDATA[
+    public static str OpenActionType(){return 'OpenAction';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PageMenuItemActionType</Name>
+				<Source><![CDATA[
+    public static str PageMenuItemActionType(){return 'PageMenuItemAction';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FromBin</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str FromBin(){return 'FromBin';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ToBin</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ToBin(){return 'ToBin';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SerialNumber</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str SerialNumber(){return 'SerialNumber';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SerialId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str SerialId(){return 'SerialId';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LotNumber</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str LotNumber(){return 'LotNumber';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>BatchId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str BatchId(){return 'BatchId';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RegisteredQuantity</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RegisteredQuantity(){return 'RegisteredQuantity';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UnitOfMeasure</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str UnitOfMeasure(){return 'UnitOfMeasure';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LineNumber</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str LineNumber(){return 'LineNumber';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ItemNumber</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ItemNumber(){return 'ItemNumber';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Description(){return 'Description';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ValidateFromBin</Name>
+				<Source><![CDATA[
+    //InventDimGroup
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ValidateFromBin(){return 'ValidateFromBin';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ValidateToBin</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ValidateToBin(){return 'ValidateToBin';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RegisterSerialNumber</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RegisterSerialNumber(){return 'RegisterSerialNumber';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RegisterLotNumber</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RegisterLotNumber(){return 'RegisterLotNumber';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RegisterExpirationDate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RegisterExpirationDate(){return 'RegisterExpirationDate';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RegisterQuantityByScan</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RegisterQuantityByScan(){return 'RegisterQuantityByScan';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UnderDeliveryValidation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str UnderDeliveryValidation(){return 'UnderDeliveryValidation';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>OverDeliveryValidation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str OverDeliveryValidation(){return 'OverDeliveryValidation';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AllowBinChange</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AllowBinChange(){return 'AllowBinChange';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Warehouse</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Warehouse(){return 'Warehouse';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FromWarehouse</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str FromWarehouse(){return 'FromWarehouse';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ToWarehouse</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ToWarehouse(){return 'ToWarehouse';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Route</Name>
+				<Source><![CDATA[
+    //Logical tables
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Route(){return 'Route';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Route_Number</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Route_Number(){return 'Number';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Route_Name</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Route_Name(){return 'Name';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InventTransType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str InventTransType(){return 'InventTransType';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Warehouse_InventLocationId</Name>
+				<Source><![CDATA[
+    // Column names
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Warehouse_InventLocationId(){return 'InventLocationId';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Warehouse_Name</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Warehouse_Name(){return 'Name';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Location</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Location(){return 'Location';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RegisterBarcode</Name>
+				<Source><![CDATA[
+    // Register Barcode
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RegisterBarcode(){return 'RegisterBarcode';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SalesId</Name>
+				<Source><![CDATA[
+    // Profit Loss Journal
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str SalesId(){return 'SalesId';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>JournalId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str JournalId(){return 'JournalId';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ProfitLoss</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ProfitLoss(){return 'ProfitLoss';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ProfitLossJournal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ProfitLossJournal(){return 'ProfitLossJournal';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ProfitLossJournalLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ProfitLossJournalLine(){return 'ProfitLossJournalLine';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CreateProfitLossJournal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str CreateProfitLossJournal(){return 'CreateProfitLossJournal';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CreateProfitLossJournalLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str CreateProfitLossJournalLine(){return 'CreateProfitLossJournalLine';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Dimension2</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Dimension2(){return 'Dimension2';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Dimension3</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Dimension3(){return 'Dimension3';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Dimension4</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Dimension4(){return 'Dimension4';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ProfitLossJournalPostOptions</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ProfitLossJournalPostOptions(){return 'ProfitLossJournalPostOptions';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LineQuantity</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str LineQuantity(){return 'LineQuantity';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>YesNo</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str YesNo(){return 'YesNo';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lineBreak</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str lineBreak(){return '\r\n';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TagCountingJournal</Name>
+				<Source><![CDATA[
+    // Unplanned Tag Counting
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str TagCountingJournal(){return 'TagCountingJournal';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TagCountingJournalLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str TagCountingJournalLine(){return 'TagCountingJournalLine';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TagCountingJournalLineLookup</Name>
+				<Source><![CDATA[
+    public static str TagCountingJournalLineLookup(){return 'TagCountingJournalLineLookup';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CreateTagCountingJournal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str CreateTagCountingJournal(){return 'CreateTagCountingJournal';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CreateTagCountingJournalLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str CreateTagCountingJournalLine(){return 'CreateTagCountingJournalLine';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>VendorName</Name>
+				<Source><![CDATA[
+    // Receive filter
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str VendorName(){return 'VendorName';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ReferenceDataTable_VendorTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ReferenceDataTable_VendorTable(){return 'VendorTable';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>VendorTable_AccountNumber</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str VendorTable_AccountNumber(){return 'AccountNumber';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>VendorTable_Name</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str VendorTable_Name(){return 'Name';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddCountLine</Name>
+				<Source><![CDATA[
+    // Add Line to Count Journal
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AddCountLine(){return 'AddCountLine';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddCountLine_ItemNumber</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AddCountLine_ItemNumber(){return 'ACL_ItemNumber';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddPickLine</Name>
+				<Source><![CDATA[
+    // Add Line to Pick Order
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str AddPickLine(){return 'AddPickLine';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>accountKey</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str accountKey()
+    {
+        str accountKey = 'SHivOb9zzW96q2Rp4Ciox+5UDkOrucEv/uzSIpVhvPEtShsrdb5gqzALTfHEcmQY';
+        return TFMCrypt::Construct().decrypt(accountKey);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>accountAddress</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str accountAddress()
+    {
+        str accountAddress = 'vr7wgvc8c+VYYUA1Fa5WEtLYrVNxxPAsMs0sqMwhDhASPu58sf21ox7IiRwTsNPN2NBFfFkrTP+ngLcXk38UTwpVMyOY+89F8gpmrYYkmwq44MuuZxK5jz4VCmEtseUtgvPlpo1BeQkdozLi3PGfAOoEIlXwas4Gu/2mGiHlLKY=';
+        return TFMCrypt::Construct().decrypt(accountAddress);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PackingSlip</Name>
+				<Source><![CDATA[
+    // Register Packing Slip
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str PackingSlip(){return 'PackingSlip';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ReferenceDataTable_ReturnDisposition</Name>
+				<Source><![CDATA[
+    // Receive Sales Return Order (){return RMA;}
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ReferenceDataTable_ReturnDisposition(){return 'ReturnDisposition';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RMA_QA</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RMA_QA(){return 'QA';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RMA_CauseId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RMA_CauseId(){return 'CauseId';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RMA_Name</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RMA_Name(){return 'Name';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RegisterExtraInfo</Name>
+				<Source><![CDATA[
+    // XML Elements
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str RegisterExtraInfo(){return 'RegisterExtraInfo';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExtraInfo</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ExtraInfo(){return 'ExtraInfo';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExtraInfo_Value</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ExtraInfo_Value(){return '\%1{[\%2][defaultValue][\%3]}';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ItemSearch</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ItemSearch()
+    {
+        return 'ItemSearch';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Search_Item</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Search_Item(){return MobConstants::ItemSearch();}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Search_Customer</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Search_Customer(){return 'CustomerSearch';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Search_Vendor</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Search_Vendor(){return 'VendorSearch';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ItemSearchHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ItemSearchHeader(){return 'ItemSearchHeaderConf';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CustomerSearchHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str CustomerSearchHeader(){return 'CustomerSearchHeaderConf';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>VendorSearchHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str VendorSearchHeader(){return 'VendorSearchHeaderConf';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SearchValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str SearchValue(){return 'SearchValue';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Search</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Search()
+    {
+        return 'Search';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ElementParameters</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ElementParameters(){return 'parameters';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SearchResult</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str SearchResult(){return 'SearchResult';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IdValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str IdValue(){return 'IdValue';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Number</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Number(){return 'Number';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetPickOrders</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str GetPickOrders(){return 'GetPickOrders';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Attachment</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str Attachment(){return 'Attachment';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ItemRequirement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+    public static str ItemRequirement(){return 'ItemRequirement';}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>WorkflowStandard</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant for the standard workflow</returns>
+    public static str WorkflowStandard()
+    {
+        return 'Standard';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MenuGroupMainMenu</Name>
+				<Source><![CDATA[
+    public static str MenuGroupMainMenu()
+    {
+        return 'MainMenu';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MenuType</Name>
+				<Source><![CDATA[
+    public static str MenuType()
+    {
+        return 'Menu';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MenuItemShowImage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant for the action menu item for show image</returns>
+    public static str MenuItemShowImage()
+    {
+        return 'showImage';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MenuItemTypeBarcode</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant for the action menu item type barcode</returns>
+    public static str MenuItemTypeBarcode()
+    {
+        return 'typeBarcode';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MenuItemRegisterImage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant for the action menu item register image (attach image)</returns>
+    public static str MenuItemRegisterImage()
+    {
+        return 'RegisterImage';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ViewPendingRegistrations</Name>
+				<Source><![CDATA[
+    public static str ViewPendingRegistrations()
+    {
+        return 'ViewPendingRegistrations';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Predefined_ShowImage_Page</Name>
+				<Source><![CDATA[
+    public static str Predefined_ShowImage_Page()
+    {
+        return 'Predefined_ShowImage';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SuppressRefreshAfterSuccessfulPost</Name>
+				<Source><![CDATA[
+    public static str SuppressRefreshAfterSuccessfulPost()
+    {
+        return 'returnTransferSuppressRefreshOnCompleted';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>errorIconBase64</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+	public static str errorIconBase64()
+    {
+        return 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAFhUlEQVR42tWVa1ATVxTHz+4GNi9ShGJ4hDckCsUxYq1S64NarNVO6wOxUl8dq3X8IKUCoq2tjohWxmk6dbTthwr4KIyPcYq11frAOlBbLaiVEkTACMSKKI/EkJDd7d1EKJssJDA4Tv8zmezu3Xv/v3vuOWcxeMbC/pcA74bI5SFioUomEPiyK3R2W1t1j83aQt29f54awHpliHJRsPz9IBE5F91G8Mxl0K9ObzIfL268/+0O7Z2aYQFYGRbon6kK+dzLQ7AY3RJu8lJGK3Uor0aXua+u6d6QAQpfjEmaIfc5iC6fH2xon+hBacuj1EWXb54eNEDJy2NS40fI9qNLwRDNe2S91mZY/vqlyoNuA+SjnSfJfU4Og3kvBIrEbL5IOAGsCAvw3/5C5A0Yetj704MtVfVxjjnhBKCdObFA5iFY4jRd6gWYegIwv54d0AV75VVgKn4HMHQ6jaHELIz6qXxpvwBp0cHKLFVoFThmu1QGguwcgJBwoIv2A11yhNccn7MA8JTlALp6sOZuQhAdjq9Qmlt3Y/qWKAfgt+njd4VKhOuddjUmHoj0zYAJBMAwDNDFBUD/UMw1fzMZ8IXLAMMwYKxWoHZvBeb6VSdI1Cfyxp39I4MXQD9nci36i3Sc1GG2gFH9EgRnbQGMIOwQRwqBPlFkN38rBfAFS+zmFAV3d34KkorLICM9+QJ1O6DkUpQTQLJipPzLsUo98OQFa3jP8BiwhKmgWL/ZBoEeAnXMXlnEvFQ0y27emId2XlYK/lKxDYhHTOb12oCett37xkfKkCmo3ZZCP2Ih9AYjECjJgtI/BgzHueM0DU27twGFkjRAKunP3Kavau9Ozam+c5EDsCUmfO6qiKBjMIBYiGYEIZiWBEHrsnshbOaaXLBeOA2BLsxZ5d/Rz9tw4/ZxDsBno8PmrY5UHAUXYiE6ExLBZ006B+Dh3t3gVXbOpTmr/Q3N87P/qjvGAciKDp6fpgo94moynjgL8BVr7QmHjG2LIBBbYn63B+hzp1wC7L2lW7BVqzvKAVgT5p/0SWzkzwPtAJ8xG/Bla56YU+jMt9ueB6VvRBBPqiN/L9C/nBwwgjur6mZq6vWnOQBvy32UmnEqrSfB/8XFX5sD+NIPekutkU24S+dsY8TkRFCwidlTogX7gD5TwruOBc3NqKxRFetbazgAcV5i/PsJMa0+IqG34yRsfAIQ6zb+Z45KjSq7YEs4VmxiEgnTekuUhaA024G5UuYE8NDU1bb0yt++V9uNNAeA1ZmJsUWxvt4LHY/BjMIL6zaBZGw8NO7aCnR5KafUekoUn4T6RMZmMFaiDqjJARIdk2P4qx+2FSeW30zp3VzfFzIjA2e9FxH043MkyQVArbWxywKkKhbw6hu8dd4DQY+KA7P2JiiEnkAKuF/zdrMZDtQ3v7GttukUL0C4iMTy1dFXw71laoFDozFbKWhDC4wUi/otNRbi/mMTeKMNkAJuLllRxdS3dVSsvFYbX2PsYngBWGVEBE5JVvidV3hJcXdq2h2xYI2dBvpE84PpObVNF/uO8TocVkfnKmXSDQH99/NBmevRd6Su07gj+c+abMdx3tUjxCSuiQ0/JBeRKex5Ox6Hu2LDzuZFi8lc9GFVw2IUetotAFZKiZDYMSp0jx/psdpPIgKZp6fb0WB33WGxQIvRBK2W7q83VuvWVhlMFN+7LlfMGx36znhv6RceOD7SW0iC1NMD0DVvFXSjHRss3dDWZWav71e2G9PSqhoOD7S+W1ua4uMlW6LwWxstEa1Ct2EEMmc7JoHbp1M0Y+twFGNL7obbxq5vDjS17Dnf2tHhau1BZViUWIhNGiFVj5aKEwKEHiopQfiyz40U1ao3d2urDaay8kedFX3LbFgBnob+Bc7pTT+OJkz1AAAAAElFTkSuQmCC';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>warningIconBase64</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant</returns>
+	public static str warningIconBase64()
+    {
+        return 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACfElEQVR42mNkGGDAOGQdYKXPzOrvwOrICDRhy6Hf+w+d+/ubbg7wc2DhW9jEtZeJidEExP////+Z1Kbvzqt3//5EFwdcW8fbIy3GVIws9urdv15Vv88lNHdAoj+b6IRSzntAJg+a1JeKid+Vpq/+9ZqmDriyhrdLVoKpFJvcizf/utUDPpfRzAF4fE92KJDkAHy+JzcUiHYAEb4nKxSIdgA23996zg+m1SQ/kh0KRDkAm+9BlmfNswezpyUdRHcE0aFAlAOw+f74bXGGmlUWYHZL2AkGS9WXZIUCQQfgivurTwQZ8hbagdmT4g8xaMu8R9dKVCgQdACulP/oDQ9D4kxnMHt++l4GOZEvGHqJCQW8DsCX8j98ZWMInuAJZq8t2M4gwP0LmxEEQwGvA/Dl+7//GBnc2n3B7F2VmxmYmf5jNYNQKOB0ADH53q/HC0xvKtmGzx94QwGnA4gp9aKnuoDppdl78CnDGwpYHUBsqZc5F1IOTE8+yEAA4AwFrA4gxvcgULbMEkx3RR0npBRnKGA4gIQyH1wWgACWMoDoUMBwALG+BwFcdQEpoYDiAFJ8T6AuIDoUUBxAqu/JcABGKMAdEO3FKjKtius+Mb5HdgQIEGs5LBQKe74rztvw6w2KA7oLOQLTgtnXkWISuWDR5l9BuZ3f16M4oCuF0z89nm0DzftKwBJ74bJfAXnTv29EcUBTMKdjfjz7PgbB/7TrsIGqi/eMDDOW/XIqX/FtP4oDdGWYmQ7W8h1i4WKwZmD7z0B9VwDN/MXI8Pc7w1GXtk92Zx/8/YfiABBw02HlqQ7gLJAWZNKlhQuef/h3uX3T9wnbLv6GNx4GvHcMAASUTjBaRCOdAAAAAElFTkSuQmCC';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ClientIDName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The name of the ClientID used to connect devices to Azure.
+    /// </summary>
+    /// <returns></returns>
+    public static str ClientIDName()
+    {
+        return 'Mobile WMS ClientId';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>collectorMapHelperName</Name>
+				<Source><![CDATA[
+    public static str collectorMapHelperName()
+    {
+        return 'name';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>collectorMapHelperPrefix</Name>
+				<Source><![CDATA[
+    public static str collectorMapHelperPrefix()
+    {
+        return 'mob';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CollectorMapFieldPrefix</Name>
+				<Source><![CDATA[
+    public static str CollectorMapFieldPrefix()
+    {
+        return 'fieldPrefix';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GroupedLinesPrefix</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Lines that are grouped on the datasource get a prefix
+    /// </summary>                                                 
+    /// <returns>G_</returns>
+    public static str GroupedLinesPrefix()
+    {
+        return 'G_';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pdsvendbatchdate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant: pdsvendbatchdate</returns>
+    public static str pdsvendbatchdate()
+    {
+        return 'pdsvendbatchdate';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pdsvendexpirydate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constant method
+    /// </summary>
+    /// <returns>A constant: pdsvendexpirydate</returns>
+    public static str pdsvendexpirydate()
+    {
+        return 'pdsvendexpirydate';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

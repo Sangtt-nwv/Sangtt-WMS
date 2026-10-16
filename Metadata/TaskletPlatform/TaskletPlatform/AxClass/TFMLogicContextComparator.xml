@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContextComparator</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicContextComparator extends TFMLogicContextTools
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        inputTypes.add(TFMLogicContextTypes::Boolean);
+        inputTypes.add(TFMLogicContextTypes::Date);
+        inputTypes.add(TFMLogicContextTypes::Decimal);
+        inputTypes.add(TFMLogicContextTypes::Integer);
+        inputTypes.add(TFMLogicContextTypes::String);
+        noOfInput = 2;
+        outputType = TFMLogicContextTypes::Boolean;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Name</Name>
+				<Source><![CDATA[
+    public Name Name()
+    {
+        return "@TFM:Comparator";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public Object process()
+    {
+        Object ret;
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>icon</Name>
+				<Source><![CDATA[
+    public ResourceName icon()
+    {
+        return resourceStr(TFMOperatorComparator);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>evaluate</Name>
+				<Source><![CDATA[
+    public anytype evaluate(TFMLogicContext _context)
+    {
+        anytype         ret, previous;
+        SetEnumerator   sEnum;
+        TFMCondition    condition;
+        boolean         isSimilar = true; 
+        boolean         first = true;
+        if (children == null)
+        {
+            return true;
+        }
+        sEnum = children.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            condition = sEnum.current();
+            ret = condition.evaluate(_context);
+            if (!ret)
+            {
+                return true;
+            }
+            if (!first)
+            {
+                isSimilar = isSimilar && (previous == ret);
+            }
+            previous = ret;
+            first = false;
+        }
+
+        return isSimilar;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

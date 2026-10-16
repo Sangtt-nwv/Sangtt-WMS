@@ -1,0 +1,164 @@
+.loader {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 42%;
+}
+
+.loader img {
+    z-index: 100;
+    position: absolute;
+    margin-top: 20px;
+}
+
+.square-section {
+    background-color: rgb(255,255,255,0.5);
+}
+
+.center {
+    padding: 5px;
+    text-align: center;
+}
+
+
+
+.group_title{
+    font-size: large;
+}
+
+.blue-background-class {
+    background-color: #C8EBFB;
+}
+
+.col {
+    margin-right: 20px;
+    padding: 10px;
+    float: left;
+    min-width: 450px;
+    width: 450px;
+    border-radius: 5px;
+    border: solid #5fadd0 1.4px !important;
+}
+
+.colavail
+{
+    margin-right: 20px;
+    padding: 10px;
+    width: 595px;
+    flex: 1;
+    border-radius: 5px;
+    border: solid #5fadd0 1.4px !important;
+}
+
+.selected {
+    background-color: #f9c7c8;
+    border: solid red 1px !important;
+    z-index: 1 !important;
+}
+
+.highlight {
+    background-color: #B7F8C7;
+}
+
+.row{
+    padding: 10px;
+    display: flex;
+}
+
+.standardImg {
+    position: relative;
+    display: block;
+    top: -100px;
+    width: 16px;
+    float: right;
+
+}
+
+.menugrid {
+    height: 98%;
+    margin-left: 33px;
+}
+
+.menuitems_menuicon {
+    height: 36px;
+}
+
+.menutitle {
+    font-size: 0.9em;
+    font-weight: bold;
+    padding: 3px;
+    text-align: center;
+    min-height: 2em;
+    height: 2em;
+    line-height: 1em;
+    max-width: 100px;
+    overflow-wrap: break-word;
+    overflow-y: hidden;
+}
+
+.menuitemstitle {
+    font-size: 1.1em;
+    font-weight: bold;
+    padding-bottom: 2px;
+    text-align: center;
+    min-height: 2em;
+    height: 2em;
+    line-height: 1em;
+    width: 80px;
+    max-width: 80px;
+    overflow-wrap: break-word;
+    overflow-y: hidden;
+}
+
+.grid-square {
+    width: 90px;
+    height: 100px;
+    border-radius: 5px;
+    display: inline-block;
+    padding: 10px;
+    margin: 7px;
+    z-index: 2;
+    overflow-wrap: break-word;
+    flex-wrap: wrap;
+}
+
+.menuicon {
+    width: 64px;
+}
+
+
+.row *{
+    box-sizing: revert;
+}
+
+.gridmenu-button {
+    float: right;
+}
+
+    .gridmenu-button button {
+        border: 1px solid #ccc !important;
+        color: #000 !important;
+        border-radius: 5px;
+        display: inline-block;
+        padding: 8px 16px;
+        vertical-align: middle;
+        overflow: hidden;
+        text-decoration: none;
+        text-align: center;
+        -webkit-appearance: button;
+        background-color: #f2f9ff;
+    }
+
+        .gridmenu-button button:hover {
+            border-color: #4CAF50 !important;
+        }
+
+    .gridmenu-button img{
+        width: 16px; 
+        padding-right: 10px;
+        vertical-align: bottom;
+    }
+
+    .gridmenu-button span {
+        vertical-align: baseline;
+    }

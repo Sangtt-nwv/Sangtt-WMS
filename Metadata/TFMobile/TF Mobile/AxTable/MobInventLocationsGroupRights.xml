@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobInventLocationsGroupRights</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobInventLocationsGroupRights extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>existsUser</Name>
+				<Source><![CDATA[
+    public static boolean existsUser(userId _userId, InventLocationId _inventLocationId)
+    {
+        UserGroupList list;
+        MOBInventLocationsGroupRights inventLocationRights;
+    
+        select count(RecId) from inventLocationRights;
+
+        if (inventLocationRights.RecId == 0)
+        {
+            //One Click setup
+            return true;
+        }
+
+        while select RecID from list
+            where list.userId == _userId
+        join RecID from inventLocationRights
+            where inventLocationRights.InventLocationId == _inventLocationId
+              && inventLocationRights.UserGroupId == list.groupId
+        {
+            return true;
+        }
+    
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exists</Name>
+				<Source><![CDATA[
+    public static boolean exists(SysGroup _sysGroup, InventLocationId _inventLocationId)
+    {
+        MOBInventLocationsGroupRights inventLocationRights;
+        select count(RecId) from inventLocationRights;
+
+        if (inventLocationRights.RecId == 0)
+        {
+            //One Click setup
+            return true;
+        }
+        return (select firstOnly RecID from MOBInventLocationsGroupRights
+                    where MOBInventLocationsGroupRights.UserGroupId      == _sysGroup
+                       && MOBInventLocationsGroupRights.InventLocationId == _inventLocationId).RecID != 0;
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDefaultWarehouse</Name>
+				<Source><![CDATA[
+    public static InventLocation getDefaultWarehouse()
+    {
+        MobInventLocationsGroupRights   inventLocationRights;
+        InventLocation                  inventLocation;
+        UserGroupList                   userGroupList;
+
+        select firstonly inventLocationRights order by inventLocationRights.DefaultLocation desc, inventLocationRights.InventLocationId asc
+                    join GroupId from userGroupList
+                        where userGrouplist.userId == curUserId()
+                        && inventLocationRights.UserGroupId == userGroupList.GroupId;
+        inventLocation = inventLocation::find(inventLocationRights.InventLocationId);
+        return inventLocation;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@MobileWMS:InventLocationsGroupRightsDevDesc</DeveloperDocumentation>
+	<Label>@MobileWMS:MEL91</Label>
+	<TitleField1>InventLocationId</TitleField1>
+	<TitleField2>UserGroupId</TitleField2>
+	<ClusteredIndex>Primary</ClusteredIndex>
+	<CreateRecIdIndex>No</CreateRecIdIndex>
+	<PrimaryIndex>Primary</PrimaryIndex>
+	<ReplacementKey>Primary</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>InventLocationId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserGroupId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DefaultLocation</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>InventLocationId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserGroupId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DefaultLocation</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventLocationId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserGroupId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>InventLocationId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>InventLocationId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>UserGroupId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>UserGroupId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DefaultLocation</Name>
+			<Label>@SYS26467</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>Primary</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>InventLocationId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>UserGroupId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>InventLocation</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<RelatedTable>InventLocation</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>InventLocationId</Name>
+					<SourceEDT>InventLocationID</SourceEDT>
+					<Field>InventLocationId</Field>
+					<RelatedField>InventLocationId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

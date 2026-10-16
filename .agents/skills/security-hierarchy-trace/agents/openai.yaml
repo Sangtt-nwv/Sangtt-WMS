@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Security"
+  short_description: "Trace and scaffold D365FO security hierarchies"
+  default_prompt: "Use $security-hierarchy-trace to audit or create D365FO security objects."

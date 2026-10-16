@@ -1,0 +1,34 @@
+<script src="/Resources/scripts/drawflow.min.js" ></script>
+<script src="/Resources/scripts/TFMDrawFlowControl.js"></script>
+
+<link href="/resources/styles/drawflow.min.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" type="text/css" href="/resources/styles/beautiful.css" />
+<link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet" />
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+<script src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.hotkeys/0.2.0/jquery.hotkeys.min.js"></script>
+<script src="/Resources/scripts/TFMDrawFlowControlEdit.js"></script>
+<div id="TFMDrawFlowControl" data-dyn-bind="sizing: {height: $data.Height, width: $data.Width }, visible: $data.Visible">
+    <div class="wrapper">
+        <div id="drawflowloader" class="drawflowloader" ><img src="resources/images/loading.gif" alt="Loading" /></div>
+        <div class="col" id="blockColumn">
+
+        </div>
+        <div class="col-right">
+            <div class="bar-zoom">
+                <div class="icon-with-label" >
+                    <i class="fa fa-save selected" data-dyn-bind="click: $control.sendJSONtoD365"></i>
+                    <span>Save</span>
+                </div>
+                <div class="vertical-divider"></div>
+                <i class="fa fa-search-minus" data-dyn-bind="click: $control.zoom_out"></i>
+                <i class="fa fa-search" data-dyn-bind="click: $control.zoom_reset"></i>
+                <i class="fa fa-search-plus" data-dyn-bind="click: $control.zoom_in"></i>
+            </div>
+            <div id="drawflow" ondrop="drop(event)" ondragover="allowDrop(event)">
+
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocBatchOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentTypeAttribute(methodStr(MobDocBatchOrder,GetBatchOrders)),
+TFMMenu('BatchOrder',"@WAX5706", "Register on Batch Order", resourceStr(MobProduction),true,true,['Production'])]
+class MobDocBatchOrder extends TFMDocumentHandler
+{
+    XML                         returningXML;
+    MobDocumentContentSubject   content;
+ 
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret = new Map(Types::String, Types::String);
+        ret.insert('BatchOrder', "@PRO482");
+        ret.insert('BatchOrderLines', strFmt('%1 %2',"@PRO1522","@SYS858"));
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>BatchOrdersFilter</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration BatchOrdersFilter()
+    {
+        TFMReferenceDataConfiguration   refData = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorList    regCollectorList = TFMGetReferenceData::createDefaultWarehouseReferenceData(1);
+        refData.addCollector(regCollectorList);
+        return refData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {        
+        return "@PRO482";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages ret = super();
+        TFMPageOrderList					listPage = new TFMPageOrderList();
+        TFMPageOrderLines					linesPage = new TFMPageOrderLines();		
+        TFMPageOrderListConfiguration		listconfig;
+        listPage.parmId('BatchOrder');
+        listPage.parmFilter(methodStr(MobDocBatchOrder,BatchOrdersFilter));
+        listPage.parmIcon('production');
+        listPage.parmTitle('@{BatchOrder}');
+
+        listconfig = listPage.getConfiguration();
+        listconfig.parmNavigateTo('BatchOrderLines');
+        ret.addPage(listPage);
+
+        linesPage = listPage.createLinesPage();
+        linesPage.parmTitle('@{BatchOrderLines}');
+        linesPage.addAction('ProdErrorQty',1,2);
+        linesPage.addAction(MobConstants::LocateItem(),2);
+        ret.addPage(linesPage);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetBatchOrderLines</Name>
+				<Source><![CDATA[
+    private str GetBatchOrderLines()
+    {
+        XmlElement							ordersElement;
+        str									backendid;
+        container							backendIDcon;
+        MobOrder							mobOrder;
+        MapEnumerator						returnedRecords;
+        Map									postPromptCollectors;
+        Map									additionalValues = new Map(Types::String, Types::String);
+        int									i;
+        ProdTable							prodTable;
+        TFMXMLFormat						xmlFormat;
+        MobXMLFormatOrderLines_BatchOrder	headFormatter;
+        // get BackendId
+        backendid = requestXml.root().getNamedElement(MobConstants::requestData()).childNodes().item(0).innerText();
+        resultXml   = new XmlDocument();
+        ordersElement = resultXml.appendChild(resultXml.createElement(MobConstants::OrderLines()));
+        mobOrder = MobOrder::constructFromBackendID(backendid);
+        postPromptCollectors = mobOrder.getPostPromptCollectors(backendid);
+        postPromptCollectors = MobPostOrderPromptOverride::addToCollectors(postPromptCollectors,classIdGet(mobOrder),'',true,additionalValues);
+        MobOrder::addPostPromptCollectors(postPromptCollectors,ordersElement,additionalValues);
+        prodTable =  ProdTable::find(mobOrder.parmOrderId());
+        if (prodTable && (prodTable.QtyStUp -prodTable.reportedFinishedGood()) > 0 && InventTable::find(ProdTable.ItemId).PmfProductType != PmfProductType::MainItem)
+        {
+            headFormatter = new MobXMLFormatOrderLines_BatchOrder();
+            headFormatter.initFromCommon(resultXml, prodTable, 0, mobOrder.parmOrderType());
+            headFormatter.parmPageID('BatchOrderLines');
+            headFormatter.run();
+        }
+        returnedRecords = MobOrder.getLineRecords(request).getEnumerator();
+        while (returnedRecords.moveNext())
+        {
+            xmlFormat = TFMXMLFormat::constructFromCommon(resultXml,returnedRecords.currentValue(),i, mobOrder.parmOrderType());
+            xmlFormat.parmPageID('BatchOrderLines');
+            xmlFormat.run();
+            i++;
+        }
+        content = strFmt("@MobileWMS:orderlinesretrieved" ,mobOrder.parmOrderId(),i);
+        resultStr = content;//SysLabel::labelId2String2("");
+        returningXML = ordersElement.innerXml();
+        resultXml = null;
+        return resultStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetBatchOrders</Name>
+				<Source><![CDATA[
+    private str GetBatchOrders()
+    {
+        XmlElement              ordersElement;
+        TFMRequestGetOrdersElement  orderRequest = request;
+
+        // Create the response XML document where the found orders will be added to
+        resultXml   = new XmlDocument();
+        ordersElement = resultXml.appendChild(resultXml.createElement(MobConstants::Orders()));
+        // Before the search for orders is performed we get the filter values entered on the mobile device
+
+        content = strFmt("@MobileWMS:OrdersRetrieved" ,MobBatchOrderType::generateXML(resultXml, orderRequest.parmFilters(),orderRequest.parmFilters() ? orderRequest.parmFilters().getFieldValue(MobConstants::ScannedValue()) : '' ));
+        returningXML = ordersElement.innerXml();
+        resultXml = null;
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentContentSubject</Name>
+				<Source><![CDATA[
+    public MobDocumentContentSubject getDocumentContentSubject()
+    {
+        MobDocumentContentSubject ret;
+        ret = content;
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    public Set getDocumentTypes()
+    {
+        Set ret = new Set(Types::String);
+        ret.add(methodStr(MobDocBatchOrder,GetBatchOrders));
+        ret.add(methodStr(MobDocBatchOrder,GetBatchOrderLines));
+        ret.add(methodStr(MobDocBatchOrder,PostBatchOrder));
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResult</Name>
+				<Source><![CDATA[
+    public XML getResult()
+    {
+        if (resultXml)
+        {
+            return resultXml.xml();
+        }
+        return returningXML;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PostBatchOrder</Name>
+				<Source><![CDATA[
+    private str PostBatchOrder()
+    {
+        TFMRequestBasicElement      root = request as TFMRequestBasicElement;
+        MobOrder                    mobOrder;
+        UserConnection              uc;
+        
+        mobOrder = MobOrder::constructFromBackendID(root.parmOrder().parmBackendID());
+
+        ttsbegin;
+        resultStr = mobOrder.postRequest(root.parmOrder());
+        ttscommit;
+        content = strFmt("@MobileWMS:OrderPosted", mobOrder.parmOrderId());
+        uc = new UserConnection();
+        uc.ttsbegin();
+        mobOrder.postPromptExtraStepsExecution(root.parmOrder().getFieldMap());
+        uc.ttscommit();
+        resultXml = mobOrder.parmResultXML();
+
+        return resultStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerMenu</Name>
+				<Source><![CDATA[
+    public container registerMenu()
+    {
+        container ret;
+        ret = [['BatchOrder', "@WAX5706", true, resourceStr(MobProduction)]];
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

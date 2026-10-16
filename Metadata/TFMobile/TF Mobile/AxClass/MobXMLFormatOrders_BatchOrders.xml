@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_BatchOrders</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for purchase orders.
+/// </summary>
+[TFMTableNameAttribute(tableStr(ProdTable),'BatchOrder')]
+class MobXMLFormatOrders_BatchOrders extends TFMXMLFormatOrders
+{
+    ProdTable   prodTable;
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        PmfProdCoBy     prodCoBy;
+        super();
+        prodTable          = common;
+        
+        displayLine1            = strFmt("@SYS76766", new DictField(tablenum(ProdTable), fieldnum(ProdTable, ProdID)).Label(),prodTable.ProdId);
+        displayLine2            = strFmt("@SYS76766", new DictField(tablenum(ProdTable), fieldnum(ProdTable, itemID)).Label(),ProdTable.ItemId);
+        displayLine3            = strFmt("@SYS76758", new DictField(tablenum(ProdTable), fieldnum(ProdTable, QtyStUp)).Label(), MobHelper::formatItemQty(prodTable.QtyStUp - prodTable.reportedFinishedGood(), prodTable.inventTable().BOMUnitId),prodTable.inventUnitId());
+        displayLine4            = strfmt("@SYS76766",new DictField(tablenum(ProdTable), fieldnum(ProdTable, ProdStatus)).Label(), prodTable.ProdStatus);
+        displayLine5            = "@PRO112" + ':' + MobConstants::lineBreak();
+
+        while select prodCoBy where prodCoBy.ProdId == prodTable.ProdId && prodCoBy.RemainCoByPhysical && prodCoBy.ProductType == PmfProductType::Co_Product
+        {
+            displayLine5            += MobHelper::formatItemQty(prodCoBy.QtyCoByStUp - (prodCoBy.QtyCoByCalc - prodCoBy.RemainCoByPhysical), prodCoBy.inventUnit(),true) +' ' + prodCoBy.inventUnit() + ' ' +InventTable::find(prodCoBy.itemId).productName(new xInfo().language())+ MobConstants::lineBreak();
+        }
+
+        displayLine5            += "@PRO79" + ':' + MobConstants::lineBreak();
+
+        while select prodCoBy where prodCoBy.ProdId == prodTable.ProdId && prodCoBy.RemainCoByPhysical && prodCoBy.ProductType == PmfProductType::By_Product
+        {
+            displayLine5            += MobHelper::formatItemQty(prodCoBy.QtyCoByStUp - (prodCoBy.QtyCoByCalc - prodCoBy.RemainCoByPhysical), prodCoBy.inventUnit(),true) +' ' + prodCoBy.inventUnit() + ' ' +InventTable::find(prodCoBy.itemId).productName(new xInfo().language())+ MobConstants::lineBreak();
+        }
+        
+        sorting                 = '1';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobLogicStepOperatorInterface</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+interface MobLogicStepOperatorInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>runLogic</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Operator logic is run. Name of output to enable connected block on is returned.
+    /// </summary>
+    /// <param name = "_request">An TFMRequestElement from the device request.</param>
+    /// <returns>Name of the output, that should be activated following the processed logic.</returns>
+    public str runLogic ( TFMRequestElement _request )
+    {
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsProcessUnplannedCount</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Process definition for Unplanned Count
+/// </summary>
+class MwmsProcessUnplannedCount extends TFMProcess
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        MwmsLogicBlockCreateCountingJournal         jourBlock = MwmsLogicBlockCreateCountingJournal::Construct();
+        MwmsLogicBlockCreateCountingJournalLine     lineBlock = MwmsLogicBlockCreateCountingJournalLine::Construct();
+        MwmsLogicBlockPostInventoryJournal          postBlock = MwmsLogicBlockPostInventoryJournal::Construct();
+        processName = subStr(classId2Name(classIdGet(this)),strLen(classStr(TFMProcess))+2,100);
+        description = "@TaskletMobileWMS:Processusedtomakeajournalwithcou";
+        super();
+        
+        this.addBlock(jourBlock);
+        this.addBlock(lineBlock);
+        this.addBlock(postBlock);
+
+        this.linkBlocks(jourBlock,lineBlock,'1','1');
+        this.linkBlocks(lineBlock, postBlock,'1','1');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

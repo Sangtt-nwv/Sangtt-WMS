@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMTableNameAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The TFMTableNameAttribute class is an attribute to register with your classes, that binds the class to a certain table, which can be used as a way to construct the right corresponding class, when you have a specific table buffer on your hands.
+/// </summary>
+public class TFMTableNameAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    TableName       tableName;
+    TFMOrderTypes   orderType;
+    
+ 
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(TableName _tableName, TFMOrderTypes _type = '')
+    {
+        super();
+ 
+        tableName = _tableName;
+        orderType = _type;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    ///<summary>
+    /// Returns the key used for storing cached data for this attribute.
+    /// </summary>
+    /// <returns>
+    /// A string representing the cache key.
+    /// </returns>
+    public str parmCacheKey()
+    {
+        return classStr(TFMTableNameAttribute)+';'+tableName+';'+orderType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTableName</Name>
+				<Source><![CDATA[
+    public TableName parmTableName(TableName _tableName = tableName)
+    {
+        tableName = _tableName;
+ 
+        return tableName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOrderType</Name>
+				<Source><![CDATA[
+    public TFMOrderTypes parmOrderType(TFMOrderTypes _type = orderType)
+    {
+        orderType = _type;
+ 
+        return orderType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    ///<summary>
+    /// Determines if the same instance should be returned by the extension framework.
+    /// </summary>
+    /// <returns>
+    /// true if the same instance should be returned; otherwise false.
+    /// </returns>
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

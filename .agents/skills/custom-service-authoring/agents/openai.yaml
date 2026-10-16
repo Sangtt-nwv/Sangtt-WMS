@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Custom Services"
+  short_description: "Build D365FO custom service endpoints and groups"
+  default_prompt: "Use $custom-service-authoring to scaffold a D365FO custom service."

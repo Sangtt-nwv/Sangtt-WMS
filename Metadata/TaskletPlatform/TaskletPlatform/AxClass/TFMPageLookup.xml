@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageLookup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('Lookup', "@SYS40186")]
+class TFMPageLookup extends TFMPage
+{
+    
+    Set dataSources;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        description = "@TFM:TheLookuppageismadefordisplaying";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDataSource</Name>
+				<Source><![CDATA[
+    public void addDataSource(TableName _tableName)
+    {
+        dataSources.add(_tableName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDataSources</Name>
+				<Source><![CDATA[
+    public Set getDataSources()
+    {
+        return dataSources;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPageTiles</Name>
+				<Source><![CDATA[
+    protected void addPageTiles()
+    {
+        TFMCollectorMapAttribute    attribute   = new TFMCollectorMapAttribute(classStr(TFMLookup), this.parmId());
+        TFMDocumentTypeAttribute    docTypeattr = new TFMDocumentTypeAttribute(classStr(TFMGetRegistrationConfiguration), this.parmId());   
+        DictMethod                  Method;
+        
+        TFMPageLookupConfiguration	config = this.getConfiguration();
+        TFMMenu						navTo = config.parmNavigateTo();
+        str							navtotext;
+		if (navTo)
+        {
+            navtotext = 'Opens the page <i>' + navTo + '</i>';
+        }
+        if (docHand != null && ((TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classIdGet(docHand),attribute) != null) || (TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classIdGet(docHand),docTypeattr) != null)))
+        {            
+            navtotext = strFmt("@TFM:Opensuptheflow1", attribute.parmContentType());
+        }
+        if (TFMProcessProvider::GetAllProcessesImpl().processExists(this.parmId()))
+        {
+            navTo = formStr(TFMProcessOverview);
+            navtotext = strFmt("@TFM:Opensuptheflow1", this.parmId());
+        }
+        else if (!navTo && !navtotext)
+        {
+            navtotext = "@TFM:Noactionsdefined";            
+        }
+        super();
+        this.addHtmlEntry("@TFM:Whenlineisselected", navtotext, navTo, resourceStr(TFMEntityListClick));
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initializeDataSources</Name>
+				<Source><![CDATA[
+    public void initializeDataSources()
+    {
+        TFMPageDatasources		ds;
+        SysDictClass			sdc;
+        ListEnumerator			lEnum;
+        TFMTableNameAttribute	attr;
+        Array					array;
+        int						idx;
+        select firstonly RecId from ds where ds.PageID == name;
+        if (ds.RecId)
+        {
+            return;
+        }
+        lEnum = new SysDictClass(classNum(TFMXMLFormatLookup)).extendedBy(true).getEnumerator();
+        while (lEnum.moveNext())
+        {
+            sdc = new SysDictClass(lEnum.current());
+            array = sdc.getAttributes(classStr(TFMTableNameAttribute));
+            for (idx = 1; idx <= array.lastIndex(); idx++)
+            {
+                attr = array.value(idx);
+                if (strScan(sdc.name(), name,1,133))
+                {
+                    TFMPageDatasources::FindOrCreate(name,attr.parmTableName(),attr.parmOrderType());
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

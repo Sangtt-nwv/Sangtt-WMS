@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListValueElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListELementAttribute('Value')]
+class TFMListValueElement extends TFMListBase
+{
+    TFMListValueIf	valueIf;
+    Description255	dataMemberValue;
+    TFMFontID		fontId;
+    TFMDataSetField	text;
+    ResourceName	resName;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmIf</Name>
+				<Source><![CDATA[
+    [TFMParameter('', "If")]
+    public TFMListValueIfEnum parmIf(TFMListValueIfEnum _valueIf = valueIf)
+    {
+        valueIf = _valueIf;
+        return valueIf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDataMemberValue</Name>
+				<Source><![CDATA[
+    [TFMParameter('', "@TFM:DataMemberValue")]
+    public Description255 parmDataMemberValue(Description255 _dataMemberValue = dataMemberValue)
+    {
+        dataMemberValue = _dataMemberValue;
+        return dataMemberValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFontId</Name>
+				<Source><![CDATA[
+    [TFMParameter('','','textElement')]
+    public TFMFontID parmFontId(TFMFontID _fontID = fontID)
+    {
+        fontID = _fontID;
+        return fontID;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmText</Name>
+				<Source><![CDATA[
+    [TFMParameter('','','textElement')]
+    public TFMDataSetField parmText(TFMDataSetField _text = text)
+    {
+        text = _text;
+        return text;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmImageId</Name>
+				<Source><![CDATA[
+    [TFMParameter('','', 'imageElement')]
+    public ResourceName parmImageId(ResourceName _resName = resName)
+    {
+        resName = _resName;
+        return resName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>attributeSummary</Name>
+				<Source><![CDATA[
+    public str attributeSummary()
+    {
+        return 'If ' + strFmt('%1',valueIf) + ' ' + dataMemberValue + ': ' + text;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _parent, boolean _expandCustomComponents)
+    
+    {
+        XmlElement	valueElement = _parent.ownerDocument().createElement('value');
+		if(resName)
+        {
+            valueElement.setAttribute('imageId',resName);
+        }
+		if(text)
+        {
+            valueElement.setAttribute('text',text);
+        }
+		if (fontId)
+        {
+            valueElement.setAttribute('fontId',fontId);
+        }
+		if(dataMemberValue)
+        {
+            valueElement.setAttribute('dataMemberValue',dataMemberValue);
+        }
+        valueElement.setAttribute('if',TFMHelper::enumName(enumNum(TFMListValueIf),valueIf));
+        _parent.appendChild(valueElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>render</Name>
+				<Source><![CDATA[
+    public void render(TFMListVisualizationInterface _visualizer)
+    {
+        _visualizer.renderValue(this);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMProcessCombinedFields</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMProcessCombinedFields extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>MakeCombinedField</Name>
+				<Source><![CDATA[
+    public static void MakeCombinedField(TFMProcess _process, Name _newName, Name _field1, Name _field2)
+    {
+        TFMProcessCombinedFields            fieldHead;
+        TFMProcessCombinedFieldsSubHeaders  subFields;
+
+        fieldHead.ProcessID         = _process.parmProcessName();
+        fieldHead.Version           = _process.parmVersion();
+        fieldHead.CombinedFieldName = _newName;
+        fieldHead.insert();
+        subFields.ProcessID         = _process.parmProcessName();
+        subFields.Version           = _process.parmVersion();
+        subFields.CombinedFieldName = _newName;
+        subFields.SubHeaderName     = _field1;
+        subFields.insert();
+        subFields.SubHeaderName     = _field2;
+        subFields.insert();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IncrementVersion</Name>
+				<Source><![CDATA[
+    public static void IncrementVersion(TFMProcessID _processID, Version _fromVersion, Version _toVersion)
+    {
+        TFMProcessCombinedFields            fieldHead;
+        TFMProcessCombinedFieldsSubHeaders  subFields;
+
+        while select fieldHead where fieldHead.ProcessID == _processID && fieldHead.Version == _fromVersion
+        {        
+            fieldHead.Version           = _toVersion;        
+            fieldHead.insert();
+        }
+        while select subFields where subFields.ProcessID == _processID && subFields.Version == _fromVersion
+        {            
+            subFields.Version           = _toVersion;            
+            subFields.insert();
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createFromProcess</Name>
+				<Source><![CDATA[
+    public static void createFromProcess(TFMProcess _process, Version _newVersion)
+    {
+        SetEnumerator sEnum = _process.combinedFields().getEnumerator();
+        SetEnumerator                   subCols;
+        TFMProcessCombineFields         combiFields;
+        TFMRegistrationCollector        replaceCol;
+        TFMProcessCombinedFields            fieldHead;
+        TFMProcessCombinedFieldsSubHeaders  subFields;
+
+        
+
+        while (sEnum.moveNext())
+        {
+            combiFields = sEnum.current();
+            replaceCol = combiFields.parmReplacementCollector();
+            fieldHead.ProcessID         = _process.parmProcessName();
+            fieldHead.Version           = _newVersion;
+            fieldHead.CombinedFieldName = replaceCol.parmName();
+            fieldHead.insert();
+            subFields.ProcessID         = _process.parmProcessName();
+            subFields.Version           = _newVersion;
+            subFields.CombinedFieldName = replaceCol.parmName();
+            subCols = combiFields.getSubCollectors().getEnumerator();
+            while (subCols.moveNext())
+            {
+                subFields.SubHeaderName     = subCols.current();
+                subFields.insert();
+            }
+
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRequestXml</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to reinsert the fields into the xml, that was combined into another field, so the logic can access the values as if they had been in the xml all the time. This is done before serialization.
+    /// </summary>
+    /// <param name = "_requestXml">The request xml object</param>
+    /// <param name = "_processId">The process ID to combine the fields for</param>
+    /// <param name = "_processVersion">The Version of the process - if no version provided default ot the newest locked version.</param>
+    public static void modifyRequestXml(XmlDocument _requestXml, TFMProcessID _processId, Version _processVersion = TFMProcessVersion::newestVersion(_processId, true))
+    {
+        TFMProcessCombinedFieldsSubHeaders  subFields;
+        TFMRegistrationCollector            newCol = null, subCol;
+        XmlElement                          combinedField;
+        XmlElement                          originalField;
+        SetEnumerator                       sEnum;
+        TFMProcessCombineFields             combineFields;
+        TFMProcess                          process;
+        XmlNode                             versionNode;
+        
+        if(!_processId)
+        {
+            return;
+        }
+        
+        XmlNamedNodeMap attributes = _requestXml.attributes();
+        if(attributes)
+        {
+            versionNode = attributes.getNamedItem('Version');
+            if(versionNode)
+            {
+                _processVersion = str2Int(versionNode.value());
+            }
+        }
+
+        process = TFMProcessProvider::GetAllProcessesImpl().getProcess(_processId, _processVersion);
+        
+        if (!process || process.parmRevertToClassic())
+        {
+            return;
+        }
+        
+        sEnum = process.combinedFields().getEnumerator();
+        while (sEnum.moveNext())
+        {
+            combineFields = sEnum.current();
+            combineFields.modifyRequestXml(_requestXml);
+        }
+
+        while select subFields where subFields.ProcessID == process.parmProcessName() && subFields.Version == process.parmVersion()
+        {
+            combinedField = _requestXml.getElementsByTagName(subFields.CombinedFieldName).item(0);
+            
+            if (combinedField == null)
+            {
+                continue;
+            }
+            //Make the original field in the xml, as if it had been in the header on the device
+            originalField = _requestXml.createElement(subFields.SubHeaderName);
+            originalField.innerText(combinedField.innerText());
+            combinedField.parentNode().appendChild(originalField);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>SysRowVersionNumber</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>SysRowVersionNumber</ExtendedDataType>
+			<Null>Yes</Null>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ProcessID</Name>
+			<ExtendedDataType>TFMProcessID</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Version</Name>
+			<ExtendedDataType>Version</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CombinedFieldName</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>ProcessVersion</Name>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>TFMProcessVersion</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ProcessID</Name>
+					<Field>ProcessID</Field>
+					<RelatedField>ProcessID</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>Version</Name>
+					<Field>Version</Field>
+					<RelatedField>Version</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

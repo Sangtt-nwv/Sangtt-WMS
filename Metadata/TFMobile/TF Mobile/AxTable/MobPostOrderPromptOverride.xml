@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobPostOrderPromptOverride</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobPostOrderPromptOverride extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>tableOverride</Name>
+				<Source><![CDATA[
+    public edit Description255 tableOverride(boolean _set, Description255 _tableName)
+    {
+        Description255 tblName;
+        
+        if (_set)
+        {
+            if (strScan(_tableName,'.',1,strLen(_tableName)))
+            {
+                this.ClassOverrideID = className2Id(subStr(_tableName,1,strScan(_tableName,'.',1,strLen(_tableName))-1));
+                this.ClassOverrideMethod = subStr(_tableName,strScan(_tableName,'.',1,strLen(_tableName))+1,strLen(_tableName));
+            }
+            else
+            {
+                this.ClassOverrideID = className2Id(_tableName);
+            }
+        }
+        tblName = TFMDisplayLineOverride::classId2Attribute(this.ClassOverrideID);
+        if (!tblName)
+        {
+            tblName = classId2Name(this.ClassOverrideID)+ '.' + this.ClassOverrideMethod;
+        }
+        return tblName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getClassName</Name>
+				<Source><![CDATA[
+    public display ClassName getClassName()
+    {
+        
+        return classId2Name(this.ClassOverrideID);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addToCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to convert user setup registration collectors to registation Collector map, used to created registration collectors for the device.
+    /// </summary>
+    public static Map addToCollectors(Map _collectors, ClassId _orderClass, MethodName _methodName, boolean _headers = true, Map _additionalValues = new Map(Types::String, Types::String))
+    {
+        MobPostOrderPromptOverride              override;
+        Map                                     overridesSet = MobPostOrderPromptOverride::FindAll(_orderClass, _methodName);
+        MobPostOrderPromptOverrideLines         lines;        
+        Map                                     newCollectors = _collectors;
+        MapEnumerator                           mEnum           = overridesSet.getEnumerator();
+        if (!overridesSet.elements())
+        {
+            return _collectors;
+        }
+        while (mEnum.moveNext())
+        {
+            override = mEnum.currentValue();
+            while select lines where lines.MobPostOrderPromptOverrideRecID == override.RecId && ((_headers && lines.HeadingLine == HeadingLine::Heading) || (!_headers && lines.HeadingLine == HeadingLine::Line)) && override.Active
+            {
+                newCollectors.Insert(lines.Name, lines.getCollectorMap());
+            }
+        }
+        return newCollectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addParms</Name>
+				<Source><![CDATA[
+    public void addParms()
+    {
+        
+        MobPostOrderMethodParms     parms;
+        SysDictMethod               method = new SysDictMethod(UtilElementType::ClassStaticMethod,className2Id(this.CallclassName),this.CallMethodName);
+        int                         i;
+        RecordInsertList            list = new  RecordInsertList(tableNum(MobPostOrderMethodParms));
+
+        delete_from parms where parms.PostOrderPromptOverrideRecID == this.RecId;
+        if (!className2Id(this.CallclassName) || !this.CallMethodName)
+        {
+            return;
+        }
+        for (i = 1; i <= method.parameterCnt(); i++)
+        {
+            parms.ParmName = method.parameterName(i);
+            parms.baseType = method.parameterType(i);
+            parms.EDTName  = method.parameterTypeName(i);
+            parms.PostOrderPromptOverrideRecID  = this.RecID;
+            if (parms.baseType == Types::UserType && parms.EDTName)
+            {
+                parms.baseType = new DictType(extendedTypeName2Id(parms.EDTName)).baseType();
+            }
+            
+            list.add(parms);
+        }
+
+        list.insertDatabase();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Find</Name>
+				<Source><![CDATA[
+    public static MobPostOrderPromptOverride Find(ClassId _orderClass, MethodName _methodName, boolean _selectForUpdate = true)
+    {
+        MobPostOrderPromptOverride override;
+        MethodName methodName= _methodName;
+
+        override.selectForUpdate ( _selectForUpdate);
+
+        select firstonly override where override.ClassOverrideID == _orderClass && override.ClassOverrideMethod == methodName;
+
+        if (!override)
+        {
+            //Test if collector method has been passed, and find corresponding Post Method.
+            methodName = TFMDocumentHandler::FindCorrespondingPostMethod(_orderClass,methodName);
+            select firstonly override where override.ClassOverrideID == _orderClass && override.ClassOverrideMethod == methodName;
+        }
+
+        return override;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindAll</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// A Find method to find multiple records, returned as a map.
+    /// </summary>
+    /// <param name = "_orderClass">The class Id of the document to find for override</param>
+    /// <param name = "_methodName">The method name of the document to find for override</param>
+    /// <param name = "_selectForUpdate">boolean, true if records should be selected for update</param>
+    /// <returns>A Map with the resulting records</returns>
+    public static Map FindAll(ClassId _orderClass, MethodName _methodName, boolean _selectForUpdate = true)
+    {
+        MobPostOrderPromptOverride  override;
+        MethodName                  methodName= _methodName;
+        Map                         resultSet = new Map (Types::Int64, Types::Record);        
+        
+        override.selectForUpdate ( _selectForUpdate);
+
+        while select override where override.ClassOverrideID == _orderClass && override.ClassOverrideMethod == methodName
+        {
+            resultSet.insert(override.RecId, override);
+        }
+        
+        //Test if collector method has been passed, and find corresponding Post Method.
+        methodName = TFMDocumentHandler::FindCorrespondingPostMethod(_orderClass,methodName);
+        while select override where override.ClassOverrideID == _orderClass && override.ClassOverrideMethod == methodName
+        {
+            resultSet.insert(override.RecId, override);
+        }
+        
+
+        return resultSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindAndExecute</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Iterates through all the Post Prompt extensions that has been set up for the order, and executes the corresponding method.
+    /// </summary>
+    public static void FindAndExecute(Object _class, Map _returnAttributes, MethodName _classOverrideMethod = '')
+    {
+        MobPostOrderPromptOverride override;
+        while select override where override.Active && override.ClassOverrideID == classIdGet(_class) && (_classOverrideMethod == override.ClassOverrideMethod || !_classOverrideMethod)
+        //while select override where override.ClassOverrideID == classIdGet(_class)
+        {
+            try
+            {
+                override.execute(_class,_returnAttributes);
+            }
+            catch(Exception::Error)
+            {
+                continue;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void insert()
+    {
+        super();
+        //Add method Parameters
+        this.addParms();
+        
+        
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update</Name>
+				<Source><![CDATA[
+    public void update()
+    {
+        if (this.orig().callMethodName != this.CallMethodName)
+        {
+            //Add method Parameters
+            this.addParms();
+        }
+        super();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>execute</Name>
+				<Source><![CDATA[
+    private void execute(Object _class, Map _returnAttributes)
+    {
+        MobPostOrderMethodParms             parms;
+        MobPostOrderPromptOverrideLines     line;
+        DictMethod                          method = new DictMethod(UtilElementType::ClassStaticMethod,className2Id(this.CallClassName),this.CallMethodName);
+        Common                              resBuffer;
+        container           parameters = conNull();
+        int                 i;
+        str                 strParmValue;
+        Types               baseType;
+
+        for (i = 1; i <= method.parameterCnt(); i++)
+        {
+            select firstonly parms where parms.PostOrderPromptOverrideRecID == this.RecId && parms.ParmName == method.parameterName(i);
+
+            if (parms.ReturnTableName)
+            {
+                resBuffer = MobHelper::getBuffer(parms.ReturnTableName, _class);
+            }
+
+            if (parms.baseType == Types::Record)
+            {
+                parameters += resBuffer;
+                continue;
+            }
+
+            if (parms.PostOrderPromptOverrideLinesRecId)
+            {
+                line = parms.Lines();
+                strParmValue = _returnAttributes.lookup(line.Name);
+            }
+            
+            if (parms.Expression)
+            {
+                strParmValue = TFMExpressions::evaluateExpression(parms.Expression,resBuffer,strParmValue);
+            }
+            baseType = method.parameterType(i);
+            if (baseType == Types::UserType && method.parameterTypeName(i))
+            {
+                baseType = new DictType(extendedTypeName2Id(method.parameterTypeName(i))).baseType();
+            }
+            parameters += TFMDocCustomFunctionFlow::ConvertToType(strParmValue, baseType,method.parameterTypeName(i));
+            
+        }
+
+        TFMDocCustomFunctionFlow::callMethodCon(this.CallClassName,this.CallMethodName, parameters);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@MobileWMS:PostPromptOverrideDevDesc</DeveloperDocumentation>
+	<Label>@MobileWMS:PostOrderPromptOverride</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>ClassOverrideID</TitleField1>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ClassOverrideID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CallClassName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CallMethodName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>tableOverride</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>getClassName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ClassOverrideMethod</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Active</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>OverrideID</Name>
+			<Label>@SYS5468</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ClassOverrideID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ClassOverrideMethod</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>ClassToCall</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CallClassName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CallMethodName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>ClassOverrideID</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>ClassID</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CallClassName</Name>
+			<ExtendedDataType>ClassName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CallMethodName</Name>
+			<ExtendedDataType>MethodName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ClassOverrideMethod</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>MethodName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Active</Name>
+			<Label>@SYS14584</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>ClassIDX</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ClassOverrideID</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>ClassOverrideMethod</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>CallClassName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>CallMethodName</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

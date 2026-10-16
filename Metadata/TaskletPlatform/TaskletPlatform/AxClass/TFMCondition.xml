@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMCondition</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMCondition
+{
+    TFMExpression               expression;
+    Object                      containedClass;
+    Set                         children;
+    TFMLogicContextDataContract dataContract;
+
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmDataContract</Name>
+				<Source><![CDATA[
+    public TFMLogicContextDataContract parmDataContract(TFMLogicContextDataContract _dataContract = dataContract)
+    {
+        dataContract = _dataContract;
+        return dataContract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        children = new Set(Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeDisplay</Name>
+				<Source><![CDATA[
+    public str nodeDisplay()
+    {
+        return dataContract.displayValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addChild</Name>
+				<Source><![CDATA[
+    public void addChild(TFMCondition _condition)
+    {
+        children.add(_condition);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+	/*public TFMExpression parmExpression(TFMExpression _expression = expression)
+    {
+        expression = _expression;
+        
+        return expression ? expression : (conditionCls + '(' + con2Str(parameters,',') + ').' + keyName);
+    }*/
+
+
+    /*public static TFMCondition ConstructWithExpression(TFMExpression _expression)
+    {
+        TFMCondition condition = new TFMCondition();
+        condition.parmExpression(_expression);
+        return condition;
+    }*/
+
+    /// <summary>
+    /// Construct method for creating Logic classes
+    /// </summary>
+    /// <param name = "_conditionCls">Name of the logic class</param>
+    /// <param name = "_parameters">Parameters for the class, as a container</param>
+    /// <param name = "_keyName">The key name from which to take the requested value</param>
+    /// <returns>The constructed condition class</returns>
+    public static TFMCondition Construct(ClassName _conditionCls, container _parameters, str _keyName)
+    {
+        TFMCondition condition = new TFMCondition();
+        TFMLogicContextFunctionsDataContract dc = new TFMLogicContextFunctionsDataContract();
+        dc.parmLogicContextClass(_conditionCls);
+        dc.parmParameters(_parameters);
+        dc.parmKeyName(_keyName);
+        condition.parmDataContract(dc);
+        return condition;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ConstructOperator</Name>
+				<Source><![CDATA[
+    public static TFMCondition ConstructOperator(ClassName _operatorClass)
+    {
+        TFMCondition condition = new TFMCondition();
+        TFMLogicContextOperatorDataContract dc = new TFMLogicContextOperatorDataContract();
+        dc.parmLogicContextClass(_operatorClass);
+        condition.parmDataContract(dc);
+        return condition;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ConstructFromDelta</Name>
+				<Source><![CDATA[
+    public static TFMCondition ConstructFromDelta(TFMConditionsParameters _conditionParameters)
+    {
+        TFMCondition                    condition = new TFMCondition();
+        SysDictClass                    sdc = new SysDictClass(className2Id(_conditionParameters.ContractClass));
+        TFMLogicContextDataContract     dataContract = sdc.makeObject();
+        TFMConditionsParameterValues    parmValues;
+
+        while select parmValues where parmValues.HeaderRec == _conditionParameters.RecId
+        {            
+            sdc.callObject(parmValues.Method, dataContract, parmValues.Method == methodStr(TFMLogicContextFunctionsDataContract, parmParameters) ? parmValues.Value : conPeek(parmValues.Value,1));
+        }
+        condition.parmDataContract(dataContract);
+        return condition;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>evaluate</Name>
+				<Source><![CDATA[
+    /// <summary> 
+    /// Evaluates the provided TFMLogicContext object and returns the result. 
+    /// </summary> 
+    /// <param name="_context">The TFMLogicContext object to evaluate.</param>     
+    /// <returns>The result of evaluating the TFMLogicContext object.</returns>
+    public anytype evaluate(TFMLogicContext _context)
+    {
+        // Move to TFMLogicContextObject class instead
+        ClassName               clsName             = dataContract.parmLogicContextClass();
+        TFMLogicContextObject   contextObject;        
+                
+        /*if (className2Id(classStr(TFMExpressions) + subStr(expression,1,paranthesisPos)))
+        {
+            //Is expression, evaluate in that engine.
+        }*/
+
+        // Find appropriate context logic object to run and evaluate
+        contextObject = _context.getContextObject(clsName);
+
+        if (!contextObject && className2Id(clsName) && new SysDictClass(className2Id(clsName)).extend() == classNum(TFMLogicContextTools))
+        {
+            contextObject = new SysDictClass(className2Id(clsName)).makeObject();
+        }
+
+        if (!contextObject)
+        {
+            return null;
+        }
+        contextObject.parmDataContract(dataContract);
+        contextObject.setChildren(children);
+
+        return contextObject.evaluate(_context);
+        // The right class is in the contextObject variable at this point
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxResource xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMobileLocalizationFile</Name>
+	<FileName>StringResources.resx</FileName>
+	<RelativeUriInModelStore>TaskletPlatform\TaskletPlatform\AxResource\ResourceContent\Data\StringResources.resx</RelativeUriInModelStore>
+	<TypeOfResource>Data</TypeOfResource>
+</AxResource>

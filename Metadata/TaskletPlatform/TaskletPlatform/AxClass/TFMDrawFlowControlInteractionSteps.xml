@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowControlInteractionSteps</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Interaction Class for the steps editor
+/// </summary>
+class TFMDrawFlowControlInteractionSteps extends TFMDrawFlowControlInteraction
+{
+    TFMRegistrationCollectors   collectors;
+    TFMRequestElement           dummyRequest;
+    TFMLogicContext             contextObject;
+    Map                         nodeIDs2Collector;
+    TFMRegistrationCollector    collector;
+    TFMProcess                  process;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>blockList</Name>
+				<Source><![CDATA[
+    public List blockList()
+    {
+        List                            ret = new List(Types::Class);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        dummyRequest = new TFMRequestBasicElement();
+        collectors = null;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SetProcess</Name>
+				<Source><![CDATA[
+    public void SetProcess(TFMProcess _process)
+    {
+        process = _process;
+        this.parmKeyObject(_process);
+        flowControl.setEditorModeOnControl(!this.allowEdit());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveData</Name>
+				<Source><![CDATA[
+    public void saveData(str _json)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeCreated</Name>
+				<Source><![CDATA[
+    public void nodeCreated(TFMDrawFlowLogicBlockContract _createdNode)
+    {
+        Info(_createdNode.parmClass());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeDeleted</Name>
+				<Source><![CDATA[
+    public void nodeDeleted(int _id)
+    {
+        info (strFmt('%1', _id));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>allowEdit</Name>
+				<Source><![CDATA[
+    public boolean allowEdit()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCollectors</Name>
+				<Source><![CDATA[
+    protected TFMRegistrationCollectors getCollectors()
+    {
+        if (!collectors)
+        {
+            collectors = process.getCollectors(dummyRequest);
+        }
+        return collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getData</Name>
+				<Source><![CDATA[
+    public str getData()
+    {
+        if(!jsonMediator)
+        {
+            jsonMediator = TFMDrawFlowJsonCreator::Construct(classStr(TFMLogicBlockCollection));
+        }
+
+        TFMLogicBlockCollection blockCollection = process.blockCollection();
+        
+        str jSON;
+        TFMDrawFlowJsonCreatorRegistrationCollectors collectorMediator;
+        if (classIdGet(jsonMediator) == classNum(TFMDrawFlowJsonCreatorRegistrationCollectors))
+        {
+            collectorMediator = jsonMediator;
+            jSON = collectorMediator.jSon(blockCollection, this);
+            nodeIDs2Collector = collectorMediator.nodeId2Collector();
+        } 
+        else
+        {
+            jSON = jsonMediator.jSon(blockCollection);
+        }
+
+        return jSON;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeSelected</Name>
+				<Source><![CDATA[
+    public void nodeSelected(int _id)
+    {
+        FormStringControl           fsc;
+        FormStaticTextControl       groupHeadline;
+        
+        if (fgc == null)
+        {
+            return;
+        }
+
+        while (fgc.controlCount())
+        {
+            fgc.formRun().design().removeControl(fgc.controlNum(1).id());
+        }
+
+        collector = nodeIDs2Collector.exists(_id) ? nodeIDs2Collector.lookup(_id) : null;
+        
+
+        if (collector == null)
+        {
+            groupHeadline = fgc.addControl(FormControlType::StaticText, 'cannotEditHereText');
+            groupHeadline.text(_id == TFMDrawFlowJsonCreatorWorkLog::headerContractID ? "@TFM:Theheaderscanbeviewedoreditedwit" : "@TFM:Thestepcanonlybechangedinthebloc");
+            groupHeadline.style(1);
+            groupHeadline.widthMode(-1);
+            groupHeadline.width(TFMRegistrationCollector::ctrlWidth);
+            return;
+        }
+        
+        collector.parmConditions().parmContext(dummyRequest ? dummyRequest.logicContext() : TFMLogicContext::Construct());
+        collector.parmConditions().modifyObjectFromConditions(collector,dummyRequest ? dummyRequest.logicContext() : TFMLogicContext::Construct());
+        
+        fgc.enabled(!process.parmLocked());
+        this.addButtons();
+        resourceNode resNode = TFMDrawFlowBlockStyleRegistrationCollector::findResourceForCollector(collector);
+
+        collector.PopulateGroup(fgc,false,true, TFMProcess::GetProcessGroupKeyId(process),collector.parmName(), resNode, true, this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addButtons</Name>
+				<Source><![CDATA[
+    public void addButtons()
+    {
+        FormGroupControl  fgcSub = fgc.addControl(FormControlType::Group, 'buttonsMoveGroup');
+        FormButtonControl fbc = fgcSub.addControl(FormControlType::Button, 'buttonMoveBefore');
+        FormStaticTextControl fstc;
+        fbc.text("@TFM:Moveleft");        
+        fbc.registerOverrideMethod(methodStr(FormButtonControl, clicked), methodStr(TFMDrawFlowControlInteractionSteps, moveLeft_clicked), this);
+
+        fbc = fgcSub.addControl(FormControlType::Button, 'buttonMoveAfter');
+        fbc.text("@TFM:Moveright");
+        fbc.registerOverrideMethod(methodStr(FormButtonControl, clicked), methodStr(TFMDrawFlowControlInteractionSteps, moveRight_clicked), this);
+        fgcSub.columns(2);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>moveLeft_clicked</Name>
+				<Source><![CDATA[
+    public void moveLeft_clicked(FormButtonControl _formButtonControl)
+    {
+        int prevKey = TFMDrawFlowControlInteractionSteps::SearchPrevKeyInMap(nodeIDs2Collector, collector.parmId());
+        int prevPrevKey = TFMDrawFlowControlInteractionSteps::SearchPrevKeyInMap(nodeIDs2Collector, prevKey);
+        TFMRegistrationCollector regColPre, regColPrePre;
+        int currentTrack = str2Int(subStr(int2Str(collector.parmId()),1,1));
+        int newID;
+        regColPre = nodeIDs2Collector.exists(prevKey) ? nodeIDs2Collector.lookup(prevKey) : null;
+        regColPrePre = nodeIDs2Collector.exists(prevPrevKey) ? nodeIDs2Collector.lookup(prevPrevKey) : null;
+        
+        if (str2Int(subStr(int2Str(prevKey),1,1)) != currentTrack)
+        {
+            Info ("Can't move more to the left");
+        }
+
+        newID = prevPrevKey ? (prevKey + prevPrevKey) / 2 : prevKey -50;
+
+        TFMProcessCollectorDeviations::replaceNode(collector.parmName(), process, currentTrack, newID);
+        flowControl.updateControlData();
+        flowControl.nodeSelected(newID);
+        flowControl.SendNodeSelected(newID);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>moveRight_clicked</Name>
+				<Source><![CDATA[
+    public void moveRight_clicked(FormButtonControl _formButtonControl)
+    {
+        int nextKey = TFMDrawFlowControlInteractionSteps::SearchNextKeyInMap(nodeIDs2Collector, collector.parmId());
+        int nextNextKey = TFMDrawFlowControlInteractionSteps::SearchNextKeyInMap(nodeIDs2Collector, nextKey);
+        TFMRegistrationCollector regColNext, regColNextNext;
+        int currentTrack = str2Int(subStr(int2Str(collector.parmId()),1,1));
+        int newID;
+        regColNext = nodeIDs2Collector.exists(nextKey) ? nodeIDs2Collector.lookup(nextKey) : null;
+        regColNextNext = nodeIDs2Collector.exists(nextNextKey) ? nodeIDs2Collector.lookup(nextNextKey) : null;
+        
+        if (str2Int(subStr(int2Str(nextKey),1,1)) != currentTrack)
+        {
+            Info ("Can't move more to the right");
+        }
+
+        newID = nextNextKey ? (nextKey + nextNextKey) / 2 : nextKey + 50;
+
+        TFMProcessCollectorDeviations::replaceNode(collector.parmName(), process, currentTrack, newID);
+        flowControl.updateControlData();
+        flowControl.nodeSelected(newID);
+        flowControl.SendNodeSelected(newID);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SearchNextKeyInMap</Name>
+				<Source><![CDATA[
+    public static int SearchNextKeyInMap(Map _map, int _key)
+    {
+        MapEnumerator mapEnum;
+        int nextKey = 0;
+        int currKey;
+        boolean foundNext = false;
+
+        // Ensure the map is not empty
+        if (_map.empty())
+        {
+            return 0; // No next key
+        }
+
+        // Initialize the map enumerator
+        mapEnum = _map.getEnumerator();
+    
+        // Iterate through the map
+        while (mapEnum.moveNext())
+        {
+            currKey = mapEnum.currentKey();
+
+            // Check for the next key after the specified key
+            if (currKey > _key)
+            {
+                nextKey = currKey;
+                foundNext = true;
+                break;
+            }
+        }
+
+        // Return the found next key or 0 if not found
+        return foundNext ? nextKey : 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SearchPrevKeyInMap</Name>
+				<Source><![CDATA[
+    public static int SearchPrevKeyInMap(Map _map, int _key)
+    {
+        MapEnumerator mapEnum;
+        int prevKey = 0;
+        int currKey;
+        boolean foundPrev = false;
+
+        // Ensure the map is not empty
+        if (_map.empty())
+        {
+            return 0; // No previous key
+        }
+
+        // Initialize the map enumerator
+        mapEnum = _map.getEnumerator();
+    
+        // Iterate through the map
+        while (mapEnum.moveNext())
+        {
+            currKey = mapEnum.currentKey();
+
+            // Update the previous key before the specified key
+            if (currKey < _key)
+            {
+                prevKey = currKey;
+                foundPrev = true;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        // Return the found previous key or 0 if not found
+        return foundPrev ? prevKey : 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateHtmlForCurrentNode</Name>
+				<Source><![CDATA[
+    public void updateHtmlForCurrentNode()
+    {
+        TFMDrawFlowBlockStyle           blockStyle;
+
+        str html;
+        blockStyle = TFMDrawFlowBlockStyle::findStyleClass(classStr(TFMRegistrationCollector));
+        if(collector)
+        {
+            html = blockStyle.htmlForClass(collector);
+            
+            flowControl.updateHtmlForNode(collector.parmId(), html);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

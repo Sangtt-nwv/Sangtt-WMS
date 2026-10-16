@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowLogicBlockDataContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+class TFMDrawFlowLogicBlockDataContract
+{
+    Name        blockName;
+    ClassName   className;
+    Name        editorName;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmBlockName</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('blockName')]
+    public Name parmBlockName(Name _blockName = blockName)
+    {
+        blockName = _blockName;
+        return blockName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClassName</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('className')]
+    public str parmClassName(ClassName _className = className)
+    {
+        className = _className;
+        return className;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmEditorName</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('editorName')]
+    public str parmEditorName(ClassName _editorName = editorName)
+    {
+        editorName = _editorName;
+        return editorName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMDrawFlowLogicBlockDataContract Construct(Name _blockName, ClassName _className)
+    {
+        TFMDrawFlowLogicBlockDataContract dataContract = new TFMDrawFlowLogicBlockDataContract();
+        dataContract.parmBlockName(_blockName);
+        dataContract.parmClassName(_className);
+        dataContract.parmEditorName('editornameplaceholder');
+        
+        return dataContract;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

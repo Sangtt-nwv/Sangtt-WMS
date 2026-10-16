@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListTextElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListELementAttribute('textElement')]
+class TFMListTextElement extends TFMListElement
+{
+    str text;
+    str dataMember;    
+    TFMFontId fontId;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMListTextElement Construct()
+    {
+        return new TFMListTextElement();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ConstructTextElement</Name>
+				<Source><![CDATA[
+    public static TFMListTextElement ConstructTextElement(str _text, TFMFontID _fontId, TFMListXAlign _xAlign = SysChartHorizontalAlignment::Left, TFMListYAlign _yAlign = TFMVerticalAlignment::Top)
+    {
+        TFMListTextElement txtElement = TFMListTextElement::Construct();
+        txtElement.parmText(_text);
+        txtElement.parmFontId(_fontId);
+        txtElement.parmHorizontalAlignment(_xAlign);
+        txtElement.parmVerticalAlignment(_yAlign);
+        return txtElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addValueElement</Name>
+				<Source><![CDATA[
+    public TFMListValueElement addValueElement(TFMDataSetField _text, TFMFontID _fontId)
+    {
+        TFMListValueElement valueElement = new TFMListValueElement();
+        valueElement.parmText(_text);
+        valueElement.parmFontId(_fontId);
+
+        this.addChild(valueElement);
+        return valueElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _parent, boolean _expandCustomComponents)
+    
+    {
+        XmlElement textElement =_parent.ownerDocument().createElement('textElement');
+        XmlElement		valuesNode;
+        TFMListBase	    valueElement;
+        MapEnumerator	mEnum;
+
+        textElement.setAttribute('fontId',fontId);
+        textElement.setAttribute('text',text);
+
+        if(horizontalAlignment != SysChartHorizontalAlignment::Auto)
+        {
+            textElement.setAttribute('horizontalAlignment', strLwr(enum2Symbol(enumNum(SysChartHorizontalAlignment), horizontalAlignment)));
+        }
+        textElement.setAttribute('verticalAlignment', strLwr(enum2Symbol(enumNum(TFMVerticalAlignment), verticalAlignment)));
+        if (dataMember)
+        {
+            textElement.setAttribute('dataMember',dataMember);
+        }
+        if (baseChildren && baseChildren.elements())
+        {
+            mEnum = baseChildren.getEnumerator();
+            while(mEnum.moveNext())
+            {
+                valueElement = mEnum.currentValue();
+                valueElement.appendToXML(textElement, _expandCustomComponents);
+            }
+        }
+        _parent.appendChild(textElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>attributeSummary</Name>
+				<Source><![CDATA[
+    public str attributeSummary()
+    {
+        return "@SYS2595"+':'+text;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmText</Name>
+				<Source><![CDATA[
+    [TFMParameter('{DisplayLine1}')]
+    public TFMDataSetField parmText(str _text = text)
+    {
+        text = _text;
+        return text;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDataMember</Name>
+				<Source><![CDATA[
+    [TFMParameter('')]
+    public TFMDataSetField parmDataMember(str _dataMember = dataMember)
+    {
+        dataMember = _dataMember;
+        return dataMember;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFontId</Name>
+				<Source><![CDATA[
+    [TFMParameter('')]
+    public TFMFontId parmFontId(TFMFontId _fontId = fontId)
+    {
+        fontId = _fontId;
+        return fontId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>render</Name>
+				<Source><![CDATA[
+    public void render(TFMListVisualizationInterface _visualizer)
+    {
+        _visualizer.renderText(this);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

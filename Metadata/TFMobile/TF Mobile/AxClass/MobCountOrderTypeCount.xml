@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobCountOrderTypeCount</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The MobCountOrderTypeCount class is the class handling the count orders.
+/// </summary>
+[TFMTableNameAttribute(tableStr(InventJournalTable), 'Count')]
+class MobCountOrderTypeCount extends MobCountOrderType
+{
+    InventJournalTable          InventJournalTable;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getInventJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventJournalTable))]
+    public InventJournalTable getInventJournalTable()
+    {
+        return InventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaderRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_filters"></param>    
+    /// <param name = "_scannedValue"></param>
+    /// <returns></returns>
+    public Map getHeaderRecords(TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+        Map ret = new Map(Types::String, Types::Record);
+        InventLocation          inventLocation;
+        InventJournalTrans      inventJournalTrans;
+        str				        orgWareHouse = _filters.parmWarehouse() ? _filters.parmWarehouse() : MobConstants::All();
+        
+        inventLocation = MobHelper::getAllowedInventLocations(curUserId());
+        while select inventLocation 
+            where (inventLocation.InventLocationId == orgWareHouse || orgWareHouse == MobConstants::all())
+        join inventJournalTable
+            where inventJournalTable.InventLocationId == inventLocation.InventLocationId &&
+                  inventJournalTable.JournalType == InventJournalType::Count &&
+                  inventJournalTable.Posted == NoYes::No &&
+                  inventJournalTable.MobReleasedToMobile
+        exists join inventJournalTrans
+            where inventJournalTrans.JournalId == inventJournalTable.JournalId &&
+                  !inventJournalTrans.MobRegisteredOnMobile
+        {            
+            ret.insert(this.getBackendID(inventJournalTable),inventJournalTable);
+            //MobXMLFormat = TFMXMLFormat::constructFromCommon(resultXml, inventJournalTable, sorting);
+            //MobXMLFormat.run();
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getJournalId</Name>
+				<Source><![CDATA[
+    private InventJournalId getJournalId(str _backendID)
+    {
+        return conPeek(MobHelper::strSplit(_backendID,'/').pack(),6);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLineRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_backendID"></param>
+    /// <param name = "_orderElement"></param>
+    /// <param name = "_request"></param>
+    /// <returns></returns>
+    
+    public Map getLineRecords(TFMRequestGetOrderLinesElement _request)
+    {
+        Map ret = new Map(Types::String, Types::Record);
+        InventJournalTrans      inventJournalTrans;
+        InventJournalId         journalId;
+        InventDim               inventDim;
+        WMSLocation             wmsLocation;
+
+        Set                     lps = new Set(Types::String);
+        journalId = this.getJournalId(_request.parmBackendID());//SubStr(_backendID,2,strlen(_backendID)); // Remove the prefix
+
+        inventJournalTable = inventJournalTable::find(journalId);
+
+        
+        while select inventJournalTrans order by inventDim.wMSLocationId
+                where inventJournalTrans.JournalId == journalId &&
+                        !inventJournalTrans.MobRegisteredOnMobile
+                    join inventDim where inventDim.inventDimId == inventJournalTrans.InventDimId
+                        
+                    //join wmsLocation where (((wmsLocation.wMSLocationId == inventDim.wMSLocationId) && inventDim.InventLocationId == wmsLocation.inventLocationId) || !inventDim.wMSLocationId)
+        {
+            //inventDim = inventJournalTrans.inventDim();
+            if (inventDim.LicensePlateId && lps.in(inventDim.LicensePlateId) && inventJournalTable.MobCountByLP)
+            {
+                continue;
+            }
+            lps.add(inventDim.LicensePlateId);
+            wmsLocation = WMSLocation::find(inventDim.wMSLocationId, inventDim.InventLocationId);
+            ret.insert(strFmt('%1%2%3',wmsLocation.sortCode,wmsLocation.wMSLocationId, inventJournalTrans.RecId),inventJournalTrans);
+        }
+        
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lineTableId</Name>
+				<Source><![CDATA[
+    public TableId lineTableId()
+    {
+        return tableNum(InventJournalTrans);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBackendID</Name>
+				<Source><![CDATA[
+    public str getBackendID(Common _common)
+    {
+        InventJournalTable = _common;
+        return tableStr(InventJournalTable) + '/' + fieldStr(InventJournalTable,JournalId) + '/' + InventJournalTable.JournalId + '/' + 'Count';//#PickProdOrderPrefix + prodJournalTable.JournalId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postRequest</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_backendID"></param>
+    /// <param name = "_orderElement"></param>
+    /// <returns></returns>
+    public str postRequest(TFMRequestOrdersElement _orderElement)
+    {
+        str ret;
+        InventJournalId             journalId;        
+        MobRegistrations            MobRegistrations;
+        CreatedTransactionId        transID;
+        MobRegistrations            mobRegistrationCount;
+        
+        messageId = _orderElement.parmRoot().parmmessageId();
+        
+        journalId = this.getJournalId(_orderElement.parmBackendID()); // Remove the prefix
+    
+        if (!journalId || !InventJournalTable::exist(journalId))
+        {
+            throw error(strfmt(InventJournalTable::txtNotExist(),journalId));
+        }
+        InventJournalTable = InventJournalTable::find(journalId);
+        
+        ttsbegin;
+        transID = MobRegistrations::SaveRequest(_orderElement.Lines(), MobInventRefType::InventJournal, journalId).CreatedTransactionId; // Moved iteration/registration of xml here
+    
+        while select forupdate MobRegistrations
+            index OrderLineNumIdx
+            order by InventTransId
+            where MobRegistrations.InventRefType == MobInventRefType::InventJournal &&
+                    MobRegistrations.InventRefId  == journalId &&
+                    MobRegistrations.MessageId      == messageID &&
+                    MobRegistrations.CreatedTransactionId == transID &&
+                    MobRegistrations.handled == NoYes::No
+        {
+            if(MobRegistrations.InventTransId != mobRegistrationCount.InventTransId) // New TransId
+            {
+                select sum(InventQty) from mobRegistrationCount // Set Qty for counting buffer
+                    where   mobRegistrationCount.InventRefType == MobInventRefType::InventJournal &&
+                            mobRegistrationCount.InventRefId == MobRegistrations.InventRefId &&
+                            mobRegistrationCount.InventTransId == MobRegistrations.InventTransId &&
+                            mobRegistrationCount.MessageId == MobRegistrations.MessageId &&
+                            mobRegistrationCount.CreatedTransactionId == MobRegistrations.CreatedTransactionId;
+
+                // Set RefId and TransId in buffer for counting
+                mobRegistrationCount.InventRefId = MobRegistrations.InventRefId;
+                mobRegistrationCount.InventTransId = MobRegistrations.InventTransId;
+
+                mobRegistrationCount.counting();
+            }
+
+            MobRegistrations.handled = NoYes::Yes;
+            MobRegistrations.Update();
+        }
+        ttscommit;
+        ret = SysLabel::labelId2String2("@MobileWMS:MEL34");
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

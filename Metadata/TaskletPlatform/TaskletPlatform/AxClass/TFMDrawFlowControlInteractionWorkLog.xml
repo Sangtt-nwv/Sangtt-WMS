@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowControlInteractionWorkLog</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDrawFlowControlInteractionWorkLog extends TFMDrawFlowControlInteraction
+{
+    TFMWorkLogForm workLogForm;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>blockList</Name>
+				<Source><![CDATA[
+    public List blockList()
+    {
+        return new List(Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveData</Name>
+				<Source><![CDATA[
+    public void saveData(str _json)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeCreated</Name>
+				<Source><![CDATA[
+    public void nodeCreated(TFMDrawFlowLogicBlockContract _createdNode)
+    {
+        Info(_createdNode.parmClass());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeDeleted</Name>
+				<Source><![CDATA[
+    public void nodeDeleted(int _id)
+    {
+        info (strFmt('%1', _id));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>allowEdit</Name>
+				<Source><![CDATA[
+    public boolean allowEdit()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setWorkLogFormClass</Name>
+				<Source><![CDATA[
+    public void setWorkLogFormClass(TFMWorkLogForm _workLogForm)
+    {
+        workLogForm = _workLogForm;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getData</Name>
+				<Source><![CDATA[
+    public str getData()
+    {
+        str                         ret;
+        jsonMediator = TFMDrawFlowJsonCreator::Construct(classStr(TFMWorkLogForm));
+        ret = jsonMediator.jSon(workLogForm);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeSelected</Name>
+				<Source><![CDATA[
+    public void nodeSelected(int _id)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateHtmlForCurrentNode</Name>
+				<Source><![CDATA[
+    public void updateHtmlForCurrentNode()
+    {
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPageHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getPagesFromClass</Name>
+				<Source><![CDATA[
+    public static TFMPages getPagesFromClass(TFMDocumentHandler _handler)
+    {
+        #tfm
+        SysDictClass						DC = new SysDictClass(classIdGet(_handler));
+        Array								documentTypes = DC.getAttributes(classStr(TFMDocumentTypeAttribute));
+        Array								mobMenuAttributes = DC.getAttributes(classStr(TFMMenuAttribute));
+        TFMDocumentTypeAttribute			docTypeAttr;
+        TFMPages							pages = new TFMPages();
+        TFMPageLookup						lookupPage;
+        TFMPageLookupConfiguration			lookupConfig;
+        TFMPageUnplannedItemRegistration	UIRPage;
+        TFMPageUnplannedItemRegistrationConfiguration UIRConfig;
+        int									i;
+        Map									ReferenceMethods = TFMPageHelper::getMethodsUsingSysAttribute(DC.id(),new TFMReferenceDataMethodAttribute(),true);
+        Map									ReferenceMethodsReverse = new Map(Types::String,Types::String);
+        Set									pagesUsingFilter;
+        SetEnumerator						pageFilters;
+        TFMReferenceDataMethodAttribute		refDataAttribute;
+        TFMCollectorMapAttribute			collectorAttribute;
+        DictMethod							DM;
+        Map									menus = TFMPageHelper::menuContainer2Classes(_handler.registerMenu());
+        TFMMenuAttribute					menuAttribute;
+        MapEnumerator						mEnum = ReferenceMethods.getEnumerator();
+        str									HandlerName;
+        str									filterName;
+        int									arCount;
+        Array								arr = DC.getAttributes(classStr(TFMMenuAttribute));
+        Set                                 attrsOnClass = new Set(Types::String);
+
+        for (arCount = 1; arCount <= arr.lastIndex(); arCount++)
+        {
+            menuAttribute = arr.value(arCount);
+            menus.insert(menuAttribute.parmName(),menuAttribute);
+        }
+
+        while (mEnum.moveNext())
+        {
+            DM = mEnum.currentValue();
+            refDataAttribute = DM.getAttribute(classStr(TFMReferenceDataMethodAttribute));
+            pagesUsingFilter = refDataAttribute.pagesUsingFilter();
+			if (!pagesUsingFilter.elements())
+            {
+				ReferenceMethodsReverse.insert('default', DM.name());
+                ReferenceMethodsReverse.insert(DM.name(), DM.name());
+            }
+			else
+            {
+                pageFilters = pagesUsingFilter.getEnumerator();
+				while (pageFilters.moveNext())
+                {
+                    ReferenceMethodsReverse.insert(pageFilters.current(), DM.name());
+                }
+            }
+        }
+
+        for (i = 1; i <= documentTypes.lastIndex(); i++)
+        {
+            docTypeAttr = documentTypes.value(i);
+            attrsOnClass.add(docTypeAttr.parmCacheKey());
+        }
+		//_handler
+        for (i = 1; i <= documentTypes.lastIndex(); i++)
+        {
+            docTypeAttr = documentTypes.value(i);
+            
+            if (docTypeAttr.parmDocumentType() == subStr(classStr(TFMLookup),4,100))// && (ReferenceMethodsReverse.exists(docTypeAttr.parmContentType()) || ReferenceMethodsReverse.exists('default') || ReferenceMethods.exists(docTypeAttr.parmContentType()) || ReferenceMethods.exists(docTypeAttr.parmContentType()+'Header') || ReferenceMethods.exists(docTypeAttr.parmContentType()+'Filter')))
+            {
+                lookupPage = new TFMPageLookup();
+                lookupPage.parmId(docTypeAttr.parmContentType());
+
+                filterName = ReferenceMethodsReverse.exists(docTypeAttr.parmContentType()) ? ReferenceMethodsReverse.lookup(docTypeAttr.parmContentType()) : '';
+                if (!filterName && (ReferenceMethods.exists(docTypeAttr.parmContentType()) || ReferenceMethods.exists(docTypeAttr.parmContentType()+'Header') || ReferenceMethods.exists(docTypeAttr.parmContentType()+'Filter')))
+                {
+                    filterName = ReferenceMethods.exists(docTypeAttr.parmContentType()) ? docTypeAttr.parmContentType() : (ReferenceMethods.exists(docTypeAttr.parmContentType()+'Header') ? docTypeAttr.parmContentType()+'Header' : docTypeAttr.parmContentType()+'Filter');
+                }
+                else if (!filterName && ReferenceMethodsReverse.exists('default'))
+                {
+                    filterName = ReferenceMethodsReverse.lookup('default');
+                }
+                lookupPage.parmFilter(filterName); //TODO: handle multiple filters + right name
+                
+                if(menus.exists(docTypeAttr.parmContentType()))
+                {
+                    menuAttribute = menus.exists(docTypeAttr.parmContentType()) ? menus.lookup(docTypeAttr.parmContentType()) : new TFMMenuAttribute(docTypeAttr.parmContentType(),'@{'+docTypeAttr.parmContentType()+'}',docTypeAttr.parmContentType(),_handler.getIcon());
+                    lookupPage.parmIcon(menuAttribute.parmIconName());
+                    lookupPage.parmTitle(menuAttribute.parmLabel());
+                    lookupPage.parmAvailableForMenuPages(menuAttribute.parmMainMenuEnabled());
+                }
+
+                lookupConfig = lookupPage.getConfiguration();
+                lookupConfig.parmListId(classStr(TFMListLookupWithRegistrations));
+
+                lookupConfig.parmType(docTypeAttr.parmContentType());
+
+                collectorAttribute = new TFMCollectorMapAttribute(classStr(TFMLookup), docTypeAttr.parmContentType());
+
+                if (_handler && (TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classIdGet(_handler),collectorAttribute) != null|| attrsOnClass.in((new TFMDocumenttypeAttribute(classStr(TFMGetRegistrationConfiguration),docTypeAttr.parmContentType())).parmCacheKey())))
+                {
+                    lookupConfig.parmUseRegistrationCollector(TFMConstants::True());
+                }
+
+
+                pages.addPage(lookupPage);
+            }
+            else if (docTypeAttr.parmDocumentType() == subStr(classStr(TFMPostAdhocRegistration),4,100) && !pages.getPages().exists(docTypeAttr.parmContentType()))// && (ReferenceMethods.elements() == 1 || ReferenceMethods.exists(docTypeAttr.parmContentType()) || ReferenceMethods.exists(docTypeAttr.parmContentType()+'Header') || ReferenceMethods.exists(docTypeAttr.parmContentType()+'Filter')))
+            {
+                UIRPage = new TFMPageUnplannedItemRegistration();
+                UIRPage.parmId(docTypeAttr.parmContentType());
+
+                
+
+                filterName = ReferenceMethodsReverse.exists(docTypeAttr.parmContentType()) ? ReferenceMethodsReverse.lookup(docTypeAttr.parmContentType()) : '';
+                if (!filterName && (ReferenceMethods.exists(docTypeAttr.parmContentType()) || ReferenceMethods.exists(docTypeAttr.parmContentType()+'Header') || ReferenceMethods.exists(docTypeAttr.parmContentType()+'Filter')))
+                {                    
+                    filterName = ReferenceMethods.exists(docTypeAttr.parmContentType()) ? docTypeAttr.parmContentType() : (ReferenceMethods.exists(docTypeAttr.parmContentType()+'Header') ? docTypeAttr.parmContentType()+'Header' : docTypeAttr.parmContentType()+'Filter');
+                }
+                else if (!filterName && ReferenceMethodsReverse.exists('default'))
+                {
+                    filterName = ReferenceMethodsReverse.lookup('default');
+                }
+                UIRPage.parmFilter(filterName); //TODO: handle multiple filters + right name
+                menuAttribute = menus.exists(docTypeAttr.parmContentType()) ? menus.lookup(docTypeAttr.parmContentType()) : new TFMMenuAttribute(docTypeAttr.parmContentType(),'@{'+docTypeAttr.parmContentType()+'}',docTypeAttr.parmContentType(),_handler.getIcon());
+                UIRPage.parmIcon(menuAttribute.parmIconName());
+                UIRPage.parmTitle(menuAttribute.parmLabel());
+                UIRConfig = UIRPage.getConfiguration();
+                UIRPage.parmAvailableForMenuPages(menuAttribute.parmMainMenuEnabled());
+
+                collectorAttribute = new TFMCollectorMapAttribute(classStr(TFMGetRegistrationConfiguration), docTypeAttr.parmContentType());
+
+                if (_handler && (TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classIdGet(_handler),collectorAttribute) != null || attrsOnClass.in((new TFMDocumenttypeAttribute(classStr(TFMGetRegistrationConfiguration),docTypeAttr.parmContentType())).parmCacheKey())))
+                {
+                    UIRConfig.parmUseRegistrationCollector(TFMConstants::True());
+                }
+                //UIRConfig.parm
+                pages.addPage(UIRPage);
+            }
+        }
+
+        
+        /*if (!pages.getPages().elements())
+        {
+            HandlerName = DC.name();
+        }*/
+        return pages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findOrderlistRequestDocuments</Name>
+				<Source><![CDATA[
+	public static container findOrderlistRequestDocuments(TFMDocumentHandler _docHand)
+    {
+        Set												oldStyleDocs		= _docHand.getDocumentTypes();
+        SetEnumerator									sEnum;
+        SysDictClass									sdc					= new SysDictClass(classIdGet(_docHand));
+        TFMOrderListGetOrdersDocumentTypeAttribute		getOrdersAttr		= sdc.getAttribute(classStr(TFMOrderListGetOrdersDocumentTypeAttribute));
+        TFMOrderListGetOrderLinesDocumentTypeAttribute	getOrderLinesAttr	= sdc.getAttribute(classStr(TFMOrderListGetOrderLinesDocumentTypeAttribute));
+        TFMOrderListPostOrderDocumentTypeAttribute		postOrderAttr		= sdc.getAttribute(classStr(TFMOrderListPostOrderDocumentTypeAttribute));
+        TFMOrderListLineSelectionAttribute              lineSelection       = sdc.getAttribute(classStr(TFMOrderListLineSelectionAttribute));
+        str												getOrdersName		= getOrdersAttr ? getOrdersAttr.parmMethodName() : '';
+        str												getOrderLinesName	= getOrderLinesAttr ? getOrderLinesAttr.parmMethodName() : '';
+        str												postOrdersName		= postOrderAttr ? postOrderAttr.parmMethodName() : '';
+        str												lineSelectName		= lineSelection ? lineSelection.parmMethodName() : '';
+        str												compareStr;
+
+		//Fallback for legacy customization classes
+		if(!getOrdersName)
+        {
+            sEnum = oldStyleDocs.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                compareStr = sEnum.current();
+                if (TFMGetRegistrationConfiguration::stringIsSimilar(compareStr,'Get*Orders'))
+                {
+                    getOrdersName = compareStr;
+                }
+            }
+            getOrdersName = getOrdersName ? getOrdersName : 'NoDocument';
+        }
+        if(!getOrderLinesName)
+        {
+            sEnum = oldStyleDocs.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                compareStr = sEnum.current();
+                if (TFMGetRegistrationConfiguration::stringIsSimilar(compareStr,'Get*OrderLines'))
+                {
+                    getOrderLinesName = compareStr;
+                }
+            }
+            getOrderLinesName = getOrderLinesName ? getOrderLinesName : 'NoDocument';
+        }
+        if(!postOrdersName)
+        {
+            sEnum = oldStyleDocs.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                compareStr = sEnum.current();
+                if (TFMGetRegistrationConfiguration::stringIsSimilar(compareStr,'Post*Order'))
+                {
+                    postOrdersName = compareStr;
+                }
+            }
+            postOrdersName = postOrdersName ? postOrdersName : 'NoDocument';
+        }
+
+        return [getOrdersName, getOrderLinesName, postOrdersName, lineSelectName];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>menuContainer2Classes</Name>
+				<Source><![CDATA[
+    public static Map menuContainer2Classes(container _menuContainer)
+    {
+        int i;
+        Map					menusOnClass = new Map(Types::String, Types::Class);
+        TFMMenu             menu;
+        TFMMenuDescription  description;
+        boolean             add2menu;
+        str                 menuIcon;
+        TFMMenuAttribute	menuAttribute;
+        for (i = 1; i <= conLen(_menuContainer); i++)
+        {
+            [menu, description, add2menu, menuIcon] = conpeek(_menuContainer,i);
+            menuAttribute =  new TFMMenuAttribute(Menu,Description,Description,menuicon,add2menu,true);
+            menusOnClass.insert(Menu,menuAttribute);
+        }
+        return menusOnClass;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMethodsUsingSysAttribute</Name>
+				<Source><![CDATA[
+    public static Map getMethodsUsingSysAttribute(ClassId _classID, SysAttribute _sysAttribute, boolean _dontMatchParms = false)
+    {
+        SysDictClass dc = new SysDictClass(_classID);
+        Map				returnMap = new Map(Types::String, Types::Class);
+        ClassId sysAttributeClassId = classIdGet(_sysAttribute);
+        SysDictClass attrDC = new SysDictClass(sysAttributeClassId);
+        boolean thereIsAMatch;
+        Set parmMethodsOnAttributeClass = TFMFormLookupHelper::parmMethodsOnClass(sysAttributeClassId);
+        Array array;
+        Object attrObject;
+        DictMethod DM;
+        int i, j;
+        MethodName methodname;
+        
+        SetEnumerator sEnum;
+        ExecutePermission exePerm;
+
+        for (i = 1; i <= DC.objectMethodCnt(); i++)
+        {
+            DM = DC.objectMethodObject(i);
+            array = DM.getAttributes(classId2Name(sysAttributeClassId));
+            if (array != null)
+            {
+                for (j = 1; j <= array.lastIndex(); j++)
+                {
+                    
+                    attrObject = array.value(j);
+                    thereIsAMatch = true;
+                    exePerm = new ExecutePermission();
+                    exePerm.assert();
+                    sEnum = parmMethodsOnAttributeClass.getEnumerator();
+                    while (sEnum.moveNext() && !_dontMatchParms)
+                    {
+                        methodname = sEnum.current();
+                        var res1 = attrDC.callObject(methodname,attrObject);
+                        var res2 = attrDC.callObject(methodname,_sysAttribute);
+                        thereIsAMatch = thereIsAMatch && (res1 == res2);
+                    }
+
+                    CodeAccessPermission::revertAssert();
+                    if (thereIsAMatch)
+                    {
+                        
+                        returnMap.insert(DM.name(), DM);
+                    }
+                }
+            }
+        }
+
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructUnplannedItemRegistrationPage</Name>
+				<Source><![CDATA[
+    private static TFMPageUnplannedItemRegistration constructUnplannedItemRegistrationPage(str _pageId, str _title, str _icon, str _filter = '', str _request = '', str _submit = '')
+    {
+        TFMPageUnplannedItemRegistration page = new TFMPageUnplannedItemRegistration();
+        TFMPageUnplannedItemRegistrationConfiguration configuration;
+        page.parmId(_pageId);
+        page.parmFilter(_filter ?  _filter : _pageId + 'Header');
+        page.parmIcon(_icon);
+        page.parmTitle(_title);
+        
+        configuration = page.getConfiguration();
+        configuration.parmType(_pageId);
+        if(_request)
+        {
+            configuration.parmGetRegistrationConfiguration(_request);
+        }
+        if(_submit)
+        {
+            configuration.parmSubmit(_submit);
+        }
+
+        return page;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addOrUpdateUnplannedItemRegistrationPage</Name>
+				<Source><![CDATA[
+    public static TFMPageUnplannedItemRegistration addOrUpdateUnplannedItemRegistrationPage(TFMPages _pages, str _pageId, str _title, str _icon, str _filter = '', str _request = '', str _submit = '')
+    {
+        TFMPageUnplannedItemRegistrationConfiguration configuration;
+        TFMPageUnplannedItemRegistration page = _pages.getPage(_pageId);
+        if(!page)
+        {
+            page = new TFMPageUnplannedItemRegistration();
+            page.parmId(_pageId);
+            _pages.addPage(page);
+        }
+        
+        page.parmId(_pageId);
+        page.parmFilter(_filter ?  _filter : _pageId + 'Header');
+        page.parmIcon(_icon);
+        page.parmTitle(_title);
+        
+        configuration = page.getConfiguration();
+        configuration.parmType(_pageId);
+        if(_request)
+        {
+            configuration.parmGetRegistrationConfiguration(_request);
+        }
+        if(_submit)
+        {
+            configuration.parmSubmit(_submit);
+        }
+
+
+
+        return page;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addOrUpdateLookupPage</Name>
+				<Source><![CDATA[
+    public static TFMPageLookup addOrUpdateLookupPage(TFMPages _pages, str _pageId, str _title, str _icon, str _filter = '', str _listId = '', str _lookup = '', str _submit = '')
+    {
+        TFMPageLookup page = _pages.getPage(_pageId);
+        TFMPageLookupConfiguration		lookupConfig;
+
+        if(!page)
+        {
+            page = new TFMPageLookup();
+            page.parmId(_pageId);
+            _pages.addPage(page);
+        }
+        
+        page.parmFilter(_filter ?  _filter : _pageId + 'Header');
+        page.parmIcon(_icon);
+        page.parmTitle(_title);
+        page.setListId(_listId);
+        lookupConfig = page.getConfiguration();
+        lookupConfig.parmType(_pageId);
+        if(_lookup)
+        {
+            lookupConfig.parmLookup(_lookup);
+        }
+        if(_submit)
+        {
+            lookupConfig.parmSubmit(_submit);
+        }
+
+        return page;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setToUnavailableForMenuPages</Name>
+				<Source><![CDATA[
+    public static boolean setToUnavailableForMenuPages(TFMPages pages, str _pageId)
+    {
+        TFMPage page = pages.getPage(_pageId);
+        if(page)
+        {
+            page.parmAvailableForMenuPages(false);
+            return true;
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

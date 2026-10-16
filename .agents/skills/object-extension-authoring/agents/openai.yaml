@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Object Extensions"
+  short_description: "Create D365FO table, form, EDT, and enum extensions"
+  default_prompt: "Use $object-extension-authoring to extend a D365FO application object."

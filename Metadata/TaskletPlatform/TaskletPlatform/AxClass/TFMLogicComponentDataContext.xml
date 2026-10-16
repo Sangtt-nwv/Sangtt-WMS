@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicComponentDataContext</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicComponentDataContext extends TFMLogicComponent implements TFMDataInputEnabledInterface
+{
+    TableName   inputData;
+    Name        blockName;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        if (!inputData)
+        {
+            refCon.addCollector(TFMGetReferenceData::defaultReferenceIdentity(10));
+        }
+        return refCon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors registrationCollectors(TFMRequestElement _request = null)
+    {
+        TFMRegistrationCollectors ret;
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInputData</Name>
+				<Source><![CDATA[
+    [TFMParameter('')]
+    public TableName parmInputData(TableName _inputData = inputData)
+    {
+        inputData = _inputData;
+        return inputData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBlockName</Name>
+				<Source><![CDATA[
+    [TFMParameter('', "@TFM:Blocktogetdatafrom")]
+    public TFMLogicBlockName parmBlockName(TFMLogicBlockName _blockName = blockName)
+    {
+        blockName = _blockName;
+        return blockName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>requestClassProvided</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method that tells which request Class it's data can be parsed into
+    /// </summary>
+    /// <returns>The name of the request class the components data can be parsed to</returns>
+    public ClassName requestClassProvided()
+    {
+        return classStr(TFMRequestBasicElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getData</Name>
+				<Source><![CDATA[
+    public Common getData(TFMRequestElement _request)
+    {
+        Common dataInContext = _request.logicContext().getDataContext(inputData, blockName);
+        Common dataFromHeader = _request.getReferredRecord();
+
+        return dataInContext != null ? dataInContext : dataFromHeader;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

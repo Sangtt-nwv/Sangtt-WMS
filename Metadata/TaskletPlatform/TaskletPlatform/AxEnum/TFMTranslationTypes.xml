@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMTranslationTypes</Name>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>SysLabel</Name>
+			<Label>@TFM:SystemLabel</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>MobileWMSDeviceLabel</Name>
+			<Label>@TFM:DeviceLabel</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>CustomLabel</Name>
+			<Label>@WAX:WHSLabelLayoutType_CustomLabel</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+	</EnumValues>
+	<IsExtensible>true</IsExtensible>
+</AxEnum>

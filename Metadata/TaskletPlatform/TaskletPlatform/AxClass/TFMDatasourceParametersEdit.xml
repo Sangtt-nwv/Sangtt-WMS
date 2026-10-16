@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDatasourceParametersEdit</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDatasourceParametersEdit extends TFMDocumentParametersEdit
+{
+    TFMPageDatasources ds;
+	
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmDataSource</Name>
+				<Source><![CDATA[
+    public TFMPageDatasources parmDataSource(TFMPageDatasources _ds = ds) 
+    {
+        ds = _ds;
+        return ds;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_modified</Name>
+				<Source><![CDATA[
+    public boolean control_modified(FormControl _control)
+    {
+        MethodName              callMethod = SysTest::hasMethod(_control,methodStr(FormCheckBoxControl, value)) ? methodStr(FormCheckBoxControl, value) : methodStr(FormControl, valueStr);
+        ClassName				usedClass = controlName2ClassName.exists(_control.name()) ? controlName2ClassName.lookup(_control.name()) : currentClass;
+        TFMGenericParms::CreateOrUpdateParameter(usedClass,_control.name(),ds.tableName + '/' + ds.ordertype, new SysDictClass(classIdGet(_control)).callObject(callMethod,_control));
+        
+        
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_EnumModified</Name>
+				<Source><![CDATA[
+    public boolean control_EnumModified(FormComboBoxControl _control)
+    {
+        MethodName              callMethod = SysTest::hasMethod(_control,methodStr(FormCheckBoxControl, value)) ? methodStr(FormCheckBoxControl, value) : methodStr(FormControl, valueStr);
+        str						value = new SysDictClass(classIdGet(_control)).callObject(callMethod,_control);
+        ClassName				usedClass = controlName2ClassName.exists(_control.name()) ? controlName2ClassName.lookup(_control.name()) : currentClass;
+        TFMGenericParms::CreateOrUpdateParameter(usedClass, _control.name(), ds.tableName + '/' + ds.ordertype, TFMDocCustomFunctionFlow::ConvertToType(value,Types::Enum,enumId2Name(_control.enumTypeValue())));
+        
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getValue</Name>
+				<Source><![CDATA[
+    protected anytype getValue(ClassName _domain, MethodName _key, Description255 _content = '')
+    {
+
+        return TFMGenericParms::getValue(_domain,_key,ds.TableName +'/'+ ds.OrderType);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>valueExists</Name>
+				<Source><![CDATA[
+    protected boolean valueExists(ClassName _domain, MethodName _key)
+    {
+        return TFMGenericParms::Exists(_domain,_key,ds.TableName +'/'+ ds.OrderType);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>type2FormControl</Name>
+				<Source><![CDATA[
+    public FormControl type2FormControl(FormGroupControl _fgc, Types _baseType, ExtendedTypeId _edtId, MethodName _methodName, anytype _defaultValue = null, labelString _labelStringOverride = '', HelpTxt _helpTextOverride = '')
+    {
+        FormControl			ret;
+        FormStringControl	fst;
+
+        ret = super(_fgc, _baseType, _edtId, _methodName,_defaultValue, _labelStringOverride, _helpTextOverride);
+		if (_edtId == extendedTypeNum(TFMTableNameAndField))
+        {
+            fst = ret;
+            fst.registerOverrideMethod(methodStr(FormStringControl, lookup), methodStr(TFMDatasourceParametersEdit,control_lookup), this);
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_lookup</Name>
+				<Source><![CDATA[
+	public void control_lookup(FormStringControl _fst)
+    {
+        if ( _fst.valueStr())
+        {
+            TFMFormLookupHelper::lookupTableFieldNames(_fst.valueStr(), _fst,true);
+		}
+		else 
+		{
+            TFMFormLookupHelper::lookupTableNames(_fst,ds.TableName);
+		}
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

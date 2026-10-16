@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobPageTitle</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobPageTitle
+{
+    str defaultValue;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmDefaultValue</Name>
+				<Source><![CDATA[
+    public str parmDefaultValue(str _defTitle = defaultValue)
+    {
+        defaultValue = _defTitle;
+        return defaultValue;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

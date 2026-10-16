@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListRow</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListElementAttribute('row')]
+class TFMListRow extends TFMListBase
+{
+    TFMListColumns columns;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMListRow Construct()
+    {
+        return new TFMListRow();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeColumn</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constructs and adds the column to the row.
+    /// </summary>
+    /// <param name = "_width"></param>
+    /// <returns></returns>
+    public TFMListColumn makeColumn(TFMListWidth _width = 0)
+    {
+        TFMListColumn column = TFMListColumn::Construct(_width);
+        this.addColumn(column);
+        return column;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addColumn</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Helper method to add a column to a row.
+    /// </summary>
+    /// <param name = "_column"></param>
+    public void addColumn(TFMListColumn _column)
+    {
+        if(!columns)
+        {
+            columns = new TFMListColumns();
+            baseChildren.insert(baseChildren.elements(),columns);
+        }
+        columns.addChild(_column);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addChild</Name>
+				<Source><![CDATA[
+    public void addChild(Object _child)
+    {
+        if(_child is TFMListColumns)
+        {
+            columns = _child;
+        }
+        baseChildren.insert(baseChildren.elements(),_child);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>render</Name>
+				<Source><![CDATA[
+    public void render(TFMListVisualizationInterface _visualizer)
+    {
+        _visualizer.renderRow(this);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

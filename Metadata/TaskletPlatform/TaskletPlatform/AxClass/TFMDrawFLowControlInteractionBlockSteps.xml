@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFLowControlInteractionBlockSteps</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDrawFLowControlInteractionBlockSteps extends TFMDrawFlowControlInteraction
+{
+    TFMRegistrationCollectors   collectors;
+    TFMRequestElement           dummyRequest;
+    TFMLogicContext             contextObject;
+    Map                         nodeIDs2Collector;
+    TFMRegistrationCollector    collector;
+    TFMCustomBlocks             blockBuffer;
+    Map                         nodeId2Name;
+    int                         latestId;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>blockList</Name>
+				<Source><![CDATA[
+    public List blockList()
+    {
+        List                            ret = new List(Types::Class);
+        SysDictClass                    sdc = new SysDictClass(classNum(TFMRegistrationCollector));
+        ListEnumerator                  subClasses = sdc.extendedBy(true).getEnumerator();
+        TFMLogicBlocksContract          contract;
+        str                             elementName;
+        while (subClasses.moveNext())
+        {
+            sdc = new SysDictClass(subClasses.current());
+
+            if (sdc.isAbstract() ||sdc.isInterface())
+            {
+                continue;
+            }
+            elementName = subStr(sdc.name(),strLen(classStr(TFMRegistrationCollector))+1,strLen (sdc.name()));
+            collector = sdc.makeObject(1,sdc.name(), elementName, elementName, elementName);
+            contract = new TFMLogicBlocksContract();
+            contract.parmBlockName(elementName);
+            contract.parmClassName(sdc.name());
+            
+            str iconStr = collector.dataTypeIcon();
+            if(iconStr)
+            {
+                str iconUrlBase = TFMDocGetMedia::getURLFromIconName(iconStr, true);
+                contract.parmResourcePath(iconUrlBase);
+            }
+                
+            contract.parmNumberOfInputs(1);
+            contract.parmNumberOfOutputs(1);
+
+            List categoriesList = new List(Types::String);
+            
+            //categoriesList.addEnd('collector');
+            
+            contract.parmCategories(categoriesList);
+
+            ret.addEnd(contract);
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        collectors = null;
+        nodeId2Name= new Map(Types::Integer, Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveData</Name>
+				<Source><![CDATA[
+    public void saveData(str _json)
+    {
+        TFMDrawFlowContract                 contract = TFMJsonSerializer::deserializeObject(classNum(TFMDrawFlowContract),_json);
+        TFMCustomBlockSteps                 blockTbl;
+        Map                                 blockContracts;
+        TFMDrawFlowLogicBlockContract       blockContract;
+        MapEnumerator                       mEnum;
+        ttsbegin;
+        delete_from blockTbl where blockTbl.BlockName == blockBuffer.BlockName;
+
+        blockContracts = contract.getBlocks();
+        mEnum = blockContracts.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            blockContract = mEnum.currentValue();
+            blockTbl.BlockName  = blockBuffer.BlockName;
+            blockTbl.Name       = nodeId2Name.exists(blockContract.parmId()) ? nodeId2Name.lookup(blockContract.parmId()) : blockContract.parmData().parmBlockName();
+            blockTbl.ClassName  = blockContract.parmData().parmClassName();
+            blockTbl.insert();
+            
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SetCustomBlock</Name>
+				<Source><![CDATA[
+    public void SetCustomBlock(TFMCustomBlocks _blockTable)
+    {
+        blockBuffer = _blockTable;
+        flowControl.setEditorModeOnControl(false);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeCreated</Name>
+				<Source><![CDATA[
+    public void nodeCreated(TFMDrawFlowLogicBlockContract _createdNode)
+    {        
+        nodeId2Name.insert(_createdNode.parmId(), _createdNode.parmData().parmBlockName());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeDeleted</Name>
+				<Source><![CDATA[
+    public void nodeDeleted(int _id)
+    {
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>allowEdit</Name>
+				<Source><![CDATA[
+    public boolean allowEdit()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getData</Name>
+				<Source><![CDATA[
+    public str getData()
+    {
+        TFMCustomBlockSteps steps;
+        int i;
+        if(!jsonMediator)
+        {
+            jsonMediator = new TFMDrawFlowJsonCreatorRegistrationCollectors();
+        }
+        TFMProcess                      process = TFMProcess::Construct('BlockStudio');
+        TFMLogicBlockCollection         blockCollection = TFMLogicBlockCollection::Construct(process);
+        TFMLogicBlockCustomBaseBlock    block = new TFMLogicBlockCustomBaseBlock();
+        block.parmName(blockBuffer.Name);
+        block.setblockName(blockBuffer.Name);
+        blockCollection.addBlock(block);
+
+        str jSON = jsonMediator.jSon(blockCollection);
+        
+        TFMDrawFlowJsonCreatorRegistrationCollectors collectorMediator;
+        if (classIdGet(jsonMediator) == classNum(TFMDrawFlowJsonCreatorRegistrationCollectors))
+        {
+            collectorMediator = jsonMediator;
+            nodeIDs2Collector = collectorMediator.nodeId2Collector();
+        }
+        return jSON;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeSelected</Name>
+				<Source><![CDATA[
+    public void nodeSelected(int _id)
+    {
+        FormStringControl           fsc;
+        FormStaticTextControl       groupHeadline;
+        
+        
+        if (fgc == null)
+        {
+            return;
+        }
+
+        while (fgc.controlCount())
+        {
+            fgc.formRun().design().removeControl(fgc.controlNum(1).id());
+        }
+
+        collector = nodeIDs2Collector.exists(_id) ? nodeIDs2Collector.lookup(_id) : null;
+        
+        fsc = fgc.addControl(FormControlType::String, 'editStepName');
+        fsc.extendedDataType(extendedTypeNum(Name));
+        fsc.text(nodeId2Name.exists(_id) ? nodeId2Name.lookup(_id) : (collector ? collector.parmName() : 'No name'));
+        fsc.registerOverrideMethod(methodStr(FormStringControl, modified), methodStr(TFMDrawFLowControlInteractionBlockSteps,control_modified ), this);
+        latestId = _id;
+        if (collector == null)
+        {
+            groupHeadline = fgc.addControl(FormControlType::StaticText, 'cannotEditHereText');
+            groupHeadline.text("@TFM:Thisstephasnotbeensavedtheblockn");
+            groupHeadline.style(1);
+            groupHeadline.widthMode(-1);
+            groupHeadline.width(TFMRegistrationCollector::ctrlWidth);
+            return;
+        }
+        
+        collector.parmConditions().parmContext(dummyRequest ? dummyRequest.logicContext() : TFMLogicContext::Construct());
+        collector.parmConditions().modifyObjectFromConditions(collector,dummyRequest ? dummyRequest.logicContext() : TFMLogicContext::Construct());
+        
+        fgc.enabled(this.allowEdit());
+        
+        resourceNode resNode = TFMDrawFlowBlockStyleRegistrationCollector::findResourceForCollector(collector);
+
+        collector.PopulateGroup(fgc,false,true, 'BlockStudio',collector.parmName(), resNode);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_modified</Name>
+				<Source><![CDATA[
+    public boolean control_modified(FormStringControl _control)
+    {
+        nodeId2Name.insert(latestId, strRem(_control.text(),' '));
+        
+        this.updateHtmlForCurrentNode();
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateHtmlForCurrentNode</Name>
+				<Source><![CDATA[
+    public void updateHtmlForCurrentNode()
+    {
+        TFMDrawFlowBlockStyle           blockStyle;
+        
+        str html;
+        blockStyle = TFMDrawFlowBlockStyle::findStyleClass(classStr(TFMRegistrationCollector));
+        if(collector)
+        {
+            html = blockStyle.htmlForClass(collector);
+            flowControl.updateHtmlForNode(collector.parmId(), html);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

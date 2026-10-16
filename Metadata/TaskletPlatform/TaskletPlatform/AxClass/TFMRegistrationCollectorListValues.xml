@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectorListValues</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMRegistrationCollectorListValues extends TFMRegistrationCollector
+{
+    str ListValues;
+    str ListSeparator;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmListSeparator</Name>
+				<Source><![CDATA[
+    public str parmListSeparator(str _ListSeparator = ListSeparator)
+    {
+        ListSeparator = _ListSeparator;
+        return ListSeparator;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmListValues</Name>
+				<Source><![CDATA[
+    public str parmListValues(str _ListValues = ListValues)
+    {
+        ListValues = _ListValues;
+        return ListValues;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(int _id, str _name, str _header, str _label, str _helpLabel)
+    {
+        super(_id, _name, _header, _label, _helpLabel);
+        ListSeparator = ';';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

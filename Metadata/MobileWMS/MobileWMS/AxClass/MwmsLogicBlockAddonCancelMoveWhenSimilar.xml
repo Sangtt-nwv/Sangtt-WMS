@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockAddonCancelMoveWhenSimilar</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MwmsLogicBlockAddonCancelMoveWhenSimilar extends TFMLogicBlockAddon
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addonName</Name>
+				<Source><![CDATA[
+    public Name addonName()
+    {
+        return "@TaskletMobileWMS:Cancelmovewhensimilar";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>compatibleWithBlock</Name>
+				<Source><![CDATA[
+    public boolean compatibleWithBlock(TFMLogicBlock _block)
+    {
+        return classIdGet(_block) == classNum(MwmsLogicBlockMoveInvent);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addonDescription</Name>
+				<Source><![CDATA[
+    public Description255 addonDescription()
+    {
+        return "@TaskletMobileWMS:ModifierforUnplannedMovewhenadde";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyDataBeforePost</Name>
+				<Source><![CDATA[
+    public void modifyDataBeforePost(TFMLogicBlock _block)
+    {
+        MwmsLogicBlockMoveInvent moveBlock = _block;
+        InventJournalTrans          trs;
+        InventJournalTable          tbl;
+
+        if (moveBlock.getInventDimIssue().inventDimId != moveBlock.getInventDimReceipt().inventDimId)
+        {
+            return;
+        }
+        ttsbegin;
+        trs = moveBlock.getInventJournalTrans();
+        trs.selectForUpdate(true);
+        trs.doDelete();
+        tbl = moveBlock.getinventJournalTable();
+        tbl.selectForUpdate(true);
+        tbl.doDelete();
+        ttscommit;
+        moveBlock.getinventJournalTable().reread();
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

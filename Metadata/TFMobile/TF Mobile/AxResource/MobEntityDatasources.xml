@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxResource xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobEntityDatasources</Name>
+	<FileName>entity_dataSource.png</FileName>
+	<RelativeUriInModelStore>TFMobile\TF Mobile\AxResource\ResourceContent\Images\entity_dataSource.png</RelativeUriInModelStore>
+</AxResource>

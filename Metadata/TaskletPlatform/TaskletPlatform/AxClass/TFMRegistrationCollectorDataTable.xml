@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectorDataTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegistrationCollectorDataTable extends TFMRegistrationCollector implements TFMDataTableInterface
+{
+    str dataTable;
+    str dataKeyColumn;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmDataTable</Name>
+				<Source><![CDATA[
+    public str parmDataTable(str _dataTable = dataTable)
+    {
+        dataTable = _dataTable;
+        return dataTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDataKeyColumn</Name>
+				<Source><![CDATA[
+    public str parmDataKeyColumn(str _dataKeyColumn = dataKeyColumn)
+    {
+        dataKeyColumn = _dataKeyColumn;
+        return dataKeyColumn;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMap</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public Map getMap(boolean _showConditions = false)
+    {
+        Map ret;
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

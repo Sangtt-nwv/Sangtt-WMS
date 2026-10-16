@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMFieldOrigins</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class to contain the origins of a collector. If a collector has an indication it originates from a field in the InventDim table, when there is an inventDim buffer in the context, the value from the InventDim Field could automatically be set for the collector.
+/// </summary>
+class TFMFieldOrigins
+{
+    Map tableFields;
+    Set extendedDataTypes;
+    TFMLogicBlockName originBlockName;
+    str matchedSource;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmOriginBlockName</Name>
+				<Source><![CDATA[
+    public TFMLogicBlockName parmOriginBlockName(TFMLogicBlockName _originBlockName = originBlockName)
+    {
+        originBlockName = _originBlockName;
+        return originBlockName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        tableFields = new Map(Types::String, Types::Class);
+        extendedDataTypes = new Set(Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTableFields</Name>
+				<Source><![CDATA[
+    public Map getTableFields()
+    {
+        return tableFields;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dataTypesEnumerator</Name>
+				<Source><![CDATA[
+    public SetEnumerator dataTypesEnumerator()
+    {
+        return extendedDataTypes.getEnumerator();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMFieldOrigins Construct()
+    {
+        return new TFMFieldOrigins();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>hasTable</Name>
+				<Source><![CDATA[
+    public boolean hasTable(TableName _tableName)
+    {
+        return tableFields.exists(_tableName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldsFromTable</Name>
+				<Source><![CDATA[
+    public Set fieldsFromTable(TableName _tableName)
+    {
+        return tableFields.exists(_tableName) ? tableFields.lookup(_tableName) : new Set(Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setMatchedSource</Name>
+				<Source><![CDATA[
+    public void setMatchedSource(str _matchedSource, boolean _forceOverwrite = false)
+    {
+        matchedSource = !matchedSource ? _matchedSource : (_forceOverwrite ? _matchedSource : matchedSource);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>matchedSource</Name>
+				<Source><![CDATA[
+    public str matchedSource()
+    {
+        return matchedSource;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTableField</Name>
+				<Source><![CDATA[
+    public void addTableField(TableName _tableName, FieldName _fieldName)
+    {
+        Set fields = tableFields.exists(_tableName) ? tableFields.lookup(_tableName) : new Set(Types::String);
+        fields.add(_fieldName);
+        tableFields.insert(_tableName,fields);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addExtendedDataType</Name>
+				<Source><![CDATA[
+    public void addExtendedDataType(ExtendedDataTypeName _edtName)
+    {
+        extendedDataTypes.add(_edtName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>originsString</Name>
+				<Source><![CDATA[
+    public str originsString()
+    {
+        str             ret = '';
+        MapEnumerator   mEnum = tableFields.getEnumerator();
+        Set             fields;
+        SetEnumerator   sEnum;
+        str             fieldsStr;
+
+        ret = 'matchedSource:' + matchedSource;
+
+        while (mEnum.moveNext())
+        {
+            fields = mEnum.currentValue();
+            sEnum = fields.getEnumerator();
+            fieldsStr = '';
+            while (sEnum.moveNext())
+            {
+                fieldsStr += (fieldsStr ? ',' :'')+ sEnum.current();
+            }
+            ret += (ret ? TFMConstants::lineBreak() : '') + mEnum.currentKey() + ': ' + fieldsStr;
+        }
+        sEnum = extendedDataTypes.getEnumerator();
+        while(sEnum.moveNext())
+        {
+            ret += (ret ? TFMConstants::lineBreak() : '') + sEnum.current();
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldsAndEDTs</Name>
+				<Source><![CDATA[
+    public Set fieldsAndEDTs()
+    {
+        Set             ret = new Set (Types::String);
+        MapEnumerator   mEnum = tableFields.getEnumerator();
+        Set             fields;
+        SetEnumerator   sEnum;
+        str             fieldsStr;
+        while (mEnum.moveNext())
+        {
+            fields = mEnum.currentValue();
+            sEnum = fields.getEnumerator();
+            fieldsStr = '';
+            while (sEnum.moveNext())
+            {
+                ret.add(sEnum.current());
+            }
+            
+        }
+        sEnum = extendedDataTypes.getEnumerator();
+        while(sEnum.moveNext())
+        {
+            ret.add(sEnum.current());
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mergeInOrigin</Name>
+				<Source><![CDATA[
+    public void mergeInOrigin(TFMFieldOrigins _origin)
+    {
+        MapEnumerator mEnum = _origin.getTableFields().getEnumerator();
+        Set fields;
+        SetEnumerator sEnum;
+        while (mEnum.moveNext())
+        {
+            fields = mEnum.currentValue();
+            sEnum = fields.getEnumerator();
+            while(sEnum.moveNext())
+            {
+                this.addTableField(mEnum.currentKey(), sEnum.current());
+            }
+        }
+        sEnum = _origin.dataTypesEnumerator();
+        while (sEnum.moveNext())
+        {
+            this.addExtendedDataType(sEnum.current());
+        }
+        this.setMatchedSource(_origin.matchedSource());
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

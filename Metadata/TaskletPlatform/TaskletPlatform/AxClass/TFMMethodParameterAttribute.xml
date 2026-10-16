@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMethodParameterAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMMethodParameterAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    MethodName          method;
+    str                 parmType;
+    
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(MethodName _method, str _parmType)
+    {
+        super();
+ 
+        method = _method;
+        parmType = _parmType;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMethodName</Name>
+				<Source><![CDATA[
+    public MethodName parmMethodName(MethodName _method = method)
+    {
+        method = _method;
+ 
+        return method;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmParameterType</Name>
+				<Source><![CDATA[
+    public str parmParameterType(str _parmType = parmType)
+    {
+        parmType = _parmType;
+ 
+        return parmType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMMethodParameterAttribute)+';'+method+';'+parmType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

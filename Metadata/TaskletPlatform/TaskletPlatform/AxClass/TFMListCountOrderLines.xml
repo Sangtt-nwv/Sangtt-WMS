@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListCountOrderLines</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListIdAttribute('CountOrderLines')]
+class TFMListCountOrderLines extends TFMListOrderLines
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>quantityCellContent</Name>
+				<Source><![CDATA[
+    protected str quantityCellContent()
+    {    
+        return '{ActionDefinedQuantity} {UnitOfMeasure}';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

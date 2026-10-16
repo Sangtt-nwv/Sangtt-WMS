@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocAddCountLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+// <summary>
+/// Document Handler class for adding count lines to count journals.
+/// </summary>
+[
+    TFMTableName(tableStr(inventJournalTable)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticmethodStr(MobConstants,AddCountLine), methodStr(MobDocAddCountLine,createUnplannedCountConfiguration)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticmethodStr(MobConstants,AddCountLine), methodStr(MobDocAddCountLine,postAddCountLine))
+]
+class MobDocAddCountLine extends TFMDocumentHandler
+{
+    InventDim               inventDim;
+    InventTable             inventTable;
+    inventJournalTable      inventJournalTable;
+    InventJournalTrans      inventJournalTrans;
+    TFMInventDimSetup       mobInventDimSetup;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getInventJournalTrans</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventJournalTrans))]
+    public InventJournalTrans getInventJournalTrans()
+    {
+        return inventJournalTrans;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getinventJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(inventJournalTable))]
+    public inventJournalTable getinventJournalTable()
+    {
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public TFMDocumentHandlerDescription description()
+    {
+        TFMDocumentHandlerDescription ret = "@MobileWMS:AddCountLine";
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages pages = MobPageHelper::getPagesFromClass(this);
+        TFMPageUnplannedItemRegistration	addCountLineUnplannedPage = pages.getPage('AddCountLine');
+
+        addCountLineUnplannedPage.parmId('AddCountLine');
+        addCountLineUnplannedPage.parmIcon(resourceStr(MobStatePlus));
+        addCountLineUnplannedPage.parmTitle("@MobileWMS:AddCountLine");
+        addCountLineUnplannedPage.parmAvailableForMenuPages(false);
+        
+        return pages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddCountLineHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Create Tag Counting Journal Lines page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration AddCountLineHeader()
+    {
+        TFMReferenceDataConfiguration refConf = new TFMReferenceDataConfiguration();        
+        // Warehouse
+        refConf.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(1, MobConstants::Warehouse(), "@SYS6437", methodStr(TFMGetReferenceData,WarehouseList)));
+    
+        // Journal ID
+        refConf.addCollector(TFMGetReferenceData::defaultJournalIdCollector(2, extendedTypeStr(JournalId), true));
+        
+        refConf.addCollector(TFMGetReferenceData::defaultItemIdCollector(3,true,false,extendedTypeStr(ItemIdBase)));
+
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createUnplannedCountConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create an unplanned count configuration.
+    /// </summary>
+    /// <returns>A Map containing all the registration collectors, that the user should be prompted for.</returns>
+    public Map createUnplannedCountConfiguration()
+    {
+        Map returnMap;// = new Map(Types::Integer, Types::Class);
+        int add = 10;
+        InventDimParm parm, inventDimParm;
+        TFMRequestItemAndDimensionElement countRequest = request as TFMRequestItemAndDimensionElement;
+        
+        InventDim	iDim = countRequest.parmInventDim();
+        inventDimParm.initFromInventDim(iDim);
+        parm = InventDimParm::xorParms(inventDimParm,InventDimParm::activeDimFlag(InventDimGroupSetup::newInventTable(countRequest.parmInventTable())));
+		
+        if (!countRequest.parmInventTable())
+        {
+            throw Error ("@SYS133447");
+        }
+
+        parm.InventSiteIdFlag = NoYes::No;
+        parm.InventLocationIdFlag = NoYes::No;
+        mobInventDimSetup = TFMInventDimSetup::Construct(countRequest.parmInventTable());
+        #if.isAX6
+        parm.WMSPalletIdFlag = mobInventDimSetup.registerWMSPallet();
+        parm.WMSLocationIdFlag = !mobInventDimSetup.registerWMSPallet();
+        #endif
+                
+        returnMap = MobInventDimHelper::GetInventDimCollectors(add, mobInventDimSetup, parm);
+        
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postAddCountLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to post Count lines.
+    /// </summary>
+    [TFMPostMethod(tableStr(inventJournalTrans))]
+    protected void postAddCountLine()
+    {
+        str                                 journalId;
+        InventDimId                         inventDimId;
+        InventjournalTrans                  InventjournalTranstmp;
+        TFMRequestItemAndDimensionElement   addLineRequest = request as TFMRequestItemAndDimensionElement;
+        
+        // This function will simple add a line to the journal
+        // The counted quantity is not set. This must be done using the normal registration
+        // Find the journal and validate that lines can be added
+        
+        journalId           = addLineRequest.parmJournalId();
+        inventDim           = addLineRequest.parmInventDim();
+    
+        // First try to find the journal with the exact value from the mobile device
+        // (this will fail if the journal id is prefixed)
+        if ( !inventJournalTable::exist(journalId))
+        {
+            // That did not work -> remove the first character and try again
+            journalId = strDel(journalId,1,1);
+    
+            InventJournalTable::checkExist(journalId);
+        }
+    
+        inventJournalTable  = InventJournalTable::find(journalId, true);
+    
+        // If the journal cannot be found now the journal does not exist
+        if (!inventJournalTable)
+        {
+            throw error(InventJournalTable::txtNotExist());
+        }
+    
+        // Now validate that the journal has not been posted
+        if (inventJournalTable.Posted)
+        {
+            throw error(strFmt("@SYS18421",inventJournalTable.JournalId));
+        }
+
+        inventTable = InventTable::find(addLineRequest.parmItemId());
+        
+        inventJournalTrans.initFromInventTable(inventTable);
+    
+        // Don't set the invent dim id on the line before we have validated if a line with the same values exists
+        
+        inventDimId                     = InventDim::findOrCreate(addLineRequest.createInventDim(inventDim)).inventDimId;
+    
+        // Validate that a line with the same item and dimensions exists
+        // In this case the user should just register a quantity on that line
+        select firstonly InventjournalTranstmp
+                               where InventjournalTranstmp.JournalId   == inventJournalTable.JournalID
+                                  && InventjournalTranstmp.ItemId      == inventTable.ItemId
+                                    && InventjournalTranstmp.InventDimId == inventDimId;
+    
+        if (InventjournalTranstmp)
+        {
+            throw error("@MobileWMS:ItemAlreadyExists");
+        }
+    
+    
+        //
+        inventJournalTrans = this.initInventJournalTransCreate(inventTable);
+    
+    
+        // Now set the invent dim id
+        inventJournalTrans.InventDimId  = inventDimId;
+    
+        inventJournalTrans.setCostPrice('', inventJournalTrans.inventDim(), inventJournalTrans.inventTableModuleInvent());
+        InventjournalTrans.JournalId   = inventJournalTable.JournalID;
+        inventJournalTrans.inventMovement();
+        inventJournalTrans.Counted      = 0;
+        inventJournalTrans.Qty          = 0;
+        inventJournalTrans.InventOnHand = InventSumDatePhysicalDim::onHandQty(MobHelper::today(),inventTable.ItemId,InventDim::find(inventJournalTrans.InventDimId),InventDimParm::activeDimFlag(InventDimGroupSetup::newInventTable(inventTable)));
+        inventJournalTrans.inventMovement().journalSetCounted();
+        inventJournalTrans.JournalType = InventJournalType::Count;
+        inventJournalTrans.Worker = HcmWorker::userId2Worker(curUserId());//HcmWorkerLookup::currentWorker();
+        inventJournalTrans.insert(false);
+    
+        resultStr = "@SYS80122";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initInventJournalTransCreate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initializes the inventJournalTrans buffer.
+    /// </summary>
+    /// <param name = "_inventTable">An inventTable buffer.</param>
+    /// <returns>An InventJournalTrans buffer</returns>
+    protected inventJournalTrans initInventJournalTransCreate(InventTable _inventTable)
+    {
+        date                    countDate           = MobHelper::today();
+        JournalTableData        journalTableData    = JournalTableData::newTable(inventJournalTable);
+        InventJournalStatic     journalStatic       = journalTableData.journalStatic();
+        inventJournalTrans      inventJournalTrs;
+        InventJournalTransData  journalTransData    = journalStatic.newJournalTransData(inventJournalTrans,journalTableData);
+        
+        inventJournalTrs.clear();
+        journalTransData.initFromJournalTable();
+        inventJournalTrs.TransDate        = countDate;
+        inventJournalTrs.initFromInventTable(_inventTable);
+
+        return inventJournalTrs;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

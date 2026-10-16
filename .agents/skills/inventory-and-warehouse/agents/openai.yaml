@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Inventory & Warehouse"
+  short_description: "Query on-hand, reservations, and WHS work/wave flows"
+  default_prompt: "Use $inventory-and-warehouse to work with on-hand stock or warehouse execution for this D365FO change."

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMHtmlViewerCtrlBuild</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[FormDesignControlAttribute("HTML Viewer TF")]
+class TFMHtmlViewerCtrlBuild extends FormBuildControl
+{
+    str htmlField;
+    str addCopyLinkField;
+    str formatAsXmlField;
+
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>htmlField</Name>
+				<Source><![CDATA[
+    [FormDesignPropertyAttribute('HTML', 'HTML')]
+    public str htmlField(str _value = "")
+    {
+        if(!prmisDefault(_value))
+        {
+            htmlField = _value;
+        }
+        return htmlField;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addCopyLinkField</Name>
+				<Source><![CDATA[
+    [FormDesignPropertyAttribute('Add Copy Link', 'HTML')]
+    public str addCopyLinkField(str _value = "")
+    {
+        if(!prmisDefault(_value))
+        {
+            addCopyLinkField = _value;
+        }
+        return addCopyLinkField;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formatAsXmlField</Name>
+				<Source><![CDATA[
+    [FormDesignPropertyAttribute('Format As XML', 'HTML')]
+    public str formatAsXmlField(str _value = '')
+    {
+        if(!prmisDefault(_value))
+        {
+            formatAsXmlField = _value;
+        }
+        return formatAsXmlField;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

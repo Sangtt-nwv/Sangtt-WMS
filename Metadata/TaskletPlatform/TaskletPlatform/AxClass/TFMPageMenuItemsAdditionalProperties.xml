@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageMenuItemsAdditionalProperties</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPageMenuItemsAdditionalProperties
+{
+    protected Map parametersMap;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getparameters</Name>
+				<Source><![CDATA[
+	public Map getparameters()
+    {
+        if(!parametersMap)
+        {
+            parametersMap  =  new Map(Types::String, Types::Container);
+        }
+        return parametersMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addParameter</Name>
+				<Source><![CDATA[
+    public void addParameter(str _key, container _value)
+    {
+        if(strScan(_key, '/', 0, 2) > -1)
+        {
+            _key = '/' + _key;
+        }
+        this.getparameters().add(_key, _value);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

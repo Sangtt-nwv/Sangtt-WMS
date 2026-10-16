@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocProfitLoss</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[
+    TFMTableName(tableStr(InventJournalTable), staticMethodStr(MobConstants,ProfitLoss)),
+    TFMTableName(tableStr(inventJournalTrans), staticMethodStr(MobConstants,ProfitLoss)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticMethodStr(MobConstants,CreateProfitLossJournalLine), methodStr(MobDocProfitLoss,createCreatePLJournalLineConfiguration)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticMethodStr(MobConstants,ProfitLossJournalLine), methodStr(MobDocProfitLoss, createCreatePLJournalLineConfiguration)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(MobConstants,CreateProfitLossJournal), methodStr(MobDocProfitLoss, postCreateProfitLossJournal)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(MobConstants,CreateProfitLossJournalLine), methodStr(MobDocProfitLoss, postCreateProfitLossJournalLine)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(MobConstants,ProfitLossJournalLine),methodStr(MobDocProfitLoss,postUpdateProfitLossJournalLine)),
+    TFMDocumentType(classStr(TFMLookup), staticMethodStr(MobConstants,ProfitLossJournal), methodStr(MobDocProfitLoss, lookupProfitLossJournals)),
+    TFMDocumentType(classStr(TFMLookup), staticMethodStr(MobConstants,ProfitLossJournalLine), methodStr(MobDocProfitLoss, lookupProfitLossJournalLines)),
+    TFMMenu('ProfitLossJournal', "@SYS327715", "@SYS327715", resourceStr(MobProfitLossJournalIcon), true, true, ['Miscellaneous', 'Warehouse'])
+]
+class MobDocProfitLoss extends TFMDocumentHandler
+{
+    public inventJournalTrans           inventJournalTrans;
+    public inventJournalTable           inventJournalTable;
+    public inventDim                    inventDim;
+    public inventTable                  inventTable;
+    public TFMInventDimSetup            mobInventDimSetup;
+    TFMRequestItemAndDimensionElement   docRequest;    
+    
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return "@SYS327715";
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret = super();
+        ret.insert(MobConstants::CreateProfitLossJournalLine(),"@SYS319116");
+        ret.insert(MobConstants::CreateProfitLossJournal(), "@SYS18287");
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        return MobInventJournalTableCommon::modifyPages(super(),InventJournalType::LossProfit, "@MobileWMS:InventoryAdjustmentLines", resourceStr(MobProfitLossJournalIcon));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getinventJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(inventJournalTable))]
+    public inventJournalTable getinventJournalTable()
+    {
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getinventJournalTrans</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(inventJournalTrans))]
+    public inventJournalTrans getinventJournalTrans()
+    {
+        return inventJournalTrans;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CreateProfitLossJournalHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Profit/Loss page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration CreateProfitLossJournalHeader()
+    {
+        TFMReferenceDataConfiguration conf = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorText	journalDesc = new TFMRegistrationCollectorText(1,extendedTypeStr(Description),"@SYS6303","@SYS6303","@SYS6303");
+        TFMRegistrationCollectorList	journalList = new TFMRegistrationCollectorList(1,extendedTypeStr(Description),"@MobileWMS:AdjustmentCause","@MobileWMS:AdjustmentCause","@MobileWMS:AdjustmentCause");
+        
+        if (this.InventoryAdjustmentCauses().getMap().elements())
+        {
+            journalList.parmDataTable(methodStr(MobDocProfitLoss,InventoryAdjustmentCauses));
+            conf.addCollector(journalList);
+        }
+		else
+        {
+            journalDesc.parmOptional(false);
+			conf.addCollector(journalDesc);
+        }
+        return conf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InventoryAdjustmentCauses</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod]
+	public TFMReferenceDataFilterList InventoryAdjustmentCauses()
+    {
+        TFMReferenceDataFilterList	list = new TFMReferenceDataFilterList();
+        MapEnumerator				mEnum = MobInventAdjustmentCauses::getAllCauses().getEnumerator();
+
+        while (mEnum.moveNext())
+        {
+            list.addValue(mEnum.currentKey(),mEnum.currentKey());
+        }
+
+        return list;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CreateProfitLossJournalLineHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the create Profit/Loss page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration CreateProfitLossJournalLineHeader()
+    {
+        TFMReferenceDataConfiguration refConf = this.ProfitLossJournalCfgHeader();
+        // Warehouse
+        refConf.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(1,MobConstants::Warehouse(), "@SYS6437",methodStr(TFMGetReferenceData,WarehouseList)));
+        // Item number text box
+        refConf.addCollector(TFMGetReferenceData::defaultItemIdCollector(3));
+        
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ProfitLossJournalLineCfgHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Profit/Loss Journal Lines page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration ProfitLossJournalLineCfgHeader()
+    {
+        return MobInventJournalTableCommon::journalLinesHeader();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ProfitLossJournalCfgHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Profit/Loss Journals page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration ProfitLossJournalCfgHeader()
+    {        
+        return MobInventJournalTableCommon::journalLinesHeader();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupProfitLossJournalLines</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to return Profit/Loss Journal Line elements to the mobile client.
+    /// </summary>
+    /// <returns>A MobLookupResponseElement instance containing the data needed for he lookup page on the mobile device.</returns>
+    protected TFMLookupResponseElement lookupProfitLossJournalLines()
+    {        
+        return MobInventJournalTableCommon::lookupInventJournalLines(docRequest.parmJournalId(),this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupProfitLossJournals</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to return Profit/Loss Journal elements to the mobile client.
+    /// </summary>
+    /// <returns>A MobLookupResponseElement instance containing the data needed for he lookup page on the mobile device.</returns>
+    
+    protected TFMLookupResponseElement lookupProfitLossJournals()
+    {
+        return MobInventJournalTableCommon::lookupInventJournals(InventJournalType::LossProfit, docRequest.parmJournalId(), docRequest.parmInventLocationId());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preProcess</Name>
+				<Source><![CDATA[
+    public boolean preProcess()
+    {
+
+        // Get the dimension setup for the item
+        docRequest = request;
+
+        mobInventDimSetup   = TFMInventDimSetup::Construct(docRequest.parmInventTable());
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createCreatePLJournalLineConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create Profit/Loss Journal line configurations.
+    /// </summary>
+    
+    public Map createCreatePLJournalLineConfiguration()
+    {
+        Map returnMap;
+        SysDictType dictType;
+        int add = 10;
+        InventDimParm parm =  InventDimParm::activeDimFlag(InventDimGroupSetup::newInventTable(docRequest.parmInventTable()));
+        parm.InventSiteIdFlag = NoYes::No;
+        parm.InventLocationIdFlag = NoYes::No;
+        
+        #if.isAX6
+        parm.WMSPalletIdFlag = mobInventDimSetup.registerWMSPallet();
+        parm.WMSLocationIdFlag = !mobInventDimSetup.registerWMSPallet();
+        #endif
+        
+        returnMap = MobInventDimHelper::GetInventDimCollectors(add, mobInventDimSetup, parm);
+
+        if (!returnMap.exists(fieldStr(InventDim, inventSerialId)))            
+        {
+            // If serial numbers are not used we ask for a quantity (for serial numbers the quantity is always 1)
+            add+=100;
+            dictType = new SysDictType(extendedTypeNum(Qty));
+            returnMap.insert(MobConstants::Quantity(),TFMRegistrationCollectorDecimal::DecimalStepMap(add,MobConstants::Quantity(),"@SYS130676",dictType.label(),'',true,'',-20000,10000000,14));
+        }
+
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postCreateProfitLossJournal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create Profit/Loss journals.
+    /// </summary>
+    [TFMPostMethod(tableStr(inventJournalTable))]
+    public void postCreateProfitLossJournal()
+    {
+        InventJournalTableData		jourTableData;
+        InventJournalName			inventJournalName;
+        str							description			= docRequest.getFieldValue(extendedTypeStr(description));
+        MobInventAdjustmentCauses	adjCauses			= MobInventAdjustmentCauses::Find(description);
+    
+        // Get the name of the profit/loss journal to create
+        inventJournalName = InventJournalName::find(adjCauses && adjCauses.InventJournalNameLossProfit ? adjCauses.InventJournalNameLossProfit : MobParameters::find().InventJournalNameLossProfit,true);
+
+        ttsBegin;
+    
+        jourTableData = JournalTableData::newTable(inventJournalTable);
+    
+        inventJournalTable.JournalId            = jourTableData.nextJournalId();
+        inventJournalTable.JournalType          = inventJournalType::LossProfit;
+        inventJournalTable.MobReleasedToMobile = true;
+        inventJournalTable.NumOfLines           = 0;
+        jourTableData.initFromJournalName(inventJournalName);
+        inventJournalTable.Description          = description;
+    
+        inventJournalTable.insert();
+        ttsCommit;
+    
+        resultStr = "@MobileWMS:ProfitLossJournalcreatedsucessfully";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postCreateProfitLossJournalLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create Profit/Loss journal lines.
+    /// </summary>
+    [TFMPostMethod(tableStr(inventJournalTable)),TFMPostMethod(tableStr(inventJournalTrans))]
+    public void postCreateProfitLossJournalLine()
+    {
+        InventJournalId         inventJournalId;        
+        //ItemId                  itemid;        
+        
+        // Extract the parameters
+        // Journal ID
+        // Item ID
+        inventJournalId     = docRequest.parmJournalId();
+    
+        // Find the journal to add a line to
+        inventJournalTable = InventJournalTable::find(inventJournalId,true);
+    
+        // Initialize the new journal line
+        inventJournalTrans.clear();
+        inventJournalTrans.initFromInventJournalTable(inventJournalTable);
+        inventJournalTrans.selectForUpdate(true);
+        inventJournalTrans.initValue();
+        inventJournalTrans.initFromInventJournalTable( inventJournalTable );
+        
+        inventJournalTrans.initFromInventTable(docRequest.parmInventTable());
+    
+        // If a serial number was entered the quantity is always -1
+
+        inventJournalTrans.Qty = docRequest.parmQuantity();
+        //MobHelper::EnsureInventDim(inventDim);
+   
+        inventJournalTrans.setInventDimId(docRequest.createInventDim(inventDim).inventDimId);
+    
+        // Set the cost price for the line
+        inventJournalTrans.setCostPrice(inventJournalTrans.InventDimId, inventJournalTrans.inventDim(), inventJournalTrans.inventTableModuleInvent());
+    
+        inventJournalTrans.Worker = HcmWorker::userId2Worker(curUserId());
+        inventJournalTrans.insert(false);
+    
+        // Calculate the number of lines
+        inventJournalTable::initTotal(inventJournalTable);
+        inventJournalTable.update();
+    
+        resultStr = "@SYS80122";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postUpdateProfitLossJournalLine</Name>
+				<Source><![CDATA[
+    public void postUpdateProfitLossJournalLine()
+    {
+        InventJournalId         inventJournalId;
+
+        inventJournalId     = docRequest.parmJournalId();
+        inventJournalTrans  = docRequest.getReferredRecord();
+        ttsbegin;
+        inventJournalTable = InventJournalTable::find(inventJournalId,true);
+        inventJournalTrans.selectForUpdate(true);
+        inventJournalTrans.Qty = docRequest.parmQuantity();
+        inventJournalTrans.setInventDimId(docRequest.createInventDim(inventDim).inventDimId);
+        inventJournalTrans.update(false);
+        
+        // Calculate the number of lines
+        inventJournalTable::initTotal(inventJournalTable);
+        inventJournalTable.update();
+        ttscommit;
+        resultStr = "@SYS80122";
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

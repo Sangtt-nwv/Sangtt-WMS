@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_ReceiveTransfer</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+#mob
+/// <summary>
+/// XML Formatter class for receive Transfer order lines.
+/// </summary>
+[TFMTableNameAttribute(tableStr(InventTransferLine),staticMethodStr(MobConstants,Receive))]
+class MobXMLFormatOrderLines_ReceiveTransfer extends MobXMLFormatOrderLines_Receive
+{
+    InventTransferLine      inventTransferLine;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        super();
+    
+        inventTransferLine      = common;
+        inventDim               = inventTransferLine.inventDimReceive();
+    
+        this.setInventDim(inventTransferLine.ItemId);
+    
+        orderBackendId          = MobOrder::constructFromTableName(tableStr(InventTransferTable),orderType).getBackendID(InventTransferTable::find(inventTransferLine.TransferId));//#ReceiveTransferOrderPrefix + inventTransferLine.TransferId;
+        lineNumber              = inventTransferLine.InventTransIdReceive;
+        itemNumber              = inventTransferLine.ItemId;
+        description             = InventTable::find(inventTransferLine.itemId).productName(new xInfo().language());
+        quantity                = MobHelper::formatItemQty(inventTransferLine.QtyShipped-inventTransferLine.QtyReceived, inventTransferLine.UnitId);
+        registeredQuantity      = MobConstants::NotUsed0();
+        unitOfMeasure           = inventTransferLine.UnitId;
+        
+        status                  = MobConstants::NotUsed0();
+        displayLine1            = inventTransferLine.ItemId;
+        displayLine2            = InventTable::find(inventTransferLine.itemId).productName(new xInfo().language());
+        displayLine3            = inventDim.wMSLocationId;
+        underDeliveryValidation = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),mobInventDimSetup.registerWMSPallet() ? TFMUnderDeliveryValidation::Block : TFMUnderDeliveryValidation::None); //Must be able to handle partial receipt
+        overDeliveryValidation  = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),mobInventDimSetup.registerWMSPallet() ? TFMUnderDeliveryValidation::Block : TFMUnderDeliveryValidation::None); //Must be able to handle partial receipt
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

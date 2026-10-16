@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPagePendingRegistrations</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('PendingRegistrations', "PendingRegistrations")]
+class TFMPagePendingRegistrations extends TFMPage
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        type = 'AdhocRegistrations'; // setting the type directly to have a different type and configuration object.
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

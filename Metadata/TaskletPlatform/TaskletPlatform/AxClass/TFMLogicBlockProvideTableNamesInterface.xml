@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicBlockProvideTableNamesInterface</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Interface made to add table names when the block either has a Data Attribute that returns common, or the block adds the table to the context it self during runtime. 
+/// This is needed to tell the system beforehand which datasources are available, so the user can leverage this in the setup, if needed
+/// </summary>
+interface TFMLogicBlockProvideTableNamesInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>tablesProvided</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Provides a set of table names that the current block provides at runtime
+    /// </summary>
+    /// <returns>A set of table names as strings</returns>
+	public Set tablesProvided()
+    {
+	}
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

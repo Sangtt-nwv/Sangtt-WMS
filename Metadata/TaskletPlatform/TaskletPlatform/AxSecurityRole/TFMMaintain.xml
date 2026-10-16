@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxSecurityRole xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMaintain</Name>
+	<Description>@TFM:TFMMaintainRoleHelpText</Description>
+	<Label>@TFM:TFMMaintainRoleLabel</Label>
+	<DirectAccessPermissions>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>TFMLockedOrders</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>TFMMenuPermissions</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>TFMRealtimeRegisteredQuantity</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>TFMDocumentQueue</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>TFMDocumentTmpHandlerLookup</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+		<AxSecurityDataEntityReference>
+			<Grant>
+				<Read>Allow</Read>
+			</Grant>
+			<Name>TFMParameters</Name>
+			<Fields />
+		</AxSecurityDataEntityReference>
+	</DirectAccessPermissions>
+	<Duties>
+		<AxSecurityDutyReference>
+			<Name>TFMMaintain</Name>
+		</AxSecurityDutyReference>
+	</Duties>
+	<Privileges />
+	<SubRoles />
+</AxSecurityRole>

@@ -1,0 +1,1860 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMFormLookupHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class containg Lookup helper methods.
+/// </summary>
+class TFMFormLookupHelper
+{
+    #tfm
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>lookupClassesExtendingCertainClass</Name>
+				<Source><![CDATA[
+    public static void lookupClassesExtendingCertainClass(FormControl _callingControl, ClassName _className, str _descriptionColumnHeaderText = '')
+    {
+        SysTableLookup      sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMDocumentTmpHandlerLookup), _callingControl);
+        classId             classId = className2Id(_className);
+        SysDictClass        dictClass = new SysDictClass(classId), subCls;
+        List                extendedClasses = dictClass.extendedBy();
+        ListEnumerator      lEnum = extendedClasses.getEnumerator();
+        TFMDocumentTmpHandlerLookup     tmpLookup;
+        anytype             subClass;
+
+        sysTableLookup.addLookupfield(fieldNum(TFMDocumentTmpHandlerLookup,className),true);
+        sysTableLookup.addLookupfield(fieldNum(TFMDocumentTmpHandlerLookup,Description));
+        if(_descriptionColumnHeaderText)
+        {
+            sysTableLookup.setLabel(_descriptionColumnHeaderText);
+        }
+        tmpLookup.setTmp();
+
+        while (lENum.moveNext())
+        {
+            subCls = new sysDictClass(lEnum.current());
+            if ( subCls == null || subCls.isAbstract())
+            {
+                continue;
+            }
+            subClass = subCls.makeObject();
+
+            if(subCls.hasObjectMethod(methodStr(TFMDocumentHandler, description)))
+            {
+                tmpLookup.Description = subClass.description();
+            }
+            else
+            {
+                tmpLookup.Description = subCls.name();
+            }
+            tmpLookup.ClassName = subCls.name();
+            tmpLookup.insert();
+        }
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupClasses</Name>
+				<Source><![CDATA[
+    public static void lookupClasses(FormControl _callingControl)
+    {
+        TFMFormLookupHelper::lookupClassesExtendingCertainClass(_callingControl, classStr(TFMDocumentHandler));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupValidationClasses</Name>
+				<Source><![CDATA[
+    public static void lookupValidationClasses(FormControl _callingControl)
+    {
+        SysTableLookup					sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpAotImport), _callingControl);
+        
+        TmpAotImport                    tmpLookup;
+        ListEnumerator			        lEnum = new SysDictClass(classNum(TFMWorkflowValidation)).extendedBy().getEnumerator();
+        TFMWorkflowValidation	        validationClass;
+        SysDictClass			        sdc;
+        
+        sysTableLookup.addLookupfield(fieldNum(TmpAotImport,TreeNodeName));
+        sysTableLookup.addLookupfield(fieldNum(TmpAotImport,TreeNodePath),true);
+
+        tmpLookup.setTmp();
+        
+
+        while (lEnum.moveNext())
+        {
+            sdc = new SysDictClass(lEnum.current());
+            if (!sdc.allowMakeObject())
+            {
+                continue;
+            }
+            validationClass = sdc.makeObject();
+            tmpLookup.TreeNodeName = validationClass.label();
+            tmpLookup.TreeNodePath = validationClass.validationType();
+            tmpLookup.insert();
+        }
+        
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupGroupingMenuIconsClasses</Name>
+				<Source><![CDATA[
+    public static void lookupGroupingMenuIconsClasses(FormControl _callingControl)
+    {
+        SysTableLookup					sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpAotImport), _callingControl);
+        
+        TmpAotImport                    tmpLookup;
+        ListEnumerator			        lEnum = new SysDictClass(classNum(TFMImageHandler)).extendedBy().getEnumerator();
+        TFMMenuGroupingIconAttribute    imageClass;
+        SysDictClass			        sdc;
+        
+        sysTableLookup.addLookupfield(fieldNum(TmpAotImport,TreeNodeName),true);
+
+        tmpLookup.setTmp();
+        
+
+        while (lEnum.moveNext())
+        {
+            sdc = new SysDictClass(lEnum.current());
+            if (!sdc.allowMakeObject() || sdc.getAttribute(classStr(TFMMenuGroupingIconAttribute)) == null)
+            {
+                continue;
+            }
+            imageClass = sdc.getAttribute(classStr(TFMMenuGroupingIconAttribute));
+            tmpLookup.TreeNodeName = imageClass.parmGroupingType();
+            tmpLookup.TreeNodePath = imageClass.parmGroupingType();
+            tmpLookup.insert();
+        }
+        
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupXMLFormatClassOrderTypes</Name>
+				<Source><![CDATA[
+    public static void lookupXMLFormatClassOrderTypes(FormControl _callingControl, int _overrideCls)
+    {
+        SysTableLookup					sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMDocumentTmpHandlerLookup), _callingControl);
+        SysDictClass					dc = new SysDictClass(_overrideCls);
+        TFMDocumentTmpHandlerLookup     tmpLookup;
+        Array							attrArray = dc.getAttributes(classStr(TFMTableNameAttribute));
+        int								j;
+        TFMTableNameAttribute			tableNameAttr;
+        
+        sysTableLookup.addLookupfield(fieldNum(TFMDocumentTmpHandlerLookup,className),true);
+        sysTableLookup.addLookupfield(fieldNum(TFMDocumentTmpHandlerLookup,Description));
+
+        tmpLookup.setTmp();
+
+        if (attrArray != null)
+        {
+            for (j = 1; j <= attrArray.lastIndex(); j++)
+            {
+                tableNameAttr = attrArray.value(j);
+                tmpLookup.Description = tableNameAttr.parmTableName();
+                tmpLookup.ClassName = tableNameAttr.parmOrderType();
+                tmpLookup.insert();
+            }
+        }
+        
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupEDTNames</Name>
+				<Source><![CDATA[
+    public static void lookupEDTNames(FormControl _callingControl, FormRun _element)
+    {
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpTableName), _callingControl);
+        TmpTableName                    tmpLookup;
+        var edts = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::EdtNames();
+        
+        sysTableLookup.addLookupfield(fieldnum(TmpTableName, TableName),true);
+        
+        tmpLookup.setTmp();
+        while (edts.MoveNext())
+        {
+            tmpLookup.TableName = edts.Current;
+            tmpLookup.insert();
+        }
+        
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCertainPageTypes</Name>
+				<Source><![CDATA[
+    public static Map getCertainPageTypes(className _pageTypeDelimitation, TFMWorkflowName _workflowDelimitation = '')
+    {
+        Map								pagesAvailable = TFMPagesProvider::getAllPages().getPages();
+        MapEnumerator					pageEnum = pagesAvailable.getEnumerator();
+        TFMPages						pages;
+        TFMPage							page;
+        TFMPageOrderList				orderList;
+        TFMPageOrderListConfiguration	conf;
+        Map								returnPages = new Map(Types::String, Types::Class);
+
+        while (pageEnum.moveNext())
+        {
+            page = pageEnum.currentValue();
+            if (classIdGet(page) != className2Id(_pageTypeDelimitation))
+            {
+                //Don't add page
+                continue;
+            }
+            if (_workflowDelimitation && classIdGet(page) == classNum(TFMPageOrderList))
+            {
+                orderList = page;
+                conf = orderList.getConfiguration();
+                if (conf.parmWorkflowName() != _workflowDelimitation)
+                {
+                    continue;
+                }
+            }
+            returnPages.insert(page.parmId(), page);
+        }
+
+        return returnPages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupPageNames</Name>
+				<Source><![CDATA[
+    public static void lookupPageNames(FormControl _callingControl, FormRun _element, className _pageTypeDelimitation = '', TFMWorkflowName _workflowDelimitation = '')
+    {
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMDeltaPages), _callingControl);
+        TFMDeltaPages                   tmpLookup;
+        Map								pagesAvailable = !_pageTypeDelimitation ? TFMPagesProvider::getAllPages().getPages() : TFMFormLookupHelper::getCertainPageTypes(_pageTypeDelimitation,_workflowDelimitation);
+        MapEnumerator					pageEnum = pagesAvailable.getEnumerator();
+        TFMPage							page;
+        sysTableLookup.addLookupfield(fieldnum(TFMDeltaPages, Name),true);
+        sysTableLookup.addLookupfield(fieldnum(TFMDeltaPages, Title),false);
+
+        tmpLookup.setTmp();
+        while (pageEnum.moveNext())
+        {
+            page = pageEnum.currentValue();
+            tmpLookup.Name = page.parmId();
+            tmpLookup.Title = pageEnum.currentKey();
+            tmpLookup.insert();
+        }
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupOfflinePageNames</Name>
+				<Source><![CDATA[
+    public static void lookupOfflinePageNames(FormControl _callingControl, FormRun _element, TFMPages _pages)
+    {
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMDeltaPages), _callingControl);
+        TFMDeltaPages                   tmpLookup;
+        TFMPage							page;
+        MapEnumerator pageEnum = _pages.getPages().getEnumerator();
+
+        sysTableLookup.addLookupfield(fieldnum(TFMDeltaPages, Name),true);
+        sysTableLookup.addLookupfield(fieldnum(TFMDeltaPages, Type),false);
+
+        tmpLookup.setTmp();
+        tmpLookup.clear();
+        while (pageEnum.moveNext())
+        {
+            page = pageEnum.currentValue();
+            tmpLookup.Name = page.parmId();
+            
+            tmpLookup.insert();
+        }
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupDocumentTypes</Name>
+				<Source><![CDATA[
+    public static void lookupDocumentTypes(FormControl _callingControl)
+    {
+        SysTableLookup					  sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpAotImport), _callingControl);
+        TmpAotImport				      tmpLookup;
+        
+        SetEnumerator docHandlersTypesEnum =   TFMDocumentTypeProvider::instance().getTypes().getEnumerator();
+        Set addedTypes = new Set(Types::String);
+
+        sysTableLookup.addLookupfield(fieldnum(TmpAotImport, TreeNodeName),true);
+        
+        tmpLookup.setTmp();
+        while (docHandlersTypesEnum.moveNext())
+        {       
+            str docType = docHandlersTypesEnum.current();
+            if(!addedTypes.in(docType))
+            {
+                tmpLookup.TreeNodeName = docType;
+                tmpLookup.TreeNodePath = docType;
+                tmpLookup.insert();
+
+                addedTypes.add(docType);
+            }
+            
+        }
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupCertainDocumentTypes</Name>
+				<Source><![CDATA[
+    public static void lookupCertainDocumentTypes(FormControl _callingControl, FormRun _element, className _typeDelimitation = '')
+    {
+        SysTableLookup						sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpAotImport), _callingControl);
+        TmpAotImport						tmpLookup;
+        Map									attributes		= TFMAttributeHandler::getAttributesFromClasses(classStr(TFMValidationDocumentTypeAttribute));
+        MapEnumerator						attrEnum = attributes.getEnumerator();
+        MapEnumerator						pEnum;
+        TFMValidationDocumentTypeAttribute	valAttr;
+       
+        sysTableLookup.addLookupfield(fieldnum(TmpAotImport, TreeNodeName),true);
+        
+        tmpLookup.setTmp();
+        while (attrEnum.moveNext())
+        {
+            valAttr = attrEnum.currentValue();
+            
+            tmpLookup.TreeNodeName = valAttr.parmDocumentType();
+            tmpLookup.TreeNodePath = tmpLookup.TreeNodeName;
+            tmpLookup.insert();
+            
+        }
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupValidationDocumentTypes</Name>
+				<Source><![CDATA[
+    public static void lookupValidationDocumentTypes(FormControl _callingControl, FormRun _element)
+    {
+        SysTableLookup						sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpAotImport), _callingControl);
+        TmpAotImport						tmpLookup;
+        Map									attributes		= TFMAttributeHandler::getAttributesFromClasses(classStr(TFMValidationDocumentTypeAttribute));
+        MapEnumerator						attrEnum = attributes.getEnumerator();
+        MapEnumerator						pEnum;
+        TFMValidationDocumentTypeAttribute	valAttr;
+       
+        sysTableLookup.addLookupfield(fieldnum(TmpAotImport, TreeNodeName),true);
+        
+        tmpLookup.setTmp();
+        while (attrEnum.moveNext())
+        {
+            valAttr = attrEnum.currentValue();
+            
+            tmpLookup.TreeNodeName = valAttr.parmDocumentType();
+            tmpLookup.TreeNodePath = tmpLookup.TreeNodeName;
+            tmpLookup.insert();
+            
+        }
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupSubClasses</Name>
+				<Source><![CDATA[
+    public static void lookupSubClasses(FormControl _callingControl,classId _classId)
+    {
+        SysTableLookup      sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMDocumentTmpHandlerLookup), _callingControl);
+        
+        SysDictClass        dictClass = new SysDictClass(_classId), subCls;
+        List                extendedClasses = dictClass.extendedBy();
+        ListEnumerator      lEnum = extendedClasses.getEnumerator();
+        TFMDocumentTmpHandlerLookup     tmpLookup;
+
+        sysTableLookup.addLookupfield(fieldNum(TFMDocumentTmpHandlerLookup,className),true);
+
+        tmpLookup.setTmp();
+
+        while (lENum.moveNext())
+        {
+            subCls = new sysDictClass(lEnum.current());
+            if ( subCls == null || subCls.isAbstract())
+            {
+                continue;
+            }
+            
+            tmpLookup.ClassName = subCls.name();
+            tmpLookup.insert();
+        }
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupPageTypes</Name>
+				<Source><![CDATA[
+    public static void lookupPageTypes(FormControl _callingControl)
+    {
+        SysTableLookup      sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMDocumentTmpHandlerLookup), _callingControl);
+        
+        SysDictClass					dictClass = new SysDictClass(classNum(TFMPage)), subCls;
+        List							extendedClasses = dictClass.extendedBy();
+        ListEnumerator					lEnum = extendedClasses.getEnumerator();
+        TFMPageTypeAttribute			pageType;
+        TFMDocumentTmpHandlerLookup     tmpLookup;
+        
+
+        sysTableLookup.addLookupfield(fieldNum(TFMDocumentTmpHandlerLookup,className),true);
+        sysTableLookup.addLookupfield(fieldNum(TFMDocumentTmpHandlerLookup,Description));
+
+        tmpLookup.setTmp();
+
+        while (lENum.moveNext())
+        {
+            subCls = new sysDictClass(lEnum.current());
+            if ( subCls == null || subCls.isAbstract())
+            {
+                continue;
+            }
+            pageType = subCls.getAttribute(classStr(TFMPageTypeAttribute));
+            tmpLookup.ClassName = pageType.parmPageType();
+            tmpLookup.Description = pageType.parmLabel();
+            tmpLookup.insert();
+        }
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConfigurableFilters</Name>
+				<Source><![CDATA[
+    public static Map getConfigurableFilters(str _filterDelimitation = '', boolean _returnObject = false)
+    {
+        SysDictClass					dictClass = new SysDictClass(classNum(TFMDocumentHandler)), subCls;
+        List							extendedClasses = dictClass.extendedBy(true);
+        ListEnumerator					lEnum = extendedClasses.getEnumerator();
+        TFMDocumentHandler				docHand;
+        
+        Set								methodSet;
+        Set								otherSet;
+        SetEnumerator					sEnum;
+        MapEnumerator					mEnum;
+        MethodName						methodName;
+        anytype							retVal;
+        TFMReferenceDataConfiguration	refData;
+        TFMReferenceDataMethodAttribute refDataAttribute = new TFMReferenceDataMethodAttribute();
+        Map								filters = new Map(Types::String, _returnObject ? Types::Class : Types::String);
+
+        while (lENum.moveNext())
+        {
+            subCls = new sysDictClass(lEnum.current());
+            if ( subCls == null || subCls.isAbstract())
+            {
+                continue;
+            }
+            docHand = subCls.makeObject() as TFMDocumentHandler;
+            methodSet = docHand.getReferenceDataMethods();
+
+            if (methodSet == null)
+            {
+                methodSet = new Set(Types::String);
+            }
+            otherSet = new Set(Types::String);
+            mEnum = TFMAttributeHandler::getMethodNamesFromSysAttribute(subCls.id(),refDataAttribute).getEnumerator();
+            while (mEnum.moveNext())
+            {
+                otherSet.add(mEnum.currentKey());
+            }
+            methodSet = Set::union(methodSet,otherSet);
+
+            sEnum  = methodSet.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                try
+                {
+                    methodName = sEnum.current();
+                    
+                    if ((SysTest::hasMethod(docHand, methodName)))
+                    {
+                        retVal = subCls.callObject(methodName,docHand);
+                        if (typeOf(retVal) == Types::Class && classIdGet(retVal) == classNum(TFMReferenceDataConfiguration))
+                        {
+                            refData = retVal;
+                            refData.parmKey(refData.parmKey() ? refData.parmKey() : MethodName);
+                            if ((refData.parmUseDynaFilter() && !_filterDelimitation) || _filterDelimitation == methodName)
+                            {
+                                filters.insert(classId2Name(classIdGet(docHand))+'.'+methodName + '()', (_returnObject ? retVal : refData.parmKey()));
+                            }
+                            else if (refData.getInlinedHeaders().exists(_filterDelimitation))
+                            {
+                                filters.insert(classId2Name(classIdGet(docHand))+'.'+_filterDelimitation + '()', (_returnObject ? retVal : _filterDelimitation));
+                            }
+                        }
+                        else if (_filterDelimitation == methodName)
+                        {
+                            filters.insert(classId2Name(classIdGet(docHand))+'.'+methodName + '()', _returnObject ? retVal : methodName);
+                        }
+                        
+                    }
+                    
+                }
+                catch (Exception::Error)
+                {
+                    continue;
+                }
+            }
+            
+        }
+        return filters;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConfigurableFilterFields</Name>
+				<Source><![CDATA[
+    public static Map getConfigurableFilterFields(str _methodName)
+    {
+        str								filterStr = _methodName;
+        str								clsName = subStr(filterStr,1,strScan(filterStr,'.',1,strLen(filterStr))-1);
+        str								mthdName= subStr(filterStr,strScan(filterStr,'.',1,strLen(filterStr))+1,strLen(filterStr));
+        Map								returnMap = new Map(Types::String, Types::Class);
+        SysDictClass					DC = new SysDictClass(className2Id(clsName));
+        TFMRegistrationCollector		collector;
+        SetEnumerator					collectors;
+        TFMReferenceDataConfiguration	filterConfig;
+        anytype							result;
+
+        result = DC.callObject(mthdName,DC.makeObject());
+        if (typeOf(result) != Types::Class)
+        {
+            return returnMap;
+        }
+        filterConfig = result;
+        filterConfig.parmKey(filterConfig.parmKey() ? filterConfig.parmKey() : mthdName);
+        collectors = filterConfig.getCollectors().getEnumerator();
+        while (collectors.moveNext())
+        {
+            collector = collectors.current();
+            returnMap.insert(collector.parmName(),collector);
+        }
+
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupFilters</Name>
+				<Source><![CDATA[
+    public static void lookupFilters(FormControl _callingControl)
+    {
+        //TODO: Perhaps merge with TFMGetReferenceData.getConfigurationsFromDocuments(...)
+        SysTableLookup      sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMDocumentTmpHandlerLookup), _callingControl);
+        TFMDocumentTmpHandlerLookup     tmpLookup;
+        MapEnumerator					mEnum = TFMFormLookupHelper::getConfigurableFilters().getEnumerator();
+
+        sysTableLookup.addLookupfield(fieldNum(TFMDocumentTmpHandlerLookup,className),true);
+        sysTableLookup.addLookupfield(fieldNum(TFMDocumentTmpHandlerLookup,Description));
+
+        tmpLookup.setTmp();
+        while (mENum.moveNext())
+        {
+            tmpLookup.ClassName = mEnum.currentValue();
+            tmpLookup.Description = mEnum.currentKey();
+            tmpLookup.insert();
+        }
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupDatasetFields</Name>
+				<Source><![CDATA[
+    public static void lookupDatasetFields(FormControl _callingControl, TFMListId _listId, boolean _addBrackets, TFMPageDatasources _datasources)
+    {
+        TFMList                         list = TFMListsProvider::getAllLists().getList(_listId);
+        MapEnumerator					fields = TFMListVisualization::findDataset(list, _dataSources).getEnumerator();
+        SysTableLookup					sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpTableName), _callingControl);
+        TmpTableName					tmpLookup;
+        str								preFix = _addBrackets ? '{' : '';
+        str								postFix = _addBrackets ? '}' : '';
+        int								i;
+        sysTableLookup.addLookupfield(fieldNum(TmpTableName,TableName),true);
+
+        while (fields.moveNext())
+        {
+            tmpLookup.TableName	= preFix + fields.currentKey() + postFix;
+            tmpLookup.insert();
+            i++;
+        }
+
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupEDTfields</Name>
+				<Source><![CDATA[
+    public static void lookupEDTfields(FormControl _callingControl)
+    {
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMPagesEDTTmpLookup), _callingControl);
+        TFMPagesEDTTmpLookup            tmpLookup;
+        MapEnumerator                   mEnum = TFMPagesProvider::getAllPages().getPages().getEnumerator();
+        TFMPage                         page;
+        Map                             headersMap = TFMHeadersProvider::GetPageHeaders();
+        TFMReferenceDataConfiguration   refData;
+        SetEnumerator                   sEnum;
+        TFMRegistrationCollector        collector;
+        
+        sysTableLookup.addLookupfield(fieldNum(TFMPagesEDTTmpLookup,EDTBasedOn),true);
+        sysTableLookup.addLookupfield(fieldNum(TFMPagesEDTTmpLookup,PageID));
+        sysTableLookup.addLookupfield(fieldNum(TFMPagesEDTTmpLookup,Title));
+        sysTableLookup.addLookupfield(fieldNum(TFMPagesEDTTmpLookup,FieldName));
+
+        tmpLookup.setTmp();
+
+        while (mEnum.moveNext())
+        {
+            
+            page = mEnum.currentValue();
+            if (!headersMap.exists(page.parmFilter()))
+            {
+                continue;
+            }
+            refData = headersMap.lookup(page.parmFilter());
+            sEnum = refData.getCollectors().getEnumerator();
+            while (sEnum.moveNext())
+            {
+                collector = sEnum.current();
+                if (!collector.getEDT())
+                {
+                    continue;
+                }
+                tmpLookup.PageID = Page.parmId();
+                tmpLookup.Title  = Page.parmTitle();
+                tmpLookup.FieldName = collector.parmLabel();
+                tmpLookup.EDTBasedOn = collector.getEDT();
+                tmpLookup.insert();
+            }
+            
+        }
+
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupDataSetMethods</Name>
+				<Source><![CDATA[
+    public static void lookupDataSetMethods(ClassId _classOverrideID, FormControl _callingControl)
+    {
+        TFMFormLookupHelper::lookupAttributeMethods(_classOverrideID,_callingControl,classStr(TFMOrderPostDataSetAttribute));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupDataSetsForPostMethod</Name>
+				<Source><![CDATA[
+    public static void lookupDataSetsForPostMethod(ClassId _classOverrideID, MethodName _methodName, FormControl _callingControl)
+    {
+        TFMOrderPostDataSetAttribute    attribute;
+        MapEnumerator                   methods = TFMFormLookupHelper::getMethodsFromAttribute(_classOverrideID, classStr(TFMOrderPostDataSetAttribute)).getEnumerator();
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpTableName), _callingControl);
+        TmpTableName                    tmpLookup;
+        SysDictClass                    DC;
+        TFMPostMethodAttribute          attr;
+        Array                           array;
+        int                             i, j;
+        DictMethod                      DM;
+        Set                             addedTables = new Set(Types::String);
+
+        DC = new SysDictClass(_classOverrideID);
+        for (i = 1; i <= DC.objectMethodCnt(); i++)
+        {
+            DM = DC.objectMethodObject(i);
+            array = DM.getAttributes(classStr(TFMPostMethodAttribute));
+            if (array != null)
+            {
+                for (j = 1; j <= array.lastIndex(); j++)
+                {
+                    attr = array.value(j);
+
+                    addedTables.add(attr.name());
+                }
+            }
+        }
+
+        sysTableLookup.addLookupfield(fieldnum(TmpTableName, TableName),true);
+        
+        tmpLookup.setTmp();
+        while (methods.moveNext())
+        {
+            attribute = methods.currentValue();
+            if (!addedTables.in(attribute.name()))
+            {
+                //Not applicable for this posting method
+                continue;
+            }
+            
+            tmpLookup.TableName  = attribute.name();
+            tmpLookup.insert();
+        }
+
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupPostMethods</Name>
+				<Source><![CDATA[
+    public static void lookupPostMethods(ClassId _classOverrideID, FormControl _callingControl)
+    {
+        TFMFormLookupHelper::lookupAttributeMethods(_classOverrideID,_callingControl,classStr(TFMPostMethodAttribute));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupAttributeMethods</Name>
+				<Source><![CDATA[
+    public static void lookupAttributeMethods(ClassId _classOverrideID, FormControl _callingControl, className _attributeClassName)
+    {
+        Object                          attribute;
+        MapEnumerator                   methods = TFMFormLookupHelper::getMethodsFromAttribute(_classOverrideID,_attributeClassName).getEnumerator();
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpTableName), _callingControl);
+        TmpTableName                    tmpLookup;
+        
+        sysTableLookup.addLookupfield(fieldnum(TmpTableName, TableName),true);
+        
+        tmpLookup.setTmp();
+        while (methods.moveNext())
+        {
+            attribute = methods.currentValue();
+            tmpLookup.TableName  = attribute.name();
+            tmpLookup.insert();
+        }
+
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllMethodsFromAttribute</Name>
+				<Source><![CDATA[
+    public static Map getAllMethodsFromAttribute(ClassId _classOverrideID, ClassName _attributeClassName, boolean _returnDictMethod = false)
+    {
+        Map                             retSet = new Map(Types::String, Types::Class);
+        SysDictClass                    DC = new SysDictClass(_classOverrideID);
+        Object                          attr;
+        Array                           array;
+        int                             i, j;
+        SysDictMethod                   DM;
+        SetEnumerator                   sEnum = DC.objectMethodSet(true).getEnumerator();
+        while (sEnum.moveNext())
+        {
+            DM = new SysDictMethod(UtilElementType::ClassInstanceMethod, _classOverrideID, sEnum.current());
+            array = DM.getAttributes(_attributeClassName);
+            if (array != null && array.lastIndex())
+            {
+                for (j = 1; j <= array.lastIndex(); j++)
+                {
+                    attr = array.value(j);
+                    retSet.insert(DM.name(),_returnDictMethod ? DM : attr );
+                    
+                }
+            }
+        }
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMethodsFromAttribute</Name>
+				<Source><![CDATA[
+    public static Map getMethodsFromAttribute(ClassId _classOverrideID, ClassName _attributeClassName, boolean _returnDictMethod = false)
+    {
+        Map                             retSet = new Map(Types::String, Types::Class);
+        DictClass                       DC = new DictClass(_classOverrideID);
+        Object                          attr;
+        Array                           array;
+        int                             i, j;
+        DictMethod                      DM;
+        
+        for (i = 1; i <= DC.objectMethodCnt(); i++)
+        {
+            DM = DC.objectMethodObject(i);
+            array = DM.getAttributes(_attributeClassName);
+            if (array != null && array.lastIndex())
+            {
+                for (j = 1; j <= array.lastIndex(); j++)
+                {
+                    attr = array.value(j);
+                    retSet.insert(DM.name(),_returnDictMethod ? DM : attr );
+                    
+                }
+            }
+        }
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTableFieldNames</Name>
+				<Source><![CDATA[
+    public static void lookupTableFieldNames(TableName _tableName, FormControl _callingControl, boolean _appendToTableName = false, boolean _addDisplayMethods = false)
+    {
+        SysTableLookup              sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpSysTableField), _callingControl);
+        Map                         fieldsOnTable   = TFMHelper::fieldsOnTable(_tableName);
+        MapEnumerator               mEnum           = fieldsOnTable.getEnumerator();
+        SetEnumerator				sEnum;
+        TmpSysTableField            tmpLookup;
+        int							i;
+
+        sysTableLookup.addLookupfield(fieldnum(TmpSysTableField, FieldName),true);
+
+        tmpLookup.setTmp();
+
+        while (mEnum.moveNext())
+        {
+
+            tmpLookup.FieldName = (_appendToTableName ? _tableName + '.' : '' ) + mEnum.currentKey();
+            tmpLookup.FieldID   = i;
+            tmpLookup.insert();
+            i++;
+        }
+        if (_appendToTableName)
+        {
+            tmpLookup.FieldName = _tableName;
+            tmpLookup.FieldID   = -500;
+            tmpLookup.insert();
+        }
+        if (_addDisplayMethods)
+        {
+            sEnum = TFMFormLookupHelper::displayMethodsOnTable(_tableName).getEnumerator();
+            while (sEnum.moveNext())
+            {
+                tmpLookup.FieldName = (_appendToTableName ? _tableName + '.' : '' ) + sEnum.current() + '()';
+                tmpLookup.FieldID   = i;
+                tmpLookup.insert();
+                i++;
+            }
+        }
+
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTableFieldNamesWithEDT</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Looks up table field names that has an EDT attach to it.
+    /// </summary>
+    /// <param name = "_tableName"></param>
+    /// <param name = "_callingControl"></param>
+    public static void lookupTableFieldNamesWithEDT(TableName _tableName, FormControl _callingControl)
+    {
+        SysTableLookup              sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpSysTableField), _callingControl);
+        Map                         fieldsOnTable   = TFMHelper::fieldsOnTable(_tableName);
+        MapEnumerator               mEnum           = fieldsOnTable.getEnumerator();
+        SetEnumerator				sEnum;
+        TmpSysTableField            tmpLookup;
+        int							i;
+        ExtendedTypeId              edtId;
+
+        sysTableLookup.addLookupfield(fieldnum(TmpSysTableField, FieldName),true);
+
+        tmpLookup.setTmp();
+
+        while (mEnum.moveNext())
+        {
+            edtId = new SysDictField(tableName2Id(_tableName),fieldName2Id(tableName2Id(_tableName), mEnum.currentKey())).typeId();
+            if(edtId)
+            {
+                tmpLookup.FieldName = mEnum.currentKey();
+                tmpLookup.FieldID   = i;
+                tmpLookup.insert();
+                i++;
+            }
+        }
+
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTableMethodNames</Name>
+				<Source><![CDATA[
+    public static void lookupTableMethodNames(TableName _tableName, FormControl _callingControl)
+    {
+        SysTableLookup              sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMTmpMethodName), _callingControl);
+        Set                         methodsOnTable  = TFMFormLookupHelper::displayMethodsOnTable(_tableName);
+        SetEnumerator               sEnum           = methodsOnTable.getEnumerator();
+        TFMTmpMethodName            tmpLookup;
+
+        sysTableLookup.addLookupfield(fieldnum(TFMTmpMethodName, SysMethodName),true);
+        tmpLookup.setTmp();
+
+        while (sEnum.moveNext())
+        {
+            tmpLookup.SysMethodName = sEnum.current();
+            tmpLookup.insert();
+        }
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>displayMethodsOnTable</Name>
+				<Source><![CDATA[
+    public static Set displayMethodsOnTable(TableName _tableName)
+    {
+        DictTable   dictTable = new DictTable(tableName2Id(_tableName));
+        DictMethod  method;
+        int         noOfDispMethods = dictTable.objectMethodCnt();
+        int         i;
+        Set         retSet = new Set(Types::String);
+        for (i=1; i< noOfDispMethods+1; i++)
+        {
+            method = dictTable.objectMethodObject(i);
+
+            if (method.displayType() == DisplayFunctionType::Get)
+            {
+                retSet.add(method.name());
+            }
+        }
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMethodsOnClass</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns a set with the parm methods on a given class. It can return a set of either method names as a string (which is the standard), or a set with SysDictMethod instances of each method.
+    /// </summary>
+    /// <param name = "_className">Name of the class to find parm methods for.</param>
+    /// <param name = "_onlyStrings">Set to true, if it should only return parm methods that returns string types.</param>
+    /// <param name = "_returnType">Set to either Types::String (default) or types::Class to get method names as a string (which is the standard), or a set with SysDictMethod instances of each method in the returnd set</param>
+    /// <returns>A set of parm methods on the class.</returns>
+    public static Set parmMethodsOnClass(ClassId _classId, boolean _onlyStrings = false, Types _returnType = Types::String)
+    {
+        SysDictClass    dictClass = new SysDictClass(_classId);
+        SysDictMethod   dm;
+        str             method;
+        Set             noOfMethods = dictClass.objectMethodSet(true);
+        SetEnumerator   sEnum = noOfMethods.getEnumerator();
+        Set             retSet = new Set(_returnType);
+        boolean         isParm = false;
+
+        while (sEnum.moveNext())
+        {
+           method = sEnum.current();
+           isParm = 'parm' == subStr(method,1,4);
+
+            if ((_onlyStrings || _returnType == Types::Class) && isParm)
+            {
+                dm = new SysDictMethod(UtilElementType::ClassInstanceMethod,_classId,method);
+                if (_onlyStrings && (dm.returnType() == Types::String || (dm.returnTypeName() && new SysDictType(dm.returnId()).baseType() == Types::String)))
+                {
+                    retSet.add(method);
+                }
+                else
+                {
+                    retSet.add(dm);
+                }
+            }
+            else if (isParm)
+            {
+                retSet.add(method);
+            }
+        }
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IsDefinedAsPageActionAttribute</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns the TFMPageActionAttribute
+    /// </summary>
+    /// <param name = "methodName"></param>
+    /// <param name = "configuration"></param>
+    /// <returns></returns>
+    public static TFMPageActionAttribute IsDefinedAsPageActionAttribute(str xPath, TFMPageConfiguration configuration)
+    {
+        TFMPageConfigurationAttributeAttribute	configAttr;
+        TFMPageActionAttribute                  actionAttr;
+        SysDictMethod			                DM;
+        SetEnumerator                           methodSet;
+        
+        if(!configuration)
+        {
+            return null;
+        }
+
+        ClassId configurationClassId = classIdGet(configuration);
+        methodSet = TFMFormLookupHelper::parmMethodsOnClass(configurationClassId).getEnumerator();
+        while (methodSet.moveNext())
+        {
+            DM = new SysDictMethod(UtilElementType::ClassInstanceMethod,configurationClassId, methodSet.current());
+            configAttr = DM.getAttribute(classStr(TFMPageConfigurationAttributeAttribute));
+            
+            if(configAttr && configAttr.parmXPath() == xPath)
+            {
+                actionAttr = DM.getAttribute(classStr(TFMPageActionAttribute));
+                if(actionAttr)
+                {
+                    return actionAttr;
+                }
+            }
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupParmMethods</Name>
+				<Source><![CDATA[
+    public static void lookupParmMethods(ClassId _classId, FormControl _callingControl, boolean _removeParmFromName = false)
+    {
+        SysTableLookup              sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMTmpMethodName), _callingControl);
+        Set                         methodsOnTable  = TFMFormLookupHelper::parmMethodsOnClass(_classId);
+        SetEnumerator               sEnum           = methodsOnTable.getEnumerator();
+        TFMTmpMethodName            tmpLookup;
+
+        sysTableLookup.addLookupfield(fieldnum(TFMTmpMethodName, SysMethodName),true);
+        tmpLookup.setTmp();
+
+        while (sEnum.moveNext())
+        {
+            tmpLookup.SysMethodName = sEnum.current();
+            if (_removeParmFromName)
+            {
+                tmpLookup.SysMethodName = TFMFormLookupHelper::removeParmFromName(tmpLookup.SysMethodName);
+            }
+            tmpLookup.insert();
+        }
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeParmFromName</Name>
+				<Source><![CDATA[
+    public static str removeParmFromName(str _name)
+    {
+        str name = _name;
+        if(strScan(name, 'parm', 0, 10) > 0)
+        {
+            name =  subStr(name,5,strLen(name));
+            name = strLwr(subStr(name, 0, 1)) + subStr(name, 2, 1000000);
+            return name;
+        }
+        return name;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupPageFields</Name>
+				<Source><![CDATA[
+    public static void lookupPageFields(TFMPageId _pageId, FormControl _callingControl)
+    {
+        SysTableLookup              sysTableLookup		= SysTableLookup::newParameters(tablenum(TFMTmpMethodName), _callingControl);
+        TFMPage						page				= TFMPagesProvider::getAllPages().getPage(_pageId);
+        TFMList						list				= TFMListsProvider::getAllLists().getList(page.getListId());
+        Map							availableTags		= page.pageSpecificListTags();
+        TFMListConfiguration		listConfig			= list.getListConfiguration();
+        Map							availableFromList;
+        MapEnumerator				mEnum;
+        TFMTmpMethodName            tmpLookup;
+
+        listConfig.ParmName(list.parmListName());
+        availableFromList	= listConfig.getListTags();
+
+        sysTableLookup.addLookupfield(fieldnum(TFMTmpMethodName, SysMethodName),true);
+        tmpLookup.setTmp();
+        mEnum = availableFromList.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            tmpLookup.SysMethodName = mEnum.currentKey();
+            tmpLookup.insert();
+        }
+        mEnum = availableTags.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            tmpLookup.SysMethodName = mEnum.currentKey();
+            if (!availableFromList.exists(mEnum.currentKey()))
+            {
+                tmpLookup.insert();
+            }
+        }
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTableNames</Name>
+				<Source><![CDATA[
+    public static void lookupTableNames(FormControl _callingControl, TableName _suggestedTableName = '')
+    {
+        #ifnot.isAX6
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpTableName), _callingControl);
+        TmpTableName                    tmpLookup;
+        var tables = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::TableNames();
+        
+        sysTableLookup.addLookupfield(fieldnum(TmpTableName, TableName),true);
+        
+        tmpLookup.setTmp();
+        if (_suggestedTableName)
+        {
+            tmpLookup.TableName = _suggestedTableName;
+            tmpLookup.insert();
+        }
+        while (tables.MoveNext())
+        {
+            tmpLookup.TableName = tables.Current;
+            if (_suggestedTableName != tmpLookup.TableName)
+            {
+                tmpLookup.insert();
+            }
+        }
+        
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+        #endif
+        #if.isAX6
+        SysTableLookup          sysTableLookup  = SysTableLookup::newParameters(tablenum(SqlDictionary), _callingControl);
+        Query                   query = new Query();
+        QueryBuildDataSource    queryBuildDataSource;
+        
+        sysTableLookup.addLookupfield(fieldNum(SqlDictionary, name),true);
+        queryBuildDataSource = query.addDataSource(tableNum(SqlDictionary));
+        queryBuildDataSource.addSortField(fieldnum(SqlDictionary, name));
+
+        queryBuildDataSource.addOrderByField(fieldnum(SqlDictionary, Name));
+
+        queryBuildDataSource.orderMode(OrderMode::GroupBy);//Used to Group the Field Value
+        queryBuildDataSource.addRange(fieldnum(SqlDictionary,Array)).value('0');
+        queryBuildDataSource.addRange(fieldnum(SqlDictionary,Flags)).value('0');
+        sysTableLookup.parmQuery(query);
+
+        SysTableLookup.parmUseLookupValue(false);
+        
+        sysTableLookup.performFormLookup();
+        #endif
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupAllClassNames</Name>
+				<Source><![CDATA[
+    public static void lookupAllClassNames(FormControl _callingControl)
+    {
+        TFMDocumentTmpHandlerLookup     tmpLookup;
+        SysTableLookup                  sysTableLookup
+        #ifnot.isAX6
+        = SysTableLookup::newParameters(tablenum(TFMDocumentTmpHandlerLookup), _callingControl);
+        var classes = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::ClassNames();
+
+        sysTableLookup.addLookupfield(fieldnum(TFMDocumentTmpHandlerLookup, ClassName),true);
+        tmpLookup.setTmp();
+        while (classes.MoveNext())
+        {
+            tmpLookup.ClassName = classes.Current;
+            //if (subStr(className,1,strLen(_filterStr)) == _filterStr)
+            //if (strScan(className,strReplace(_filterStr,'*',''),1,strLen(className)))
+            {
+                tmpLookup.insert();
+            }
+        }
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+        #endif
+        #if.isAX6
+        = SysTableLookup::newParameters(tablenum(SysModelElement), _callingControl);
+        Query                   query = new Query();
+        QueryBuildDataSource    queryBuildDataSource;
+        sysTableLookup.addLookupfield(fieldNum(SysModelElement, name),true);
+        queryBuildDataSource = query.addDataSource(tableNum(SysModelElement));
+        queryBuildDataSource.addSortField(fieldnum(SysModelElement, name));
+        queryBuildDataSource.addOrderByField(fieldnum(SysModelElement, Name));
+        queryBuildDataSource.orderMode(OrderMode::GroupBy);//Used to Group the Field Value
+        queryBuildDataSource.addRange(fieldnum(SysModelElement,ElementType)).value('45');
+
+        sysTableLookup.parmQuery(query);
+        SysTableLookup.parmUseLookupValue(false);
+        sysTableLookup.performFormLookup();
+        #endif
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupClassStaticMethodNames</Name>
+				<Source><![CDATA[
+    public static void lookupClassStaticMethodNames(ClassName _className, FormControl _callingControl)
+    {
+        SysTableLookup              sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMTmpMethodName), _callingControl);
+        Set                         methodsOnTable  = TFMFormLookupHelper::staticMethodsOnClass(_className);
+        SetEnumerator               sEnum           = methodsOnTable.getEnumerator();
+        TFMTmpMethodName            tmpLookup;
+        
+        sysTableLookup.addLookupfield(fieldnum(TFMTmpMethodName, SysMethodName),true);
+        tmpLookup.setTmp();
+
+        while (sEnum.moveNext())
+        {
+            tmpLookup.SysMethodName = sEnum.current();
+            tmpLookup.insert();
+        }
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>staticMethodsOnClass</Name>
+				<Source><![CDATA[
+    private static Set staticMethodsOnClass(ClassName _className)
+    {
+        DictClass   dictClass = new DictClass(className2Id(_className));
+        DictMethod  method;
+        int         noOfMethods = dictClass.staticMethodCnt();
+        int         i, j;
+        Types       baseType;
+        Set         retSet = new Set(Types::String);
+        
+
+        #ifnot.isAX6
+        boolean     allVarsUsable;
+        for (i=1; i< noOfMethods+1; i++)
+        {
+            method = dictClass.staticMethodObject(i);
+            
+            allVarsUsable = true;
+            if (method.accessSpecifier() == AccessSpecifier::public)
+            {
+                for (j = 1; j <= method.parameterCnt(); j++)
+                {
+                    baseType = method.parameterType(j);
+                    if (baseType == Types::UserType && method.parameterTypeName(j))
+                    {
+                        baseType = new DictType(extendedTypeName2Id(method.parameterTypeName(j))).baseType();
+                    }
+                    allVarsUsable = allVarsUsable && TFMFormLookupHelper::isTypeAllowed(baseType);
+                }
+                baseType = method.returnType();
+                if (baseType == Types::UserType && method.returnTypeName())
+                {
+                    baseType = new DictType(extendedTypeName2Id(method.returnTypeName())).baseType();
+                }
+                if (allVarsUsable && TFMFormLookupHelper::isTypeAllowed(baseType))
+                {
+                    retSet.add(method.name());
+                }
+            }
+        }
+        #endif
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isTypeAllowed</Name>
+				<Source><![CDATA[
+    private static boolean isTypeAllowed(Types _type)
+    {
+        boolean isAllowed;
+
+        switch (_type)
+        {
+            case Types::Date :
+            case Types::Enum :
+            case Types::Int64 :
+            case Types::Integer :
+            case Types::Real :
+            case Types::Record :
+            case Types::String :
+            case Types::Time :
+            case Types::UtcDateTime :
+                isAllowed = true;
+                break;
+            default :
+                isAllowed = false;
+                break;
+        }
+
+        return isAllowed;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupERPLabelIDs</Name>
+				<Source><![CDATA[
+    public static void lookupERPLabelIDs(FormControl _callingControl)
+    {
+        SysTableLookup      sysTableLookup  = SysTableLookup::newParameters(tablenum(tmpUserRequest), _callingControl);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTranslations</Name>
+				<Source><![CDATA[
+    public static void lookupTranslations(FormControl _callingControl)
+    {
+
+        SysTableLookup      sysTableLookup  = SysTableLookup::newParameters(tablenum(tmpUserRequest), _callingControl);
+        Map                 translationMap;
+        MapEnumerator		mEnum;
+        SetEnumerator       sEnum;
+        tmpUserRequest      tmpLookup;
+        sysTableLookup.addLookupfield(fieldNum(tmpUserRequest,Name),true);
+
+        
+        tmpLookup.setTmp();
+        translationMap = TFMTranslationProvider::getAllTranslationsForCurrentUserLanguage();
+        mEnum = translationMap.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            tmpLookup.Name = mEnum.currentKey();
+            
+            tmpLookup.doinsert();
+        }
+
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+     
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isAOldStyleLabelFile</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks if the labelFileId is an old style. Meaning it begins with @. The new format does not start with @ but only has text e.g 'TheLabel' but then the LabelFile is added to it. e.g. @TFM:TheLabel.
+    /// </summary>
+    /// <param name = "_labelFileId"></param>
+    /// <returns>True, if using the old style</returns>
+    public static boolean isAOldStyleLabelFile(str _labelFileId)
+    {
+        boolean result;
+        str regex = '^@.*';
+        if(System.Text.RegularExpressions.Regex::IsMatch(_labelFileId, regex))
+        {
+            result = true;
+        }
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupLabelIDs</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the device labels/translations from the Mobile WMS String Resources
+    /// </summary>
+    /// <param name = "_callingControl"></param>
+    public static void lookupLabelIDs(FormControl _callingControl, boolean _showTranslatedLabel = SystemParameters::getSystemLanguageId() != new xInfo().language())
+    {
+        TFMTranslationLabelIdLookupTable labelFileLookupTable;
+        select labelFileLookupTable;
+
+        Query q = new Query();
+        QueryBuildDataSource qbds1 = q.addDataSource(tableNum(TFMTranslationLabelIdLookupTable));
+
+
+        SysTableLookup                      sysTableLookup;
+        sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMTranslationLabelIdLookupTable), _callingControl);
+        sysTableLookup.addLookupfield(fieldNum(TFMTranslationLabelIdLookupTable,LabelFile),false);
+        
+        sysTableLookup.addLookupfield(fieldNum(TFMTranslationLabelIdLookupTable,LabelId),false);
+        sysTableLookup.addLookupfield(fieldNum(TFMTranslationLabelIdLookupTable,LabelString),false);
+
+        if(_showTranslatedLabel)
+        {
+            sysTableLookup.addLookupMethod(tableMethodStr(TFMTranslationLabelIdLookupTable, LabelTranslated), false);
+        }
+        
+        sysTableLookup.addLookupfield(fieldNum(TFMTranslationLabelIdLookupTable,LookupId),true);
+        sysTableLookup.parmQuery(q);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createLabelFileLabelIdTranslationTableAsync</Name>
+				<Source><![CDATA[
+    public static container createLabelFileLabelIdTranslationTableAsync(container _callerParms)
+    {
+        TFMFormLookupHelper::createLabelFileLabelIdTranslationTable(TFMParameters::GetLabelFileIds());
+        return _callerParms;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createLabelFileLabelIdTranslationTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates the label file values for the lookup in the database.
+    /// </summary>
+    /// <returns>The TFMTranslationLabbelIDLookupTable</returns>
+    public static void createLabelFileLabelIdTranslationTable(str _labelFiles, boolean runAsync = true, boolean waitForCompletion =  false)
+    {
+        System.Threading.Tasks.Task task;
+        System.Threading.Tasks.Task[] tasks;
+        List labelFilesList = strSplit(_labelFiles, ';');
+        ListEnumerator labelFilesListEnum = labelFilesList.getEnumerator();
+        tasks = new System.Threading.Tasks.Task[labelFilesList.elements()]();
+        int counter = 0;
+        while(labelFilesListEnum.moveNext())
+        {
+            if(runAsync)
+            {
+                task = runAsync(classNum(TFMFormLookupHelper), staticMethodStr(TFMFormLookupHelper,createLabelIDTranslationLookupForLabelFileAsync), [labelFilesListEnum.current()], System.Threading.CancellationToken::None, classNum(TFMFormLookupHelper), staticMethodStr(TFMFormLookupHelper,ClassCallBackTest));
+                tasks.Set(counter, task);
+            }
+            else
+            {
+                TFMFormLookupHelper::createLabelIDTranslationLookupForLabelFileAsync([labelFilesListEnum.current()]);
+            }
+            counter++;
+        }
+        
+        if(waitForCompletion) // wait until all tasks are done. This is usefull when the jobs runs in a batch and should not return before it is done.
+        {
+            System.Threading.Tasks.Task::WaitAll(tasks);
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createLabelIDTranslationLookupForLabelFileAsync</Name>
+				<Source><![CDATA[
+    protected static void createLabelIDTranslationLookupForLabelFileAsync(container _conLabelFileName)
+    {
+        anytype dLabels;
+        TFMTranslationLabelIdLookupTable     tmpLookup;
+        boolean existingCheck;
+        System.Collections.IDictionaryEnumerator de;
+        System.Globalization.CultureInfo cInfo = new System.Globalization.CultureInfo('en-US');
+        str labelFileName = conPeek(_conLabelFileName, 1);
+
+        dLabels = Microsoft.Dynamics.Ax.Xpp.LabelHelper::GetAllLabels(labelFileName, cInfo);
+        if(dLabels)
+        {
+            de = dLabels.getEnumerator();
+            while (de.moveNext())
+            {
+                existingCheck = TFMTranslationLabelIdLookupTable::checkExisting(de.Value);
+                if(!existingCheck)
+                {
+                    tmpLookup.LabelFile = labelFileName;
+                    tmpLookup.LabelId = de.Key;
+                    tmpLookup.LabelString = de.Value;
+                    if(TFMFormLookupHelper::isAOldStyleLabelFile(de.Key))
+                    {
+                        tmpLookup.LookupId = de.Key;
+                    }
+                    else
+                    {
+                        tmpLookup.LookupId = strFmt('@%1:%2', labelFileName, de.Key);
+                    }
+                    ttsbegin;
+                    tmpLookup.doInsert();
+                    ttscommit;
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AllMenus</Name>
+				<Source><![CDATA[
+    public static Map AllMenus()
+    {
+        DictClass           dc = new DictClass(classnum(TFMDocumentHandler));
+        DictClass           subClass;
+        List                extendingClasses = dc.extendedBy(true);
+        ListEnumerator      lEnum = extendingClasses.getEnumerator();
+        Object              docHand;
+        container           menuContainer;
+        int                 counter;
+        int                 length;
+        TFMMenu             menu;
+        TFMMenuDescription  description;
+        boolean             add2menu;
+        str                 menuIcon;
+        TFMDeltaPages       qPages;
+        TFMMenuAttribute    menuAttribute;
+        Array               arr = DictClass::getAttributedClasses(classStr(TFMMenuAttribute));
+        Array               attributeArray;
+        int                 attrCount;
+        Map					Menus = new Map(Types::String, Types::String);
+          
+        
+        while (lEnum.moveNext())
+        {
+            subClass = new DictClass(lEnum.current());
+            if (subClass == null || subClass.isAbstract())
+            {
+                continue;
+            }
+            docHand = subClass.makeObject() as TFMDocumentHandler;
+            menuContainer = subClass.callObject(methodStr(TFMDocumentHandler,registerMenu),docHand);
+            if (menuContainer == conNull())
+            {
+                continue;
+            }
+            counter = 1;
+            length = conLen(menuContainer);
+            while(counter <= length)
+            {
+                
+                [menu, description, add2menu, menuIcon] = conpeek(menuContainer,counter);
+                Menus.insert(menu,description);
+                counter++;
+            }
+        }
+        while select qPages
+        {
+            Menus.insert(qPages.Name,qPages.Name);
+        }
+        for (counter = 1; counter <= arr.lastIndex(); counter++)
+        {
+            dc = new DictClass(arr.value(counter));
+            attributeArray = dc.getAttributes(classStr(TFMMenuAttribute));
+            for (attrCount = 1; attrCount <= attributeArray.lastIndex(); attrCount++)
+            {
+                menuAttribute = attributeArray.value(attrCount);
+               
+                if (menuAttribute.parmMainMenuEnabled())
+                {
+                    Menus.insert(menuAttribute.parmName(),menuAttribute.parmLabel());
+                }
+            }
+        }
+        
+        return Menus;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupMenuIDs</Name>
+				<Source><![CDATA[
+    public static void lookupMenuIDs(FormControl _callingControl)
+    {
+        SysTableLookup      sysTableLookup  = SysTableLookup::newParameters(tablenum(tmpUserRequest), _callingControl);
+        ResourceNode        node;
+        MapEnumerator       mEnum = TFMFormLookupHelper::AllMenus().getEnumerator();
+        tmpUserRequest      tmpLookup;
+        
+        sysTableLookup.addLookupfield(fieldNum(tmpUserRequest,Name),true);
+
+        tmpLookup.setTmp();
+        while (mEnum.moveNext())
+        {
+            tmpLookup.Name = mEnum.currentKey();
+            
+            tmpLookup.doinsert();
+        }
+        
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupListIDs</Name>
+				<Source><![CDATA[
+    public static void lookupListIDs(FormControl _callingControl)
+    {
+        SysTableLookup      sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMLists), _callingControl);
+
+        Query query = new Query();
+        QueryBuildDataSource qbds;
+        qbds= query.addDataSource(tableNum(TFMLists));
+        sysTableLookup.parmQuery(query);
+        sysTableLookup.addLookupfield(fieldNum(TFMLists,ListId),true);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupServiceIDs</Name>
+				<Source><![CDATA[
+    public static void lookupServiceIDs(FormControl _callingControl)
+    {
+        SysTableLookup      sysTableLookup  = SysTableLookup::newParameters(tablenum(tmpUserRequest), _callingControl);
+        ResourceNode        node;
+        
+        tmpUserRequest      tmpLookup;
+        BinData             binData = new BinData();
+        str                 content;
+        int					startPos = 1,EndPos;
+        str					strTosearchFor = '<service id="';
+        binData.setData(SysResource::getResourceNodeData(node));
+        content = binData.getStrData();
+        sysTableLookup.addLookupfield(fieldNum(tmpUserRequest,Name),true);
+  
+        tmpLookup.setTmp();
+        do
+        {
+            startPos = strScan(content,strTosearchFor,startPos,strLen(content));
+            EndPos   = strScan(content,'"',startPos + strLen(strTosearchFor) + 2,strLen(content));
+            if (startPos > 1)
+            {
+                startPos = startPos + strLen(strTosearchFor);
+                tmpLookup.Name = subStr(content,startPos,EndPos - startPos);
+            }
+            else
+            {
+                startPos = -5;
+            }
+            tmpLookup.doinsert();
+        }
+        while (startPos > 0);
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupDeviceIconIDs</Name>
+				<Source><![CDATA[
+    public static void lookupDeviceIconIDs(FormControl _callingControl)
+    {
+        SysTableLookup      sysTableLookup  = SysTableLookup::newParameters(tablenum(tmpUserRequest), _callingControl);
+        ResourceNode        node; 
+        SetEnumerator       sEnum;
+        tmpUserRequest      tmpLookup;
+        BinData             binData = new BinData();
+        str                 content;
+        if(node)
+        {
+            binData.setData(SysResource::getResourceNodeData(node));
+            content = binData.getStrData();
+        }
+        sEnum = TFMFormLookupHelper::getDeviceIcons(content).getEnumerator();
+        sysTableLookup.addLookupfield(fieldNum(tmpUserRequest,Name),true);
+
+        
+        tmpLookup.setTmp();
+
+        while (sENum.moveNext())
+        {
+            tmpLookup.Name = sEnum.current();
+            
+            tmpLookup.doinsert();
+        }
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupDimensionSetup</Name>
+				<Source><![CDATA[
+    public static void lookupDimensionSetup(FormControl _callingControl)
+    {
+        InventDimParm                   parm = TFMInventDimHelper::getAllEnabledDimensions();
+        Set								storeDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, StorageDimensions));
+        Set								produDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, ProductDimensions));
+        Set								trackDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, TrackingDimensions));
+        FieldName						localFieldName;
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpTableName), _callingControl);
+        TmpTableName                    tmpLookup;
+        Set                             combiSet = Set::union(Set::union(storeDims, produDims),trackDims);
+        SetEnumerator			        sEnum = combiSet.getEnumerator();
+
+        sysTableLookup.addLookupfield(fieldNum(TmpTableName,TableName),true);
+        
+        
+        tmpLookup.setTmp();
+        while (sEnum.moveNext())
+        {
+            localFieldName = sEnum.current();
+
+            if (!parm.(InventDim::dim2dimParm(fieldName2Id(tableNum(InventDim),sEnum.current()))))
+            {
+                continue;
+            }
+            tmpLookup.TableName  = localFieldName;
+            tmpLookup.insert();
+        }
+
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDeviceIcons</Name>
+				<Source><![CDATA[
+    public static Set getDeviceIcons(str _configFile)
+    {
+        int posStart;
+        int posEnd;
+        Set retSet = new Set(Types::String);
+
+        posStart = strScan(_configFile,'icon=',1,strLen(_configFile));
+
+        while (posStart)
+        {
+            posStart = strScan(_configFile,'"',posStart,strLen(_configFile));
+            posEnd = strScan(_configFile,'"',posStart+1,strLen(_configFile));
+            if (posStart && posEnd)
+            {
+                retSet.add(subStr(_configFile,posStart+1,posEnd-posStart-1));
+            }
+            posStart = strScan(_configFile,'icon=',posEnd,strLen(_configFile));
+        }
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDeviceLabels</Name>
+				<Source><![CDATA[
+    private static Set getDeviceLabels(str _configFile)
+    {
+        System.Text.RegularExpressions.Match myMatch;
+        System.String sysStrOut;
+        str strOut;
+        str regex;
+        Set retSet = new Set(Types::String);
+    
+        regex = @'(?s)(?<=@{).*?(?=})';
+    
+        myMatch = System.Text.RegularExpressions.Regex::Match(_configFile, regex);
+    
+    
+        while (myMatch.get_Success())
+        {
+            sysStrOut = myMatch.get_Value();
+            strOut = sysStrOut; // marshall data types
+            if (!retSet.in(strOut))
+            {
+                retSet.add(strOut);
+            }
+            myMatch = myMatch.NextMatch();
+        }
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ClassCallBackTest</Name>
+				<Source><![CDATA[
+    public static void ClassCallBackTest(AsyncTaskResult _result)
+    {
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

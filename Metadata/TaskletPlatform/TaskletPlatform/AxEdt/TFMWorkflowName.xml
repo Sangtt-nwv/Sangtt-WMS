@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>TFMWorkflowName</Name>
+	<Extends>Name</Extends>
+	<Label>@SYS110905</Label>
+	<ReferenceTable>TFMWorkflowsTable</ReferenceTable>
+	<ArrayElements />
+	<Relations />
+	<TableReferences>
+		<AxEdtTableReference>
+			<RelatedField>WorkflowName</RelatedField>
+			<Table>TFMWorkflowsTable</Table>
+		</AxEdtTableReference>
+	</TableReferences>
+</AxEdt>

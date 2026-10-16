@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageOfflineManagementConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMpageType('OfflineManagement', "@TFM:OfflineManagement")]
+class TFMPageOfflineManagementConfiguration extends TFMPageConfiguration
+{
+    TFMPageID		        navigateToButton;
+    boolean                 postAllEnabled;
+    TFMPageTitleString		postAllTitle;
+    boolean                 refreshEnabled;
+    TFMPageTitleString		refreshTitle;
+    TFMOfflineUpdateMode	updateMode; //OnNoOrders, Manual, Always.
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmUpdateMode</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(TFMOfflineUpdateMode::Always,'','updateMode')]
+    public TFMOfflineUpdateModeEDT parmUpdateMode(TFMOfflineUpdateModeEDT _updateMode = updateMode)
+    {
+        updateMode = _updateMode;
+        return updateMode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmNavigateToButton</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('MainMenu','navigateToButton', 'navigateTo', true),TFMPageAction]
+    public TFMPageID parmNavigateToButton(TFMPageID _navigateToButton = navigateToButton)
+    {
+        navigateToButton = _navigateToButton;
+        return navigateToButton;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPostAllEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'postAll','enabled',true),TFMPageAction]
+    public boolean parmPostAllEnabled(boolean _postAllEnabled = postAllEnabled)
+    {
+        postAllEnabled = _postAllEnabled;
+        return postAllEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPostAllTitle</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute("@TFM:Uploadall",'postAll','title',true),TFMPageAction]
+    public TFMPageTitleString parmPostAllTitle(TFMPageTitleString _postAll = postAllTitle)
+    {
+        postAllTitle = _postAll;
+        return postAllTitle;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRefreshTitle</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute("@TFM:Refresh",'refresh','title',true),TFMPageAction]
+    public TFMPageTitleString parmRefreshTitle(TFMPageTitleString _refreshTitle = refreshTitle)
+    {
+        refreshTitle = _refreshTitle;
+        return refreshTitle;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRefreshEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'refresh','enabled',true),TFMPageAction]
+    public boolean parmRefreshEnabled(boolean _refreshEnabled = refreshEnabled)
+    {
+        refreshEnabled = _refreshEnabled;
+
+        return refreshEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_parent"></param>
+    public Map appendToXML(XmlElement _parent, TFMPage _page)
+    {
+        XmlElement offlineManagementConfiguration;
+        XmlElement firstElement;
+        SetEnumerator offlineServicesEnum;
+        TFMPageOfflinePages offlinePages;
+        TFMPageOfflineManagementServiceConfiguration offlineService;
+        TFMPageOfflineManagementOrderServiceConfiguration offlineOrderService;
+        XmlElement	servicesNode;
+        Set offlineServices = new Set(Types::Class);
+
+        super(_parent, _page);
+        
+        servicesNode = _parent.ownerDocument().createElement('offlineServices');
+        
+        while select offlinePages where offlinePages.PageID == 'OfflineManagementPage'
+        {
+            if(offlinePages.OfflinePageID == 'AdhocRegistrations') 
+            {
+                offlineService = new TFMPageOfflineManagementAdhocServiceConfiguration();
+            } else
+            {
+                offlineOrderService = new TFMPageOfflineManagementOrderServiceConfiguration();
+                offlineOrderService.parmServiceId(offlinePages.OfflinePageID);
+                offlineService = offlineOrderService;
+            }
+             
+            offlineService.parmListId(offlinePages.ListID);
+            offlineService.parmOnItemSelectedNavigateTo(offlinePages.OfflinePageID);
+            offlineServices.add(offlineService);
+        }
+
+        offlineServicesEnum = offlineServices.getEnumerator();
+        while(offlineServicesEnum.moveNext())
+        {
+            offlineService = offlineServicesEnum.current() as TFMPageOfflineManagementServiceConfiguration;
+            offlineService.appendToXML(servicesNode);
+        }
+
+        offlineManagementConfiguration = _parent.getNamedElement('offlineManagementConfiguration');
+        firstElement = offlineManagementConfiguration.firstChild();
+        if(firstElement)
+        {
+            offlineManagementConfiguration.insertBefore(servicesNode, offlineManagementConfiguration.firstChild());
+        }
+        else
+        {
+            offlineManagementConfiguration.appendChild(servicesNode);
+        }
+
+        return new Map(Types::String, Types::Class);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

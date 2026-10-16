@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlock</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Common Logic block for blocks in the Mobile WMS model, mainly handles naming
+/// </summary>
+class MwmsLogicBlock extends TFMLogicBlock
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();        
+        categories.add("@SYS6437");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Name of the block Type. Override this method if you want to give the block a translated label, instead of the generated for the Class name.
+    /// </summary>
+    /// <returns>Name of the block</returns>
+    public Name blockName()
+    {
+        return TFMHelper::convertCamelCaseToNiceText(subStr(classId2Name(classIdGet(this)),strLen(classStr(MwmsLogicBlock))+1,100));
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

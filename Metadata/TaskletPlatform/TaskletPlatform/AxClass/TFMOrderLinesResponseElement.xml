@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMOrderLinesResponseElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMOrderLinesResponseElement extends TFMOrderListResponseElement
+{
+    
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMOrderLinesResponseElement Construct(TFMPageID _pageId)
+    {
+        return new TFMOrderLinesResponseElement(_pageId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(TFMPageID _pageId)
+    {
+        super(_pageId);
+        className = classStr(TFMXMLFormatOrderLines);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

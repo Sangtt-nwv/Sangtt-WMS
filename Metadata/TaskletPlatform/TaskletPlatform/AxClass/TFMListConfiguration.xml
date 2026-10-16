@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMListConfiguration extends TFMListBase
+{
+    TFMListRows rows; //link to the first child
+    boolean		displayStatus;
+    boolean		useSingleSelection;
+    TFMListId	listId;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmDisplayStatus</Name>
+				<Source><![CDATA[
+    public boolean parmDisplayStatus(boolean _displayStatus = displayStatus)
+    {
+        displayStatus = _displayStatus;
+        return displayStatus;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUseSingleSelection</Name>
+				<Source><![CDATA[
+    public boolean parmUseSingleSelection(boolean _useSingleSelection = useSingleSelection)
+    {
+        useSingleSelection = _useSingleSelection;
+        return useSingleSelection;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmListId</Name>
+				<Source><![CDATA[
+    public TFMListId parmListId(TFMListId _listId = listId)
+    {
+        listId = _listId;
+        return listId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMListConfiguration Construct(TFMListId	_listId)
+    {
+		TFMListConfiguration config = new TFMListConfiguration();
+        config.parmListId(_listId);
+        config.parmDisplayStatus(false); //default values for the list
+        config.parmUseSingleSelection(false); //default values for the list
+  
+        return config;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getListTags</Name>
+				<Source><![CDATA[
+	public Map getListTags()
+    {
+        return this.populateListTags(this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateListTags</Name>
+				<Source><![CDATA[
+    protected Map populateListTags(TFMListBase _listBase)
+    {
+        MapEnumerator			mEnum, customComp;
+        Map						retMap	= new Map(Types::String,Types::String);
+        TFMListTextElement		text;
+        TFMListImageElement		image;
+        Object					subObject;
+        TFMListCustomComponent	customComponent;
+
+		if (classIdGet(_listBase) == classNum(TFMListTextElement))
+        {
+            text = _listBase;
+            if (text.parmText())
+            {
+                this.addTagsToMap(retMap,text.parmText());
+            }
+			if (text.parmDataMember())
+            {
+                this.addTagsToMap(retMap,text.parmDataMember());
+            }
+        }
+        else if (classIdGet(_listBase) == classNum(TFMListImageElement))
+        {
+            image = _listBase;
+            if (image.parmSourceId())
+            {
+                this.addTagsToMap(retMap,image.parmSourceId());
+            }
+            if (image.parmDataMember())
+            {
+                this.addTagsToMap(retMap,image.parmDataMember());
+            }
+        }
+        mEnum	= _listBase.getChildren().getEnumerator();
+        while (mEnum.moveNext())
+        {
+            subObject = mEnum.currentValue();
+			if (new SysDictClass(classIdGet(subObject)).extend() == classNum(TFMListCustomComponent))
+            {
+                customComponent = subObject;
+                customComp = customComponent.SubComponents().getEnumerator();
+                while (customComp.moveNext())
+                {
+                    subObject = customComp.currentValue();
+                    retMap = TFMHelper::mergeMaps(retMap, this.populateListTags(subObject));
+                }
+            }
+			else
+            {
+                retMap = TFMHelper::mergeMaps(retMap, this.populateListTags(subObject));
+            }
+        }
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTagsToMap</Name>
+				<Source><![CDATA[
+	protected void addTagsToMap(Map _retMap, str _text)
+    {
+        ListEnumerator	lEnum = strSplit(_text,'{').getEnumerator();
+        str				text;
+		while (lEnum.moveNext())
+        {
+            text = lEnum.current();
+			if (strScan(text,'}',1,1000))
+            {
+                text = subStr(text,1,strScan(text,'}',1,1000)-1);
+            
+				_retMap.insert(text,'');
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addRow</Name>
+				<Source><![CDATA[
+     public TFMListRow addRow()
+        {
+            TFMListRow	row			= TFMListRow::Construct();
+            if (rows == null)
+            {
+                rows = TFMListRows::Construct();
+                this.addChild(rows);
+            }
+            rows.addChild(row);
+            return row;
+        }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _parent, boolean _expandCustomComponents)
+    {
+        XmlElement		listChild	= _parent.ownerDocument().createElement('listConfiguration');
+        TFMListBase		listRows;
+        MapEnumerator	mEnum;
+        listChild.setAttribute('id', listId);
+        listChild.setAttribute('displayStatus', strFmt('%1',displayStatus)); 
+        listChild.setAttribute('useSingleSelection', strFmt('%1',useSingleSelection));
+
+        // The list only contains one TFMListRows.
+        mEnum = this.getChildren().getEnumerator();
+        while (mEnum && mEnum.moveNext())
+        {
+            listRows = mEnum.currentValue();
+            // get element to pass xml
+            listRows.appendToXML(listChild, _expandCustomComponents);
+        }
+        _parent.appendChild(listChild);                            
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCustomComponents</Name>
+				<Source><![CDATA[
+    public Set getCustomComponents()
+    {
+        Set				retSet;
+        retSet = new TFMListCustomComponentFinder().getCustomComponentsInList(this);
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>render</Name>
+				<Source><![CDATA[
+    public void render(TFMListVisualizationInterface _visualizer)
+    {
+        _visualizer.renderList(this);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

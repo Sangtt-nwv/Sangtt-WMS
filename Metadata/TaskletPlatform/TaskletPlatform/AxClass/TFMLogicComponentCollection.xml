@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicComponentCollection</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Collection class for logic components. Components are the content of a logic block. Components can be reused across multiple Logic blocks.
+/// </summary>
+class TFMLogicComponentCollection
+{
+    Map components;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    protected void new()
+    {
+        components = new Map(Types::Integer, Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Public constructor
+    /// </summary>
+    /// <returns>An initialized TFMLogicComponentCollection object.</returns>
+    public static TFMLogicComponentCollection Construct()
+    {
+        return new TFMLogicComponentCollection();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addComponent</Name>
+				<Source><![CDATA[
+    public void addComponent(TFMLogicComponent _component)
+    {
+        components.insert(components.elements(),_component);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaders</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration getHeaders()
+    {
+        TFMReferenceDataConfiguration   refCon = new TFMReferenceDataConfiguration();
+        TFMReferenceDataConfiguration   componentRefCon;
+        TFMLogicComponent               component;
+        MapEnumerator                   compEnum = components.getEnumerator();
+        while (compEnum.moveNext())
+        {
+            component = compEnum.currentValue();
+            componentRefCon = component.headerFieldsNeeded();
+            if (componentRefCon == null)
+            {
+                continue;
+            }
+            refCon.mergeCollectors(componentRefCon);
+        }
+        return refCon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors getCollectors()
+    {
+        TFMRegistrationCollectors   collectors = TFMRegistrationCollectors::Construct();
+        TFMLogicComponent           component;
+        MApEnumerator               compEnum = components.getEnumerator();
+        while (compEnum.moveNext())
+        {
+            component = compEnum.currentValue();
+            
+            collectors.mergeCollectors(component.registrationCollectors());
+        }
+
+        return collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getComponent</Name>
+				<Source><![CDATA[
+    public TFMLogicComponent getComponent(ClassName _componentName)
+    {
+        MapEnumerator mEnum = components.getEnumerator();
+        TFMLogicComponent component;
+
+        while (mEnum.moveNext())
+        {
+            component = mEnum.currentValue();
+
+            if (classId2Name(classIdGet(component)) == _componentName)
+            {
+                return component;
+            }
+        }
+
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRequest</Name>
+				<Source><![CDATA[
+    //public TFMLogicComponent getComponent(ClassName _componentName)
+    //{
+    //    MapEnumerator mEnum = components.getEnumerator();
+
+    //    while(mEnum.moveNext())
+    //    {
+    //        if(classId2Name(classIdGet(mEnum.currentValue())) == _componentName)
+    //        {
+    //            return mEnum.currentValue();
+    //        }
+    //    }
+    //    return null;
+    //    //return components.exists(_componentName) ? components.lookup(_componentName) : null;
+    //}
+
+    public TFMRequestElement modifyRequest(TFMRequestElement _request)
+    {
+        TFMLogicComponent           component;
+        MapEnumerator               compEnum = components.getEnumerator();
+        TFMRequestElement           request     = _request;
+        while (compEnum.moveNext())
+        {
+            component = compEnum.currentValue();
+            
+            request = component.componentRequest(request);
+        }
+        return request;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setRequests</Name>
+				<Source><![CDATA[
+    public void setRequests(TFMRequestElement _request)
+    {
+        TFMLogicComponent           component;
+        MapEnumerator               compEnum = components.getEnumerator();
+        
+        while (compEnum.moveNext())
+        {
+            component = compEnum.currentValue();
+            
+            component.setRequest(_request);
+        }        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>componentSet</Name>
+				<Source><![CDATA[
+    public Map componentSet()
+    {
+        return components;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>provideDataIfPossible</Name>
+				<Source><![CDATA[
+    public Common provideDataIfPossible(Common _table)
+    {
+        
+        MapEnumerator               compEnum = components.getEnumerator();
+        TFMLogicComponent           component;
+        while (compEnum.moveNext())
+        {
+            component = compEnum.currentValue();
+            
+            component.provideDataIfPossible(_table);
+        }
+        return _table;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

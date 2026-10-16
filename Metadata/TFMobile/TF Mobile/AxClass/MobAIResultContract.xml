@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobAIResultContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContract]
+class MobAIResultContract
+{
+    private List choices;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmChoices</Name>
+				<Source><![CDATA[
+    [DataMember('choices'), DataCollectionAttribute(Types::Class,classStr(MobAIResultChoicesContract)), Hookable(false)]
+    List parmChoices(List _choices = choices)
+    {
+        choices = _choices;
+        return choices;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

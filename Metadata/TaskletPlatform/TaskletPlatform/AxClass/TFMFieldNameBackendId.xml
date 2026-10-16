@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMFieldNameBackendId</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMFieldNameBackendId extends TFMfieldFromNameCreator
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>fieldHandled</Name>
+				<Source><![CDATA[
+    public boolean fieldHandled(str _value)
+    {
+        return _value == TFMConstants::BackendId();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleField</Name>
+				<Source><![CDATA[
+    public void handleField(str _value, FormGroupControl _fgc)
+    {
+        
+        TFMBackendIDInstance    backendInstance = TFMBackendIDInstance::Construct(_value);
+        FormStringControl       fsc = _fgc.addControl(FormControlType::String,TFMConstants::BackendId()+'_'+backendInstance.parmFieldName());
+        SysDictField            sdf = new SysDictField(tableName2Id(backendInstance.parmTableName()),fieldName2Id(tableName2Id(backendInstance.parmTableName()), backendInstance.parmFieldName()));
+
+        if (sdf.baseType() == Types::String)
+        {
+            fsc.extendedDataType(sdf.typeId());
+        }
+        fsc.text(backendInstance.parmFieldValue());
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

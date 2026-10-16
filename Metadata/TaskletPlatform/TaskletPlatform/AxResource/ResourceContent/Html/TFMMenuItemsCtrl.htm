@@ -1,0 +1,36 @@
+
+<script src="/resources/scripts/Sortable.js"></script>
+<script src="/resources/scripts/TFMMenuItemsCtrl.js"></script>
+<link href="/resources/styles/TFMMenuItemsCtrl.css" rel="stylesheet" type="text/css" />
+<div id="TFMMenuItemsCtrl" data-dyn-bind="sizing: { height: $data.Height, width: $data.Width }, visible: $data.Visible">
+    <div style="display: block;">
+        <div id="menuitemloader" class="menuitemloader"><img src="resources/images/loading.gif" alt="Loading" /></div>
+        <div id="menuitem-grid" class="menuitemrow">
+            <div class="menuitem-col-promoted">
+                <div style="display: -webkit-inline-box;">
+                    <span class="group_menuitem_title">Promoted menu items</span>
+
+                </div>
+                <div id="menuitems-promoted-setup" class="menugrid"></div>
+            </div>
+            <div class="menuitem-col-context">
+
+                <div style="display: flow-root;">
+                    <img class="contextmenuicon" src="resources/images/contextmenuicon.png"
+                         data-src="resources/images/contextmenuicon.png" alt="Menu" title="Menu">
+                    <span class="group_menuitem_title">Context menu items</span>
+                    <span class="gridmenuitem-button">
+                        <button onclick="menuitems_GlobalObj.addMenuItemClick()" class="anibutton" id="addMenuItemButton">
+                            <img src="resources/images/plus.png"
+                                 data-src="resources/images/plus.png" alt="Add menu item"
+                                 title="Add menu item" /><span id="addMenuItem">@TFM:addMenuItem</span>
+                        </button>
+                        <button onclick="setTimeout(() => menuitems_GlobalObj.setMenuSetup(), 500);" id="saveSortingSetupButton" class="hide hidden">@TFM:saveSortingSetupButton</button>
+                    </span>
+                </div>
+                <div id="menuitems-context" class="menugrid">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

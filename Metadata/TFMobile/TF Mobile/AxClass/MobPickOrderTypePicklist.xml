@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobPickOrderTypePicklist</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The MobPickOrderTypePicklist class handles the pick list data and posting logic.
+/// </summary>
+[TFMTableNameAttribute(tableStr(WMSPickingRoute))]
+class MobPickOrderTypePicklist extends MobPickOrderType
+{
+    #mob
+    WMSPickingRoute resPickingRoute;
+
+    CustPackingSlipJour packingSlipJour;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getPackingSlipJour</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(CustPackingSlipJour))]
+    public CustPackingSlipJour getPackingSlipJour()
+    {
+        return packingSlipJour;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaderRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_inventLocationID"></param>
+    /// <param name = "_deliveryDate"></param>
+    /// <param name = "_scannedValue"></param>
+    /// <returns></returns>
+    public Map getHeaderRecords(TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+        InventLocation  inventLocation;
+        Map             returnMap = new Map(Types::string, Types::Record);
+        inventLocation = MobHelper::getAllowedInventLocations(curUserId());
+        while select inventLocation where (inventLocation.InventLocationId == _filters.parmWarehouse() || _filters.parmWarehouse() == MobConstants::all())
+        {
+            // Check if sales orders are enabled for this warehouse
+            if (MobHelper::IsPickingRouteEnabled(inventLocation.InventLocationId))
+            {
+                // Use the warehouse from the current iteration
+                returnMap = MobHelper::mergeMaps(returnMap,this.getPickingRoutes(_filters,_scannedValue));
+            }
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postRequest</Name>
+				<Source><![CDATA[
+    public str postRequest(TFMRequestOrdersElement _orderElement)
+    {
+        str                             ret = SysLabel::labelId2String2("@MobileWMS:MEL26");
+        MobRegistrations                mobRegistrations;
+        MobRegistrations                mobRegistrationsSum;
+        WMSPickingRouteID               pickingRouteId  = this.getRouteId(_orderElement.parmBackendID());
+        WMSPickingRoute                 pickingRoute    = WMSPickingRoute::find(pickingRouteId, true);
+        Map                             selectedLines   = new Map(Types::Int64,Types::Container);
+        WMSOrderTrans                   wmsOrderTrans;
+        WMSOrderTrans                   wmsOrderTransQtyUpdate;
+        WMSOrderTransType               wmsOrderTransType;
+        MapEnumerator                   me;
+        wmsPickingRoute                 wmsPickingRouteLocal;
+        CreatedTransactionId            transID;
+        SalesFormLetter_PackingSlip     salesFormLetter;
+        
+        //NoYes							FinishRoute = new MobDocPickOrder().parmUseFinishRoute();
+
+        messageId = _orderElement.parmRoot().parmmessageId();
+
+        if ((!pickingRouteId || !pickingRoute ) && !MobConsolidatedPickingRoutes::Exists(pickingRouteId))
+        {
+            throw error(strfmt("@SYS15067",pickingRouteId));
+        }
+
+        transID = MobRegistrations::SaveRequest(_orderElement.Lines(), MobInventRefType::None, pickingRouteId).CreatedTransactionId; // Moved iteration/registration of xml here
+        
+        // Update quantity for lines with more than one registrations
+        while select mobRegistrations
+                    group by mobRegistrations.RefRecId
+            where mobRegistrations.InventRefType == MobInventRefType::None &&
+                          mobRegistrations.InventRefId   == pickingRouteId &&
+                          MobRegistrations.MessageId      == messageID &&
+                          MobRegistrations.CreatedTransactionId == transID &&
+                          mobRegistrations.handled       == NoYes::No
+        { 
+            select sum(InventQty), count(RecId) from mobRegistrationsSum
+                    where mobRegistrationsSum.RefRecId == MobRegistrations.RefRecId
+                && mobRegistrationsSum.Handled == NoYes::No;
+
+            if(mobRegistrationsSum.RecId > 1) // More than one registration for the same RefRecId
+            {
+                while select firstonly forupdate wmsOrderTransQtyUpdate
+                    where   wmsOrderTransQtyUpdate.RecId == MobRegistrations.RefRecId &&
+                            wmsOrderTransQtyUpdate.expeditionStatus != WMSExpeditionStatus::Complete &&
+                            wmsOrderTransQtyUpdate.qty < mobRegistrationsSum.InventQty
+                {
+                    wmsOrderTransType = WMSOrderTransType_Output_OrderPick::newWMSOrderTrans(wmsOrderTransQtyUpdate) as WmsOrderTransType_Output_OrderPick;
+                    wmsOrderTransQtyUpdate.qty = mobRegistrationsSum.InventQty;
+                    wmsOrderTransType.updateQty();
+                    wmsOrderTransQtyUpdate.update();
+                }
+            }
+        }
+    
+        while select forupdate mobRegistrations
+                    index OrderLineNumIdx
+                    where mobRegistrations.InventRefType == MobInventRefType::None &&
+                          mobRegistrations.InventRefId   == pickingRouteId &&
+                          MobRegistrations.MessageId      == messageID &&
+                          MobRegistrations.CreatedTransactionId == transID &&
+                          mobRegistrations.handled       == NoYes::No
+        {
+            if (MobConsolidatedPickingRoutes::Exists(pickingRouteId))
+            {
+                mobRegistrations.InventRefId = MobConsolidatedPickingRouteOrders::routeIdFromRecid(mobRegistrations.RefRecId);
+            }
+            
+            selectedLines = mobRegistrations.pickWMS(selectedLines);
+            mobRegistrations.handled = NoYes::Yes;
+            mobRegistrations.Update();
+        }
+    
+        if (selectedLines.elements() == 0)
+        {
+            throw error("@SYS78876");
+        }
+        //Copied from class 'WMSDeliverPickedItems'
+        me = selectedLines.getEnumerator();
+    
+        while (me.moveNext())
+        {
+            select firstonly wmsOrderTrans
+                        where wmsOrderTrans.RecId     == me.currentKey();
+                    
+            if (wmsOrderTrans.expeditionStatus != WMSExpeditionStatus::Complete)
+            {
+                wmsPickingRouteLocal    = wmsOrderTrans.wmsPickingRoute(true);
+                wmsPickingRouteLocal.checkFinishRoute();
+            }
+        }
+        resPickingRoute = WMSPickingRoute::find(pickingRouteId);
+
+        if(new MobDocPickOrder().parmUsePackingSlipForPickingList())
+        {
+            SalesTable salesTable = SalesTable::find(resPickingRoute.transRefId);
+            //post sales order
+            salesFormLetter = SalesFormLetter::construct(salesTable.SalesType == SalesType::ItemReq ? DocumentStatus::ProjectPackingSlip :  DocumentStatus::PackingSlip);
+
+            salesFormLetter.update( salesTable,              //Common         source,
+                                            salesFormLetter.transDate(),            //TransDate     _transDate          = this.transDate(),
+                                            SalesUpdate::PickingList,               //SalesUpdate   _specQty            = SalesUpdate::All,
+                                            AccountOrder::None,                     //AccountOrder  _accountOrder       = AccountOrder::None,
+                                            NoYes::No,                              //NoYes         _proforma           = salesParmUpdate.Proforma,
+                                            NoYes::No);                             //NoYes         _printFormLetter    = printFormLetter,
+
+            packingSlipJour = salesFormLetter.getOutputContract().parmJournal();
+            ret = packingSlipJour ? SysLabel::labelId2String2("@MobileWMS:MEL22") : "@MobileWMS:PackingSlipNotPosted";
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getWMSPickingRoute</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSetAttribute(tableStr(WMSPickingRoute))]
+    public WMSPickingRoute getWMSPickingRoute()
+    {
+        return resPickingRoute;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>shipTransferOrder</Name>
+				<Source><![CDATA[
+    private void shipTransferOrder(WMSPickingRoute _pickingRoute)
+    {
+        InventTransferTable         inventTransferTable = inventTransferTable::find(_pickingRoute.transRefId);
+        InventTransferParmTable     invTransParmTbl;
+        InventTransferUpd           invTranUpd ;
+
+        if (!inventTransferTable)
+        {
+            return;
+        }
+        
+
+        invTransParmTbl.TransferId = inventTransferTable.TransferId;
+        invTransParmTbl.EditLines = true;
+        invTransParmTbl.AutoReceiveQty = true;
+        invTransParmTbl.UpdateType = InventTransferUpdateType::PickingList;
+        invTransParmTbl.PickUpdateQty = InventTransferPickUpdateQty::ShipNow;
+        invTransParmTbl.ShipUpdateQty = InventTransferShipUpdateQty::PickedQty;
+        invTransParmTbl.TransDate = MobHelper::today();
+
+        invTranUpd = InventTransferUpdShip::newParmBuffer(invTransParmTbl);
+        invTranUpd.run();
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBackendID</Name>
+				<Source><![CDATA[
+    public str getBackendID(Common _common)
+    {
+        WMSPickingRoute pickingRoute = _common;
+        return tableStr(WMSPickingRoute) + '/' + fieldStr(WMSPickingRoute,pickingRouteID) + '/' + pickingRoute.pickingRouteID;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRouteId</Name>
+				<Source><![CDATA[
+    private WMSPickingRouteID getRouteId(str _backendID)
+    {
+        return conPeek(MobHelper::strSplit(_backendID,'/').pack(),6);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLineRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_backendID"></param>
+    /// <returns></returns>
+    public Map getLineRecords(TFMRequestGetOrderLinesElement _request)
+    {
+        Map                     ret = new Map (Types::String, Types::Record);
+        ret = MobPickOrderTypePicklist::getRouteLines(this.getRouteId(_request.parmBackendID()),!this.parmSkipRouteActivation());
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRouteLines</Name>
+				<Source><![CDATA[
+    public static Map getRouteLines(WMSPickingRouteID _pickingRouteId, boolean _activate)
+    {
+        Map                     ret = new Map (Types::String, Types::Record);
+        WMSPickingRouteStart    WMSPickingRouteStart = new WMSPickingRouteStart();
+        WMSPickingRouteID       pickingRouteId = _pickingRouteId;
+        WMSPickingRoute         pickingRoute;
+        WMSOrderTrans           orderTrans;
+        WMSLocation             wmsLocation;
+        InventDim               inventDim;
+        int                     sorting;
+        SetEnumerator			routeSet;
+
+        if (MobConsolidatedPickingRoutes::Exists(pickingRouteId))
+        {
+            pickingRouteId = MobConsolidatedPickingRouteOrders::getFirstRouteChild(pickingRouteId);
+        }
+        pickingRoute = WMSPickingRoute::find(pickingRouteId, true);
+    
+        if (!pickingRouteId || !pickingRoute)
+        {
+            throw error(strfmt("@SYS15067",pickingRouteId));
+        }
+        routeSet = MobConsolidatedPickingRouteOrders::getRouteSiblings(pickingRouteId).getEnumerator();
+        
+        while (routeSet.moveNext())
+        {
+            pickingRouteId = routeSet.current();
+            pickingRoute = WMSPickingRoute::find(pickingRouteId, true);
+            if (_activate)
+            {
+                switch (pickingRoute.expeditionStatus)
+                {
+                    case WMSExpeditionStatus::Registered :
+                        //Activate
+                        setprefix("@SYS11887");
+                        WMSPickingRoute::activateRoute(pickingRoute.PickingRouteID);
+                    // fall through
+                    case WMSExpeditionStatus::Activated :
+                        //Start
+                        WMSPickingRouteStart.parmWMSPickingRouteId(pickingRoute.PickingRouteID);
+                        WMSPickingRouteStart.parmWorker(HcmWorker::userId2Worker(curUserId()));
+                        #ifnot.isAX6
+                        WMSPickingRouteStart.runOperation();
+                        #endif
+                        #if.isAX6
+                        WMSPickingRouteStart.run();
+                        #endif
+                        break;
+                }
+            }
+
+            while select inventDim order by wMSLocationId
+                    join orderTrans
+                    where
+                          orderTrans.routeId            == pickingRouteId &&
+                          (orderTrans.expeditionStatus  == WMSExpeditionStatus::Registered ||
+                           orderTrans.expeditionStatus  == WMSExpeditionStatus::Activated ||
+                           (orderTrans.expeditionStatus == WMSExpeditionStatus::Started &&
+                            orderTrans.operatorWorker   == HcmWorker::userId2Worker(curUserId()))) &&
+                            inventDim.inventDimId == orderTrans.inventDimId
+                        
+            {
+                if (MobInventLocationsGroupRights::existsUser(curUserId(), inventDim.InventLocationId) &&
+                        MobHelper::IsPickingRouteEnabled(inventDim.InventLocationId) )
+                {
+                    wmsLocation = WMSLocation::find(inventDim.wMSLocationId,inventDim.InventLocationId);
+                    ret.insert((wmsLocation.sortCode ? int2Str(wmsLocation.sortCode) : int2str(sorting)) + ';' + int642Str(orderTrans.RecId),orderTrans);
+                    sorting++;
+                }
+            }
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>accumulateLines</Name>
+				<Source><![CDATA[
+    public static Map accumulateLines(Map _orderlines)
+    {
+        Map						ret = new Map (Types::String, Types::Record);
+        Map						dims2qty = new Map (Types::String, Types::Real);
+        Map						dims2rec = new Map (Types::String, Types::Record);
+        WMSOrderTrans           orderTrans;
+        wmsLocation				wmsLocation;
+        str						key;
+        MapEnumerator			mEnum = _orderlines.getEnumerator();
+        InventDim				iDim;
+        int						sorting;
+
+        while (mEnum.moveNext())
+        {
+            orderTrans = mEnum.currentValue();
+            iDim = orderTrans.inventDim();
+            key = orderTrans.itemId + ','+iDim.inventDimId + (orderTrans.isReserved ? int642str(orderTrans.RecId) : '');
+            dims2qty.insert(key,(dims2qty.exists(key) ? dims2qty.lookup(key) : 0 )+ ordertrans.qty);
+            dims2rec.insert(key,orderTrans);
+        }
+        mEnum = dims2rec.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            orderTrans = mEnum.currentValue();
+            iDim = orderTrans.inventDim();
+            wmsLocation = WMSLocation::find(iDim.wMSLocationId,iDim.InventLocationId);
+            orderTrans.qty = dims2qty.lookup(mEnum.currentKey());
+            ret.insert((wmsLocation.sortCode ? int2Str(wmsLocation.sortCode) : int2str(-10000+sorting)) + ';' + int642Str(orderTrans.RecId),orderTrans);
+            sorting++;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>accumulateLineSiblings</Name>
+				<Source><![CDATA[
+    public static Set accumulateLineSiblings(WMSOrderTrans _orderTrans)
+    {
+        Set						ret = new Set (Types::Record);
+        WMSOrderTrans           orderTrans;
+        
+        str						key, keyCompare;
+        Map						orderLines = MobPickOrderTypePicklist::getRouteLines(MobConsolidatedPickingRouteOrders::belongsTo(_orderTrans.routeId) ? MobConsolidatedPickingRouteOrders::belongsTo(_orderTrans.routeId) : _orderTrans.routeId,false);
+        MapEnumerator			mEnum = orderlines.getEnumerator();
+        InventDim				iDim;
+        
+        
+
+        while (mEnum.moveNext())
+        {
+            orderTrans = mEnum.currentValue();
+            iDim = orderTrans.inventDim();
+            key = orderTrans.itemId + ','+iDim.inventDimId + (orderTrans.isReserved ? int642str(orderTrans.RecId) : '');
+            keyCompare = _orderTrans.itemId + ','+_orderTrans.inventDimId + (_orderTrans.isReserved ? int642str(_orderTrans.RecId) : '');
+            if (key == keyCompare)
+            {
+                ret.add(orderTrans);
+            }
+        }
+        
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lineTableId</Name>
+				<Source><![CDATA[
+    public TableId lineTableId()
+    {
+        return tableNum(WMSOrderTrans);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPickingRoutes</Name>
+				<Source><![CDATA[
+    public Map getPickingRoutes(TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+        WMSPickingRoute         wMSPickingRoute;
+        WMSOrderTrans           wMSOrderTransChk;
+        InventDim               inventDim;
+        InventLocationId        location;
+        date                    deliveryDate = _filters.parmDeliveryDate();
+        InventLocationId        locationId = _filters.parmWarehouse();
+        //SalesId                 scannedValue = _scannedValue;
+        Map                     returnMap = new Map(Types::string, Types::Record);
+        QueryBuildDataSource	qbdsPickingRoute;
+        Query					q = new Query();
+        QueryRun				qr;
+        MobDocPickOrder			docClass = new MobDocPickOrder();
+        Set						ConsolidatedIDs = new Set (Types::String);
+        Common					ref = _filters.getReferredRecord();
+        MobPackingStation		pStation;
+        
+        if (!ref && _filters.parmReferenceIdentity())
+        {
+            select firstonly pStation where pStation.PackingStationId == _filters.parmReferenceIdentity();
+            ref = pStation;
+        }
+
+        qbdsPickingRoute = q.addDataSource(tableNum(WMSPickingRoute));
+        qbdsPickingRoute.name(tableStr(WMSPickingRoute));
+        qbdsPickingRoute.addSortField(fieldNum(WMSPickingRoute,pickingRouteID),SortOrder::Descending);
+        qbdsPickingRoute.addRange(fieldNum(WMSPickingRoute,expeditionStatus)).value(queryValue(WMSExpeditionStatus::Registered));
+        qbdsPickingRoute.addRange(fieldNum(WMSPickingRoute,expeditionStatus)).value(queryValue(WMSExpeditionStatus::Activated));
+        qbdsPickingRoute.addRange(fieldNum(WMSPickingRoute,expeditionStatus)).value(queryValue(WMSExpeditionStatus::Started));
+        if (_scannedValue)
+        {
+            qbdsPickingRoute.addRange(fieldNum(WMSPickingRoute,pickingRouteID)).value(queryValue(_scannedValue));
+        }
+        if (deliveryDate)
+        {
+            qbdsPickingRoute.addRange(fieldNum(WMSPickingRoute,DlvDate)).Value(strFmt('%1.%2 <= %3',tableStr(WMSPickingRoute),fieldStr(WMSPickingRoute,DlvDate),deliveryDate));
+        }
+
+        TFMFilterAdditionsDataBinding::modifyQuery(methodStr(MobDocPickOrder,PickOrderFilters) + strReplace(_filters.getFieldValue(extendedTypeStr(TFMOrderTypes)),';',''),q,_filters);
+        qr = new QueryRun(q);
+        while (qr.next())
+        {
+            wMSPickingRoute = qr.get(tableNum(WMSPickingRoute));
+
+            if ((wMSPickingRoute.expeditionStatus == WMSExpeditionStatus::Started && (wMSPickingRoute.operatorWorker && wMSPickingRoute.operatorWorker != HcmWorker::userId2Worker(curUserId())) && docClass.parmPickListOperatorWorker())
+                || (deliveryDate < wMSPickingRoute.DlvDate || !deliveryDate))
+            {
+                continue;
+            }
+            if (wMSPickingRoute.InventLocationId)
+            {
+                location = wMSPickingRoute.InventLocationId;
+            }
+            else
+            {
+                select firstOnly wMSOrderTransChk
+                where wMSOrderTransChk.routeId           == wMSPickingRoute.pickingRouteID
+                    && (wMSOrderTransChk.expeditionStatus == WMSExpeditionStatus::Activated
+                    || wMSOrderTransChk.expeditionStatus == WMSExpeditionStatus::Started);
+                location = wMSOrderTransChk.inventDim().InventLocationId;
+            }
+            if (ref && ref.tableId == tableNum(MobPackingStation))
+            {
+                pStation= ref;
+                select firstOnly wMSOrderTransChk
+                where wMSOrderTransChk.routeId           == wMSPickingRoute.pickingRouteID
+                    && (wMSOrderTransChk.expeditionStatus == WMSExpeditionStatus::Activated
+                    || wMSOrderTransChk.expeditionStatus == WMSExpeditionStatus::Started);
+
+                inventDim = wMSOrderTransChk.inventDim();
+                if (inventDim.InventLocationId && inventDim.wMSLocationId && (inventDim.InventLocationId != pStation.InventLocationId || inventDim.wMSLocationId != pStation.WMSLocationId))
+                {
+                    continue;
+                }
+            }
+            if ( location &&
+                (locationId == MobConstants::All() || location == locationId) &&
+                MobInventLocationsGroupRights::existsUser(curUserId(), location) )
+            {
+                if (MobConsolidatedPickingRouteOrders::Exists(wMSPickingRoute.pickingRouteID) && ConsolidatedIDs.in(MobConsolidatedPickingRouteOrders::belongsTo(wMSPickingRoute.pickingRouteID)))
+                {
+                    continue;
+                }
+                returnMap.insert(this.getBackendID(wMSPickingRoute), wMSPickingRoute);
+                ConsolidatedIDs.add(MobConsolidatedPickingRouteOrders::belongsTo(wMSPickingRoute.pickingRouteID));
+            }
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

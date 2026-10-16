@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPages</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPages
+{
+    Map pages;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        pages = new Map(Types::String, Types::Class);
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPage</Name>
+				<Source><![CDATA[
+    public void addPage(TFMPage _page)
+    {
+		if (_page.parmId())
+        {
+            pages.insert(_page.parmId(),_page);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPages</Name>
+				<Source><![CDATA[
+    public Map getPages() 
+    {
+        return pages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPage</Name>
+				<Source><![CDATA[
+    public TFMPage getPage(str _id)
+    {
+        return pages.exists(_id) ? pages.lookup(_id) : null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPagesUsingProcess</Name>
+				<Source><![CDATA[
+    public Set getPagesUsingProcess(TFMProcessID _processId)
+    {
+        MapEnumerator   mEnum = pages.getEnumerator();
+        Set             pagesUsingProcess = new Set(Types::Class);
+
+        while (mEnum.moveNext())
+        {
+            TFMPage page = mEnum.currentValue();
+
+            if (classIdGet(page) == classNum(TFMPageUnplannedItemRegistration))
+            {
+                TFMPageUnplannedItemRegistration uirPage = page as TFMPageUnplannedItemRegistration;
+
+                if (uirPage.getConfiguration().parmType() == _processId)
+                {
+                    pagesUsingProcess.add(uirPage);
+                }
+            }
+            if (classIdGet(page) == classNum(TFMPageLookup))
+            {
+                TFMPageLookup lookupPage = page as TFMPageLookup;
+
+                if (lookupPage.getConfiguration().parmType() == _processId)
+                {
+                    pagesUsingProcess.add(lookupPage);
+                }
+            }
+        }
+            return pagesUsingProcess;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removePage</Name>
+				<Source><![CDATA[
+    public void removePage(str _id)
+    {
+        if(pages.exists(_id))
+        {
+            pages.remove(_id);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDocumentHandler</Name>
+				<Source><![CDATA[
+	public void setDocumentHandler(TFMDocumentHandler _docHand)
+    {
+        MapEnumerator	mEnum = pages.getEnumerator();
+        TFMPage			page;
+		while (mEnum.moveNext())
+        {
+            page = mEnum.currentValue();
+            page.setDocumentHandler(_docHand);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

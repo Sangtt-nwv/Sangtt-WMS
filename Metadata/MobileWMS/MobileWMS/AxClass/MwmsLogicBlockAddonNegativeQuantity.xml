@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockAddonNegativeQuantity</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MwmsLogicBlockAddonNegativeQuantity extends TFMLogicBlockAddon
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addonName</Name>
+				<Source><![CDATA[
+    public Name addonName()
+    {
+        return "@TaskletMobileWMS:NegativePrompt";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>compatibleWithBlock</Name>
+				<Source><![CDATA[
+    public boolean compatibleWithBlock(TFMLogicBlock _block)
+    {
+        TFMLogicBlockDataCollectionInterface    collectBlock;
+        TFMRegistrationCollector                quantity;
+        if ( _block is TFMLogicBlockDataCollectionInterface)
+        {
+            collectBlock = _block as TFMLogicBlockDataCollectionInterface;
+            quantity = collectBlock.registrationCollectors().getCollector(TFMConstants::Quantity());
+            
+            return quantity!= null;
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addonDescription</Name>
+				<Source><![CDATA[
+    public Description255 addonDescription()
+    {
+        return "@TaskletMobileWMS:Modifierforchangingthequantitysi";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRequestBeforePost</Name>
+				<Source><![CDATA[
+    public void modifyRequestBeforePost(TFMRequestElement _request)
+    {        
+        TFMRequestItemAndDimensionElement docRequest = _request.convertToOtherRequestType(classStr(TFMRequestItemAndDimensionElement));
+        Qty         qty = docRequest.parmQuantity();
+        if (!qty)
+        {
+            return;
+        }
+        
+        if (qty > 0)
+        {
+            qty = qty*-1;
+        }
+
+        _request.addField(MobConstants::Quantity(), strFmt('%1',qty), true);
+
+    }
+
+    /*public void modifyDataBeforePost(TFMLogicBlock _block)
+    {
+        super(_block);
+        if(_block is MwmsLogicBlockJournalLinesCommon)
+        {
+            MwmsLogicBlockJournalLinesCommon    journalBlock = _block as MwmsLogicBlockJournalLinesCommon;
+            InventJournalTrans                  journalLine;
+            Qty                                 qty;
+            journalLine = journalBlock.getinventJournalTrans();
+            if (!journalLine)
+            {
+                return;
+            }
+            qty = journalLine.Qty;
+            if (qty > 0)
+            {
+                qty = qty*-1;
+            }
+            journalLine.Qty = qty;
+        }
+    }*/
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

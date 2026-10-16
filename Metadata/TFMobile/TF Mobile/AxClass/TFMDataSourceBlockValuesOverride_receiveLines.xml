@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDataSourceBlockValuesOverride_receiveLines</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDataSourceBlockValuesOverride_receiveLines extends TFMDataSourceBlockValuesOverride
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>hasModifications</Name>
+				<Source><![CDATA[
+    public boolean hasModifications(TFMDataSourceBlock _blockToModify)
+    {
+        TableName tn = _blockToModify.getDataSource().TableName;
+        TFMOrderTypes orderType = _blockToModify.getDataSource().OrderType;
+
+        return tn == tableStr(WMSJournalTrans) ||                
+               tn == tableStr(ITMLine) ||
+               tn == tableStr(PurchLine) ||
+               (tn == tableStr(InventTransferLine) && orderType == MobConstants::Receive());
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getClassName</Name>
+				<Source><![CDATA[
+    public ClassName getClassName()
+    {
+        return classStr(TFMDataSourceBlockOrderLineItemSetup);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyValuesBeforeDelta</Name>
+				<Source><![CDATA[
+    public void modifyValuesBeforeDelta(TFMDataSourceBlock _blockToModify, Common _common =null)
+    {
+        TFMDataSourceBlockOrderLineItemSetup itemSetup = _blockToModify as TFMDataSourceBlockOrderLineItemSetup;
+        if (_common.TableId == tableNum(PurchLine))
+        {
+            PurchLine purchLine = _common as PurchLine;
+            if (purchLine.PurchQty < 0)
+            {
+                return;
+            }
+        }
+
+        if (_common.TableId == tableNum(InventTransferLine))
+        {
+            InventTransferLine      inventTransferLine = _common as InventTransferLine;
+            itemSetup.setOverrideInventTransId(inventTransferLine.InventTransIdReceive);
+            itemSetup.setOverrideInventDimId(inventTransferLine.inventDimReceive().inventDimId);
+        }
+
+        
+        itemSetup.parmActionType(TFMActionTypes::PLACE);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

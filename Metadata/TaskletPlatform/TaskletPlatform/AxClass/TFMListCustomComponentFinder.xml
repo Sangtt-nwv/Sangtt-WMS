@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListCustomComponentFinder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMListCustomComponentFinder extends TFMAbstractListRender
+{
+    Set				retSet;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getCustomComponentsInList</Name>
+				<Source><![CDATA[
+    public Set getCustomComponentsInList(TFMListConfiguration _listConfiguration)
+    {
+        retSet = new Set(Types::Class);
+        this.renderList(_listConfiguration);
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderCustomComponent</Name>
+				<Source><![CDATA[
+    public void renderCustomComponent(TFMListCustomComponent _customComponentElement)
+    {
+        retSet.add(_customComponentElement);
+        this.render(_customComponentElement);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

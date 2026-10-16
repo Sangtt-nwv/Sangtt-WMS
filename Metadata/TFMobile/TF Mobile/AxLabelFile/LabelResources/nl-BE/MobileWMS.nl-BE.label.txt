@@ -1,0 +1,336 @@
+﻿NewLabel0 = Etiketfiler oprettet den 06/14/2018 07:04:40 for label-fil Id MobileWMS og sprog da-US
+ ; Etiket fil kommentar - se ovenfor etiket
+MobileWMS1 = Etiketfiler oprettet den 31-05-2006
+ ; Af brugeradministrator
+MobileWMS2 = Dokumentkø
+MobileWMS3 = Microsoft Dynamics AX-bruger, der sendte dokumentet til køen.
+MobileWMS4 = Status for dokumentet i køen.
+MobileWMS5 = ID for dokumenttypen.
+MobileWMS6 = Svar tid
+MobileWMS7 = Svardato
+MobileWMS8 = Type af dokumentet, der er sendt til køen.
+MobileWMS9 = Indtast en beskrivelse af dokumenttypen.
+MobileWMS10 = Indsend type
+MobileWMS11 = Hvordan blev dokumentet sendt til køen, til direkte eller omregnet handling?
+MobileWMS12 = kø
+MobileWMS13 = Standard indsendelsestype
+MobileWMS14 = Klassen der håndterer denne dokumenttype.
+MobileWMS15 = Scanning for dokumenthåndteringsprogrammer
+MobileWMS16 = Dokumenthåndteringsprogrammer
+MobileWMS17 = Ukendt dokumenttype.
+MobileWMS18 = Meddelelses-id eksisterer allerede.
+MobileWMS19 = Ugyldig opsætning for dokumenttype ' %1'.
+MobileWMS20 = Handler ' %1' understøtter ikke enqueued submittals. Skift standard indsendelsestype til 'Direkte'.
+MobileWMS21 = Forespørgslen mislykkedes med følgende fejlmeddelelse: %1
+MobileWMS22 = Dokumenttype brugere
+MobileWMS23 = Besvaret
+MobileWMS24 = Dokumentkø processor
+MobileWMS25 = Kan ikke finde dokumenttype ' %1'.
+MobileWMS26 = Brugerdefineret: Opret kunde
+MobileWMS27 = Dit dokument bliver behandlet hurtigst muligt.
+MobileWMS28 = Intet meddelelses-id i dokumentet, der er sendt til AX.
+MobileWMS29 = Bruger ' %1' er ikke aktiveret for anmodningstype ' %2'.
+MobileWMS30 = Standard dokumenthåndterer
+MobileWMS31 = Standard-svaret svar
+MobileWMS32 = RolePad: Opret kunde
+MobileWMS33 = RolePad: Main request handler
+MobileWMS34 = Ikke-understøttet RolePad-dokumenttype ' %1'.
+MobileWMS35 = Opsæt brugere og brugergrupper, der har lov til at indsende denne type dokument.
+MobileWMS36 = Unik identifikator for den besked, der blev modtaget.
+MobileWMS37 = Se en kø af dokumenter, der er indsendt til systemet.
+MobileWMS38 = Indstil de dokumenttyper, der kan indsendes til systemet.
+MobileWMS39 = Mobil dokumenter
+MobileWMS40 = Vis i oversigt
+MobileWMS41 = Skal dette felt vises i oversigten på enheden?
+MobileWMS42 = QueryValue
+MobileWMS43 = MBA forespørgsler
+MobileWMS44 = AIF-anmodningen kan kun indeholde en forælderskode.
+MobileWMS45 = Rødknuden for AIF-meddelelsen skal være af typen 'konvolut'.
+MobileWMS46 = MBA-anmodningen kan kun indeholde en forælderskode
+MobileWMS47 = Din anmodning er blevet modtaget og vil blive behandlet.
+MobileWMS48 = ID af den enhed, der sendte dokumentet til køen.
+MobileWMS49 = Request
+MobileWMS50 = Svar
+MobileWMS51 = status
+MobileWMS52 = Strengen er for lang for datatypen %1.
+MobileWMS53 = ' %1' er ikke gyldig ' %2'.
+MobileWMS54 = Meddelelses-id
+MobileWMS55 = Applikationsbruger eller gruppe
+MobileWMS56 = ID'en af ​​applikationsbrugeren eller brugergruppen.
+MobileWMS57 = Enheds-id
+MobileWMS58 = Dokumenttype
+MobileWMS59 = Brugertype
+MobileWMS60 = Type af bruger: Brugergruppe eller enkeltbruger.
+MobileWMS61 = Bruger
+MobileWMS62 = Completed
+MobileWMS63 = Diverse
+MobileWMS64 = Rapporter
+MobileWMS65 = AIF
+MobileWMS66 = Brugerdefineret: Opret salgsordre
+MobileWMS67 = Behandle alle nye dokumenterede dokumenter i køen.
+MobileWMS68 = Forhør om dokumenter fra mobile enheder.
+MobileWMS69 = Jobs på dokumenter fra mobilenheder.
+MobileWMS70 = Opsætning af mobile dokumenter.
+MobileWMS71 = Slet dokumenter ældre end historikgrænsen.
+MobileWMS72 = Ryd køen op
+MobileWMS73 = Slet gamle poster i dokumentkøen.
+MobileWMS74 = XML-anmodning sendt til køen fra en mobilenhed.
+MobileWMS75 = Svar returneret til mobilenheden, når anmodningen er modtaget.
+MobileWMS76 = Faktisk resultat af anmodningen. For direkte behandling er resultatet indstillet, når dokumentet indsendes; Ved enkodet behandling er resultatet indstillet, når dokumentkøen behandles.
+MobileWMS77 = Staging database
+MobileWMS78 = Navn på tabellen i stationsdatabasen.
+MobileWMS79 = Staging database tabeller
+MobileWMS80 = Konfigurer tabeller til denne staging database.
+MobileWMS81 = Læs databaseskema
+MobileWMS82 = Læs databaseskema fra stationsdatabasen.
+MobileWMS83 = Navn på feltet i stationsdatabasen.
+MobileWMS84 = Type af feltet i stationsdatabasen.
+MobileWMS85 = Staging database felter
+MobileWMS86 = Opsætning af felter til denne databasetabell.
+MobileWMS87 = Indtast filnavnet på SSIS-pakken (.dtsx-filen) for at bruge som en skabelon for de genererede pakker.
+MobileWMS88 = Vælg SSIS-pakken
+MobileWMS89 = Kortlægningstabel
+MobileWMS90 = Vælg en primær tabel, hvormed du skal kortlægge databasetabellen.
+MobileWMS91 = Ingen kortlægning
+MobileWMS92 = Normalfelt
+MobileWMS93 = Fast værdi
+MobileWMS94 = Kortlægningstype
+MobileWMS95 = Hvordan skal feltet i staging-databasen være kortlagt til Microsoft Dynamics AX-tabellen?
+MobileWMS96 = Kortlægningsfelt
+MobileWMS97 = Vælg det felt, hvorpå du skal kortlægge databaseportfeltet.
+MobileWMS98 = Intet gyldigt resultat fra handler ' %1'.
+MobileWMS99 = Ugyldige data i ' %1' anmodning.
+MobileWMS100 = Prøve: Opret kunde
+MobileWMS101 = Fejl ved udførelse af kode:
+MobileWMS102 = Stack spor
+MobileWMS103 = %1 - linje %2
+MobileWMS104 = Behandle markerede forespørgsler i dokumentkøen.
+MobileWMS105 = Indholdsemne
+MobileWMS106 = Kunde navn: ' %1'
+MobileWMS107 = Parametre indstillet til dokumenttypen.
+MobileWMS108 = Opsætning af parametre for handlerklassen valgt til dokumenttypen.
+MobileWMS109 = Kunde ' %1', Element ' %2'
+MobileWMS110 = Handler skema
+MobileWMS111 = Viser det importerede XML-skema.
+MobileWMS112 = En kort beskrivelse af indholdet af dokumentet.
+MobileWMS113 = Skema ID.
+MobileWMS114 = Dokumentskemaer
+MobileWMS115 = Skema navneområde
+MobileWMS116 = XML navneområde for skemaet.
+MobileWMS117 = Opsæt skemaer, der kan bruges til at validere indgående dokumenter.
+MobileWMS118 = Tildel XML-skemaer til håndtereren. Disse skemaer bruges til at validere indgående dokumenter.
+MobileWMS119 = Udvalgte skemaer
+MobileWMS120 = Resterende skemaer
+MobileWMS121 = Importer XML-skema fra en ekstern fil.
+MobileWMS122 = Streng schema validering
+MobileWMS123 = Skal dokumenter af denne type valideres ved hjælp af streng skema validering? Standard er afslappet validering (elementer i navneområder uden for de tildelte skemaer accepteres).
+MobileWMS124 = Nulstil status for et dokument fra Behandling til Klar til behandling.
+MobileWMS125 = Vil du nulstille status til Klar til behandling?
+MobileWMS126 = Kan ikke returnere et svar til anmodningen   %1  fordi det ikke er blevet behandlet endnu.
+MobileWMS127 = Original anmodning
+MobileWMS128 = Original XML-anmodning indsendt til køen fra en mobilenhed.
+MobileWMS129 = Forespørgslen kan ikke behandles. Brugeren har ikke tilstrækkelige rettigheder i Microsoft Dynamics AX.
+MobileWMS130 = Klar til behandling
+MobileWMS131 = Besvaret dato og klokkeslæt
+MobileWMS132 = ** Manglende etiket **
+MobileWMS133 = Vis produktion
+MobileWMS134 = Mobil bruger
+MobileWMS135 = Serviceintegration til mobil
+MobileWMS136 = indsende til tjeneste
+MobileWMS137 = Vedligehold den mobile løsning
+MobileWMS138 = Invoke Mobile service
+MobileWMS139 = Vedligehold mobile indstillinger
+MobileWMS140 = Request text
+ ; XML-anmodningen i rå tekstformular
+MobileWMS141 = Realtime registreringer
+MobileWMS142 = Mobil registrerings id
+MobileWMS143 = Mobile WMS: Tilføj bruger eller gruppe
+MobileWMS144 = Angiv
+MobileWMS145 = Tilføj bruger / gruppe
+MobileWMS146 = Tilføjet %1: ' %2' til dokumenttype: ' %3'
+MobileWMS147 = Vis returordrer på mobilenheden
+MobileWMS148 = Produktion / Job
+ ; Indtastning af produktionsnummer eller job-id
+MobileWMS149 = Stregkode " %1" er registreret på elementet " %2".
+MobileWMS150 = Nummerpladen eksisterer allerede.
+MobileWMS151 = Forældre licensplade eksisterer allerede.
+MobileWMS152 = Forældre licensplade er udløbet.
+MobileWMS153 = En licensplade er oprettet.
+MobileWMS154 = Valgfrit, angiv forælder LP
+MobileWMS155 = B / N: %1
+ ; Batchnumber
+MobileWMS156 = S / N: %1
+ ;Serienummer
+MobileWMS157 = PL: %1
+ ; Palle
+MobileWMS158 = Modtag tidsskrifter
+MobileWMS159 = Valg af tidsskrifter
+MobileWMS160 = Tæller tidsskrifter
+MobileWMS161 = Uplanlagt tælling
+MobileWMS162 = Skrot vare / produkt
+MobileWMS163 = Uplanlagte bevægelige genstande i lageret
+MobileWMS164 = Placeringsindhold
+MobileWMS165 = Log ud af Mobile WMS
+MobileWMS166 = Placering genstand / produkt
+MobileWMS167 = Opret en palle
+MobileWMS168 = Planlagte palletransporter
+MobileWMS169 = Produktion / Rute rapport færdig
+MobileWMS170 = Proces karantæne ordrer
+MobileWMS171 = Uplanlagt palletransport
+MobileWMS172 = Tildel stregkode til vare / produkt
+MobileWMS173 = gevinst / tab
+MobileWMS174 = Tag tælling
+MobileWMS175 = Stregkodediagnostik
+MobileWMS176 = Print label collector
+MobileWMS177 = Mobile WMS Administrator
+MobileWMS178 = Mobil WMS-bruger
+AddedToDocumentType = Tilføjet %1 ' %2' til dokumenttype: ' %3'
+ Ny kommentar
+MEL0 = Backend Id
+MEL1 = Ingen
+ ; Enum TFMUnderDeliveryValidation
+MEL2 = Advarsel
+ ; Enum TFMUnderDeliveryValidation
+MEL3 = Block
+ ; Enum TFMUnderDeliveryValidation
+MEL4 = TAKE
+ ; Enum MobActionTypes
+MEL5 = PLACE
+ ; Enum MobActionTypes
+MEL6 = Modtag
+ ; Enum MobOrderTypes
+MEL7 = Pick
+ ; Enum MobOrderTypes
+MEL8 = Ikke nok resterende mængde til post.
+MEL9 = Ok
+ ; Log ind / LockedOrders
+MEL10 = Ordren ( %1) af typen ( %2) er ikke låst.
+MEL11 = XML-element ' %1' og / eller ' %2'.
+MEL12 = Ordre ( %1) type ( %2) er allerede låst af bruger ( %3).
+MEL13 = Kunne ikke låse ordren ' %1'
+MEL14 = Pluklistedag ' %1' eksisterer ikke.
+MEL15 = Ukendt referencetabel.
+MEL16 = Underleveringsvalidering
+MEL17 = Vælg til produktion
+MEL18 = mobil WMS
+MEL19 = Modtagelsesordre hentet
+MEL20 = Kunne ikke bestemme ordretype.
+MEL21 = modtagelsesordre hentet
+MEL22 = Packingslip er sendt korrekt.
+MEL23 = hentet pickorderlines
+MEL24 = Afhentning af afhentning
+MEL25 = Kunne ikke finde tilbagekald.
+MEL26 = Pluklisten er sendt korrekt.
+MEL27 = Brug Udløbsdato
+MEL28 = Varenummer vil indeholde både lotnummer og udløbsdato (dd-mm-yyy) adskilt af ",".
+MEL29 = InventJournal
+MEL30 = Udgivet til Mobile
+MEL31 = Journalen vil være synlig på de mobile enheder.
+MEL32 = Registreret på mobil
+MEL33 = Registreret på mobil.
+MEL34 = Tællejournalen blev opdateret.
+MEL35 = Ordre hentet
+MEL36 = Journal fra Mobile WMS
+MEL37 = Indtast placering (fra)
+MEL38 = FRA
+ ; Mob
+MEL39 = Lokation:
+MEL40 = Indtast batchnummer
+MEL41 = Exp. dato
+MEL42 = Indtast eksp. dato
+MEL43 = Indtast serienummer
+MEL44 = Indtast placering (til)
+MEL45 = TO
+ ; Mob
+MEL46 = Varenummer:
+MEL47 = Overførselsjournalen blev opdateret.
+MEL48 = Indtast placering
+MEL49 = Placering
+ ; MOB
+MEL50 = Uplanlagt tælling af serienumre understøttes ikke!
+MEL51 = Vis salg
+MEL52 = Vis salgsordrer om Mobile.
+MEL53 = Vis køb
+MEL54 = Vis købsordrer på mobil.
+MEL55 = Vis overførsel
+MEL56 = Vis overførselsordrer på mobil.
+MEL57 = Vis produktionsordrer på mobil.
+MEL58 = Vis plukning
+MEL59 = Vis plukruter på mobil.
+MEL60 = Mobile WMS parametre
+MEL61 = Vis ankomst
+MEL62 = Vis ankomst købsordrer på mobil.
+MEL63 = Placering skal angives.
+MEL64 = Pallet skal angives.
+MEL65 = Fejl ved oprettelse af palle.
+MEL66 = Ankomstordre
+MEL67 = Der findes ingen palletransport til pallet %1.
+MEL68 = Til placering kan ikke ændres for transport %1.
+ ; MSA
+MEL69 = Ankomstdagbog %1 er ikke blevet bogført på grund af fejl.
+MEL70 = %1 linje (r) er ikke registreret fra Journal %2 er blevet overført til journal %3.
+MEL71 = Der er oprettet en ny palle.
+MEL72 = Palletransporten blev opdateret.
+MEL73 = Forsendelse
+MEL74 = Fra lager
+MEL75 = Til lagerbygning
+MEL76 = Vælg konfiguration
+MEL77 = Konfiguration
+MEL78 = Resultatopgørelsen blev opdateret.
+MEL79 = Vis produktionsindgang
+MEL80 = Vis produktionsindgangsskrifter på de mobile enheder
+MEL81 = Rapport som færdiggjort
+MEL82 = Produktionsordre %1 blev ikke fundet
+MEL83 = Alle
+MEL84 = Summen af ​​skrot og mængde overstiger den resterende mængde
+MEL85 = Opbevaring af lager
+MEL86 = Overskriv standard
+MEL87 = Menupunkt
+MEL88 = Mobile Menu Options
+MEL89 = Menu tilladelse
+MEL90 = Mobil Menukonfiguration
+MEL91 = Mobile Warehouse setup
+MEL92 = Vis produktion
+MEL93 = Menupunkter
+ProdOrderNotStarted = Produktionsordre %1 har ikke startet status.
+ Ny kommentar
+secMaintainModule = Tasklet Factory Mobile WMS opsætnings- og vedligeholdelsesmodul.
+ Ny kommentar
+MaintainMobileWMS = Vedligeholde Mobile WMS
+ Ny kommentar
+ActionType = Action Type
+ Ny kommentar
+OnlineValidator = Online Validator
+ Ny kommentar
+RequestTypeDoesNotExist = Forespørgsel af typen %1 findes ikke
+ Ny kommentar
+SerialNotAvailable = Serienummer ikke tilgængeligt
+ Ny kommentar
+BatchHasExpired = Batch er udløbet
+ Ny kommentar
+BatchDoesNotExistOnItem = Batch %1 findes ikke på element %2
+ Ny kommentar
+BatchNotAvailable = Kun %1 af %5 findes på stedet %2.  %4 er forbeholdt denne ordre. Du kan ikke vælge hele den forventede mængde %3 fra denne placering.
+ Ny kommentar
+ordersToQuarantine = Denne vare har karantænebehov og skal placeres på lager %1
+ Ny kommentar
+LocationDoesNotExist = Placering eksisterer ikke
+ Ny kommentar
+createQuarantineOrder = Opret karantæneordrer
+ Ny kommentar
+QuarantineOrderCreated = Karantæneordre %1 oprettet
+ Ny kommentar
+ScanBatchNumber = Scan batchnummer
+ Ny kommentar
+ScanBatchNumberHelp = Scan batchnummeret for varen.
+ Ny kommentar
+deviceStringID = Enhedsstreng-id
+ Ny kommentar
+RegistrationCollectorToBinHeader = Scan til placering
+ Ny kommentar
+RegistrationCollectorToBinHelpLabel = Scan den placering, hvor du placerer varen.
+ Ny kommentar
+RegistrationCollectorFromBinHeader = Scan fra placering
+ Ny kommentar
+RegistrationCollectorFromBinHelpLabel = Scan den placering, du tager genstanden fra.
+ Ny kommentar

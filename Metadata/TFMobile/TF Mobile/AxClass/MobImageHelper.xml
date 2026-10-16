@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobImageHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobImageHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>ExifRotateBase64Image</Name>
+				<Source><![CDATA[
+    public static System.IO.Stream ExifRotateBase64Image(str _base64)
+    {
+        return TFMImageHelper::ExifRotateBase64Image(_base64);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExifRotateImageStream</Name>
+				<Source><![CDATA[
+    public static System.IO.Stream ExifRotateImageStream(System.IO.Stream _stream)
+    {
+        return TFMImageHelper::ExifRotateImageStream(_stream);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExifRotateImage</Name>
+				<Source><![CDATA[
+    public static System.Drawing.Image ExifRotateImage(System.Drawing.Image _image)
+    {
+        return TFMImageHelper::ExifRotateImage(_image);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Image2Base64</Name>
+				<Source><![CDATA[
+    public static str Image2Base64(System.Drawing.Image _image)
+    {
+        return TFMImageHelper::Image2Base64(_image);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>base64ToImage</Name>
+				<Source><![CDATA[
+    public static System.Drawing.Image base64ToImage(str _base64)
+    {
+        return TFMImageHelper::base64ToImage(_base64);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>scaleImage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Scales <c>System.Drawing.Image</c> object keeping the orignal
+    /// aspect ratio, using high quality scaling.
+    /// </summary>
+    /// <param name = "_image">Image object to be scaled.</param>
+    /// <param name = "_maxWidth">Maximum width of the scaled object.</param>
+    /// <param name = "_maxHeight">Maximum height of the scaled object.</param>
+    /// <returns>The scaled object.</returns>
+    public static System.Drawing.Image scaleImage(System.Drawing.Image _image, int _maxWidth, int _maxHeight)
+    {
+        return TFMImageHelper::scaleImage(_image, _maxWidth, _maxHeight);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>frameImage</Name>
+				<Source><![CDATA[
+    public static System.Drawing.Image frameImage(System.Drawing.Image _image)
+    {
+        return TFMImageHelper::frameImage(_image);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resource2Base64</Name>
+				<Source><![CDATA[
+    public static str resource2Base64(str _resStr)
+    {
+        return TFMImageHelper::resource2Base64(_resStr);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

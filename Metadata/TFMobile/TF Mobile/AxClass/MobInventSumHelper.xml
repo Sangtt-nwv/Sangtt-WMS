@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobInventSumHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobInventSumHelper
+{
+}
+
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>findInventSum</Name>
+				<Source><![CDATA[
+    public static InventSum findInventSum(str _barcodeScanned)
+    {
+        InventSerial    inventSerial;
+        InventBatch     inventBatch;
+        InventSum       inventSum;
+        InventDim       inventDim;
+        
+        InventBatchId   inventBatchId;
+        InventSerialId  inventSerialId;
+        inventBatchId = _barcodeScanned;
+        inventSerialId = _barcodeScanned;
+
+        select firstonly inventSum where inventSum.AvailPhysical > 0
+            join inventDim
+            where (InventDim.inventBatchId == inventBatchId || InventDim.inventSerialId == inventSerialId)
+            && inventDim.inventDimId == inventSum.InventDimId;
+
+        return inventSum;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

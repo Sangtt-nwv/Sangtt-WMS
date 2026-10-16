@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMParameters</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMParameters extends common
+{
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    public static TFMParameters find(boolean _forupdate = false)
+    {
+        TFMParameters parameter;
+        
+        parameter.selectForUpdate(_forupdate);
+    
+        select firstonly parameter
+            index Key
+            where parameter.Key == 0;
+    
+        if (!parameter && !parameter.isTmp())
+        {
+            Company::createParameter(parameter);
+        }
+    
+        return parameter;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initValue</Name>
+				<Source><![CDATA[
+    public void initValue()
+    {        
+        TFMGS1Table::defaultSetup();
+        TFMClassificationHierarchy::initializeStandard();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetLabelFileIds</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the standard set of Label Files to import into the lookup table.
+    /// </summary>
+    /// <returns></returns>
+    public static str GetLabelFileIds()
+    {
+        return 'TFM;Sys;Syp;Wax;TFDevice';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IsInDeveloperMode</Name>
+				<Source><![CDATA[
+    public static boolean IsInDeveloperMode()
+    {
+        return TFMParameters::find().DeveloperMode;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:ParametersDevDesc</DeveloperDocumentation>
+	<FormRef>TFMParameters</FormRef>
+	<Label>@TFM:MEL60</Label>
+	<TableGroup>Parameter</TableGroup>
+	<CacheLookup>Found</CacheLookup>
+	<ReplacementKey>Key</ReplacementKey>
+	<TableContents>DefaultData</TableContents>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Key</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Key</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>CancelPick</Name>
+			<Label>@SYS149917</Label>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>InventJournalTransfer</Name>
+			<Label>@SYS85783</Label>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>NumberSeq</Name>
+			<Label>@SYS26442</Label>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Pick</Name>
+			<Label>@SYS50416</Label>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Receive</Name>
+			<Label>@SYS52744</Label>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>UnderDeliveryValidation</Name>
+			<Label>@TFM:MEL17</Label>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Images</Name>
+			<Label>@SYS56508</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DocuTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ImageFrames</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>OnlineValidation</Name>
+			<Label>@SYS4440</Label>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Key</Name>
+			<ExtendedDataType>ParametersKey</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DocuTypeId</Name>
+			<ExtendedDataType>DocuTypeId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ImageFrames</Name>
+			<Label>@TFM:Frame</Label>
+			<Visible>No</Visible>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DeveloperMode</Name>
+			<Label>@TFM:DeveloperMode</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>TracingEnabled</Name>
+			<Label>@SYS118475</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SysAADClientId</Name>
+			<ExtendedDataType>SysAADClientId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>EndpointDisplayName</Name>
+			<HelpText>The name of display name of the endpoint</HelpText>
+			<Label>@TFM:EndpointDisplayName</Label>
+			<StringSize>100</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>EndpointTenantId</Name>
+			<HelpText>The name of Tenant ID of the endpoint</HelpText>
+			<Label>@TFM:EndpointTenantID</Label>
+			<StringSize>200</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>TelemetryDisabled</Name>
+			<Label>Telemetry disabled</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>Key</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Key</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>InventJournalName</Name>
+			<Cardinality>OneMore</Cardinality>
+			<RelatedTable>InventJournalName</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>JournalType</Name>
+					<RelatedField>JournalType</RelatedField>
+					<ValueStr>InventJournalType::TagCounting</ValueStr>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>ProdJournalName</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<RelatedTable>ProdJournalName</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>JournalType</Name>
+					<RelatedField>JournalType</RelatedField>
+					<ValueStr>ProdJournalType::ReportFinished</ValueStr>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>InventJournalNameCount</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<RelatedTable>InventJournalName</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>JournalType</Name>
+					<RelatedField>JournalType</RelatedField>
+					<ValueStr>InventJournalType::Count</ValueStr>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>InventJournalNameLossProfit</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<RelatedTable>InventJournalName</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>JournalType</Name>
+					<RelatedField>JournalType</RelatedField>
+					<ValueStr>InventJournalType::LossProfit</ValueStr>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>InventJournalNameTransfer</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<RelatedTable>InventJournalName</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>JournalType</Name>
+					<RelatedField>JournalType</RelatedField>
+					<ValueStr>InventJournalType::Transfer</ValueStr>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>SysAADClientTable</Name>
+			<RelatedTable>SysAADClientTable</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>SysAADClientId</Name>
+					<Field>SysAADClientId</Field>
+					<RelatedField>AADClientId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

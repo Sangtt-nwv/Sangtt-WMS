@@ -1,0 +1,649 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMProcess</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class Instance of a given process. Contains all the Logic Blocks, conditions and components for a given process.
+/// </summary>
+public class TFMProcess implements TFMTranslationDeclarantInterface
+{
+    Name                        processName;
+    TFMDeltaLevel               deltaLevel = TFMDeltaLevel::Code;
+    Version                     version = -1;
+    Description255              description;
+    TFMLogicBlockCollection     blockCollection;
+    Set                         combinedFields;
+    NoYes                       autoSave;
+    NoYes                       revertToClassic;
+    TFMWorkflowCancelBehaviour  cancelBehaviour;
+    boolean                     developerMode;
+    boolean                     isInitialized;
+    boolean                     isLocked = true;
+
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// A template process only contains the name and does not have blocks etc. It is used to list the different process that exists. 
+    /// </summary>
+    /// <param name = "_processName"></param>
+    /// <returns></returns>
+    public static TFMProcess Construct(Name _processName)
+    {
+        TFMProcess process = new TFMProcess();
+        process.parmVersion(-1); //not initialized.
+        process.parmProcessName(_processName);
+        return process;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ConstructFromProcess</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Construct a process with a version. The process is constructed based on a Template Process.
+    /// </summary>
+    /// <param name = "_process"></param>
+    /// <param name = "_version"></param>
+    /// <returns></returns>
+    public static TFMProcess ConstructFromProcess(TFMProcess _process, Version _version)
+    {
+        TFMProcess process = new TFMProcess();
+        process.parmProcessName(_process.parmProcessName());
+        process.parmDescription(_process.parmDescription());
+        process.parmDeltaLevel(_process.parmDeltaLevel());
+        process.parmRevertToClassic(_process.parmRevertToClassic());
+        process.parmVersion(_version);
+        process.setCombinedFields(_process.combinedFields());
+
+        TFMLogicBlockCollection blockCollectionCopy = _process.blockCollection();
+        blockCollectionCopy.setProcess(process);
+        process.setBlockCollection(blockCollectionCopy);
+       
+        return process;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map translations = new Map(Types::String, Types::String);
+        str translatedText = TFMTranslationProvider::getTFDeviceLabelValue(this.processName, null);
+        if (translatedText)
+        {
+            translations.add(this.processName, translatedText);
+        }
+        return translations;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isInitialized</Name>
+				<Source><![CDATA[
+    public boolean isInitialized()
+    {
+        return isInitialized;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setBlockCollection</Name>
+				<Source><![CDATA[
+    public void setBlockCollection(TFMLogicBlockCollection _blockCollection)
+    {
+        blockCollection = _blockCollection;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>doInit</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initializes the TFMProcess with blocks. This requires a version of the process.
+    /// </summary>
+    public void doInit()
+    {
+        if(version < 0)
+        {
+            // Template versions should not be initialized.
+            return;
+        }
+        else
+        {
+            if(version == 0)
+            {
+                // use the values form the template process.
+                
+            } 
+            else
+            {
+                // The
+                TFMProcessVersion processVersion = TFMProcessVersion::Find(processName, version);
+
+                if(processVersion && processVersion.RecId)
+                {
+                    this.parmAutoSave(processVersion.AutoSave);
+                    this.parmCancelBehaviour(processVersion.CancelBehaviour);
+                    this.parmLocked(processVersion.Locked);
+
+                    TFMProcess::makeSequenceFromData(this);
+                }
+                else
+                {
+                    error('No process version: ' + int2Str(version) + ' for process: ' + processName);
+                    return;
+                }
+            }
+        }
+
+        isInitialized = true;
+        this.updateStepIds();
+
+        //Load Delta Conditions
+        this.loadDeltaConditions();
+       
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>combinedFields</Name>
+				<Source><![CDATA[
+    public Set combinedFields()
+    {
+        return combinedFields;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setCombinedFields</Name>
+				<Source><![CDATA[
+    public void setCombinedFields(Set _combinedFields)
+    {
+        combinedFields = _combinedFields;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDeltaLevel</Name>
+				<Source><![CDATA[
+    public TFMDeltaLevel parmDeltaLevel(TFMDeltaLevel _deltaLevel = deltaLevel)
+    {
+        deltaLevel = _deltaLevel;
+        return deltaLevel;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRevertToClassic</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Determines if the classic Document handler should be used instead of process handler
+    /// </summary>
+    /// <param name = "_revertToClassic">No Or Yes</param>
+    /// <returns>Yes, if Classic Handler should be used, otherwise process handler is used.</returns>
+    public NoYes parmRevertToClassic(NoYes _revertToClassic = revertToClassic)
+    {
+        revertToClassic = _revertToClassic;
+        return revertToClassic;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLocked</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name = "_isLocked"></param>
+    /// <returns></returns>
+    public boolean parmLocked(boolean _isLocked = isLocked)
+    {
+        isLocked = _isLocked;
+        return isLocked;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAutoSave</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Determines if the flow should save Data when closed, to be reinitialized when reopening flow
+    /// </summary>
+    /// <param name = "_saveData">NoYes enum, yes to save data in flow</param>
+    /// <returns>Yes, if data should be saved, otherwise no</returns>
+    public NoYes parmAutoSave(NoYes _autoSave = autoSave)
+    {
+        autoSave = _autoSave;
+        return autoSave;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCancelBehaviour</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to determine if the user should be warned, when they are exiting a flow, or not
+    /// </summary>
+    /// <param name = "_cancelBehaviour">Warn, when user should be warned, otherwise Close</param>
+    /// <returns>Warn, when user should be warned, otherwise Close</returns>
+    public TFMWorkflowCancelBehaviour parmCancelBehaviour(TFMWorkflowCancelBehaviour _cancelBehaviour = cancelBehaviour)
+    {
+        cancelBehaviour = _cancelBehaviour;
+        return cancelBehaviour;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDescription</Name>
+				<Source><![CDATA[
+    public Description255 parmDescription(Description255 _description = description)
+    {
+        description = _description;
+        return description;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmVersion</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Parm method for the version of the TFMProcess
+    /// </summary>
+    /// <param name = "_version"></param>
+    /// <returns></returns>
+    public Version parmVersion(Version _version = version)
+    {
+        version = _version;
+        return version;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        processName = processName ? processName : subStr(classId2Name(classIdGet(this)),strLen(classStr(TFMProcess))+1,100);
+        combinedFields = new Set(Types::Class);
+        this.resetBlockCollection();
+        if (processName)
+        {
+            this.parmProcessName(processName);
+        }
+        //cancelBehaviour = TFMWorkflowCancelBehaviour::Warn;
+
+        developerMode = TFMPagesProvider::instance().developerMode();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>combiFieldAliases</Name>
+				<Source><![CDATA[
+    public Map combiFieldAliases()
+    {
+        SetEnumerator                   sEnum   = combinedFields.getEnumerator();
+        TFMProcessCombineFields         combiFields;
+        Map                             aliases = new Map(Types::String, Types::String);
+        while (sEnum.moveNext())
+        {
+            combiFields = sEnum.current();
+            
+            combiFields.add2AliasMap(aliases);
+        }
+        return aliases;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addBlock</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initialize block with delta parameters, and add to the collection. Delta parameters are the combination of a process and a block, therefore it is initialized from here, and not from the block itself.
+    /// </summary>
+    /// <param name = "_block">The Logic Block to be added</param>
+    public void addBlock(TFMLogicBlock _block)
+    {
+        _block.initBlock(this);
+        blockCollection.addBlock(_block);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>linkBlocks</Name>
+				<Source><![CDATA[
+    public void linkBlocks(TFMLogicBlock _blockFrom, TFMLogicBlock _blockTo,  Name _fromConnectionName, Name _toConnectionName)
+    {
+        blockCollection.addLink(_blockFrom, _blockTo,  _fromConnectionName, _toConnectionName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateStepIds</Name>
+				<Source><![CDATA[
+    public void updateStepIds()
+    {
+        blockCollection.setStepIDs();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmProcessName</Name>
+				<Source><![CDATA[
+    public Name parmProcessName(Name _processName = processName)
+    {
+        processName = _processName;
+        return processName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeSequenceFromData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Run during initialization of a process. If process has been modified in delta, the delta changes are loaded here
+    /// </summary>
+    /// <param name = "_process">The process class to load data into</param>
+    public static void makeSequenceFromData(TFMProcess _process)
+    {
+        TFMProcessBlockchainLinks   links;
+        TFMProcessBlocks            blocks;   
+        TFMProcessBlockAddons       addons;
+        TFMLogicBlock               block, blockTo;
+        Map                         blockMap = new Map(Types::Int64, Types::Class);
+        List                        startingNodes = new List(Types::Class);
+        ListEnumerator              lEnum;
+        Name                        fromName, toName;
+        int                         fromLink, toLink;
+
+        _process.resetBlockCollection();
+        while select blocks where blocks.Version == _process.parmVersion() && blocks.ProcessID == _process.parmProcessName()
+        {
+            if (!className2Id(blocks.BlockClass))
+            {
+                continue;
+            }
+            block = new SysDictClass(className2Id(blocks.BlockClass)).makeObject();
+            block.parmName(blocks.BlockName);
+            blockMap.insert(blocks.RecId,block);
+            _process.addBlock(block);
+            while select addons where addons.Version == blocks.Version && addons.ProcessID == blocks.ProcessID && addons.BlockName == blocks.BlockName
+            {
+                _process.blockCollection().addBlockAddon(block, new SysDictclass(className2Id(addons.AddonClass)).makeObject());
+            }
+
+        }
+
+        while select blocks where blocks.Version == _process.parmVersion() && blocks.ProcessID == _process.parmProcessName()
+            join links order by fromName where links.FromBlock == blocks.RecId
+        {
+            if (!blockMap.exists(links.FromBlock) || !blockMap.exists(links.ToBlock))
+            {
+                continue;
+            }
+            block = blockMap.lookup(links.FromBlock);
+            blockTo = blockMap.lookup(links.ToBlock);
+            if (fromName != block.parmName())
+            {
+                fromLink = 0;
+            }
+            fromName = block.parmName();
+            if (toName != blockTo.parmName())
+            {
+                toLink = 0;
+            }
+            toName = blockTo.parmName();
+
+            fromLink++;
+            toLink++;
+            
+            _process.linkBlocks(block,blockTo, block.outputs().getConnectionName(str2Int(strKeep((links.fromName ? links.fromName : ('output_' + int2Str(fromLink))),'1234567890'))), 'input_1');
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeBlocksToData</Name>
+				<Source><![CDATA[
+    public void writeBlocksToData(Version _newVersion)
+    {
+        
+        blockCollection.writeBlocksToData(_newVersion);
+        TFMProcessCombinedFields::createFromProcess(this, _newVersion);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockCollection</Name>
+				<Source><![CDATA[
+    public TFMLogicBlockCollection blockCollection()
+    {
+        return blockCollection;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resetBlockCollection</Name>
+				<Source><![CDATA[
+    public void resetBlockCollection()
+    {
+        blockCollection = TFMLogicBlockCollection::Construct(this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaders</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration getHeaders()
+    {
+        TFMReferenceDataConfiguration   headers = blockCollection.getHeaders(); 
+        SetEnumerator                   sEnum   = combinedFields.getEnumerator();
+        TFMProcessCombineFields         combiFields;
+        headers.parmKey(this.parmProcessName() + 'Header');  
+        while (sEnum.moveNext())
+        {
+            combiFields = sEnum.current();
+            combiFields.modifyHeaderConfiguration(headers);
+        }
+    
+        return headers;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors getCollectors(TFMRequestElement _request)
+    {
+        TFMRegistrationCollectors   collectors = blockCollection.getCollectors(_request);
+        MapEnumerator               mEnum;
+        TFMRegistrationCollector    collector;
+
+        if (developerMode && collectors)
+        {
+            mEnum = collectors.collectorMap().getEnumerator();
+            while (mEnum.moveNext())
+            {
+                collector = mEnum.currentValue();
+                collector.parmHeader(collector.parmHeader()+'*');
+            }
+        }
+        return collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runProcess</Name>
+				<Source><![CDATA[
+    public TFMResponseElement runProcess(TFMRequestElement _request)
+    {
+        TFMRegistrationConfigurationResponseElement collectorResponse;
+        TFMResponseElement ret = new TFMResponseElement();
+        _request.makeLogEntry('Running process');
+        TFMRequestElement request = blockCollection.modifyRequest(_request);
+
+        //Determine if request for posting or getting steps
+        if (_request.parmDocumentType() == TFMConstants::PostAdhocRegistration())
+        {
+            //Call posting
+            ttsbegin;
+            ret = blockCollection.postBlocks(_request);
+            ttscommit;
+        }
+        else if (_request.parmDocumentType() == TFMConstants::getNextStepsInProcess())
+        {
+            //See if there are online steps from blocks, if so return these.
+            ret = this.getPrePostRegistrationCollectors(_request);
+
+            //See if there are blocks after currently postable blocks, in that case run logic, and return new steps
+
+            ret = ret ? ret : blockCollection.getNextSectionBlocks(_request);
+
+            if (!ret) //Compensate for app-limit
+            {                
+                ret = new TFMResponseElement();
+            }
+        }
+        else if (_request.parmDocumentType() == TFMConstants::GetRegistrationConfiguration)
+        {
+            //Get registration collector
+            ret = this.getRegistrationConfigurationResponse(request);
+            collectorResponse = ret;
+            collectorResponse.parmCancelBehaviour(this.parmCancelBehaviour());
+            collectorResponse.parmSaveData(this.parmAutoSave());
+        
+        }
+        ret.parmOriginalRequest(_request);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPrePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    protected TFMRegistrationConfigurationResponseElement getPrePostRegistrationCollectors(TFMRequestElement _request)
+    {
+        TFMRegistrationConfigurationResponseElement response    = new TFMRegistrationConfigurationResponseElement();
+        TFMRegistrationCollectors                   collectors  = blockCollection.prePostCollectors(_request);
+        MapEnumerator                               collectorMapEnum = collectors.collectorMap().getEnumerator();
+        TFMRegistrationCollector                    collector;
+        while (collectorMapEnum.moveNext())
+        {
+            collector = collectorMapEnum.currentValue();
+            if (collector.parmActive() && !_request.getFieldMap().exists(collector.parmName()))
+            {
+                //If active online Step, return new collectors.
+                response.setCollectors(collectors);
+                return response;
+            }
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRegistrationConfigurationResponse</Name>
+				<Source><![CDATA[
+    protected TFMRegistrationConfigurationResponseElement getRegistrationConfigurationResponse(TFMRequestElement _request)
+    {
+        XmlDocument                                 xmlDoc = new XmlDocument();
+        XmlElement                                  registrationCollectorConfigurationElement;
+        XmlElement                                  stepsElement;
+        str						                    name;
+        MapEnumerator                               collectorMapEnum;
+        
+        TFMRegistrationCollector                    collector;
+        TFMRegistrationConfigurationResponseElement response = new TFMRegistrationConfigurationResponseElement();
+        
+        response.setCollectors(this.getCollectors(_request));
+        
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetProcessGroupKeyId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the process group key id used when populating Groups for generic parms.
+    /// </summary>
+    /// <returns>The key</returns>
+    public static str GetProcessGroupKeyId(TFMProcess _process)
+    {
+        return TFMProcess::GetProcessDomainName(_process.parmProcessName()) + '/' + int2Str(_process.parmVersion());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetProcessDomainName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns Process:[THE_PROCESS_ID]
+    /// </summary>
+    public static str GetProcessDomainName(TFMProcessId _processId)
+    {
+        return TFMProcess::getProcessDomain() + ':'+_processId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProcessDomain</Name>
+				<Source><![CDATA[
+    public static str getProcessDomain()
+    {
+        return 'Process';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>loadDeltaConditions</Name>
+				<Source><![CDATA[
+    public void loadDeltaConditions()
+    {
+        blockCollection.loadDeltaConditions();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

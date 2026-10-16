@@ -1,0 +1,1827 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollector</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// RegistrationCollector tool class.
+/// </summary>
+abstract class TFMRegistrationCollector
+{
+    int			                    id;
+    str			                    name;
+    str			                    header;
+    str			                    label;
+    str			                    help;
+    str			                    eanAI;
+    str			                    defaultValue;
+    boolean		                    locked;
+    boolean		                    setEmpty;
+    boolean		                    optional;
+    boolean                         active;
+    boolean		                    visible;
+    boolean		                    isHeader;
+    boolean		                    acceptBarcode;
+    boolean		                    clearOnClear;
+    boolean                         autoForwardAfterScan;
+    MethodName	                    onlineValidationDocument;
+    TFMWorkflowValidationType       onlineValidator; // the validation for the setup. Eg. the LicensePlateValidation
+    Map			                    extraFields;
+    ExtendedDataTypeName	        edtName;
+    ClassName				        domain;
+    MethodName				        key;
+    TFMConditions                   conditions;
+    TFMFieldOrigins                 origins;
+    Set                             nameAliases;
+    boolean                         disableMatchedSource;
+    TFMLogicBlockName               logicBlockName;
+    TFMLogicBlockTableName          logicBlockTable;
+    TFMInventDimIdFieldName         inventDimFieldName;
+    Set                             fieldDependancy;
+    boolean                         disableValueTransfer;
+    boolean                         addAsAdditionalValue;
+    TFMDrawFlowControlInteraction   interactionClass;
+    Description255                  alias;
+    
+    public static int ctrlWidth = 155;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>ConstructFromXMLElement</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollector ConstructFromXMLElement(XmlElement _collectorXMLElement)
+    {
+        TFMRegistrationCollector    regCollector;
+        str                         typeName;
+        XmlNode                     attribute;
+        SysDictClass                sdc;
+        int                         attributeNo;
+
+        if (_collectorXMLElement.name() == TFMConstants::add())
+        {
+            typeName = _collectorXMLElement.getAttribute('inputType');
+        }
+        else
+        {
+            typeName = _collectorXMLElement.name();
+        }
+        if (className2Id(classStr(TFMRegistrationCollector) + typeName))
+        {
+            sdc = new SysDictClass(className2Id(classStr(TFMRegistrationCollector) + typeName));
+            regCollector = sdc.makeObject();
+            attributeNo = 0;
+            
+            while (_collectorXMLElement.attributes().length() > attributeNo)
+            {
+                attribute =_collectorXMLElement.attributes().item(attributeNo);
+                if (sdc.hasObjectMethod('parm' + attribute.name()))
+                {
+                    TFMHelper::addValueToParmMethod(attribute.name(),regCollector,attribute.value(),sdc);
+                }
+                attributeNo++;
+            }
+        }
+        return regCollector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ConstructAttributeMap</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollector ConstructAttributeMap(Map _collectorMap)
+    {
+        TFMRegistrationCollector    regCollector;
+        str                         typeName;
+        XmlNode                     attribute;
+        SysDictClass                sdc;
+        MapEnumerator               mEnum = _collectorMap.getEnumerator();
+        
+        typeName = _collectorMap.lookup('inputType');
+        
+        if (className2Id(classStr(TFMRegistrationCollector) + typeName))
+        {
+            sdc = new SysDictClass(className2Id(classStr(TFMRegistrationCollector) + typeName));
+            regCollector = sdc.makeObject();
+            
+            
+            while (mEnum.moveNext())
+            {
+                
+                if (sdc.hasObjectMethod('parm' + mEnum.CurrentKey()))
+                {
+                    TFMHelper::addValueToParmMethod(mEnum.CurrentKey(),regCollector,mEnum.CurrentValue(),sdc);
+                }
+                
+            }
+        }
+        return regCollector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAcceptValuesFrom</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414", "Names that this field will accept values from. If the same field has different names e.g. ItemNumber and ItemId.")]
+    public Description255 parmAcceptValuesFrom(Description255 _alias = alias)
+    {
+        if (disableValueTransfer)
+        {
+            return '';
+        }
+
+        if (!prmIsDefault(_alias) || (nameAliases.elements() && !alias))
+        {
+            ListEnumerator lEnum = strSplit(_alias, ';').getEnumerator();
+            while (lEnum.moveNext())
+            {
+                this.addAlias(lEnum.current());
+            }
+            SetEnumerator sEnum = nameAliases.getEnumerator();
+            alias = '';
+            while (sEnum.moveNext())
+            {
+                alias += (alias ? ';' : '')+ sEnum.current();
+            }
+        }
+        return name + (alias ? ';' : '')+ alias;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isAcceptingValuesFrom</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns true if the name or the name aliases contains the _acceptFrom
+    /// </summary>
+    public boolean isAcceptingValuesFrom(Description255 _acceptFrom)
+    {
+        if(name == _acceptFrom)
+        {
+            return true;
+        }
+        SetEnumerator sEnum = nameAliases.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            if(sEnum.current() == _acceptFrom)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDisableValueTransfer</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414", "Disables the transfer from one field to another.")]
+    public boolean parmDisableValueTransfer(boolean _disableValueTransfer = disableValueTransfer)
+    {
+        disableValueTransfer = _disableValueTransfer;
+        return disableValueTransfer;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDisableMatchedSource</Name>
+				<Source><![CDATA[
+    [TFMCategory("@TFM:DataSourceMatching")]
+    public boolean parmDisableMatchedSource(boolean _disableMatchedSource = disableMatchedSource)
+    {
+        disableMatchedSource = _disableMatchedSource;
+        return disableMatchedSource;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLogicBlockConnected</Name>
+				<Source><![CDATA[
+    [TFMCategory("@TFM:DataSourceMatching")]
+    public TFMLogicBlockName parmLogicBlockConnected(TFMLogicBlockName _logicBlockName = logicBlockName)
+    {
+        logicBlockName = _logicBlockName;
+        return logicBlockName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLogicBlockDataSource</Name>
+				<Source><![CDATA[
+    [TFMCategory("@TFM:DataSourceMatching")]
+    public TFMLogicBlockTableName parmLogicBlockDataSource(TFMLogicBlockTableName _logicBlockTable = logicBlockTable)
+    {
+        logicBlockTable = _logicBlockTable;
+        return logicBlockTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOptionalInventDimIdFieldToUse</Name>
+				<Source><![CDATA[
+    [TFMCategory("@TFM:DataSourceMatching")]
+    public TFMInventDimIdFieldName parmOptionalInventDimIdFieldToUse(TFMInventDimIdFieldName _inventDimFieldName = inventDimFieldName)
+    {
+        inventDimFieldName = _inventDimFieldName;
+        return inventDimFieldName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOnlineValidator</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS4440")]
+    public TFMWorkflowValidationType parmOnlineValidator(TFMWorkflowValidationType _onlineValidator = onlineValidator)
+    {
+        onlineValidator = _onlineValidator;
+        if (!prmisdefault(_onlineValidator))
+        {
+            this.setOnlineValidationDocument(_onlineValidator);
+        }
+        return onlineValidator;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInteractionClass</Name>
+				<Source><![CDATA[
+    public TFMDrawFlowControlInteraction getInteractionClass()
+    {
+        return interactionClass;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setInteractionClass</Name>
+				<Source><![CDATA[
+    public void setInteractionClass(TFMDrawFlowControlInteraction _interactionClass)
+    {
+        interactionClass = _interactionClass;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addFieldDependancy</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Indicates whether this collector is dependant on another field to be filled out in the flow or the header.
+    /// This is used to determine if the step should be sent out as an online step, in the process rule engine.
+    /// </summary>
+    /// <param name = "_fieldDependancy">Name of the field this collector is dependant on</param>
+    public void addFieldDependancy(str _fieldDependancy)
+    {
+        fieldDependancy.add(_fieldDependancy);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setFieldDependencies</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Indicates whether this collector is dependant on another field to be filled out in the flow or the header.
+    /// This is used to determine if the step should be sent out as an online step, in the process rule engine.
+    /// </summary>
+    /// <param name = "_fieldDependancy">Name of the field this collector is dependant on</param>
+    public void setFieldDependencies(Set _fieldDependancy)
+    {
+        fieldDependancy = _fieldDependancy;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFieldDependancy</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Indicates whether this collector is dependant on another field to be filled out in the flow or the header.
+    /// This is used to determine if the step should be sent out as an online step, in the process rule engine.
+    /// </summary>
+    /// <returns>Set with names of the fields this collector is dependant on</returns>
+    public Set getFieldDependancy()
+    {
+        return fieldDependancy;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addAlias</Name>
+				<Source><![CDATA[
+    public void addAlias(str _alias)
+    {
+        if (!_alias)
+        {
+            return;
+        }
+        nameAliases.add(_alias);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAliases</Name>
+				<Source><![CDATA[
+    public Set getAliases()
+    {
+        return nameAliases;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTableFieldOrigin</Name>
+				<Source><![CDATA[
+    public void addTableFieldOrigin(TableName _tabelName, FieldName _fieldName)
+    {
+        origins.addTableField(_tabelName,_fieldName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addExtendedTypeOrigin</Name>
+				<Source><![CDATA[
+    public void addExtendedTypeOrigin(ExtendedDataTypeName _edtName)
+    {
+        origins.addExtendedDataType(_edtName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSetDomain</Name>
+				<Source><![CDATA[
+    public ClassName getSetDomain(ClassName _domain = domain)
+    {
+        domain = _domain;
+        return domain;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>origins</Name>
+				<Source><![CDATA[
+    public TFMFieldOrigins origins()
+    {
+        return origins;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSetKey</Name>
+				<Source><![CDATA[
+    public ClassName getSetKey(ClassName _key = key)
+    {
+        key = _key;
+        return key;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>collectorFromEDT</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollector collectorFromEDT(ExtendedDataTypeName _edtName, str _stepName = '', str _header = '', str _label = '', str _helpText = '')
+    {
+        SysDictType type = new SysDictType(extendedTypeName2Id(_edtName));
+        TFMRegistrationCollector collector = TFMRegistrationCollector::getCollectorFromType(type.baseType(),0,type.name(),_header ? _header : type.label(),_label ? _label : type.label(), _helpText ? _helpText : type.help());
+        collector.setEDT(_edtName);
+        collector.initFromDictType(type);
+        if (_stepName)
+        {
+            collector.parmName(_stepName);
+        }
+        collector.parmEanAi( TFMGS1Table::AIsfromEDT(_edtName));
+
+        return collector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>locateItemInfoHtml</Name>
+				<Source><![CDATA[
+    public static str locateItemInfoHtml(ItemId _itemId, InventLocationId _location)
+    {
+        InventDim		inventDim, inventDimLookup;
+        InventSum		inventSum;
+        inventDimParm	inventDimParm =  InventDimParm::activeDimFlag(InventDimGroupSetup::newInventTable(InventTable::find(_itemId)));;
+        str				html = '<html><body><table><tr><th>'+(new DictField(tablenum(InventDim), fieldnum(InventDim, wmsLocationId)).Label())+ '</th><th>' + (new DictField(tablenum(InventSum), fieldnum(InventSum, AvailPhysical)).Label()) + '</th></tr>';
+        InventQty					physicalInvent;
+        InventQty					physicalAvail;
+
+        inventDimLookup.InventLocationId = _location;
+        inventDimLookup.InventSiteId = InventLocation::find(_location).InventSiteId;
+        inventDimLookup = InventDim::findOrCreate(inventDimLookup);
+        inventDimParm.clear();
+        // Sum items (batch and serial numbers are not shown)
+        while #InventDimSelect(inventDim,inventDimLookup,inventDimParm, forcePlaceholders TableId from,SerialIdIdx,inventDim.WMSLocationId)
+            join #InventSumQtyFields,itemid from inventSum
+            index hint DimIdIdx
+            group by inventDim.InventSiteId, inventDim.InventLocationId, inventDim.WMSLocationId, inventSum.ItemId, inventSum.InventDimId // This controls the level of Sum
+                where InventDim.InventDimId == inventSum.InventDimId
+                    && inventSum.itemId like _itemId
+        {
+            physicalInvent = inventSum.PhysicalInvent;
+            physicalAvail  = inventSum.AvailPhysical;
+            if (physicalInvent > 0)
+            {
+                html += '<tr><td>'+inventDim.wMSLocationId+ '</td><td>' + strFmt('%1', inventSum.PhysicalInvent) + '</td></tr>';
+                    
+            }
+        }
+        
+        html += '</table></body></html>';
+
+        return html;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>collectorFromField</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollector collectorFromField(TableId _tableId, FieldId _fieldId)
+    {
+        SysDictField df = new SysDictField(_tableId,_fieldId);
+        TFMRegistrationCollector collector;
+        if (df.baseType() == Types::Enum)
+        {
+            collector = TFMRegistrationCollector::collectorFromEnum(df.enumId());
+        }
+        else
+        {
+            SysDictType type = new SysDictType(df.typeId());
+            collector = TFMRegistrationCollector::getCollectorFromType(type.baseType(),0,type.name(),type.label(),type.label(),type.help());
+            collector.setEDT(type.name());
+            collector.initFromDictType(type);
+        }
+        collector.addTableFieldOrigin(tableId2Name(_tableId), df.name());
+        collector.parmEanAi(TFMGS1Table::AIsfromField(df));
+        return collector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>collectorFromEnum</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollector collectorFromEnum(EnumId _enumID)
+    {
+        TFMRegistrationCollectorList list;
+        SysDictEnum de = new SysDictEnum(_enumID);
+        
+        list = new TFMRegistrationCollectorList(0,de.name(),de.label(),de.label(),de.help());
+        list.parmListValues(TFMRegistrationCollector::Enum2list(_enumId));
+        return list;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromExtendedDataType</Name>
+				<Source><![CDATA[
+    public void initFromExtendedDataType(ExtendedDataTypeName _edtName)
+    {
+        this.initFromDictType(new SysDictType(extendedTypeName2Id(_edtName)));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromDictType</Name>
+				<Source><![CDATA[
+    public void initFromDictType(SysDictType _type)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mergeOrigin</Name>
+				<Source><![CDATA[
+    public void mergeOrigin(TFMFieldOrigins _origin)
+    {
+        origins.mergeInOrigin(_origin);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setEDT</Name>
+				<Source><![CDATA[
+    public void setEDT(ExtendedDataTypeName _edtName)
+    {
+        edtName = _edtName;
+        this.addExtendedTypeOrigin(_edtName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEmbeddedDataFromEDT</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataFilterList getEmbeddedDataFromEDT()
+    {
+        
+        
+        return TFMReferenceDataFilterList::createFromEDT(edtName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEDT</Name>
+				<Source><![CDATA[
+    public ExtendedDataTypeName getEDT()
+    {
+        return edtName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isHeader</Name>
+				<Source><![CDATA[
+    public void isHeader(boolean _isHeader)
+    {
+        isHeader = _isHeader;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addField</Name>
+				<Source><![CDATA[
+    public void addField(str _key, str _value)
+    {
+        extraFields.insert(_key,_value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDefaultValue</Name>
+				<Source><![CDATA[
+    public str parmDefaultValue(str _defaultDate = defaultValue)
+    {
+        defaultValue = _defaultDate;
+        return defaultValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SetEmptyParm</Name>
+				<Source><![CDATA[
+    public boolean SetEmptyParm(boolean _setEmpty = setEmpty)
+    {
+        setEmpty = _setEmpty;
+        return setEmpty;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLocked</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414", "False - Allows the user to enter values into the field, and perform searches by pressing the magnifying glass. True - Prevents the user from interacting with the field. Including the search functionality.")] // Currently we dont support the third option made in 1.5.13 in the mobile app: SearchOnly - Prevents the user from entering values directly into the field, but can still use the search functionality to populate the field.
+    public boolean parmLocked(boolean _locked = locked)
+    {
+        locked = _locked;
+        return locked;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOptional</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414", "Optional steps does not have to be filled")]
+    public boolean parmOptional(boolean _optional = optional)
+    {
+        optional = _optional;
+        return optional;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmActive</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414", "Only active steps will be displayed to the user.")]
+    public boolean parmActive(boolean _active = active)
+    {
+        active = _active;
+        return active;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmVisible</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414", "If the step is not visible the value of the step will still be persent in the data but not shown to the user.")]
+    public boolean parmVisible(boolean _visible = visible)
+    {
+        visible = _visible;
+        return visible;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAcceptBarcode</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414", "If true, the step will accept barcode if the step is the current active or GS1 AIs has been set up on the step.")]
+    public boolean parmAcceptBarcode(boolean _acceptBarcode = acceptBarcode)
+    {
+        acceptBarcode = _acceptBarcode;
+        return acceptBarcode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClearOnClear</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414", "If true, the step will clear its value when pressing the clear/reset button (e.g. on the header)")]
+    public boolean parmClearOnClear(boolean _clearOnClear = clearOnClear)
+    {
+        clearOnClear = _clearOnClear;
+        return clearOnClear;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAutoForwardAfterScan</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414", "If true, then it will go to the next step after valid scan.")]
+    public boolean parmAutoForwardAfterScan(boolean _autoForwardAfterScan = autoForwardAfterScan)
+    {
+        autoForwardAfterScan = _autoForwardAfterScan;
+        return autoForwardAfterScan;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void new(int          _id,
+                    str          _name,
+                    str          _header,
+                    str          _label,
+                    str          _helpLabel)
+    {
+        id = _id;
+        name = _name;
+        header=_header;
+        label =_label;
+        help = _helpLabel;
+        visible = true;
+        optional = true;
+        acceptBarcode = true;
+        clearOnClear = true;
+        autoForwardAfterScan = true;
+        active = true;
+        extraFields = new Map(Types::String, Types::String);
+        origins = TFMFieldOrigins::Construct();
+        nameAliases = new Set(Types::String);
+        fieldDependancy = new Set(Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHelpLabel</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS120256")]
+    public str parmHelpLabel(str _help = help)
+    {
+        help = _help;
+        return help;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLabel</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS120256")]
+    public str parmLabel(str _label = label)
+    {
+        label = _label;
+        return label;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHeader</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS120256")]
+    public str parmHeader(str _header = header)
+    {
+        header = _header;
+        return header;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmName</Name>
+				<Source><![CDATA[
+    [TFMIgnoreParm]
+    public str parmName(str _name = name)
+    {
+        name = _name;
+        return name;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setOnlineValidationDocument</Name>
+				<Source><![CDATA[
+    public void setOnlineValidationDocument(MethodName _onlineValidationDocument)
+    {
+        onlineValidationDocument = _onlineValidationDocument;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmId</Name>
+				<Source><![CDATA[
+    [TFMIgnoreParm]
+    public int parmId(int _id = id)
+    {
+        id = _id;
+        return id;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmEanAi</Name>
+				<Source><![CDATA[
+    public str parmEanAi(str _eanAI = eanAI)
+    {
+        eanAI = _eanAI;
+
+        if (!eanAI)
+        {
+            return TFMGS1Table::AIsfromName(name);
+        }
+
+        return eanAI;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXml</Name>
+				<Source><![CDATA[
+    public void appendToXml(XmlElement _element)
+    {
+        Set             methodsOnClass  = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(this),false,Types::Class);
+        SetEnumerator   sEnum = methodsOnClass.getEnumerator();
+        ClassName       thisClassName = classId2Name(classIdGet(this));
+        str             elementName = subStr(thisClassName,strLen(classStr(TFMRegistrationCollector))+1,strLen (thisClassName));
+        XmlElement      collectorElement = _element.ownerDocument().createElement(isHeader ? 'add' : TFMRegistrationCollector::smallBeginnings(elementName));
+        XmlElement		onlineValidationElement;
+        XmlAttribute    attribute;
+        str				attributeKey;
+        str				attributeValue;
+        MapEnumerator	mEnum = extraFields.getEnumerator();
+        SysDictMethod   dm;
+        while (sEnum.moveNext())
+        {
+            //step Through all Parm methods, turn to attributes
+            dm = sEnum.current();
+            attributeKey = TFMRegistrationCollector::smallBeginnings(subStr(dm.name(),5,strLen(dm.name())));
+            attributeValue = TFMRegistrationCollector::formatString(new SysDictClass(classIdGet(this)).callObject(dm.name(),this),(dm.returnType() != Types::UserType ? dm.returnType() : new SysDictType(dm.returnId()).baseType()), dm.returnTypeName());
+            if (!attributeValue && attributeKey != 'acceptValuesFrom')
+            {
+                continue;
+            }
+            if (attributeKey == 'acceptValuesFrom')
+            {
+                attributeValue = disableValueTransfer ? '' : (attributeValue ? attributeValue : this.parmAcceptValuesFrom());
+            }
+            
+            if (strScan(attributeKey,'linkedElement',1,1000))
+            {
+                int linkedelementvalue = str2Int(attributeValue);
+                if (linkedelementvalue < 0)
+                {
+                    continue;
+                }
+            }
+
+            attribute = _element.ownerDocument().createAttribute(attributeKey);
+            attribute.innerText(attributeValue);
+            
+            collectorElement.setAttributeNode(attribute);
+        }
+        while (mEnum.moveNext())
+        {
+            
+            attribute = _element.ownerDocument().createAttribute(mEnum.currentKey());
+            attribute.innerText(mEnum.currentValue());
+            
+            collectorElement.setAttributeNode(attribute);
+        }
+        if (isHeader)
+        {
+            attribute = _element.ownerDocument().createAttribute('inputType');
+            attribute.innerText(elementName);
+            collectorElement.setAttributeNode(attribute);
+        }
+        if (onlineValidationDocument)
+        {
+            onlineValidationElement = _element.ownerDocument().createElement('onlineValidation');
+
+            onlineValidationElement.setAttribute(TFMConstants::online(),TFMConstants::True());
+            onlineValidationElement.setAttribute(TFMConstants::documentName(),onlineValidationDocument);
+            onlineValidationElement.setAttribute(TFMConstants::includeCollectedValues(),TFMConstants::True());
+
+            collectorElement.appendChild(onlineValidationElement);
+        }
+        _element.appendChild(collectorElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateParmsFromOverride</Name>
+				<Source><![CDATA[
+    public void updateParmsFromOverride(ClassName _domain, MethodName _key)
+    {
+        ClassId             thisClassId     = classIdGet(this);
+        Set					methodsOnClass  = TFMFormLookupHelper::parmMethodsOnClass(thisClassId,false,Types::Class);
+        SetEnumerator		sEnum = methodsOnClass.getEnumerator();
+        SysDictMethod		dm;
+        SysDictType			sdt;
+        SysDictEnum			sde;
+        str					systemType;
+        Types				thetype;
+        str					valueText;
+        domain = _domain;
+        key = _key;
+        str contentKey;
+        
+        SysDictClass dictClass = new SysDictClass(thisClassId);
+        while (sEnum.moveNext())
+        {
+            //step Through all Parm methods, turn to attributes
+            dm = sEnum.current();
+
+            contentKey = subStr(dm.name(),5,strLen(dm.name()));
+
+            if (TFMGenericParms::Exists(_domain,_key, contentKey))
+            {
+                //Update Parameter from Override
+                dictClass.callObject(dm.name(),this, TFMGenericParms::getValue(domain,key,contentKey));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddTitleAndIconToGroup</Name>
+				<Source><![CDATA[
+    protected void AddTitleAndIconToGroup(FormGroupControl _fgc, MethodName _key = '', resourceNode resNode = null)
+    {
+        FormStaticTextControl   titleCtrl;
+        FormStringControl       stepName;
+        FormGroupControl        imageAndTitleGroup;
+        FormWindowControl       formImageControl;
+        Image                   iconImage;
+
+        imageAndTitleGroup = _fgc.addControl(FormControlType::Group, 'imageAndTitleGroup');
+        imageAndTitleGroup.alignChild(true);
+        imageAndTitleGroup.arrangeMethod(FormArrangeMethod::Vertical);
+        imageAndTitleGroup.heightMode(FormHeight::SizeToContent);
+        
+        if(resNode)
+        {
+            iconImage = new Image();
+            iconImage.copyData(TFMHelper::resource2BinData(resNode.name()));
+            formImageControl = imageAndTitleGroup.addControl(FormControlType::Image,_key + '_image');
+            formImageControl.image(iconImage);
+            formImageControl.widthMode(FormWidth::Manual);
+            formImageControl.width(50);
+            formImageControl.heightMode(FormHeight::Manual);
+            formImageControl.height(50);
+        }
+
+        titleCtrl = imageAndTitleGroup.addControl(FormControlType::StaticText, 'imageAndTitleGroupTitle');
+        titleCtrl.text(header);
+        titleCtrl.style(1);
+        titleCtrl.heightMode(FormHeight::ColumnHeight);
+
+        titleCtrl = imageAndTitleGroup.addControl(FormControlType::StaticText, 'imageAndTitleGroupName');
+        titleCtrl.text(strFmt("@SYS332066", "@SYS11799",name));
+        titleCtrl.heightMode(FormHeight::ColumnHeight);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PopulateGroup</Name>
+				<Source><![CDATA[
+    public Map PopulateGroup(FormGroupControl _fgc, boolean _clearGroup = false, boolean _useGenericModifiedMethod = false, ClassName _domain = '', MethodName _key = '', resourceNode _resNode = null, boolean _addConditionButton = true, TFMDrawFlowControlInteraction _interactionClass = null)
+    {
+        ClassId                 thisClassId = classIdGet(this);
+        Set					    methodsOnClass  = TFMFormLookupHelper::parmMethodsOnClass(thisClassId,false,Types::Class);
+        SetEnumerator		    sEnum = methodsOnClass.getEnumerator();
+        FormStringControl	    formStringControl;
+        FormCheckBoxControl	    chkcontrol;
+        FormComboBoxControl	    comboBox;
+        FormInt64Control	    intControl;
+        SysDictMethod		    dm;
+        SysDictType			    sdt;
+        SysDictEnum			    sde;
+        str					    systemType;
+        Types				    thetype;
+        str					    valueText;
+        Map					    returnMap = new Map(Types::String, Types::Class);
+        int					    i,j;
+        int					    chosenValue;
+        int					    enumCount;
+        str					    isModifiedText;
+        FormGroupControl        innerGroup;
+        FormGroupControl        categoryGroup;
+        FormStaticTextControl   GroupHeadline;
+        TFMCategoryAttribute    parmCategory;
+        Map                     categoryGroups = new Map(Types::String, Types::Class);
+
+        SysDictClass thisSysDictClass = new SysDictClass(thisClassId);
+        
+        domain = _domain;
+        key = _key;
+        this.setInteractionClass(_interactionClass);
+
+        if (_clearGroup)
+        {
+            while (_fgc.controlCount())
+            {
+                _fgc.formRun().design().removeControl(_fgc.controlNum(1).id());
+            }
+        }
+
+        this.AddTitleAndIconToGroup(_fgc, key, _resNode);
+
+        categoryGroup = _fgc.addControl(FormControlType::Group,'Category'+strKeep("@SYS2952",'qwertyuioplkjhgfdsazxcvbnm'));
+        
+        GroupHeadline = categoryGroup.addControl(FormControlType::StaticText, categoryGroup.name()+'Header');
+        GroupHeadline.text("@SYS2952");
+        GroupHeadline.style(1);
+        categoryGroups.insert("@SYS2952",categoryGroup);
+
+        while (sEnum.moveNext())
+        {
+            //step Through all Parm methods, turn to attributes
+            dm = sEnum.current();
+            i = DM.returnId();
+            systemType = DM.returnTypeName();
+            thetype = DM.returnType();
+            sdt = new SysDictType(i);
+
+            if (DM.getAttribute(classStr(TFMIgnoreParmAttribute)) != null)
+            {
+                //Parm should be ignored, and skipped
+                continue;
+            }
+
+            parmCategory = DM.getAttribute(classStr(TFMCategoryAttribute));
+            if (parmCategory == null)
+            {
+                parmCategory = new TFMCategoryAttribute("@SYS2952");
+            }
+            if (!categoryGroups.exists(parmCategory.parmCategory()))
+            {
+                categoryGroup = _fgc.addControl(FormControlType::Group,'Category'+strKeep(parmCategory.parmCategory(),'qwertyuioplkjhgfdsazxcvbnm'));
+                
+                GroupHeadline = categoryGroup.addControl(FormControlType::StaticText, categoryGroup.name()+'Header');
+                GroupHeadline.text(parmCategory.parmCategory());
+                GroupHeadline.style(1);
+                categoryGroups.insert(parmCategory.parmCategory(),categoryGroup);
+            }
+            else
+            {
+                categoryGroup = categoryGroups.lookup(parmCategory.parmCategory());
+            }
+            
+            isModifiedText = '';
+            if (domain || key)
+            {
+                valueText = TFMRegistrationCollector::formatString(TFMGenericParms::getValue(domain,key,subStr(dm.name(),5,strLen(dm.name())), thisSysDictClass.callObject(dm.name(),this)),(dm.returnType() != Types::UserType ? dm.returnType() : new SysDictType(dm.returnId()).baseType()), dm.returnTypeName());
+                isModifiedText = TFMGenericParms::Exists(domain,key,subStr(dm.name(),5,strLen(dm.name()))) ? '('+"@SYS27395"+')' : '';
+            }
+            else
+            {
+                valueText = TFMRegistrationCollector::formatString(thisSysDictClass.callObject(dm.name(),this),(dm.returnType() != Types::UserType ? dm.returnType() : new SysDictType(dm.returnId()).baseType()), dm.returnTypeName());
+            }
+            if (systemType == 'boolean' || (sdt && sdt.enumId() == enumNum(NoYes)))
+            {
+                innerGroup = categoryGroup.addControl(FormControlType::Group, this.getControlName('Group', dm.name()));
+                innerGroup.columns(2);
+                innerGroup.helpText(parmCategory.parmHelpText());
+                chkcontrol = innerGroup.addControl(FormControlType::CheckBox, this.getControlName('', dm.name()));
+                innerGroup.caption(TFMHelper::convertCamelCaseToNiceText(chkcontrol.name()) + isModifiedText);
+                chkcontrol.checked(valueText == 'true');
+                this.setHelpText(chkcontrol, conditions, parmCategory, dm.name());
+                chkcontrol.enabled(!conditions || !conditions.methodHasConditions(dm.name()));
+                if (_useGenericModifiedMethod)
+                {
+                    chkcontrol.registerOverrideMethod(methodStr(FormCheckBoxControl,modified), methodStr(TFMRegistrationCollector, control_modified_trigger_applicationconfigurationupdate),this);
+                }
+                this.addConditionButton(_addConditionButton, dm.name(), innerGroup, chkcontrol.enabled());
+
+                chkcontrol.widthMode(-1);
+                chkcontrol.widthValue(TFMRegistrationCollector::ctrlWidth);
+                returnMap.insert(chkcontrol.name(),chkcontrol);
+                j++;
+            }
+            else if (systemType && thetype == Types::Enum)
+            {
+                innerGroup = categoryGroup.addControl(FormControlType::Group,this.getControlName('Group', dm.name()));
+                innerGroup.columns(2);
+                innerGroup.helpText(parmCategory.parmHelpText());
+                comboBox = innerGroup.addControl(FormControlType::ComboBox, this.getControlName('', dm.name()));
+                innerGroup.caption(TFMHelper::convertCamelCaseToNiceText(comboBox.name()) + isModifiedText);
+                this.setHelpText(comboBox, conditions, parmCategory, dm.name());
+                comboBox.enabled(!conditions || !conditions.methodHasConditions(dm.name()));
+                sde = new SysDictEnum(enumName2Id(systemType));
+                enumCount = sde.values();
+                
+                // Clear all the combo box items.
+                comboBox.clear();
+                for (i=0; i<enumCount; i++)
+                {
+                    comboBox.add(sde.index2Symbol(i));
+                    if (valueText == sde.index2Symbol(i))
+                    {
+                        chosenValue = i;
+                    }
+                }
+
+                comboBox.widthMode(-1);
+                comboBox.widthValue(TFMRegistrationCollector::ctrlWidth);
+
+                // Select the first item in the combo box.
+                comboBox.selection(chosenValue);
+                this.addConditionButton(_addConditionButton, dm.name(), innerGroup, comboBox.enabled());
+
+                if ( _useGenericModifiedMethod)
+                {
+                    comboBox.registerOverrideMethod(methodStr(FormComboBoxControl,modified), methodStr(TFMRegistrationCollector, control_modified_trigger_applicationconfigurationupdate),this);
+                }
+                returnMap.insert(comboBox.name(),comboBox);
+            }
+            else if (thetype == Types::Integer)
+            {
+                innerGroup = categoryGroup.addControl(FormControlType::Group,this.getControlName('Group', dm.name()));
+                innerGroup.columns(2);
+                innerGroup.helpText(parmCategory.parmHelpText());
+                intControl = innerGroup.addControl(FormControlType::Int64, this.getControlName('', dm.name()));
+                innerGroup.caption(TFMHelper::convertCamelCaseToNiceText(intControl.name()) + isModifiedText);
+                
+                intControl.widthMode(-1);
+                intControl.widthValue(TFMRegistrationCollector::ctrlWidth);
+
+                intControl.value(str2Int64(valueText));
+                this.setHelpText(intControl, conditions, parmCategory, dm.name());
+                intControl.enabled(!conditions || !conditions.methodHasConditions(dm.name()));
+                this.addConditionButton(_addConditionButton, dm.name(), innerGroup, intControl.enabled());
+                
+                if (_useGenericModifiedMethod)
+                {
+                    intControl.registerOverrideMethod(methodStr(FormInt64Control,modified), methodStr(TFMRegistrationCollector, control_modified_trigger_applicationconfigurationupdate),this);
+                }
+                returnMap.insert(intControl.name(),intControl);
+            }
+            else if (thetype != Types::Class)
+            {
+                innerGroup = categoryGroup.addControl(FormControlType::Group,this.getControlName('Group', dm.name()));
+                innerGroup.columns(2);
+                innerGroup.helpText(parmCategory.parmHelpText());
+                formStringControl = innerGroup.addControl(FormControlType::String, this.getControlName('', dm.name()));
+                innerGroup.caption(TFMHelper::convertCamelCaseToNiceText(formStringControl.name()) + isModifiedText);
+                formStringControl.displayHeightMode(0);
+                formStringControl.displayHeightValue(1);
+
+                formStringControl.widthMode(-1);
+                formStringControl.widthValue(TFMRegistrationCollector::ctrlWidth);
+
+                formStringControl.text(valueText);
+                this.setHelpText(formStringControl, conditions, parmCategory, dm.name());
+                formStringControl.enabled(!conditions || !conditions.methodHasConditions(dm.name()));
+                if(_useGenericModifiedMethod)
+                {
+                    formStringControl.registerOverrideMethod(methodstr(formStringControl, modified),methodstr(TFMRegistrationCollector, control_modified_trigger_applicationconfigurationupdate),this);
+                }
+                
+                if(dm.name() == methodStr(TFMRegistrationCollector, parmOnlineValidator)) // a simple way to add a lookup for the Validator. If this is needed for more a more generic approach should be made.
+                {
+                    formStringControl.registerOverrideMethod(methodStr(FormStringControl, lookup), methodStr(TFMRegistrationCollector, lookupValidationDocumentTypes), this);
+                }
+
+                this.addConditionButton(_addConditionButton, dm.name(), innerGroup, formStringControl.enabled());
+                returnMap.insert(formStringControl.name(),formStringControl);
+            }
+        }
+
+        if (!TFMPagesProvider::instance().developerMode())
+        {
+            return returnMap;
+        }
+        FormStaticTextControl fstc;
+
+        fstc = _fgc.addControl(FormControlType::StaticText, 'EDTText');
+        fstc.text(edtName);
+
+        fstc = _fgc.addControl(FormControlType::StaticText, 'IdText');
+        fstc.text(int2Str(this.parmId()));
+
+        fstc = _fgc.addControl(FormControlType::StaticText, 'Origins');
+        fstc.text(this.origins().originsString());
+
+        fstc = _fgc.addControl(FormControlType::StaticText, 'Dependencies');
+        fstc.text('Dependencies:' + con2Str(this.getFieldDependancy().pack()));
+
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setHelpText</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the help text on the control depending on the conditions and the category.
+    /// </summary>
+    private void setHelpText(FormControl _control, TFMConditions _conditions, TFMCategoryAttribute _category, str _methodName)
+    {
+        if(_category.parmHelpText())
+        {
+            _control.helpText(_category.parmHelpText());
+        } 
+        else
+        {
+            _control.helpText(conditions ? conditions.methodConditionStr(_methodName) : '');
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getControlName</Name>
+				<Source><![CDATA[
+    private str getControlName(str _prefix, str _methodName)
+    {
+        return _prefix + TFMRegistrationCollector::smallBeginnings(subStr(_methodName, 5 ,strLen(_methodName)));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupValidationDocumentTypes</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Displays the lookup for the validation types.
+    /// </summary>
+    public void lookupValidationDocumentTypes(FormControl _callingControl)
+    {
+        TFMFormLookupHelper::lookupCertainDocumentTypes(_callingControl,null, classStr(TFMValidationDocumentTypeAttribute));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dataTypeIcon</Name>
+				<Source><![CDATA[
+    public ResourceName dataTypeIcon()
+    {
+        return resourceStr(TFMDatatypeString);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addConditionButton</Name>
+				<Source><![CDATA[
+    public void addConditionButton(boolean _useConditionButton, str _buttonName, FormGroupControl _groupControl, boolean _conditionNotSetup)
+    {
+        if(!_useConditionButton)
+        {
+            return;
+        }
+        TFMHtmlButtonCtrl buttonCtrl = _groupControl.addControlEx(classStr(TFMHtmlButtonCtrl), _buttonName);
+        buttonCtrl.setActiveLayout(!_conditionNotSetup);
+        buttonCtrl.setFaIcon('fa fa-wrench');
+        buttonCtrl.actionDelegate += eventhandler(this.htmlConditionButtonClicked);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ConditionButtonClicked</Name>
+				<Source><![CDATA[
+    public boolean ConditionButtonClicked(FormButtonControl _control)
+    {
+        Args Args = new Args(formStr(TFMConditionEditor));
+        Args.caller(this);
+        Args.parm(_control.name());
+        FormRun formRun = New FormRun(Args);
+        formRun.init();
+        formRun.run();
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>htmlConditionButtonClicked</Name>
+				<Source><![CDATA[
+    public void htmlConditionButtonClicked(str _controlName)
+    {
+        Args Args = new Args(formStr(TFMConditionEditor));
+        Args.caller(this);
+        Args.parm(_controlName);
+        FormRun formRun = New FormRun(Args);
+        formRun.init();
+        formRun.run();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_modified</Name>
+				<Source><![CDATA[
+    public boolean control_modified(FormControl _control)
+    {
+        MethodName					callMethod = SysTest::hasMethod(_control,methodStr(FormCheckBoxControl, value)) ? methodStr(FormCheckBoxControl, value) : methodStr(FormControl, valueStr);
+        if (SysTest::hasMethod(_control,methodStr(FormComboBoxControl,selection)))
+        {
+            callMethod = methodStr(FormComboBoxControl,selection);
+        }
+        TFMGenericParms::CreateOrUpdateParameter(domain, key, _control.name(), new SysDictClass(classIdGet(_control)).callObject(callMethod,_control));
+
+        if(interactionClass)
+        {
+            this.updateParmsFromOverride(domain, key);
+            interactionClass.updateHtmlForCurrentNode();
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_modified_trigger_applicationconfigurationupdate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Calls the control_modified but also makes sure that the application configuration will updated on next login.
+    /// </summary>
+    /// <param name = "_control"></param>
+    /// <returns></returns>
+    public boolean control_modified_trigger_applicationconfigurationupdate(FormControl _control)
+    {
+        this.control_modified(_control);
+        
+        // Trigger application configuration to be updated by changing the updateCounter
+        TFMWorkflowsTable workflowsTable;
+        ttsbegin;
+        select forupdate firstonly workflowsTable;
+        workflowsTable.UpdateCounter += 1;
+        workflowsTable.update();
+        ttscommit;
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>smallBeginnings</Name>
+				<Source><![CDATA[
+    public static str smallBeginnings(str _str)
+    {
+        //Device is case Sensitive
+        return strLwr(subStr(_str,1,1)) + subStr(_str,2,strLen(_str));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formatString</Name>
+				<Source><![CDATA[
+    public static str formatString(anytype _inValue, Types _inType, enumName _enumName = '')
+    {
+        str value = '';
+        int enumId;
+        SysDictType sdt;
+        if (_inType == Types::Container)
+        {
+            value = con2StrUnlimited(_inValue,';');
+        }
+        else if (_inType == Types::Date)
+        {
+            value = date2str(_inValue,123,2,DateSeparator::Hyphen,2,DateSeparator::Hyphen,4);
+            
+        }
+        else if (_inType == Types::UtcDateTime)
+        {
+            value = date2str(DateTimeUtil::date(_inValue),123,2,DateSeparator::Hyphen,2,DateSeparator::Hyphen,4);
+        }
+        else if (_inType == Types::Real)
+        {
+            value = num2str(_inValue,1,2,DecimalSeparator::Dot,ThousandSeparator::None);
+        }
+        else if (_inType == Types::Enum)
+        {
+            int enumValue;
+            enumId = enumName2Id(_enumName);
+            if (!enumId)
+            {
+                sdt = new SysDictType(extendedTypeName2Id(_enumName));
+                if (!sdt)
+                {
+                    return strfmt('%1', _inValue);
+                }
+                enumId = sdt.enumId();
+            }
+            if (typeOf(_inValue) == Types::String)
+            {
+                enumValue = TFMHelper::EnumSymbol2Value(enumId,_inValue);
+            }
+            else
+            {
+                enumValue = _inValue;
+            }
+            
+            value = strfmt('%1', enum2Symbol(enumId, enumValue));
+        }
+        else
+        {
+            value = strfmt('%1',_inValue);
+        }
+        return value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMap</Name>
+				<Source><![CDATA[
+    public Map getMap(boolean _showCondition = false)
+    {
+        ClassId thisClassId = classIdGet(this);
+        Set             methodsOnClass  = TFMFormLookupHelper::parmMethodsOnClass(thisClassId,false,Types::Class);
+        SetEnumerator   sEnum = methodsOnClass.getEnumerator();
+        Map             returnMap = new Map(Types::String, Types::String);
+        SysDictMethod   dm;
+        str             conditionStr;
+        SysDictClass    thisSysDictClass = new SysDictClass(thisClassId);
+        ClassName       thisClassName = classId2Name(thisClassId);
+
+        while (sEnum.moveNext())
+        {
+            
+            //step Through all Parm methods, turn to attributes
+            dm = sEnum.current();
+            conditionStr = TFMRegistrationCollector::formatString(thisSysDictClass.callObject(dm.name(),this),(dm.returnType() != Types::UserType ? dm.returnType() : new SysDictType(dm.returnId()).baseType()), dm.returnTypeName());
+            if (_showCondition && conditions && conditions.methodHasConditions(dm.name()))
+            {
+                conditionStr = conditions.methodConditionStr(dm.name());
+            }
+            returnMap.insert(   TFMRegistrationCollector::smallBeginnings(subStr(dm.name(),5,strLen(dm.name()))), conditionStr);
+            
+        }
+
+        if (onlineValidationDocument)
+        {
+            returnMap.insert('onlineValidationDocument',onlineValidationDocument);
+        }
+
+        returnMap.insert(TFMConstants::AttributeInputType(), TFMRegistrationCollector::smallBeginnings(subStr(thisClassName,strLen(classStr(TFMRegistrationCollector))+1,strLen (thisClassName))));
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Enum2list</Name>
+				<Source><![CDATA[
+    public static str Enum2list(EnumId _enumID)
+    {
+        str         ret;
+        int         i;
+        DictEnum    DEnum = new DictEnum(_enumID);
+        if (DEnum == null)
+        {
+            return ret;
+        }
+        for (i=0; i < DEnum.values(); i++)
+        {
+            ret += (ret ? ';' :'') + DEnum.index2Symbol(i);
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRegistrationCollectorFromEDTName</Name>
+				<Source><![CDATA[
+    public static Map getRegistrationCollectorFromEDTName(ExtendedDataTypeName _EDTName, int _id, str _name = '')
+    {
+        DictType dictType = new  DictType( extendedTypeName2Id(_EDTName)  );
+        Types   fieldType = dictType.baseType();
+        int     stringLength = FieldType == Types::String ? dictType.stringLen() : 100;
+        EnumId  enumId = Types::Enum ? dictType.enumId() : -5;
+        return TFMRegistrationCollector::getRegistrationCollectorFromType(FieldType,_id,strLwr(_name ? _name : dictType.name()),dictType.label(),dictType.label(),dictType.help(),false,stringLength,enumId);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRegistrationCollectorFromEDTAndType</Name>
+				<Source><![CDATA[
+    public static Map getRegistrationCollectorFromEDTAndType(ExtendedDataTypeName _EDTName, int _id, TFMInputTypes _inputType, str _name = '')
+    {
+        DictType dictType = new  DictType( extendedTypeName2Id(_EDTName)  );
+        
+        EnumId  enumId = Types::Enum ? dictType.enumId() : -5;
+        return TFMPostOrderPromptOverrideLineFields::getMapFromType(_inputType,_id,strLwr(_name ? _name : dictType.name()),dictType.label(),dictType.label(),dictType.help(),'',TFMRegistrationCollector::Enum2list(enumId));
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRegistrationCollectorStepFromEDTAndType</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollector getRegistrationCollectorStepFromEDTAndType(ExtendedDataTypeName _EDTName, int _id, TFMInputTypes _inputType, str _name = '')
+    {
+        DictType dictType = new  DictType( extendedTypeName2Id(_EDTName)  );
+        
+        EnumId  enumId = Types::Enum ? dictType.enumId() : -5;
+        return TFMPostOrderPromptOverrideLineFields::getStepFromType(_inputType,_id,strLwr(_name ? _name : dictType.name()),dictType.label(),dictType.label(),dictType.help(),'',TFMRegistrationCollector::Enum2list(enumId));
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRegistrationCollectorStepFromDictField</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollector getRegistrationCollectorStepFromDictField(DictField _dictField, int _id)
+    {
+        Types   fieldType = _dictField.baseType();
+        int     stringLength = FieldType == Types::String ? _dictField.stringLen() : 100;
+        EnumId  enumId = Types::Enum ? _dictField.enumId() : -5;
+        TFMRegistrationCollector collector = TFMRegistrationCollector::getRegistrationCollectorStepFromType(FieldType,_id,strLwr(_dictField.name()),_dictField.label(),_dictField.label(),_dictField.help(),false,stringLength,enumId);
+        if ( extendedTypeId2name(_dictField.typeId()))
+        {
+            collector.setEDT(extendedTypeId2name(_dictField.typeId()));
+        }
+        return collector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRegistrationCollectorFromDictField</Name>
+				<Source><![CDATA[
+    public static Map getRegistrationCollectorFromDictField(DictField _dictField, int _id)
+    {
+        Types   fieldType = _dictField.baseType();
+        int     stringLength = FieldType == Types::String ? _dictField.stringLen() : 100;
+        EnumId  enumId = Types::Enum ? _dictField.enumId() : -5;
+        return TFMRegistrationCollector::getRegistrationCollectorStepFromType(FieldType,_id,strLwr(_dictField.name()),_dictField.label(),_dictField.label(),_dictField.help(),false,stringLength,enumId).getMap();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRegistrationCollectorFromType</Name>
+				<Source><![CDATA[
+    public static Map getRegistrationCollectorFromType(Types _type, int     _id, str     _name, str     _header, str     _label, str     _helpLabel, boolean _optional = false, int _strlen = 100, EnumID _enumID = -5)
+    {
+        return TFMRegistrationCollector::getRegistrationCollectorStepFromType(_type, _id, _name, _header, _label, _helpLabel, _optional, _strlen, _enumID).getMap();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRegistrationCollectorStepFromType</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollector getRegistrationCollectorStepFromType(Types _type, int     _id, str     _name, str     _header, str     _label, str     _helpLabel, boolean _optional = false, int _strlen = 100, EnumID _enumID = -5)
+    {
+
+        switch (_type)
+        {
+            case Types::Date :
+                return TFMRegistrationCollectorDate::DateStep(false,_id,_name,_header,_label,_helpLabel,datenull(),dateMax(),'',dateNull());
+                
+            case Types::Enum :
+                return TFMRegistrationCollectorList::ListStep(true,_id,_name,_header,_label,_helpLabel,TFMRegistrationCollector::Enum2list(_enumId),_optional);
+                
+            case Types::Real :
+                return TFMRegistrationCollectorDecimal::DecimalStep(_id,_name,_header,_label,_helpLabel);
+                
+            case Types::Int64 :
+            case Types::Integer:
+                return TFMRegistrationCollectorInteger::IntegerStep(_id,_name,_header,_label,_helpLabel);
+        }
+        return TFMRegistrationCollectorText::TextStep(true,_id,_name,_header,_label,_helpLabel,_strlen);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCollectorFromType</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollector getCollectorFromType(Types _type, int     _id, str     _name, str     _header, str     _label, str     _helpLabel)
+    {
+        TFMRegistrationCollector collector;
+
+        switch (_type)
+        {
+            case Types::Date :
+                collector = new TFMRegistrationCollectorDate(_id,_name,_header,_label,_helpLabel);
+                break;
+            case Types::Enum :
+                collector = new TFMRegistrationCollectorList(_id,_name,_header,_label,_helpLabel);
+                break;
+            case Types::Real :
+                collector = new TFMRegistrationCollectorDecimal(_id,_name,_header,_label,_helpLabel);
+                break;
+            case Types::Int64 :
+            case Types::Integer:
+                collector = new TFMRegistrationCollectorInteger(_id,_name,_header,_label,_helpLabel);
+
+                break;
+            default :
+                collector = new TFMRegistrationCollectorText(_id,_name,_header,_label,_helpLabel);
+                break;
+        }
+
+        return collector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Types2InputTypes</Name>
+				<Source><![CDATA[
+    public static TFMInputTypes Types2InputTypes(Types _type)
+    {
+        TFMInputTypes result = TFMInputTypes::Text;
+
+        switch (_type)
+        {
+            case Types::Date :
+                result = TFMInputTypes::Date;
+                break;
+            case Types::Enum :
+                result = TFMInputTypes::List;
+                break;
+            case Types::Int64 :
+            case Types::Real :
+                result = TFMInputTypes::Decimal;
+                break;
+            case Types::Container :
+                result = TFMInputTypes::ImageCapture;
+                break;
+            case Types::Integer:
+                result = TFMInputTypes::Integer;
+                break;
+            default :
+                result = TFMInputTypes::Text;
+                break;
+        }
+
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addGenericRegistrationStepDocNode</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Generic method to add steps when registering.
+    /// </summary>
+    /// <param name="_stepsElement">
+    /// The steps XML node where the new XML element should be added as a child.
+    /// </param>
+    /// <param name="_stepType">
+    /// Step type. Will be the XML node name.
+    /// </param>
+    /// <param name="_attributes">
+    /// A Map object containing all the attributes for the step element.
+    /// </param>
+    public server static void addGenericRegistrationStepDocNode(
+                                            TFMDocumentNode  _parent,
+                                            str         _stepType,
+                                            Map         _attributes
+                                            )
+    {
+        TFMDocumentNode newElement  = _parent.owner().makeChild(_parent,_stepType);
+        MapEnumerator   mEnum       = _attributes.getEnumerator();
+
+        while (mEnum.moveNext())
+        {
+            newElement.addAttribute(mEnum.currentKey(),mEnum.currentValue());
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSetAddAsAdditionalValue</Name>
+				<Source><![CDATA[
+    public boolean getSetAddAsAdditionalValue(boolean _addAsAdditionalValue = addAsAdditionalValue)
+    {
+        addAsAdditionalValue = _addAsAdditionalValue;
+        return addAsAdditionalValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addGenericRegistrationStep</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Generic method to add steps when registering.
+    /// </summary>
+    /// <param name="_stepsElement">
+    /// The steps XML node where the new XML element should be added as a child.
+    /// </param>
+    /// <param name="_stepType">
+    /// Step type. Will be the XML node name.
+    /// </param>
+    /// <param name="_attributes">
+    /// A Map object containing all the attributes for the step element.
+    /// </param>
+    server static public void addGenericRegistrationStep(
+                                            XmlElement  _stepsElement,
+                                            str         _stepType,
+                                            Object      _collector)
+    {
+        TFMRegistrationCollector    regCol;
+        if (classIdGet(_collector) == classNum(Map))
+        {
+            TFMRegistrationCollector::addGenericRegistrationStepMap(_stepsElement, _stepType, _collector);
+        }
+        else if (_collector is TFMRegistrationCollector)
+        {
+            regCol = _collector;
+            TFMRegistrationCollector::addGenericRegistrationStepMap(_stepsElement, _stepType, regCol.getMap());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addGenericRegistrationStepMap</Name>
+				<Source><![CDATA[
+    server static public void addGenericRegistrationStepMap(
+                                        XmlElement  _stepsElement,
+                                        str         _stepType,
+                                        Map         _attributes
+                                        )
+    {
+        XmlElement      newElement;
+        str             stepType = _attributes.exists(TFMConstants::AttributeInputType()) && _attributes.lookup(TFMConstants::AttributeInputType()) == 'typeAndQuantity' ? _attributes.lookup(TFMConstants::AttributeInputType()) : _stepType;
+        newElement = _stepsElement.ownerDocument().createElement(stepType);
+        str             elementName;
+        str             elementValue;
+        
+        MapEnumerator   mEnum       = _attributes.getEnumerator();
+        XmlElement		onlineValidationElement;
+
+        if (_attributes.exists('active') && _attributes.lookup('active') == 'false')
+        {
+            //Don't add. Conditions have deactivated step
+            return;
+        }
+
+        while (mEnum.moveNext())
+        {
+            if ('onlineValidationDocument' == mEnum.currentKey())
+            {
+                onlineValidationElement = _stepsElement.ownerDocument().createElement('onlineValidation');
+
+                onlineValidationElement.setAttribute('online','true');
+                onlineValidationElement.setAttribute('includeCollectedValues','true');
+                onlineValidationElement.setAttribute('documentName',mEnum.currentValue());
+
+                newElement.appendChild(onlineValidationElement);
+            }
+            else
+            {
+                if ( mEnum.currentValue())
+                {
+                    if(mEnum.currentKey() != TFMConstants::AttributeElementName())
+                    {
+                        elementName = mEnum.currentKey();
+                        elementValue = mEnum.currentValue();
+                        if (strScan(elementName,'linkedElement',1,1000))
+                        {
+                            int linkedelementvalue = str2Int(elementValue);
+                            if (linkedelementvalue < 0)
+                            {
+                                continue;
+                            }
+                        }
+                        newElement.setAttribute(elementName,elementValue);
+                    }
+                }
+            }
+        }
+        _stepsElement.appendChild(newElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmConditions</Name>
+				<Source><![CDATA[
+    public TFMConditions parmConditions(TFMConditions _conditions = conditions)
+    {
+        conditions = _conditions;
+        if (conditions == null)
+        {
+            conditions = TFMConditions::Construct();
+        }
+        return conditions;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prefixCollectorMapFields</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Add a prefix to collector maps to avoid getting values filled from context
+    /// </summary>
+    /// <param name = "_collectorMap">collector map to modify</param>
+    /// <param name = "_collectorFieldNames">set of fieldnames to prefix</param>
+    /// <param name = "_collectorMapPrefix">prefix</param>
+    static void prefixCollectorMapFields(Map _collectorMap, Set _collectorFieldNames = null, str _collectorMapPrefix = TFMConstants::collectorMapHelperPrefix())
+    {
+        Map             subMap;
+        MapEnumerator   mapEnumerator = new MapEnumerator(_collectorMap);
+        str             collectorFieldName;
+        str             collectorMapName = TFMConstants::collectorMapHelperName();
+
+        while(mapEnumerator.moveNext())
+        {
+            subMap =                mapEnumerator.currentValue();
+            collectorFieldName =    subMap.lookup(collectorMapName);
+
+            if(!_collectorFieldNames || _collectorFieldNames.in(collectorFieldName))
+            {
+                subMap.insert(collectorMapName, _collectorMapPrefix + collectorFieldName);
+            }
+            
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

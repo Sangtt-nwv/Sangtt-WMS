@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageScanInfo</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('ScanInfo', "Scan info")]
+class TFMPageScanInfo extends TFMPage
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getPageActions</Name>
+				<Source><![CDATA[
+    public Map getPageActions()
+    {
+        actions = new Map(Types::String, Types::Class);
+        return actions;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

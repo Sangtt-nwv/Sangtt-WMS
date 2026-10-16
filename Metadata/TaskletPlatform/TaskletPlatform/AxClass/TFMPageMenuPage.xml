@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageMenuPage</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMpageType('Menu', "Menu Page")]
+class TFMPageMenuPage extends TFMPage
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addPageTiles</Name>
+				<Source><![CDATA[
+    protected void addPageTiles()
+    {
+        super();
+        this.addHtmlEntry("@TFM:SetupMenu", strFmt("@TFM:Opensthepagei1i",formStr(TFMMenuConfig)), formStr(TFMMenuConfig), resourceStr(TFMEntityListClick));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getXML</Name>
+				<Source><![CDATA[
+    public XMLDocument getXML(TFMPages _pages)
+    {
+        XMLDocument xmlDoc = super(_pages);
+        XMLElement pageElement;
+        
+        XmlNode pageNode = xmlDoc.selectSingleNode("//*[local-name()='page']");
+        this.addMenuPageConfiguration(pageNode, _pages, curUserId());
+
+        return xmlDoc;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>referencedPages</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The referencedPages are the set of pages that is referenced in the system. This mechanishm is used to know if a page should be in the xml output.
+    /// </summary>
+    /// <returns></returns>
+    public Set referencedPages()
+    {
+        
+        TFMMenuPermissions  permission;
+        UserGroupList       userGroupList;
+        referencedPages = new Set(Types::String);
+
+        if(this.isOneClickSetup())
+        {
+            while select permission
+            order by MenuLineNumber, MenuSorting
+                   where permission.MenuGroup == this.parmId()
+                    && permission.UserGroupId == TFMConstants::TFMUser()
+                    
+            {
+                referencedPages.add(permission.Menu);
+            }
+        }
+        else
+        {
+            while select permission
+                order by MenuLineNumber, MenuSorting
+                join userGroupList
+                    where permission.MenuGroup == this.parmId()
+                        && userGroupList.userId   == curUserId()
+                        && permission.UserGroupId == userGroupList.groupId
+                    
+            {
+                referencedPages.add(permission.Menu);
+            }
+        }
+
+        return referencedPages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addMenuPageConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Adds the menu page configuration element to the _pageNode.
+    /// </summary>
+    /// <param name = "_pageNode">XmlElement for the page</param>
+    /// <param name = "_pages">The TFMPages</param>
+    /// <param name = "_currentUserId">The current User id</param>
+    public void addMenuPageConfiguration(XmlElement _pageNode, TFMPages _pages, str _currentUserId)
+    {
+        XmlElement menuConf = _pageNode.getNamedElement('menuConfiguration');
+        XmlElement menus	= _pageNode.ownerDocument().createElement('menuItems');
+       
+        menuConf.appendChild(menus);
+        _pageNode.appendChild(menuConf);
+        _pageNode.setAttribute('type','Menu');
+
+        //add the menuItems based on the permissions.
+        this.addMenuItems(menus, _pages, _currentUserId);
+   }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isOneClickSetup</Name>
+				<Source><![CDATA[
+    protected boolean isOneClickSetup()
+    {
+        TFMMenuPermissions  permission;
+        UserGroupList       userGroupList;
+
+        select firstonly userGroupList where userGroupList.groupId == TFMConstants::TFMUser();
+        if(!userGroupList)
+        {
+            select firstonly permission where permission.UserGroupId != TFMConstants::TFMUser() && permission.UserGroupId != TFMConstants::TFMAdmin();
+            if(!permission)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addMenuItems</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// If the menu permissions has been set up to show a page then this method adds the menu items xml element to the menu xml element.
+    /// </summary>
+    /// <param name = "_menus">The xml elemnet to add the menu item to.</param>
+    /// <param name = "_pages">The pages to check if they have been set up.</param>
+   protected void addMenuItems(XmlElement _menus, TFMPages _pages, str _currentUserId)
+    {
+        TFMMenuPermissions  permission;
+        UserGroupList       userGroupList;
+        Set                 pagesAdded = new Set(Types::String);
+
+        if(this.isOneClickSetup())
+        {
+            // if no user has been setup we send out the menu for the TFM-User.
+            while select permission
+                order by MenuLineNumber, MenuSorting
+                    where permission.MenuGroup == this.parmId()
+                        && permission.UserGroupId == TFMConstants::TFMUser()
+                   
+            {
+                if(!pagesAdded.in(permission.Menu))
+                {
+                    this.addPageToMenuItemsElement(_menus, _pages, permission.Menu);
+                    pagesAdded.add(permission.Menu);
+                }
+            }
+        }
+        else
+        {
+            //this section will find all the menu items the current user may access in MenuSorting order filter for dublicates.
+            while select  permission
+                order by MenuLineNumber, MenuSorting
+                join userGroupList
+                    where permission.MenuGroup == this.parmId()
+                        && userGroupList.userId   == _currentUserId
+                        && permission.UserGroupId == userGroupList.groupId
+                   
+            {
+                if(!pagesAdded.in(permission.Menu))
+                {
+                    this.addPageToMenuItemsElement(_menus, _pages, permission.Menu);
+                    pagesAdded.add(permission.Menu);
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPageToMenuItemsElement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Adding menuItem xml element to the menus element.
+    /// </summary>
+    private void addPageToMenuItemsElement(XmlElement _menus, TFMPages _pages, str _menuId)
+    {
+        XmlElement          menuItemXmlElement;
+        TFMPage page = _pages.getPage(_menuId);
+        if(page) // only add the menu item if the page exists
+        {
+            // add the menu item to the page
+            menuItemXmlElement = _menus.ownerDocument().createElement('menuItem');
+            menuItemXmlElement.setAttribute('id', _menuId);
+            menuItemXmlElement.setAttribute('alwaysEnabled', 'true');
+            menuItemXmlElement.setAttribute('icon', strReplace(page.parmIcon(), TFMConstants::pageIcon(), ''));
+            menuItemXmlElement.setAttribute('displayName', TFMTranslationProvider::getTranslationIdFormmattedForDevice(page.parmTitle()));
+            
+            _menus.appendChild(menuItemXmlElement);
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

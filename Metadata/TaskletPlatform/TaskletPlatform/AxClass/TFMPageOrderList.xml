@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageOrderList</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('OrderList', "Order List")]
+class TFMPageOrderList extends TFMPage
+{
+    
+    Set dataSources;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        
+        dataSources = new Set(Types::String);
+        description = "@TFM:TheOrderListpageismadefororderda";
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDataSource</Name>
+				<Source><![CDATA[
+	public void addDataSource(TableName _tableName)
+    {
+        dataSources.add(_tableName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pageSpecificListTags</Name>
+				<Source><![CDATA[
+    public Map pageSpecificListTags()
+    {
+        Map ret = super();
+        ret.insert('HeaderValue1','Haader value 1');
+        ret.insert('HeaderValue2','Haader value 2');
+        ret.insert('HeaderLabel1','Haader label 1');
+        ret.insert('HeaderLabel2','Haader label 2');
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDataSources</Name>
+				<Source><![CDATA[
+	public Set getDataSources()
+    {
+        return dataSources;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initializeDataSources</Name>
+				<Source><![CDATA[
+    public void initializeDataSources()
+    {
+        TFMPageDatasources		ds;
+        TFMXMLFormatOrders		formatOrders;
+        SysDictClass			sdc;
+        ListEnumerator			lEnum;
+        TFMTableNameAttribute	attr;
+        Array					array;
+        int						idx;
+		select firstonly RecId from ds where ds.PageID == name;
+		if (ds.RecId)
+        {
+            return;
+        }
+        lEnum = new SysDictClass(classNum(TFMXMLFormatOrders)).extendedBy(true).getEnumerator();
+		while (lEnum.moveNext())
+        {
+            sdc = new SysDictClass(lEnum.current());
+            array = sdc.getAttributes(classStr(TFMTableNameAttribute));
+            for (idx = 1; idx <= array.lastIndex(); idx++)
+            {
+                attr = array.value(idx);
+				if (strScan(sdc.name(), name,1,133))
+				{
+                    TFMPageDatasources::FindOrCreate(name,attr.parmTableName(),attr.parmOrderType());
+				}
+            }
+        }
+        
+
+        //Run through XMLFormat Classes trigger on page name
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createLinesPage</Name>
+				<Source><![CDATA[
+    public TFMPageOrderLines createLinesPage()
+    {
+        SetEnumerator                   belongsToMenuGroupEnum;
+        TFMPageOrderLines				lines = new TFMPageOrderLines();
+        TFMPageOrderLinesConfiguration	lineConfig;
+        TFMPageOrderListConfiguration	listConfig = this.getConfiguration();
+
+        lines.parmIcon(iconName);
+        lines.parmId(listConfig.parmNavigateTo());
+        lines.parmTitle(strReplace(title,'List','Lines'));
+        
+        // The line should belong to the same groups as the page.
+        belongsToMenuGroupEnum = this.belongsToMenuGroups.GetEnumerator();
+        while(belongsToMenuGroupEnum.moveNext())
+        {
+            lines.addPageBelongsToMenuGroups(belongsToMenuGroupEnum.current());
+        }
+
+        lines.parmAvailableForMenuPages(false);
+
+        lineConfig = lines.getConfiguration();
+		lineConfig.parmId(name); //Service
+        lineConfig.parmListId(classStr(TFMListOrderLines));
+
+        return lines;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getServiceXML</Name>
+				<Source><![CDATA[
+	public XML getServiceXML() 
+    {
+        XmlDocument							xmlDoc = XmlDocument::newBlank();
+        XmlElement							service = xmlDoc.createElement('service');
+        XmlElement							requests = xmlDoc.createElement('requests');
+        XmlElement							reqSubNode;
+        XmlElement							validation = xmlDoc.createElement('validation');
+        XmlElement							valService;
+        TFMWorkflowStepsOnlineValidation	onlineVal;
+        TFMPageOrderListConfiguration		conf = configuration as TFMPageOrderListConfiguration;
+        container							requestDocNames;
+		
+        service.setAttribute('id',conf.parmId());
+        service.setAttribute('orderType',conf.parmId());
+        service.setAttribute('type','Order');
+        service.setAttribute('workflowId', conf.parmWorkflowName());
+        if(conf.parmOperationMode() && conf.parmOperationMode() != TFMOfflineModeTypes::online)
+        {
+            service.setAttribute('operationMode', TFMHelper::enumName(enumNum(TFMOfflineModeTypes), conf.parmOperationMode()));
+        }
+
+        service.setAttribute('useOrderLocking', !conf.parmOperationMode() || conf.parmOperationMode() != TFMOfflineModeTypes::offline ? TFMConstants::True() : TFMConstants::False()); //always true because it is being handled through datasources.
+
+        service.setAttribute('lineCompletedDefinition', enum2Symbol(enumNum(TFMLineCompletedDefinitionTypes), conf.parmLineCompletedDefinition()));
+        
+       
+        
+        if (name != conf.parmId())
+        {
+            return '';
+        }
+
+		if (docHand != null)
+        {
+			//Find requests
+            requestDocNames = TFMPageHelper::findOrderlistRequestDocuments(docHand);
+            reqSubNode = xmlDoc.createElement('getOrders');
+            reqSubNode.text(conPeek(requestDocNames,1));
+            requests.appendChild(reqSubNode);
+            
+            reqSubNode = xmlDoc.createElement('getOrderLines');
+            reqSubNode.text(conPeek(requestDocNames,2));
+            requests.appendChild(reqSubNode);
+            
+            reqSubNode = xmlDoc.createElement('postOrder');
+            reqSubNode.text(conPeek(requestDocNames,3));
+            requests.appendChild(reqSubNode);
+
+            if(conf.parmLineSelectionDocument())
+            {
+                this.addLineSelectionElement(xmlDoc, requests, conf.parmLineSelectionDocument());
+            } 
+            else if (conLen(requestDocNames) > 3 && conPeek(requestDocNames,4))
+            {
+                this.addLineSelectionElement(xmlDoc, requests, conPeek(requestDocNames,4));
+            }
+        }
+
+        service.appendChild(requests);
+        service.appendChild(validation);
+        while select onlineVal where onlineVal.WorkflowName == conf.parmWorkflowName() && onlineVal.PageID == conf.parmId()
+        {
+            valService = xmlDoc.createElement(onlineVal.ValidationType);
+            valService.setAttribute(TFMConstants::online(),TFMConstants::True());
+            valService.setAttribute(TFMConstants::documentName(), onlineVal.DocumentTypeId);
+            valService.setAttribute(TFMConstants::includeCollectedValues(), TFMConstants::True());
+            if (TFMWorkflowValidation::allowValidateEmptyValue(onlineVal.ValidationType))
+            {                
+                valService.setAttribute(TFMConstants::validateEmptyValue(), TFMConstants::True());
+            }
+            if (TFMWorkflowValidation::allowValidationLevel(onlineVal.ValidationType))
+            {
+                valService.setAttribute(TFMConstants::validationLevel(), TFMHelper::EnumName(enumNum(TFMWorkflowValidationLevel), onlineVal.ValidationLevel));
+            }
+            validation.appendChild(valService);
+        }
+
+        xmlDoc.appendChild(service);
+        return service.xml();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addLineSelectionElement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Adds the lineSelection element ot the request XmlElement.
+    /// </summary>
+    private void addLineSelectionElement(XmlDocument _xmlDoc, XmlElement _requests, str _documentName)
+    {
+        XmlElement reqSubNode = _xmlDoc.createElement('lineSelection');
+        reqSubNode.text(_documentName);
+        _requests.appendChild(reqSubNode);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPageTiles</Name>
+				<Source><![CDATA[
+    protected void addPageTiles()
+    {
+        
+        TFMPageOrderListConfiguration config = this.getConfiguration();
+        TFMPageID navTo = config.parmNavigateTo();
+        super();
+        if (navTo)
+        {
+            this.addHtmlEntry("@TFM:Whenselectingline", strFmt("@TFM:Opensthepagei1i",navTo), navTo, resourceStr(TFMEntityListClick));
+        }
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

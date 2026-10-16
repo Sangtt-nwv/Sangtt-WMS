@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxSecurityDuty xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentService</Name>
+	<Label>@TFM:TFM135</Label>
+	<Privileges>
+		<AxSecurityPrivilegeReference>
+			<Name>TFMDocumentServiceSubmit</Name>
+		</AxSecurityPrivilegeReference>
+		<AxSecurityPrivilegeReference>
+			<Name>TFMService</Name>
+		</AxSecurityPrivilegeReference>
+	</Privileges>
+</AxSecurityDuty>

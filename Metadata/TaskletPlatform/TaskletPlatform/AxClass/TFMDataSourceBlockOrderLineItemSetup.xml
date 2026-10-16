@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDataSourceBlockOrderLineItemSetup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('OrderLines', "Item Setup")]
+class TFMDataSourceBlockOrderLineItemSetup extends TFMDataSourceBlock
+{
+    boolean					allowLocationChange;
+    boolean					qtyByScan;
+    boolean					qtyBarcode;
+    boolean					registerExpirationDate;
+    TFMActionTypes			actionType;
+    TFMTableNameAndField	fromLocationField;
+    TFMTableNameAndField	toLocationField;
+    Description255			barcodeFormat;
+    InventTransId           overrideInventTransId;
+    InventDimId				overrideInventDimId;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setOverrideInventTransId</Name>
+				<Source><![CDATA[
+    public void setOverrideInventTransId(InventTransId _overrideInventTransId)
+    {
+        overrideInventTransId = _overrideInventTransId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setOverrideInventDimId</Name>
+				<Source><![CDATA[
+    public void setOverrideInventDimId(InventDimId _overrideInventDimId)
+    {
+        overrideInventDimId = _overrideInventDimId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmregisterExpirationDate</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@SYS345478")]
+    public TFMPromptForUnit parmregisterExpirationDate(TFMPromptForUnit _registerExpirationDate = registerExpirationDate)
+    {
+        registerExpirationDate = _registerExpirationDate;
+        return registerExpirationDate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAllowLocationChange</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes,"@TFM:AllowLocationChange")]
+    public TFMPromptForUnit parmAllowLocationChange(TFMPromptForUnit _allowLocationChange = allowLocationChange)
+    {
+        allowLocationChange = _allowLocationChange;
+        return allowLocationChange;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmQtyByScan</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@TFM:EnableRegisterQuantityByScan")]
+    public TFMPromptForUnit parmQtyByScan(TFMPromptForUnit _qtyByScan = qtyByScan)
+    {
+        qtyByScan = _qtyByScan;
+        return qtyByScan;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmQtyBarcode</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@TFM:EnableBarcodeQuantity")]
+    public TFMPromptForUnit parmQtyBarcode(TFMPromptForUnit _qtyBarcode = qtyBarcode)
+    {
+        qtyBarcode = _qtyBarcode;
+        return qtyBarcode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmActionType</Name>
+				<Source><![CDATA[
+    [TFMParameter(TFMActionTypes::TAKE)]
+    public TFMTakePlaceBothEnum parmActionType(TFMTakePlaceBothEnum _actionType = actionType)
+    {
+        actionType = _actionType;
+        return actionType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBarcodeFormat</Name>
+				<Source><![CDATA[
+    //Removed temporarily as not used YET
+    /*[TFMParameter('',"@SYS50352")]
+    public TFMTableNameAndField parmFromLocationField(TFMTableNameAndField _fromLocationField = fromLocationField)
+    {
+        fromLocationField = _fromLocationField;
+        return fromLocationField;
+    }
+
+    [TFMParameter('',"@SYS50351")]
+    public TFMTableNameAndField parmToLocationField(TFMTableNameAndField _toLocationField = toLocationField)
+    {
+        toLocationField = _toLocationField;
+        return toLocationField;
+    }*/
+
+    [TFMParameter('',"@TFM:BarcodeFormat")]
+    public Description255 parmBarcodeFormat(Description255 _barcodeFormat = barcodeFormat)
+    {
+        barcodeFormat = _barcodeFormat;
+        return barcodeFormat;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddFields</Name>
+				<Source><![CDATA[
+    public Map AddFields(Common _common)
+    {
+        Map					ret			= new Map (Types::String, Types::String);
+        SysDictTable		sdt = new SysDictTable(_common.tableId);
+        ItemId				itemId;
+        UnitOfMeasureSymbol	unit;
+        InventDimId			inventDimId;
+        InventTable			inventTable;
+        InventDim			inventDim;
+        TFMInventDimSetup	mobInventDimSetup;
+        InventTransId		inventTransId;
+        
+        FieldId itemIdFieldId = sdt.fieldName2Id(extendedTypeStr(ItemId));
+        if(!itemIdFieldId)
+        {
+            itemIdFieldId = sdt.fieldName2Id('ShipItemId'); // ITMLine uses ShipItemId instead of ItemId.
+        }
+
+        itemId = _common.(itemIdFieldId);
+        inventTable = InventTable::find(itemId);
+        mobInventDimSetup   = TFMInventDimSetup::Construct(inventTable,ds.OrderType);
+		
+        if (tableHasMethod(sdt,'unitId'))
+        {
+            unit = sdt.callObject('unitId',_common);
+        }
+        else if (sdt.fieldName2Id('unitId'))
+        {
+            unit = _common.(sdt.fieldName2Id('unitId'));
+        }
+		else
+        {
+            unit = inventTable.inventUnitId();
+        }
+        if (overrideInventDimId)
+        {
+            inventDimId = overrideInventDimId;
+            inventDim = InventDim::find(inventDimId);
+        }
+        else if (sdt.fieldName2Id(extendedTypeStr(InventDimId)))
+        {
+            inventDimId = _common.(sdt.fieldName2Id(extendedTypeStr(InventDimId)));
+            inventDim = InventDim::find(inventDimId);
+        }
+
+        if (overrideInventTransId)
+        {
+            inventTransId = overrideInventTransId;
+        }
+        else if (sdt.fieldName2Id(extendedTypeStr(InventTransId)))
+        {
+            inventTransId = _common.(sdt.fieldName2Id(extendedTypeStr(InventTransId)));            
+        }
+        //RegisterQuantityByScan ✔️
+        if (qtyByScan)
+        {
+            ret.insert(TFMConstants::RegisterQuantityByScan(), strFmt('%1',qtyByScan));
+        }
+        ret.insert(TFMConstants::ItemBarcode(), TFMBarcodeHelper::getItemBarcode(itemId,unit,inventDim)); 
+        if (qtyBarcode || qtyByScan)
+        {
+            ret.insert(TFMConstants::BarcodeQuantity(),TFMBarcodeHelper::getItemBarcodeQuantity(itemId,unit,inventDim,true));
+        }
+        ret.insert(TFMConstants::ItemNumber(), itemId);
+        ret.insert(extendedTypeStr(ItemId),itemId);
+        ret.insert(extendedTypeStr(InventTransId),inventTransId);
+        ret.insert(TFMConstants::AllowBinChange(), strFmt('%1',allowLocationChange));
+        ret.insert(TFMConstants::UnitOfMeasure(), unit);
+        ret.insert(TFMConstants::Attachment(), TFMHelper::DocuRefexist(_common.dataAreaId, _common.tableID, _common.RecId) ? '1' : '0');
+        //ValidateFromBin (From location)
+        ret.insert(TFMConstants::ValidateFromBin(), strFmt('%1',actionType != TFMActionTypes::PLACE && mobInventDimSetup.validateWMSLocation()));
+
+        //ValidateToBin (To location)
+        ret.insert(TFMConstants::ValidateToBin(), strFmt('%1',actionType != TFMActionTypes::TAKE && mobInventDimSetup.validateWMSLocation()));
+        wMSLocationId locationId = mobInventDimSetup.registerLicensePlate() ? inventDim.LicensePlateId : inventDim.wMSLocationId;
+        str locationType = mobInventDimSetup.registerLicensePlate() ? "@WAX67" : "@SYS3794";
+        if (inventDim && actionType != TFMActionTypes::PLACE && mobInventDimSetup.validateWMSLocation())
+        {
+            ret.insert(TFMConstants::FromBin(), '@type='+locationType+';'+locationId);
+        }
+        if (inventDim && actionType != TFMActionTypes::TAKE && mobInventDimSetup.validateWMSLocation())
+        {
+            ret.insert(TFMConstants::ToBin(), '@type='+locationType+';'+locationId);
+        }
+
+        ret.insert(TFMConstants::Warehouse(), inventDim.InventLocationID); //WareHouse
+        ret.insert(TFMConstants::SerialNumber(), inventDim.inventSerialId);// I'm like, totally Cereal   
+        ret.insert(tableStr(ReferenceIdentity), tableId2Name(_common.TableId ) + ';' + int642Str(_common.RecId ));
+        if (mobInventDimSetup.registerBatchID())
+        {
+            ret.insert(TFMConstants::LotNumber(), '@type=batch;' + inventDim.inventBatchId); //LotNumber / Batchnumber
+        }
+
+        ret.insert(TFMConstants::RegisterSerialNumber(), strFmt('%1',mobInventDimSetup.registerSerialNumber()));
+        ret.insert(TFMConstants::RegisterLotNumber(), strFmt('%1',mobInventDimSetup.registerBatchID()));
+        
+        ret.insert(extendedTypeStr(LineNumber), int642str(_common.RecId));
+        ret.insert(TFMConstants::BarcodeFormat(), barcodeFormat);
+        ret.insert(extendedTypeStr(Description), inventTable.productName(new xInfo().language()));
+        
+        ret.insert('imageId', TFMHelper::imageIDFromDocuref(TFMHelper::FindItemDocuref(itemId,inventDim.inventDimId)));
+        if (registerExpirationDate)
+        {
+            boolean registerExpirationDateBool = inventTable.inventModelGroupItem().modelGroup().PdsCheck;
+            ret.insert(TFMConstants::RegisterExpirationDate(),  strFmt('%1',registerExpirationDateBool)); //RegisterExpirationDate
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

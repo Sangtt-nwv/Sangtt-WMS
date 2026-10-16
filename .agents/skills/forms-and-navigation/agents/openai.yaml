@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Forms & Navigation"
+  short_description: "Extend forms at the right lifecycle point and wire menu items"
+  default_prompt: "Use $forms-and-navigation to extend a form or wire navigation for this D365FO change."

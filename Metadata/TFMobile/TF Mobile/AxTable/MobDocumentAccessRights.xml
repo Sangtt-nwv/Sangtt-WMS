@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocumentAccessRights</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobDocumentAccessRights extends common
+{  
+
+}
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+	<DeveloperDocumentation>@MobileWMS:DocumentAccessRightDevDesc</DeveloperDocumentation>
+	<Label>@MobileWMS:MobileWMS22</Label>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>UserId</TitleField1>
+	<TitleField2>DocumentType</TitleField2>
+	<AosAuthorization>CreateReadUpdateDelete</AosAuthorization>
+	<ReplacementKey>DocumentTypeUserIdx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>UserId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DocumentType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserType</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DocumentType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DocumentType</Name>
+			<Label>@MobileWMS:MobileWMS58</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DocumentType</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DocumentType</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>MobDocumentTypeId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>UserId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>MobDocumentUserOrGroup</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>UserType</Name>
+			<AllowEdit>No</AllowEdit>
+			<Mandatory>Yes</Mandatory>
+			<EnumType>TFMDocumentUserType</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>DocumentTypeUserIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>DocumentType</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>UserType</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>UserId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>UserGroupInfo</Name>
+			<Cardinality>OneMore</Cardinality>
+			<RelatedTable>UserGroupInfo</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelatedTableRole>UserGroupInfo</RelatedTableRole>
+			<RelationshipType>Association</RelationshipType>
+			<Role>UserGroupInfo</Role>
+			<UseDefaultRoleNames>No</UseDefaultRoleNames>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>UserId</Name>
+					<Field>UserId</Field>
+					<RelatedField>id</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintFixed">
+					<Name>UserType</Name>
+					<Field>UserType</Field>
+					<Value>2</Value>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>UserInfo</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<CreateNavigationPropertyMethods>Yes</CreateNavigationPropertyMethods>
+			<RelatedTable>UserInfo</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelatedTableRole>UserInfoRights</RelatedTableRole>
+			<RelationshipType>Association</RelationshipType>
+			<Role>UserInfoRights</Role>
+			<UseDefaultRoleNames>No</UseDefaultRoleNames>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>UserId</Name>
+					<Field>UserId</Field>
+					<RelatedField>id</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintFixed">
+					<Name>UserType</Name>
+					<Field>UserType</Field>
+					<Value>1</Value>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>MobDocumentType</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<CreateNavigationPropertyMethods>Yes</CreateNavigationPropertyMethods>
+			<EDTRelation>Yes</EDTRelation>
+			<RelatedTable>MobDocumentType</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>DocumentType</Name>
+					<SourceEDT>MobDocumentTypeId</SourceEDT>
+					<Field>DocumentType</Field>
+					<RelatedField>TypeId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

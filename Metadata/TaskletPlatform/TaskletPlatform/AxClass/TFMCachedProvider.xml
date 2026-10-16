@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMCachedProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The TFMCachedProvider uses the calling users language in the version number when asked by the TFMVersionProvider
+/// </summary>
+abstract class TFMCachedProvider extends TFMProvider
+{
+    protected GlobalObjectCacheScope scope;
+    protected SysGlobalObjectCache sgoc;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>invalidateProvider</Name>
+				<Source><![CDATA[
+    public void invalidateProvider(boolean _requestedByOtherAOS = false)
+    {
+        anytype entity = this.getEntity();
+        if(!entity)
+        {
+            return;
+        }
+
+        this.setEntity(null);
+
+        if(!_requestedByOtherAOS)
+        {
+            this.notifyOtherAOSsToInvalidateProvider();
+        }
+        this.markTheCacheScopeAsCleared();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructEntityImpl</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constructs and sets the Entity.
+    /// </summary>
+    /// <returns>The newly created entity.</returns>
+    abstract public anytype constructEntityImpl()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEntityImpl</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Wraps the constructions of the Entity and handling the caching and the notification of other AOSs.
+    /// </summary>
+    /// <returns>The created type</returns>
+    public anytype getEntityImpl()
+    {
+        this.checkIfOtherAOSRequestedCacheToBeCleared();
+
+        if(!this.getEntity())
+        {
+            this.setEntity(this.constructEntityImpl());
+            this.markTheCacheScopeAsCleared();
+            
+        }
+        return this.getEntity();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEntity</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The Entity is the object that the provider stores as its value. Eg. Pages, Lists etc.
+    /// </summary>
+    /// <returns>The current value of the entity. If it has not been set a null will be returned.</returns>
+    abstract public anytype getEntity()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setEntity</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the value of the entity. 
+    /// </summary>
+    /// <param name = "_entity">The Entity is the object that the provider stores as its value. Eg. Pages, Lists etc.</param>
+    abstract public void setEntity(anytype _entity)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProviderInstance</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the provider. The method wraps the cache creation of the provider.
+    /// </summary>
+    /// <param name = "_providerClassName"></param>
+    /// <returns></returns>
+    public static TFMProvider getProviderInstance(ClassName _providerClassName)
+    {
+        TFMProvider provider;
+        System.Runtime.Caching.ObjectCache memCache = System.Runtime.Caching.MemoryCache::Default;
+        str cacheId = TFMProvider::getCacheId(_providerClassName);
+        provider = memCache.Get(cacheId);
+
+        if(!provider)
+        {
+            SysDictClass dc = new SysDictClass(className2Id(_providerClassName));
+            provider = dc.makeObject();
+            memCache.Add(cacheId, provider, new System.Runtime.Caching.CacheItemPolicy());
+        }
+        return provider;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cacheScope</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the cache scope for the provider
+    /// </summary>
+    /// <returns></returns>
+    public GlobalObjectCacheScope cacheScope()
+    {
+        if(!scope)
+        {
+            scope = TFMProvider::getCacheId(classId2Name(classIdGet(this)));
+            this.markTheCacheScopeAsCleared(); // start in a cleared state
+        }
+        return scope;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>notifyOtherAOSsToInvalidateProvider</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// By clearing the scope other AOSs the other AOS will after 30 - 60 seconds be notified to reset the content of the cache.
+    /// </summary>
+    public void notifyOtherAOSsToInvalidateProvider()
+    {
+        if(!sgoc)
+        {
+            sgoc = new SysGlobalObjectCache();
+        }
+        sgoc.clear(this.cacheScope());
+        this.markTheCacheScopeAsCleared(); // since this AOS has already handled the clearing of the provider then it is marked as cleared here.
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>markTheCacheScopeAsCleared</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Inserts a value in the SystemGlobalCache to let the system know that the pages has been cleared.
+    /// </summary>
+    protected void markTheCacheScopeAsCleared()
+    {
+        if(!sgoc)
+        {
+            sgoc = new SysGlobalObjectCache();
+        }
+        sgoc.insert(this.cacheScope(), conNull(), [1]);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkIfOtherAOSRequestedCacheToBeCleared</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks if another AOS has notified that the pages should be cleared. Hence there are no value in the System Global Chace for the scope.
+    /// </summary>
+    protected void checkIfOtherAOSRequestedCacheToBeCleared()
+    {
+        if(!sgoc)
+        {
+            sgoc = new SysGlobalObjectCache();
+        }
+        container conValue = sgoc.find(this.cacheScope(), conNull());
+        if(!conValue) // no value means that it should be validated.
+        {
+            this.invalidateProvider(true);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

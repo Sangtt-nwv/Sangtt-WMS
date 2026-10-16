@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobToteShipping</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobToteShipping
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Main</Name>
+				<Source><![CDATA[
+	public static void Main(Args _args)
+    {
+        MultiSelectionHelper	mh = MultiSelectionHelper::construct();
+        MobToteTable			mt;
+        FormDataSource			ds = _args.record().dataSource();
+        ttsbegin;
+        mh.parmDatasource(ds);
+        for ( mt = mh.getFirst(); mt != null; mt = mh.getNext())
+        {
+            mt.selectForUpdate(true);
+            mt.Shipped = true;
+            mt.update();
+        }
+        ttscommit;
+        ds.executeQuery();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

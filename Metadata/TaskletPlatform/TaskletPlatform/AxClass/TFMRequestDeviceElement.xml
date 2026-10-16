@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestDeviceElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType('device')]
+class TFMRequestDeviceElement extends TFMRequestElement
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getHandledSubRequests</Name>
+				<Source><![CDATA[
+    public Map getHandledSubRequests()
+    {
+        Map ret;
+
+        ret = super();
+
+        ret.insert('platform', classStr(TFMRequestBasicElement));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

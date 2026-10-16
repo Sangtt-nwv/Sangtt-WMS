@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentSubmitType</Name>
+	<Help>@TFM:TFM11</Help>
+	<Label>@TFM:TFM10</Label>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>Direct</Name>
+			<Label>@SYS15572</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Enqueued</Name>
+			<Label>@TFM:TFM12</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

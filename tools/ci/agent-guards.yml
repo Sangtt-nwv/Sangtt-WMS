@@ -1,0 +1,31 @@
+# Azure DevOps steps template: agent-configuration guards.
+#
+# Include from azure-pipelines.yml:
+#
+#   steps:
+#     - template: tools/ci/agent-guards.yml
+#
+# These two checks are cheap (seconds, no build, no VM state) and exist because both
+# failures they catch have already happened in this repo once:
+#
+#   1. A dangerous "fall back to hand-authoring AOT XML without asking" policy was copied
+#      into 65 skill files and survived a full manual remediation pass, because the guard
+#      that was supposed to catch it only swept 2 of the 5 mirrors.
+#   2. Skill mirrors drifted apart until the same topic had five different bodies across
+#      .agents, .claude and .github, with no way to tell which one an agent would read.
+
+steps:
+  - task: PowerShell@2
+    displayName: 'Agent guards: skill mirrors match source'
+    inputs:
+      filePath: 'tools/sync-agent-skills.ps1'
+      arguments: '-Check'
+      pwsh: true
+      failOnStderr: false
+
+  - task: PowerShell@2
+    displayName: 'Agent guards: no drift, no unsafe fallback policy'
+    inputs:
+      filePath: 'tools/check-skill-sync.ps1'
+      pwsh: true
+      failOnStderr: false

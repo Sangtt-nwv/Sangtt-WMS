@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobPickOrderTypeSales</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The MobPickOrderTypeSales class handles the Sales Order data and posting logic.
+/// </summary>
+[TFMTableName(tableStr(SalesTable))]
+class MobPickOrderTypeSales extends MobPickOrderType
+{
+    #Mob
+    CustPackingSlipJour packingSlipJour;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getPackingSlipJour</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(CustPackingSlipJour))]
+    public CustPackingSlipJour getPackingSlipJour()
+    {
+        return packingSlipJour;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaderRecords</Name>
+				<Source><![CDATA[
+    public Map getHeaderRecords(TFMRequestFiltersElement _filters, str _scannedValue)
+    {        
+        InventLocation  inventLocation;
+        Map             returnMap = new Map(Types::string, Types::Record);
+        Common			ref = _filters.getReferredRecord();
+
+        if ( ref.tableId == tableNum(MobPackingStation))
+        {
+            return returnMap;
+        }
+        
+        inventLocation = MobHelper::getAllowedInventLocations(curUserId());
+        while select inventLocation where (inventLocation.InventLocationId == _filters.parmWarehouse() || _filters.parmWarehouse() == MobConstants::all())
+        {
+            // Check if sales orders are enabled for this warehouse
+            if (MobHelper::IsSalesOrderEnabled(inventLocation.InventLocationId))
+            {
+                // Use the warehouse from the current iteration
+                returnMap = MobHelper::mergeMaps(returnMap,this.getSalesOrders(_filters,_scannedValue));
+            }
+        }    
+        
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBackendID</Name>
+				<Source><![CDATA[
+    public str getBackendID(Common _common)
+    {
+        SalesTable salesTable = _common;
+        return tableStr(SalesTable) + '/' + fieldStr(SalesTable,SalesId) + '/' + salesTable.SalesId + (salesTable.SalesType == SalesType::Sales ? '' : ('/' + MobConstants::ItemRequirement()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lineTableId</Name>
+				<Source><![CDATA[
+    public TableId lineTableId()
+    {
+        return tableNum(SalesLine);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getExtraInfoLineSteps</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_backendID"></param>
+    /// <returns></returns>
+    public Map getExtraInfoLineSteps()
+    {
+        Map ret;
+        
+        ret = super();
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSalesId</Name>
+				<Source><![CDATA[
+    private SalesId getSalesId(str _backendID)
+    {
+        return conPeek(MobHelper::strSplit(_backendID,'/').pack(),6);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postRequest</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_backendID"></param>
+    /// <param name = "_orderElement"></param>
+    /// <returns></returns>    
+    public str postRequest(TFMRequestOrdersElement _orderElement)
+    {
+        SalesFormLetter_PackingSlip     salesFormLetter;
+        MobRegistrations                mobRegistrations;
+        str                             ret;
+        SalesId                         salesId = this.getSalesId(_orderElement.parmBackendID()); 
+        CreatedTransactionId            transID;
+
+        messageId = _orderElement.parmmessageId();
+    
+        if (!salesId || !SalesTable::exist(salesId))
+        {
+            throw error(strfmt(SalesTable::txtNotExist(),salesId));
+        }
+        transID = MobRegistrations::SaveRequest(_orderElement.Lines(), MobInventRefType::Sales, salesId).CreatedTransactionId; // Moved iteration/registration of xml here
+    
+        while select forupdate mobRegistrations
+                    index OrderLineNumIdx
+                    where mobRegistrations.InventRefType == MobInventRefType::Sales &&
+                          mobRegistrations.InventRefId   == salesId &&
+                          mobRegistrations.MessageId      == messageID &&
+                          mobRegistrations.CreatedTransactionId == transID &&
+                          mobRegistrations.handled       == NoYes::No
+        {
+            mobRegistrations.pick();
+            mobRegistrations.handled = NoYes::Yes;
+            mobRegistrations.Update();
+        }
+    
+        
+        //post sales order
+        salesFormLetter = SalesFormLetter::construct(SalesTable::find(salesId).SalesType == SalesType::ItemReq ? DocumentStatus::ProjectPackingSlip :  DocumentStatus::PackingSlip);
+    
+        salesFormLetter.update( SalesTable::find(salesId),              //Common         source,
+                                        salesFormLetter.transDate(),            //TransDate     _transDate          = this.transDate(),
+                                        SalesUpdate::PickingList,               //SalesUpdate   _specQty            = SalesUpdate::All,
+                                        AccountOrder::None,                     //AccountOrder  _accountOrder       = AccountOrder::None,
+                                        NoYes::No,                              //NoYes         _proforma           = salesParmUpdate.Proforma,
+                                        NoYes::No);                             //NoYes         _printFormLetter    = printFormLetter,
+        
+        packingSlipJour = salesFormLetter.getOutputContract().parmJournal();
+        ret = packingSlipJour ? SysLabel::labelId2String2("@MobileWMS:MEL22") : "@MobileWMS:PackingSlipNotPosted";
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_orderElement"></param>
+    /// <returns></returns>
+    public str post(str _backendID, XmlElement _orderElement)
+    {
+        str ret;
+
+        
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLineRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_inventLocationID"></param>
+    /// <param name = "_deliveryDate"></param>
+    /// <param name = "_scannedValue"></param>
+    /// <returns></returns>
+    public Map getLineRecords(TFMRequestGetOrderLinesElement _request)
+    {
+        Map         ret = new Map(Types::String,Types::Record);
+        SalesLine   salesLine;
+        InventDim   inventDim;
+        WMSLocation wmsLocation;
+        int         sorting = 1;
+        SalesId     salesId = this.getSalesId(_request.parmBackendID()); // Remove the prefix
+    
+        if (!salesId || !SalesTable::exist(salesId))
+        {
+            throw error(strfmt(SalesTable::txtNotExist(),salesId));
+        }
+        while select salesLine
+                    where salesLine.SalesId == salesId &&
+                          salesLine.SalesStatus == SalesStatus::Backorder &&
+                          salesLine.SalesQty    > 0
+                    join inventDim
+                    where InventDim.inventDimId == salesLine.InventDimId
+        {
+            if (salesLine.isStocked() &&
+                       MobInventLocationsGroupRights::existsUser(curUserId(), inventDim.InventLocationId) &&
+                       MobHelper::IsSalesOrderEnabled(inventDim.InventLocationId) )
+            {
+                wmsLocation = WMSLocation::find(inventDim.wMSLocationId,inventDim.InventLocationId);
+                ret.insert((wmsLocation.sortCode ? int2Str(wmsLocation.sortCode) : int2str(sorting)) + ';' + int642Str(SalesLine.RecId),salesLine);
+                sorting++;
+                
+            }
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSalesOrders</Name>
+				<Source><![CDATA[
+    public Map getSalesOrders(TFMRequestFiltersElement _filters, SalesId _scannedValue)
+    {
+        SalesTable				salesTable;
+        SalesLine				salesLine;
+        Map						returnMap = new Map(Types::string, Types::Record);
+        QueryBuildDataSource    qbdsSalesTable;
+        QueryBuildDataSource    qbdsSalesLine;
+        Query                   q = new Query();
+        QueryRun				qr;
+
+        qbdsSalesTable = q.addDataSource(tableNum(SalesTable));
+        qbdsSalesTable.addRange(fieldNum(SalesTable, SalesStatus)).value( queryValue(SalesStatus::Backorder));
+        qbdsSalesTable.addRange(fieldNum(SalesTable, SalesType)).value( queryValue(SalesType::Sales));
+        qbdsSalesTable.addRange(fieldNum(SalesTable, SalesType)).value( queryValue(SalesType::ItemReq));
+        if (_scannedValue && SalesTable::exist(_scannedValue))
+        {
+            qbdsSalesTable.addRange(fieldNum(SalesTable,SalesId)).value(_scannedValue);
+        }
+
+        qbdsSalesLine = qbdsSalesTable.addDataSource(tableNum(SalesLine));
+        qbdsSalesLine.addLink(fieldNum(SalesTable,SalesId), fieldNum(SalesLine,SalesId));
+        qbdsSalesLine.addRange(fieldNum(SalesLine,SalesStatus)).value(queryValue(SalesStatus::Backorder));
+        qbdsSalesLine.addRange(fieldNum(SalesLine, SalesQty)).value('>0');
+
+        TFMFilterAdditionsDataBinding::modifyQuery(methodStr(MobDocPickOrder,PickOrderFilters) + strReplace(_filters.getFieldValue(extendedTypeStr(TFMOrderTypes)),';',''),q,_filters);
+
+        qr = new QueryRun(q);
+        while (qr.next())
+        {            
+            salesTable = qr.get(tableNum(SalesTable));
+            salesLine = qr.get(tableNum(SalesLine));
+            if ((salesLine.ShippingDateConfirmed && salesLine.ShippingDateConfirmed <= _filters.parmDeliveryDate() ) || (!salesLine.ShippingDateConfirmed && salesLine.ShippingDateRequested <= _filters.parmDeliveryDate() ))
+            {
+                if (salesLine.inventDim().InventLocationId == _filters.parmWarehouse() || _filters.parmWarehouse() == MobConstants::All())
+                {
+                    if (MobInventLocationsGroupRights::existsUser(curUserId(), salesLine.inventDim().InventLocationId))
+                    {                
+                        returnMap.insert(this.getBackendID(salesTable), salesTable);
+                    }
+                }
+            }
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

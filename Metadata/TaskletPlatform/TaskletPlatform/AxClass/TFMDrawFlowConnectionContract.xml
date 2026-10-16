@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowConnectionContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContract]
+class TFMDrawFlowConnectionContract
+{
+
+    int outputId;
+    str outputClass;
+    str inputClass;
+    int inputId;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmOutputId</Name>
+				<Source><![CDATA[
+    [DataMember('output_id')]
+    public int parmOutputId(int _outputId = outputId)
+    {
+        outputId = _outputId;
+        return outputId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInputId</Name>
+				<Source><![CDATA[
+    [DataMember('input_id')]
+    public int parmInputId(int _inputId = inputId)
+    {
+        inputId = _inputId;
+        return inputId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOutputClass</Name>
+				<Source><![CDATA[
+    [DataMember('output_class')]
+    public str parmOutputClass(str _output = outputClass)
+    {
+        outputClass = _output;
+        return outputClass;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInputClass</Name>
+				<Source><![CDATA[
+    [DataMember('input_class')]
+    public str parmInputClass(str _inputClass = inputClass)
+    {
+        inputClass = _inputClass;
+        return inputClass;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

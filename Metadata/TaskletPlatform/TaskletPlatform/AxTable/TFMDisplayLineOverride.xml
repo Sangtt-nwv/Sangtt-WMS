@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDisplayLineOverride</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMDisplayLineOverride extends common
+{
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>tableOverride</Name>
+				<Source><![CDATA[
+    public edit TFMTableName tableOverride(boolean _set, TableName _tableName)
+    {
+        TableName tblName;
+        
+        if (_set)
+        {
+            this.ClassOverrideID = className2Id(_tableName);
+            
+        }
+        tblName = TFMDisplayLineOverride::classId2Attribute(this.ClassOverrideID);
+        
+        return tblName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupDisplayClasses</Name>
+				<Source><![CDATA[
+    public static void lookupDisplayClasses(FormControl _callingControl, int _overrideCls = classnum(TFMXMLFormat))
+    {
+        SysTableLookup					sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMDocumentTmpHandlerLookup), _callingControl);
+        classId							classId;
+        List							attributeClasses = TFMDisplayLineOverride::getListOfAttributeClasses(_overrideCls);
+        ListEnumerator					lEnum = attributeClasses.getEnumerator();
+        TFMDocumentTmpHandlerLookup     tmpLookup;
+        
+        sysTableLookup.addLookupfield(fieldNum(TFMDocumentTmpHandlerLookup,className),true);
+        sysTableLookup.addLookupfield(fieldNum(TFMDocumentTmpHandlerLookup,Description));
+
+        tmpLookup.setTmp();
+
+        while (lEnum.moveNext())
+        {
+            classId = lEnum.current();
+            
+            tmpLookup.Description = TFMDisplayLineOverride::classId2Attribute(classId);
+            if (!tmpLookup.Description)
+            {
+                continue;
+            }
+            tmpLookup.ClassName = classId2Name(classId);
+            tmpLookup.insert();
+        }
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getListOfAttributeClasses</Name>
+				<Source><![CDATA[
+    static List getListOfAttributeClasses(int _overrideCls = classnum(TFMXMLFormat))
+    {
+        SysDictClass                    dictClass;
+        List                            classList;
+        
+        dictClass    = new SysDictClass(_overrideCls);
+        classList = dictClass.extendedBy();
+                
+        return classList;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>classId2TableName</Name>
+				<Source><![CDATA[
+    public static TableName classId2TableName(ClassId _classID)
+    {
+        DictClass               dictClass   = new SysDictClass(_classID);
+        Object                  attributeCls = dictClass ? dictClass.getAttribute(classStr(TFMTableNameAttribute)) : null;
+        TFMTableNameAttribute   attr;        
+        str                     ret = '';
+        if (attributeCls && attributeCls is TFMTableNameAttribute)
+        {
+            attr = attributeCls;
+            return attr.parmTableName();            
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>classId2Attribute</Name>
+				<Source><![CDATA[
+    public static str classId2Attribute(ClassId _classID, boolean _onlyTableName = false)
+    {
+        DictClass               dictClass   = new SysDictClass(_classID);
+        Object                  attributeCls = dictClass ? dictClass.getAttribute(classStr(TFMTableNameAttribute)) : null;
+        TFMTableNameAttribute   attr;
+        DictTable               dt;
+        str                     ret;
+        if (attributeCls && attributeCls is TFMTableNameAttribute)
+        {
+            attr = attributeCls;
+            dt = new DictTable(tableName2Id(attr.parmTableName()));
+            
+            ret = dt.label() + ((attr.parmOrderType() && !_onlyTableName) ? ('/' + attr.parmOrderType() ) : '');
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindAndExecuteFromDS</Name>
+				<Source><![CDATA[
+    /*
+    public static str FindAndExecute(Object _xmlFormat, Common _common)
+    {
+        TFMDisplayLineOverrideLines dispLineOverride;
+        
+        str                         result;
+        
+        while select dispLineOverride order by LineNumber asc where dispLineOverride.ClassOverrideID == classIdGet(_xmlFormat)
+        {
+            
+            new ExecutePermission().assert();
+            if (SysTest::hasMethod(_xmlFormat, dispLineOverride.MethodName))
+            {
+                result = new DictClass(dispLineOverride.ClassOverrideID).callObject(dispLineOverride.MethodName,_xmlFormat);
+                result =  (dispLineOverride.ReplaceAppend ? '' : result + ' ') + dispLineOverride.FindValue(_common);
+                result = new DictClass(dispLineOverride.ClassOverrideID).callObject(dispLineOverride.MethodName,_xmlFormat, result);
+            }
+			else
+            {
+                result = new DictClass(dispLineOverride.ClassOverrideID).callObject(methodStr(TFMXMLFormat,addField),_xmlFormat,subStr(dispLineOverride.MethodName,5,100), dispLineOverride.FindValue(_common));
+            }
+            CodeAccessPermission::revertAssert();
+            
+        }
+        return result;
+    }*/
+    public static Map FindAndExecuteFromDS(TFMPageDatasources _ds, Common _common, Map _mapWithValues)
+    {
+        TFMDisplayLineOverrideLines dispLineOverride;
+        
+        Map                         result = _mapWithValues;
+        str							value;
+        str							key;
+        
+        while select dispLineOverride order by LineNumber asc where dispLineOverride.TFMPageDataSourcesRefRecID == _ds.recId
+        {
+            
+            new ExecutePermission().assert();
+
+            key = subStr(dispLineOverride.MethodName,1,4) == 'parm' ? subStr(dispLineOverride.MethodName,5,1000) : dispLineOverride.MethodName;
+            value = result.exists(key) ? result.lookup(key) : '';
+            value =  (dispLineOverride.ReplaceAppend ? '' : value + ' ') + dispLineOverride.FindValue(_common);
+            result.insert(key,value);
+            CodeAccessPermission::revertAssert();
+            
+        }
+        return result;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:DisplayLineOverrideDevDesc</DeveloperDocumentation>
+	<Label>@TFM:DisplayOverride</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>ClassOverrideID</TitleField1>
+	<ReplacementKey>ClassIdx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ClassOverrideID</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ClassOverrideID</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>ClassOverrideID</Name>
+			<ExtendedDataType>ClassID</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>ClassIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ClassOverrideID</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

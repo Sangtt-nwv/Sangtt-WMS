@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicComponent</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic Component Base class. A logic component contains steps and header fields that can be utilized in multiple Logic Blocks. 
+/// It also provides request classes containing interpreted and formatted values picked up on the device by the user.
+/// A component can not post anything, it just provides data collection steps, and the formatting of these to be used in a logic block for posting.
+/// </summary>
+abstract class TFMLogicComponent
+{
+    TFMReferenceDataConfiguration       refCon;
+    TFMRequestElement                   request;
+    TFMLogicComponentCollection         subComponents;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        refCon = new TFMReferenceDataConfiguration();
+        subComponents = TFMLogicComponentCollection::Construct();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Header fields this component may require
+    /// </summary>
+    /// <returns>A TFMReferenceDataConfiguration if header fields are needed, otherwise null can be returned</returns>
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        return subComponents.getHeaders();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Registration collectors the component may require
+    /// </summary>
+    /// <returns>A TFMRegistrationCollectors object, if collection steps are required, otherwise null can be returned.</returns>
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        return subComponents.getCollectors();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Registration collectors the component may require. This request is sent right before posting. If steps are returned here, the user is prompted further with them, if none is returned, the system proceeds to posting
+    /// </summary>
+    /// <param name = "_request">The request from the device at runtime</param>
+    /// <returns>A TFMRegistrationCollectors object, if collection steps are required, otherwise null can be returned.</returns>
+    public TFMRegistrationCollectors prePostRegistrationCollectors(TFMRequestElement _request)
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>requestClassProvided</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method that tells which request Class it's data can be parsed into
+    /// </summary>
+    /// <returns>The name of the request class the components data can be parsed to</returns>
+    abstract public ClassName requestClassProvided()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>componentRequest</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to handle the fields declared in the registration collector and header methods. This is not required, as the system will create a generic request object.
+    /// </summary>
+    /// <param name = "_request">The request from the device at runtime</param>
+    /// <returns>A refined request object if needed.</returns>
+    public TFMRequestElement componentRequest(TFMRequestElement _request)
+    {
+        request = TFMXMLDeserializer::convertRequestClass(_request, this.requestClassProvided());
+
+        subComponents.modifyRequest(request);
+        return request;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SetRequest</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to handle the fields declared in the registration collector and header methods. This is not required, as the system will create a generic request object.
+    /// </summary>
+    /// <param name = "_request">The request from the device at runtime</param>
+    public void SetRequest(TFMRequestElement _request)
+    {
+        request = TFMXMLDeserializer::convertRequestClass(_request, this.requestClassProvided());
+
+        subComponents.setRequests(request);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>provideDataIfPossible</Name>
+				<Source><![CDATA[
+    public Common provideDataIfPossible(Common _table)
+    {
+        Common table = _table;
+        table = subComponents.provideDataIfPossible(table);
+        return table;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

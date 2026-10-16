@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobGraphicsHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobGraphicsHelper
+{
+ 
+    #define.VistaTrans(0.25)
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>color2hex</Name>
+				<Source><![CDATA[
+    public static SysColorHex color2hex(OLE_Color _color, boolean _switchBlueRed = false)
+    {
+        return TFMGraphicsHelper::color2hex(_color, _switchBlueRed);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>scaleColor</Name>
+				<Source><![CDATA[
+    public static int scaleColor(int _color, real _scalar)
+    {
+        return TFMGraphicsHelper::scaleColor(_color, _scalar);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>hex2color</Name>
+				<Source><![CDATA[
+    public static OLE_Color hex2color(SysColorHex _color)
+    {
+        return TFMGraphicsHelper::hex2color(_color);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addBackgroundColor</Name>
+				<Source><![CDATA[
+    public static System.Drawing.Bitmap addBackgroundColor(System.Drawing.Bitmap _image, int _backRed = 255, int _backGreen= 255, int _backBlue = 255, int _backAlpha = 255)
+    {
+        return TFMGraphicsHelper::addBackgroundColor(_image, _backRed, _backGreen, _backBlue, _backAlpha);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>entityTileImage</Name>
+				<Source><![CDATA[
+    public static System.Drawing.Image entityTileImage(str _iconName, str _title, str _description)
+    {
+        return TFMGraphicsHelper::entityTileImage(_iconName, _title, _description);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dampenRGB</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Dampens an RGB integer by a scale
+    /// </summary>
+    /// <param name="_rgbInt">
+    /// The RGB integer to dampen.
+    /// </param>
+    /// <param name="_scale">
+    /// The scale by which to dampen the colors in the integer.
+    /// </param>
+    /// <returns>
+    /// The resulting RGB value.
+    /// </returns>
+    public static int dampenRGB(int _rgbInt, real _scale)
+    {
+        return TFMGraphicsHelper::dampenRGB(_rgbInt, _scale);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Draws a rectangle on the specified <c>System.Drawing.Graphics</c> object.
+    /// </summary>
+    /// <param name="_bmpDC">
+    ///    The <c>System.Drawing.Graphics</c> object to draw on.
+    /// </param>
+    /// <param name="_x0">
+    ///    The x coordinate of the upper left corner.
+    /// </param>
+    /// <param name="_y0">
+    ///    The y coordinate of the upper left corner.
+    /// </param>
+    /// <param name="_w">
+    ///    The width of the rectangle.
+    /// </param>
+    /// <param name="_h">
+    ///    The height of the rectangle.
+    /// </param>
+    /// <param name="_col">
+    ///    The color to draw with.
+    /// </param>
+    /// <param name="_roundCorner">
+    ///    true if rectangle corners must be rounded; otherwise, false.
+    /// </param>
+    /// <param name="_vistaLook">
+    ///    true if the rectangle must have a vista look; otherwise, false.
+    /// </param>
+    public static void drawLine(System.Drawing.Graphics _bmpDC, int _xStart,int _yStart,int _xEnd,int _yEnd,int _col, boolean _dashed, boolean _vistaLook)
+    {
+        TFMGraphicsHelper::drawLine(_bmpDC, _xStart, _yStart, _xEnd, _yEnd, _col, _dashed, _vistaLook);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawBmpEdges</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Draws a rectangle on the specified <c>System.Drawing.Graphics</c> object.
+    /// </summary>
+    /// <param name="_bmpDC">
+    ///    The <c>System.Drawing.Graphics</c> object to draw on.
+    /// </param>
+    /// <param name="_x0">
+    ///    The x coordinate of the upper left corner.
+    /// </param>
+    /// <param name="_y0">
+    ///    The y coordinate of the upper left corner.
+    /// </param>
+    /// <param name="_w">
+    ///    The width of the rectangle.
+    /// </param>
+    /// <param name="_h">
+    ///    The height of the rectangle.
+    /// </param>
+    /// <param name="_col">
+    ///    The color to draw with.
+    /// </param>
+    /// <param name="_roundCorner">
+    ///    true if rectangle corners must be rounded; otherwise, false.
+    /// </param>
+    /// <param name="_vistaLook">
+    ///    true if the rectangle must have a vista look; otherwise, false.
+    /// </param>
+    public static void drawBmpEdges(System.Drawing.Graphics _bmpDC, int _x0,int _y0,int _w,int _h,int _col, boolean _roundCorner, boolean _vistaLook)
+    {
+        TFMGraphicsHelper::drawBmpEdges(_bmpDC, _x0, _y0, _w, _h, _col, _roundCorner, _vistaLook);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawText</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Draws a string on the specified <c>System.Drawing.Graphics</c> object.
+    /// </summary>
+    /// <param name="_bmpDC">
+    ///    The <c>System.Drawing.Graphics</c> object to draw on.
+    /// </param>
+    /// <param name="_x">
+    ///    The x coordinate of the starting point.
+    /// </param>
+    /// <param name="_y">
+    ///    The y coordinate of the starting point.
+    /// </param>
+    /// <param name="_col">
+    ///    The color to draw width.
+    /// </param>
+    /// <param name="_text">
+    ///    The text to draw.
+    /// </param>
+    /// <param name="_fontSize">
+    ///    The font size to draw with.
+    /// </param>
+    /// <param name="_center">
+    ///    true if the text is centered around the starting point; otherwise, false.
+    /// </param>
+    /// <param name="_bold">
+    ///    true if the text is drawn as bold; otherwise, false.
+    /// </param>
+    public static int drawText(System.Drawing.Graphics _bmpDC, int _x,int _y, int _col,str _text, int _fontSize, SysChartHorizontalAlignment _xAlign = SysChartHorizontalAlignment::Auto, SysChartVerticalAlignment _yAlign = SysChartVerticalAlignment::Auto, boolean _bold = false, boolean _italic = false, FontName _fontName = 'Verdana', int _maxWidth = 0, boolean _splitToMultipleLines = false)
+    {
+        return TFMGraphicsHelper::drawText(_bmpDC, _x, _y, _col, _text, _fontSize, _xAlign, _yAlign, _bold, _italic, _fontName, _maxWidth, _splitToMultipleLines);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>splitTextToMultipleLines</Name>
+				<Source><![CDATA[
+    public static str splitTextToMultipleLines( str _text, int _noOfLines)
+    {
+        return TFMGraphicsHelper::splitTextToMultipleLines(_text, _noOfLines);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>measureText</Name>
+				<Source><![CDATA[
+    public static container measureText(System.Drawing.Graphics _bmpDC, str _text, int _fontSize, boolean _bold = false, boolean _italic = false, FontName _fontName = 'Verdana')
+    {
+        return TFMGraphicsHelper::measureText(_bmpDC, _text, _fontSize, _bold, _italic, _fontName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawGradient</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Draws a rectangle gradient on the specified <c>System.Drawing.Graphics</c> object.
+    /// </summary>
+    /// <param name="_bmpDC">
+    ///    The <c>System.Drawing.Graphics</c> object to draw on.
+    /// </param>
+    /// <param name="_x0">
+    ///    The x coordinate of the upper left corner of the rectangle.
+    /// </param>
+    /// <param name="_y0">
+    ///    The y coordinate of the upper left corner of the rectangle.
+    /// </param>
+    /// <param name="_w">
+    ///    The width of the rectangle.
+    /// </param>
+    /// <param name="_h">
+    ///    The height of the rectangle
+    /// </param>
+    /// <param name="_uCol">
+    ///    The upper color of the gradient.
+    /// </param>
+    /// <param name="_lCol">
+    ///    The lower color of the gradient.
+    /// </param>
+    /// <param name="_roundCorner">
+    ///    true if the rectangle must be drawn with rounded corners; otherwise, false.
+    /// </param>
+    /// <param name="_vistaLook">
+    ///    true if the gradient must have a vista look; otherwise, false.
+    /// </param>
+    public static void drawGradient(System.Drawing.Graphics _bmpDC, int _x0,int _y0,int _w,int _h,int _uCol,int _lCol, boolean _roundCorner, boolean _vistaLook)
+    {
+        TFMGraphicsHelper::drawGradient(_bmpDC, _x0, _y0, _w, _h, _uCol, _lCol, _roundCorner, _vistaLook);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>switchTOBGR</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Switches an RGB integer to a BGR integer.
+    /// </summary>
+    /// <param name="_rgbInt">
+    /// The RGB integer to switch.
+    /// </param>
+    /// <returns>
+    /// The resulting BGR value.
+    /// </returns>
+    public static int switchTOBGR(int _rgbInt)
+    {
+        return TFMGraphicsHelper::switchTOBGR(_rgbInt);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setImageHtml</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Updates a screen with the supplied bitmap.
+    /// </summary>
+    /// <param name="_bmp">
+    /// The bitmap that should be shown on screen.
+    /// </param>
+    /// <param name="_fwc">
+    /// The <c>htmlViewerControl</c> class on which to display the bitmap.
+    /// </param>
+    public static void  setImageHtml(System.Drawing.Bitmap _bmp, TFMHtmlViewerCtrl _htmlViewer, boolean _canvasWidth = false, real _scale = 1)
+    {
+        TFMGraphicsHelper::setImageHtml(_bmp, _htmlViewer, _canvasWidth, _scale);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeImageHtml</Name>
+				<Source><![CDATA[
+    public static str  makeImageHtml(System.Drawing.Bitmap _bmp, boolean _canvasWidth = false, real _scale = 1)
+    {
+        return TFMGraphicsHelper::makeImageHtml(_bmp, _canvasWidth, _scale );
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setImageHtmlWithWidth</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Updates a screen with the supplied bitmap.
+    /// </summary>
+    /// <param name="_bmp">
+    /// The bitmap that should be shown on screen.
+    /// </param>
+    /// <param name="_fwc">
+    /// The <c>htmlViewerControl</c> class on which to display the bitmap.
+    /// </param>
+    public static void setImageHtmlWithWidth(str _imageName, TFMHtmlViewerCtrl _htmlViewer, int _width)
+    {
+        TFMGraphicsHelper::setImageHtmlWithWidth(_imageName, _htmlViewer, _width);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getImageURL</Name>
+				<Source><![CDATA[
+    public static str getImageURL(System.Drawing.Bitmap _bmp)
+    {
+        return TFMGraphicsHelper::getImageURL(_bmp);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initBaseBmp</Name>
+				<Source><![CDATA[
+    public Static System.Drawing.Bitmap initBaseBmp(int _width, int _height, boolean _stripes = true)
+    {
+        return TFMGraphicsHelper::initBaseBmp(_width, _height, _stripes );
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawGradientCircle</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Draws a gradient circle on the specified <c>System.Drawing.Graphics</c> object.
+    /// </summary>
+    /// <param name="_bmpDC">
+    ///    The <c>System.Drawing.Graphics</c> object to draw on.
+    /// </param>
+    /// <param name="_x0">
+    ///    The x coordinate of the circle center.
+    /// </param>
+    /// <param name="_y0">
+    ///    The y coordinate of the circle center.
+    /// </param>
+    /// <param name="_radius">
+    ///    The radius of the circle.
+    /// </param>
+    /// <param name="_upColor">
+    ///    The upper color of the gradient.
+    /// </param>
+    /// <param name="_loColor">
+    ///    The lower color of the gradient.
+    /// </param>
+    /// <param name="_noVista">
+    ///    true if the gradient must not have a vista look; otherwise, false.
+    /// </param>
+    public static void drawGradientCircle(System.Drawing.Graphics _bmpDC, int _x0, int _y0, real _radius, int _upColor, int _loColor, boolean _noVista = false)
+    {
+        TFMGraphicsHelper::drawGradientCircle(_bmpDC, _x0, _y0, _radius, _upColor, _loColor, _noVista );       
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeVista</Name>
+				<Source><![CDATA[
+    public static int makeVista(int _col, int _i, int _iMax)
+    {
+        return TFMGraphicsHelper::makeVista(_col, _i, _iMax);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>rgbInt2Con</Name>
+				<Source><![CDATA[
+    public static container rgbInt2Con(int _rgbInt)
+    {
+        return TFMGraphicsHelper::rgbInt2Con(_rgbInt);
+            
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>rgb2int</Name>
+				<Source><![CDATA[
+    public static int rgb2int(RGBint _r, RGBint _g, RGBint _b)
+    {
+        return TFMGraphicsHelper::rgb2int(_r, _g, _b);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findIntersections</Name>
+				<Source><![CDATA[
+    public static container findIntersections(int _y, int _cX, int _cY, real _rad)
+    {
+        return TFMGraphicsHelper::findIntersections(_y, _cX, _cY, _rad);
+   
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawSpecularOverlay</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Draws a specular overlay on the specified <c>System.Drawing.Graphics</c> object.
+    /// </summary>
+    /// <param name="_bmpDC">
+    ///    The <c>System.Drawing.Graphics</c> object to draw on.
+    /// </param>
+    /// <param name="_x0">
+    ///    The x coordinate of the starting point
+    /// </param>
+    /// <param name="_y0">
+    ///    The y coordinate of the starting point.
+    /// </param>
+    /// <param name="_w">
+    ///    The width of the specular overlay.
+    /// </param>
+    /// <param name="_h">
+    ///    The height of the specular overlay.
+    /// </param>
+    /// <param name="_roundCorner">
+    ///    true if corners must be rounded; otherwise, false.
+    /// </param>
+    public static void drawSpecularOverlay(System.Drawing.Graphics _bmpDC, int _x0,int _y0,int _w,int _h, boolean _roundCorner)
+    {
+        TFMGraphicsHelper::drawSpecularOverlay(_bmpDC, _x0,_y0,_w,_h, _roundCorner);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>specColor</Name>
+				<Source><![CDATA[
+    public static int specColor(int _i,int _iMax)
+    {
+        return TFMGraphicsHelper::specColor(_i, _iMax);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawBmpCircle</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Draws a circle on the specified <c>System.Drawing.Graphics</c> object
+    /// </summary>
+    /// <param name="_bmpDC">
+    ///    The <c>System.Drawing.Graphics</c> object to draw on.
+    /// </param>
+    /// <param name="_x0">
+    ///    The x coordinate of the circle center.
+    /// </param>
+    /// <param name="_y0">
+    ///    The y coordinate of the circle center.
+    /// </param>
+    /// <param name="_radius">
+    ///    The radius of the circle.
+    /// </param>
+    /// <param name="_color">
+    ///    The color of the circle.
+    /// </param>
+    /// <param name="_lineWidth">
+    ///    The width of the line.
+    /// </param>
+    static void drawBmpCircle(System.Drawing.Graphics _bmpDC, int _x0, int _y0, int _radius, int _color, int _lineWidth)
+    {
+        TFMGraphicsHelper::drawBmpCircle(_bmpDC, _x0, _y0, _radius, _color, _lineWidth);
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMSearchHandler</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMSearchHandler
+{
+    
+    Set                         idUsed;
+    TFMRequestSearchElement     request;
+    TFMSearchResponseElement    response;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constructor For searching items
+    /// </summary>
+    public void new()
+    {    
+        idUsed      = new Set(Types::String);
+        response    = new TFMSearchResponseElement();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResponse</Name>
+				<Source><![CDATA[
+    public TFMSearchResponseElement getResponse()
+    {
+        response.parmSearchRequest(request);
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>performSearch</Name>
+				<Source><![CDATA[
+    public abstract void performSearch()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSearchRequest</Name>
+				<Source><![CDATA[
+    public TFMRequestSearchElement parmSearchRequest(TFMRequestSearchElement _searchRequest = request)
+    {
+        request = _searchRequest;
+        return request;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDefaultSearchField</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Default search page.
+    /// </summary>
+    /// <param name = "_label">The Label for the filter field</param>
+    /// <param name = "_id">The ID of the field.</param>
+    /// <param name = "_name">The Name of the field.</param>
+    protected TFMRegistrationCollectorText addDefaultSearchField(str _label, int _id = 1, str _name = TFMConstants::SearchValue())
+    {
+        return new TFMRegistrationCollectorText(_id,_name,_label,_label,_label);        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSearchHandlerFromType</Name>
+				<Source><![CDATA[
+    public static TFMSearchHandler getSearchHandlerFromType(TFMRequestSearchElement _searchRequest)
+    {
+        TFMSearchHandler    result  = null;
+        result = SysExtensionAppClassFactory::getClassFromSysAttribute(classStr(TFMSearchHandler), new TFMSearchTypeAttribute(_searchRequest.parmType()));
+
+        if (result == null && tableName2Id(strReplace(_searchRequest.parmType(),'_' + TFMConstants::Search(),'' )))
+        {
+            // Search is generic table search
+            result = new TFMSearchGenericTable();
+        }
+        if (result)
+        {
+            result.parmSearchRequest(_searchRequest);
+        }
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addResult</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to add a result element with the given content.
+    /// </summary>
+    /// <param name = "_id">The ID of the element.</param>
+    /// <param name = "_name">Element name</param>
+    /// <param name = "_originRecord">The buffer from which the data originated from.</param>
+    /// <param name = "_displayLine1">Content for display line 1</param>
+    /// <param name = "_displayLine2">Content for display line 2</param>
+    /// <param name = "_displayLine3">Content for display line 3</param>
+    protected void addResult(Str _id, Str _name, Common _originRecord, Str _displayLine1 = '', Str _displayLine2 = '', Str _displayLine3 = '', str _imageId = '')
+    {
+        Str id = strLTrim(_id);
+        response.addResponse(_originRecord,id,_displayLine1, _displayLine2 , _displayLine3, _imageId);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

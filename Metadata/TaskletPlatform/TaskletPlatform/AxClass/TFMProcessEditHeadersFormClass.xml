@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMProcessEditHeadersFormClass</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMProcessEditHeadersFormClass
+{
+    FormRun             fr;
+    FormListBoxControl  lb;
+    FormGroupControl    fgc;
+    Map                 collectors;
+    Name                fieldToCombineWith;
+    Set                 ignoreList;
+    TFMHtmlViewerCtrl   xmlViewer;
+    TFMProcess          process;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(FormRun _formRun)
+    {
+        TFMProcessVersion               pVersion;
+        FormGroupControl                navGroup;        
+        FormDropDialogButtonControl     dropDialogButton;
+        fr = _formRun;
+
+        Object callerFlow = fr.args().caller();
+
+        process = callerFlow.getProcess();
+        if(!process)
+        {
+            error('No process provided');
+            return;
+        }
+
+        navGroup = fr.design().controlName(formControlStr(TFMProcessEditHeaders, Navigation));
+        lb = navGroup.addControl(FormControlType::ListBox, 'HeaderListBox');
+        fgc= fr.design().controlName(formControlStr(TFMProcessEditHeaders, AttributeGroup));
+        xmlViewer = fr.design().controlName(formControlStr(TFMProcessEditHeaders, xmlViewer));
+        dropDialogButton = fr.design().controlName(formControlStr(TFMProcessEditHeaders, TFMProcessCombineHeaderFields));
+        dropDialogButton.enabled(!process.parmLocked());
+        lb.registerOverrideMethod(methodStr(FormListBoxControl, selectionChange),methodStr(TFMProcessEditHeadersFormClass,selectionChange ), this);
+        fgc.enabled(!process.parmLocked());
+        this.initForm();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initForm</Name>
+				<Source><![CDATA[
+    protected void initForm()
+    {
+        TFMReferenceDataConfiguration   refConf;
+        SetEnumerator                   sEnum;
+        TFMRegistrationCollector        regCol;
+        str                             collectorName;
+        
+        refConf = process.getHeaders();
+        sEnum = refConf.getCollectors().getEnumerator();
+
+        collectors = new Map(Types::String, Types::Class);
+        while (sEnum.moveNext())
+        {
+            regCol = sEnum.current();
+            collectors.insert(regCol.parmName(),regCol);
+            lb.add(regCol.parmName());
+            collectorName = collectorName ? collectorName : regCol.parmName();
+        }
+        ignoreList = new Set(Types::String);
+        ignoreList.add(methodStr(TFMRegistrationCollector, parmName));
+        ignoreList.add(methodStr(TFMRegistrationCollector, parmConditions));
+        ignoreList.add(methodStr(TFMRegistrationCollector, parmEanAi));
+        ignoreList.add(methodStr(TFMRegistrationCollector, parmId));
+        this.selectCollector(collectorName);
+        this.showHeaderXML(refConf);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>selectionChange</Name>
+				<Source><![CDATA[
+    public int selectionChange(FormListBoxControl _control)
+    {
+        this.selectCollector(_control.getText(_control.selection()));
+        
+        return 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>selectCollector</Name>
+				<Source><![CDATA[
+    public void selectCollector(str _collectorName)
+    {
+        int                         ret;
+        TFMRegistrationCollector    regCol;
+
+        if(collectors.exists(_collectorName))
+        {
+            regCol = collectors.lookup(_collectorName);
+            regCol.PopulateGroup(fgc, true, true, TFMProcess::GetProcessGroupKeyId(process), regCol.parmName(),null,false);
+        } 
+        
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showHeaderXML</Name>
+				<Source><![CDATA[
+    protected void showHeaderXML(TFMReferenceDataConfiguration _refConf)
+    {
+        XmlElement root = XmlDocument::newBlank('utf-8').createElement('header');
+        _refConf.appendToXMLConfig(root);
+        xmlViewer.parmHtml(TFMFormXMLFormatter::htmlColorXML('<output>' + root.xml() + '</output>'));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>combineListBoxSelectionChange</Name>
+				<Source><![CDATA[
+    public int combineListBoxSelectionChange(FormListBoxControl _control)
+    {        
+        FormGroupControl            choiceDialogGroup = _control.formRun().design().controlName('choiceDialogGroup');
+        TFMRegistrationCollector    collector1, collector2;
+        str                         methodName;
+        SetEnumerator               methodsOnTable;
+        FormRadioControl            frbc;
+        SysDictClass                sdc;
+        str                         value1, value2;
+        FormStringControl           fsc;
+        
+        while(choiceDialogGroup.controlCount())
+        {
+            choiceDialogGroup.formRun().design().removeControl(choiceDialogGroup.controlNum(1).id());
+        }
+
+        fieldToCombineWith = _control.getText(_control.selection());
+
+        if (fieldToCombineWith =="@SYS1369")
+        {
+            return 1;
+        }
+        collector1 = collectors.lookup(lb.getText(lb.selection()));
+        collector2 = collectors.lookup(fieldToCombineWith);
+
+        methodsOnTable  = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(collector1)).getEnumerator();
+        sdc = new SysDictClass(classIdGet(collector1));
+        fsc = choiceDialogGroup.addControl(FormControlType::String,methodStr(TFMRegistrationCollector, parmName));
+        fsc.text(sdc.callObject(methodStr(TFMRegistrationCollector, parmName),collector1) + sdc.callObject(methodStr(TFMRegistrationCollector, parmName),collector2));
+        while (methodsOnTable.moveNext())
+        {
+            methodName = methodsOnTable.current();
+            
+            value1 = strFmt('%1', sdc.callObject(methodName,collector1));
+            value2 = strFmt('%1', sdc.callObject(methodName,collector2));
+            if (ignoreList.in(methodName))
+            {
+                continue;
+            }
+            frbc = choiceDialogGroup.addControl(FormControlType::RadioButton,methodName);
+            frbc.add(strFmt('%1 [%2]', value1, lb.getText(lb.selection())));
+            frbc.add(strFmt('%1 [%2]', value2, fieldToCombineWith));
+            frbc.caption(TFMHelper::convertCamelCaseToNiceText(subStr(methodName,5,100)));
+            if (value1 == value2)
+            {
+                frbc.visible(false);
+            }
+        }
+
+        return 1;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initCombineDialog</Name>
+				<Source><![CDATA[
+    public void initCombineDialog(FormRun _combineDialog)
+    {
+        FormGroupControl            dropDialogFgc           = _combineDialog.design().controlName(formControlStr(TFMProcessCombineHeaderFields,HeaderFields));
+        FormStaticTextControl       fst                     = dropDialogFgc.addControl(FormControlType::StaticText, 'FieldToCombineFrom');
+        FormListBoxControl          flbc                    = dropDialogFgc.addControl(FormControlType::ListBox, 'FieldToCombineTo');
+        FormCommandButtonControl    fcbc                    = _combineDialog.design().controlName(formControlStr(TFMProcessCombineHeaderFields,OkButton));
+        Name                        FieldToCombineFrom      = lb.getText(lb.selection());
+        MapEnumerator               collectorsToCombineWith = collectors.getEnumerator();
+        TFMRegistrationCollector    collector               = collectors.lookup(FieldToCombineFrom);
+        ClassId                     fromCollectorClassId    = classIdGet(collector);
+        FormGroupControl            choiceDialogGroup       = dropDialogFgc.addControl(FormControlType::Group, 'choiceDialogGroup');
+
+        choiceDialogGroup.columns(3);
+
+        fst.text(FieldToCombineFrom);
+        flbc.add("@SYS1369");
+        flbc.registerOverrideMethod(methodStr(FormListBoxControl, selectionChange), methodStr(TFMProcessEditHeadersFormClass, combineListBoxSelectionChange), this);
+        fcbc.registerOverrideMethod(methodStr(FormCommandButtonControl, clicked), methodStr(TFMProcessEditHeadersFormClass, OkToCombineClicked), this);
+        while (collectorsToCombineWith.moveNext())
+        {
+            if (collectorsToCombineWith.currentKey() == FieldToCombineFrom)
+            {
+                continue;
+            }
+            collector = collectorsToCombineWith.currentValue();
+            if (classIdGet(collector) == fromCollectorClassId)
+            {
+                flbc.add(collector.parmName());
+            }
+        }
+        fieldToCombineWith = '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>OkToCombineClicked</Name>
+				<Source><![CDATA[
+    public void OkToCombineClicked(FormCommandButtonControl _fcbc)
+    {
+        FormStringControl               fsc;
+        FormGroupControl                choiceDialogGroup = _fcbc.formRun().design().controlName('choiceDialogGroup');
+        FormRadioControl                frbc;
+        int                             controlCount, testInt;
+        TFMRegistrationCollector        collector1, collector2;
+        TFMRegistrationCollector        fromCollector;
+        SysDictClass                    sdc;
+        TFMReferenceDataConfiguration   refConf;
+        SetEnumerator                   sEnum;
+        TFMRegistrationCollector        regCol;
+        _fcbc.clicked();
+        if (!fieldToCombineWith || fieldToCombineWith == "@SYS1369")
+        {
+            return;
+        }
+        collector1 = collectors.lookup(lb.getText(lb.selection()));
+        collector2 = collectors.lookup(fieldToCombineWith);
+        sdc = new SysDictClass(classIdGet(collector1));
+        fsc = _fcbc.formRun().design().controlName(methodStr(TFMRegistrationCollector, parmName));
+        
+        TFMProcessCombinedFields::MakeCombinedField(process, fsc.text(), lb.getText(lb.selection()), fieldToCombineWith);
+
+        for(controlCount = 1; controlCount <= choiceDialogGroup.controlCount(); controlCount++)
+        {
+            if (classIdGet(choiceDialogGroup.controlNum(controlCount)) != classNum(FormRadioControl))
+            {
+                continue;
+            }
+            frbc = choiceDialogGroup.controlNum(controlCount);
+            
+            fromCollector = frbc.selection() ? collector2 : collector1;
+            if (fromCollector == null)
+            {
+                continue;
+            }
+            
+            TFMGenericParms::CreateOrUpdateParameter(TFMProcess::GetProcessGroupKeyId(process), fsc.text(), TFMRegistrationCollector::smallBeginnings(subStr(frbc.name(),5,strLen(frbc.name()))),sdc.callObject(frbc.name(),fromCollector));
+        }
+        lb.add(fsc.text());
+        collectors = new Map(Types::String, Types::Class);
+        
+        refConf = process.getHeaders();
+        sEnum = refConf.getCollectors().getEnumerator();
+        while (sEnum.moveNext())
+        {
+            regCol = sEnum.current();
+            collectors.insert(regCol.parmName(),regCol);            
+        }
+        this.showHeaderXML(refConf);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getChosenclass</Name>
+				<Source><![CDATA[
+    protected TFMRegistrationCollector getChosenclass(str _chosenString, TFMRegistrationCollector    _collector1, TFMRegistrationCollector    _collector2)
+    {
+        System.Text.RegularExpressions.Match myMatch;
+        System.String sysStrOut;
+        str strOut;
+        str regex;
+        
+        regex = @'\[(.*?)\]';
+    
+        myMatch = System.Text.RegularExpressions.Regex::Match(_chosenString, regex);
+    
+        while (myMatch.get_Success())
+        {
+            sysStrOut = myMatch.get_Value();
+            strOut = sysStrOut; // marshall data types            
+            myMatch = myMatch.NextMatch();
+        }
+
+        return _collector1.parmName() == strOut ? _collector1 : (_collector2.parmName() == strOut ? _collector2 : null);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="" i:type="AxEdtString">
+  <Name>MobNodeName</Name>
+  <Label>@SYS4007233</Label>
+  <ArrayElements />
+  <Relations />
+  <TableReferences />
+  <StringSize>42</StringSize>
+  <Extends>TFMNodeName</Extends>
+</AxEdt>

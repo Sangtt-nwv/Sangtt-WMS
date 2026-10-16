@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMImageHandlerPercentIndicator</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMImageHandlerPercentIndicator extends TFMImageHandler
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public str process(str _imageId)
+    {
+        str ret;
+        int pct;
+        real pctg, pctr;
+        int pctPos;
+        int i;
+        str barText;
+        int fadeWhite;
+        System.Drawing.Bitmap   image;
+        System.Drawing.Graphics	bmp;
+        boolean		cartoonish = false;
+        int			usedColor;
+
+        if (subStr(_imageId,1,17) != 'trafficlight_pct_')
+        {
+            return ret;
+        }
+        pctPos = strScan(_imageId,'%',1,10000);
+        pct = str2Int(strKeep(subStr(_imageId,1,pctPos),'0123456789'));        
+        pctg = pct / 100;
+        pctr = pct / 100;
+        pctg = min(pctg*2.0,1.0); // 50 = 75 % 0 = 50*
+        pctr = min (2 -pctr*2.0,1);
+        image = new System.Drawing.Bitmap(152,152);
+        usedColor = (real2int((pctr)*191.0) + 64 + real2int(pctg*192.0)<<8 + 64 <<16 + 255 << 24);
+        bmp = System.Drawing.Graphics::FromImage(image);
+        if (cartoonish)
+        {
+            TFMGraphicsHelper::drawGradientCircle(bmp,75,75,74,TFMGraphicsHelper::scaleColor(usedColor,0.6),TFMGraphicsHelper::scaleColor(usedColor,0.8),true);
+            TFMGraphicsHelper::drawGradientCircle(bmp,67,60,55,TFMGraphicsHelper::scaleColor(usedColor,0.8),TFMGraphicsHelper::scaleColor(usedColor,0.9),true);
+            TFMGraphicsHelper::drawGradientCircle(bmp,60,45,35,usedColor,usedColor,true);
+
+            for(i = 0;i < 20;i++)
+            {
+                TFMGraphicsHelper::drawBmpCircle(bmp,50,50,i,255 + 255<<8 + 255<<16 + 255<<24,2);
+            }
+        }
+		else
+        {
+			TFMGraphicsHelper::drawGradientCircle(bmp,75,75,74,usedColor,(255 + 255<<8 + 255<<16 + 255 << 24));
+
+			fadeWhite = 255 + 255<<8 + 255<<16;
+			for(i = 0;i < 20;i++)
+			{
+				TFMGraphicsHelper::drawBmpCircle(bmp,50,50,i,fadeWhite + min(255,(30*real2int(10-i/2)))<<24,2);
+			}			
+		}
+        TFMGraphicsHelper::drawBmpCircle(bmp,75,75,71+(cartoonish ? 0 : 2),TFMGraphicsHelper::scaleColor(usedColor,0.5),cartoonish ? 8 : 4);
+        ret = TFMImageHelper::Image2Base64(image);
+        //bmp = System.Drawing.Graphics::FromImage(
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

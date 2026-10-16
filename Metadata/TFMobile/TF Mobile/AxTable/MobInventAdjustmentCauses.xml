@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobInventAdjustmentCauses</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobInventAdjustmentCauses extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Find</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public static MobInventAdjustmentCauses Find(Description _description, boolean _select4Update = false)
+    {
+        MobInventAdjustmentCauses adjCause;
+
+        adjCause.selectForUpdate (_select4Update);
+        select firstonly adjCause where adjCause.Description == _description;
+
+        return adjCause;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllCauses</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public static Map getAllCauses()
+    {
+        MobInventAdjustmentCauses adjustCauses;
+        Map allCauses = new Map(Types::String,Types::String);
+        while select adjustCauses
+        {
+            allCauses.insert(adjustCauses.Description,adjustCauses.InventJournalNameLossProfit);
+        }
+        return allCauses;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@MobileWMS:AdjustmentCause</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>Description</TitleField1>
+	<TitleField2>InventJournalNameLossProfit</TitleField2>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventJournalNameLossProfit</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Description</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>Description</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>InventJournalNameLossProfit</Name>
+			<ExtendedDataType>InventJournalNameLossProfit</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>DescIndex</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Description</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>InventJournalNameLossProfit</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<RelatedTable>InventJournalName</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>InventJournalNameLossProfit</Name>
+					<Field>InventJournalNameLossProfit</Field>
+					<RelatedField>JournalNameId</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>JournalType</Name>
+					<RelatedField>JournalType</RelatedField>
+					<ValueStr>InventJournalType::LossProfit</ValueStr>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

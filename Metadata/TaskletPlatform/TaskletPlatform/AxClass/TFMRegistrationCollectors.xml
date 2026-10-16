@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectors</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Collector class for Registration Collectors. Contains all collectors to be used in a flow
+/// </summary>
+class TFMRegistrationCollectors
+{
+    Map collectors;
+    Map collectorName2ID;
+    Map additionalValues;
+    Set pagesToOpen;
+    str log;
+    boolean replaceCurrentSteps;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmReplaceCurrentSteps</Name>
+				<Source><![CDATA[
+    public boolean parmReplaceCurrentSteps(boolean _replaceCurrentSteps = replaceCurrentSteps)
+    {
+        replaceCurrentSteps = _replaceCurrentSteps;
+        return replaceCurrentSteps;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ConstructFromMap</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectors ConstructFromMap(Map _collectors, boolean _forceActive = false)
+    {
+        TFMRegistrationCollectors   cols = new TFMRegistrationCollectors();
+        if(!_collectors || !_collectors.elements())
+        {
+            return cols;
+        }
+        MapEnumerator               mEnum = _collectors.getEnumerator();
+        TFMRegistrationCollector    collector;
+        while (mEnum.moveNext())
+        {
+            if (classIdGet(mEnum.currentValue()) == classNum(Map))
+            {
+                collector = TFMRegistrationCollector::ConstructAttributeMap(mEnum.currentValue());
+            }
+            else
+            {
+                collector = mEnum.currentValue();
+            }
+            collector.parmActive(_forceActive ? true : collector.parmActive());
+            cols.addCollector(collector, true);
+        }
+        return cols;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPagesToOpen</Name>
+				<Source><![CDATA[
+    public Set getPagesToOpen()
+    {
+        return pagesToOpen;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addOnlineStepValidationToLastStep</Name>
+				<Source><![CDATA[
+    public void addOnlineStepValidationToLastStep(str _onlineValidationTypeName)
+    {
+        MapEnumerator               mEnum = collectors.getEnumerator();
+        TFMRegistrationCollector    regCol;
+        TFMRegistrationCollector    lastRegCol;
+        while (mEnum.moveNext())
+        {
+            regCol = mEnum.currentValue();
+            if (regCol.parmActive())
+            {
+                lastRegCol = regCol;
+            }
+        }
+        lastRegCol.setOnlineValidationDocument(_onlineValidationTypeName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPageToOpen</Name>
+				<Source><![CDATA[
+    public void addPageToOpen(TFMMenuItemStateConfiguration _menuItemState)
+    {
+        if (!pagesToOpen)
+        {
+            pagesToOpen = new Set(Types::Class);
+        }
+        pagesToOpen.add(_menuItemState);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constructor, initializes internal collection variables
+    /// </summary>
+    protected void new()
+    {
+        collectors          = new Map(Types::Integer, Types::Class);
+        collectorName2ID    = new Map(Types::String, Types::Integer);
+        additionalValues    = new Map(Types::String, Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addCollector</Name>
+				<Source><![CDATA[
+    public void addCollector(TFMRegistrationCollector _collector, boolean _keepId = false)
+    {
+        int id = _keepId ? _collector.parmId() : collectors.elements() + 1;
+
+        if (collectorName2ID.exists(_collector.parmName()))
+        {
+            //Don't add, First come first serve
+            log += strFmt("@TFM:1addedbutwasalreadypresent", _collector.parmName());
+            return;
+        }
+        collectorName2ID.insert(_collector.parmName(), id);
+        _collector.parmId(id*10);
+        collectors.insert(id, _collector);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDependenciesToCollectors</Name>
+				<Source><![CDATA[
+    public void addDependenciesToCollectors(Set _dependencies)
+    {
+        MapEnumerator               mEnum = collectors.getEnumerator();
+        TFMRegistrationCollector    collector;
+        while (mEnum.moveNext())
+        {
+            collector = mEnum.currentValue();
+            collector.setFieldDependencies(_dependencies);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCollector</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollector getCollector(str _name)
+    {
+        if (!collectorName2ID.exists(_name))
+        {
+            return null;
+        }
+        return collectors.lookup(collectorName2ID.lookup(_name));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCollectorFromID</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollector getCollectorFromID(int _id)
+    {
+        MapEnumerator   mEnum = collectors.getEnumerator();
+        TFMRegistrationCollector cøllecteur;
+        while (mEnum.moveNext())
+        {
+            cøllecteur = mEnum.currentValue();
+            if (cøllecteur.parmId() == _id)
+            {
+                return cøllecteur;
+            }
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>collectorMap</Name>
+				<Source><![CDATA[
+    public Map collectorMap()
+    {
+        MapEnumerator   nameMap         = collectorName2ID.getEnumerator();
+        Map             collectorMap    = new Map(Types::Integer, Types::Class);
+
+        while( nameMap.moveNext())
+        {
+            collectorMap.insert(nameMap.currentValue(), collectors.lookup(nameMap.currentValue()));
+        }
+
+        return collectorMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeCollector</Name>
+				<Source><![CDATA[
+    public void removeCollector(str _name)
+    {
+        if (!collectorName2ID.exists(_name))
+        {
+            return;
+        }
+        log += strFmt("@TFM:1removed", _name);
+        //Keep collector in collectorsmap, as the keys are created from this.
+
+        collectorName2ID.remove(_name); 
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addAdditionalValue</Name>
+				<Source><![CDATA[
+    public void addAdditionalValue(str _key, str _value)
+    {
+        if (additionalValues.exists(_key))
+        {
+            //Don't add, First come first serve
+            log += strFmt("@TFM:AdditionalValueKey1value2addedbu", _key, _value);
+            return;
+        }
+        additionalValues.insert(_key, _value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AdditionalValues</Name>
+				<Source><![CDATA[
+    public Map AdditionalValues()
+    {
+        return additionalValues;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectors Construct()
+    {
+        return new TFMRegistrationCollectors();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mergeCollectors</Name>
+				<Source><![CDATA[
+    public void mergeCollectors(TFMRegistrationCollectors _collectors)
+    {
+        MapEnumerator mEnum;
+        
+        if (!_collectors)
+        {
+            return;
+        }
+
+        mEnum = _collectors.collectorMap().getEnumerator();
+        while (mEnum.moveNext())
+        {
+            this.addCollector(mEnum.currentValue());
+        }
+        mEnum = _collectors.AdditionalValues().getEnumerator();
+        while (mEnum.moveNext())
+        {
+            this.addAdditionalValue(mEnum.currentKey(), mEnum.currentValue());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runConditionsOnCollectors</Name>
+				<Source><![CDATA[
+    public void runConditionsOnCollectors(TFMRequestElement _request)
+    {
+        MapEnumerator               mEnum = collectors.getEnumerator();
+        TFMRegistrationCollector    collector;
+        TFMLogicContext             logicContext = _request ? _request.logicContext() : TFMLogicContext::Construct();
+
+        logicContext.addMultipleFields(_request.getFieldMap());
+        logicContext.addMultipleFields(additionalValues);
+        while (mEnum.moveNext())
+        {
+            collector = mEnum.currentValue();
+
+            if (collector.parmConditions() == null)
+            {
+                continue;
+            }
+
+            collector.parmConditions().modifyObjectFromConditions(collector,logicContext);
+
+            if (collector.parmDefaultValue() && !collector.parmActive() && collector.getSetAddAsAdditionalValue())
+            {
+                //Transfer to additional value
+                this.addAdditionalValue(collector.parmName(), collector.parmDefaultValue());
+            }
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>applyDeltaLayer</Name>
+				<Source><![CDATA[
+    public void applyDeltaLayer(TFMProcessID _processId, Version _version)
+    {
+        MapEnumerator               mEnum = collectors.getEnumerator();
+        TFMRegistrationCollector    collector;
+        while (mEnum.moveNext())
+        {
+            collector = mEnum.currentValue();
+            // Apply Delta Layer
+            collector.updateParmsFromOverride(TFMProcess::GetProcessDomainName(_processId) + '/' + int2Str(_version),collector.parmName());
+        }
+        
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ConstructFromGetRegistrationConfigurationXML</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectors ConstructFromGetRegistrationConfigurationXML(str _XML)
+    {
+        TFMRegistrationCollectors   collectors;
+        XmlDocument                 xDoc = XmlDocument::newXml(_XML);
+        XmlElement                  xmlElement, collectorNode;
+        TFMRegistrationCollector    collector;
+        if (!xDoc)
+        {
+            return null;
+        }
+
+        xmlElement = xDoc.getElementsByTagName(TFMConstants::steps()).item(0);
+
+        if (!xmlElement)
+        {
+            return null;
+        }
+
+        collectorNode = xmlElement.firstChild();
+        collectors = TFMRegistrationCollectors::Construct();
+        while (collectorNode != null)
+        {
+            collector = TFMRegistrationCollector::ConstructFromXMLElement(collectorNode);
+            collectors.addCollector(collector);
+            collectorNode = collectorNode.nextSibling();
+        }
+
+        if (!xDoc.getElementsByTagName(TFMConstants::additionalValues()) || !xDoc.getElementsByTagName(TFMConstants::additionalValues()).item(0))
+        {
+            return collectors;
+        }
+
+        xmlElement = xDoc.getElementsByTagName(TFMConstants::additionalValues()).item(0);
+
+        collectorNode = xmlElement.firstChild();        
+        while (collectorNode != null)
+        {
+            collectors.addAdditionalValue(collectorNode.getAttribute(strLwr(TFMConstants::Name())), collectorNode.getAttribute(strLwr(TFMConstants::Value())));
+            collectorNode = collectorNode.nextSibling();
+        }
+
+        return collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>loadDeltaConditions</Name>
+				<Source><![CDATA[
+    public void loadDeltaConditions(str _domainName, str _domainKey, Version _version)
+    {
+        MapEnumerator                   colEnum = this.collectorMap().getEnumerator();
+        TFMRegistrationCollector        collector;
+        TFMConditionsTable              condiTable;
+        TFMConditions                   conditions;
+        
+        while (colEnum.moveNext())
+        {
+            collector = colEnum.currentValue();
+            conditions = collector.parmConditions();
+            if (!conditions)
+            {
+                conditions = TFMConditions::Construct();
+                collector.parmConditions(conditions);
+            }
+            while select condiTable where condiTable.Domain == _domainName &&  condiTable.DomainKey == _domainKey && condiTable.Version == _version && condiTable.SubID == collector.parmName()          
+            {
+                conditions.updateFromConditionsTable(condiTable);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

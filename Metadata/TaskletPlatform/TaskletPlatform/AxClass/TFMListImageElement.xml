@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListImageElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListElementAttribute('imageElement')]
+class TFMListImageElement extends TFMListElement
+{
+    TFMListWidth width;
+    TFMListHeight height;
+    TFMDataSetField sourceId;
+    TFMDataSetField dataMember;
+    Map				dataMemberValues;
+    TFMListValuesElement valuesElement;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmwidth</Name>
+				<Source><![CDATA[
+    [TFMParameter(0)]
+    public TFMListWidth parmwidth(TFMListWidth _width = width)
+    {
+        width = _width;
+        return width;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmheight</Name>
+				<Source><![CDATA[
+    [TFMParameter(0)]
+    public TFMListHeight parmheight(TFMListHeight _height = height)
+    {
+        height = _height;
+        return height;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDataMember</Name>
+				<Source><![CDATA[
+    [TFMParameter('')]
+    public TFMDataSetField parmDataMember(TFMDataSetField _dataMember = dataMember)
+    {
+        dataMember = _dataMember;
+        return dataMember;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSourceId</Name>
+				<Source><![CDATA[
+    [TFMParameter('')]
+    public TFMDataSetField parmSourceId(TFMDataSetField _sourceId = sourceId)
+    {
+        sourceId = _sourceId;
+        return sourceId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addValueElement</Name>
+				<Source><![CDATA[
+    public TFMListValueElement addValueElement(Description255 _dataMemberValue, ResourceName _ImageId)
+    {
+        if(!valuesElement)
+        {
+            MapEnumerator mEnum = this.getChildren().getEnumerator();
+            while(mEnum.moveNext())
+            {
+                if(mEnum.currentValue() as TFMListValuesElement)
+                {
+                    valuesElement = mEnum.currentValue();
+                }
+            }
+            if(!valuesElement)
+            {
+                valuesElement = new TFMListValuesElement();
+                this.addChild(valuesElement);
+            }
+        }
+
+        TFMListValueElement valueElement = new TFMListValueElement();
+        valueElement.parmDataMemberValue(_dataMemberValue);
+        valueElement.parmImageId(_ImageId);
+
+        valuesElement.addChild(valueElement);
+
+        return valueElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();        
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ConstructImageElement</Name>
+				<Source><![CDATA[
+    public static TFMListImageElement ConstructImageElement(TFMDataSetField _sourceId, TFMDataSetField _dataMember, int _width, int _height, TFMListXAlign _xAlign = SysChartHorizontalAlignment::Left, TFMListYAlign _yAlign = TFMVerticalAlignment::Top)
+    {
+        TFMListImageElement imgElement = new TFMListImageElement();
+        imgElement.parmSourceId(_sourceId);
+        imgElement.parmDataMember(_dataMember);
+        imgElement.parmwidth(_width);
+        imgElement.parmheight(_height);
+        imgElement.parmHorizontalAlignment(_xAlign);
+        imgElement.parmVerticalAlignment(_yAlign);
+        return imgElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findImage</Name>
+				<Source><![CDATA[
+    protected System.Drawing.Image findImage(Map _valuesMap)
+    {
+        str base64 = TFMDocGetMedia::getBase64FromName(this.replaceTextWithValue(sourceId, _valuesMap));
+        System.Drawing.Image itemImage = TFMImageHelper::base64ToImage(base64 ? base64 : 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
+        return itemImage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _parent, boolean _expandCustomComponents)
+    {
+        XmlElement		imageElement =_parent.ownerDocument().createElement('imageElement');
+        TFMListbase 	valueElement;
+        MapEnumerator	mEnum;
+        imageElement.setAttribute('sourceId',sourceId);
+        if(horizontalAlignment != SysChartHorizontalAlignment::Auto)
+        {
+            imageElement.setAttribute('horizontalAlignment', strLwr(enum2Symbol(enumNum(SysChartHorizontalAlignment), horizontalAlignment)));
+        }
+        imageElement.setAttribute('verticalAlignment', strLwr(enum2Symbol(enumNum(TFMVerticalAlignment), verticalAlignment)));
+        
+        imageElement.setAttribute('width',int2Str(width));
+        if (height)
+        {
+            imageElement.setAttribute('height',int2Str(height));
+        }
+        if (dataMember)
+        {
+            imageElement.setAttribute('dataMember',dataMember);
+        }
+        if (baseChildren && baseChildren.elements())
+        {
+            mEnum = baseChildren.getEnumerator();
+            while(mEnum.moveNext())
+            {
+                valueElement = mEnum.currentValue();
+                valueElement.appendToXML(imageElement, _expandCustomComponents);
+            }
+         }
+        _parent.appendChild(imageElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>attributeSummary</Name>
+				<Source><![CDATA[
+    public str attributeSummary()
+    {
+        return "@SYS11258"+':'+sourceId + (dataMember ? 'DataMember'+':'+dataMember : '');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>render</Name>
+				<Source><![CDATA[
+    public void render(TFMListVisualizationInterface _visualizer)
+    {
+        _visualizer.renderImage(this);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMReferenceDataFilterList</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMReferenceDataFilterList extends TFMReferenceData
+{
+    str filterIdName;
+    str filterValueName;
+    str filterSlaveIdName;
+    Map values;
+    str primaryId;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void new()
+    {
+        values = new Map(Types::String, Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPrimaryId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the primary ID, this is the ID, that will be selected as default in the list.
+    /// </summary>
+    /// <param name = "_primaryId"></param>
+    /// <returns></returns>
+    public str parmPrimaryId(str _primaryId = primaryId)
+    {
+        primaryId = _primaryId;
+        return primaryId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addValue</Name>
+				<Source><![CDATA[
+    public void addValue(str _id, str _value)
+    {
+        values.insert(_id,_value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFilterIdName</Name>
+				<Source><![CDATA[
+    public str parmFilterIdName(str _filterIdName = filterIdName)
+    {
+        filterIdName = _filterIdName;
+        return filterIdName ? filterIdName : 'id';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFilterSlaveIdName</Name>
+				<Source><![CDATA[
+    public str parmFilterSlaveIdName(str _filterSlaveIdName = filterSlaveIdName)
+    {
+        filterSlaveIdName = _filterSlaveIdName;
+        return filterSlaveIdName ? filterSlaveIdName : 'slaveId';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFilterValueName</Name>
+				<Source><![CDATA[
+    public str parmFilterValueName(str _filterValueName = filterValueName)
+    {
+        filterValueName = _filterValueName;
+        return filterValueName ? filterValueName : 'value';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMap</Name>
+				<Source><![CDATA[
+    public Map getMap()
+    {
+        return values;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_referenceDataElement"></param>
+    public void appendToXML(XmlElement _referenceDataElement)
+    {
+        MapEnumerator mEnum = values.getEnumerator();
+        
+        if  (primaryId && values.exists(primaryId))
+        {
+            this.makeElement(_referenceDataElement,primaryId, values.lookup(primaryId));
+        }
+    
+        while (mEnum.moveNext())
+        {
+            if  (primaryId && mEnum.currentKey() == primaryId && values.exists(primaryId))
+            {
+                continue;
+            }
+            // Create the table name element
+            this.makeElement(_referenceDataElement,mEnum.currentKey(), mEnum.currentValue());
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeElement</Name>
+				<Source><![CDATA[
+    private void makeElement(XmlElement _referenceDataElement,str _id, str _value)
+    {
+        XmlElement  tableElement = _referenceDataElement.ownerDocument().createElement(key);    
+        XmlElement  lineElement = _referenceDataElement.ownerDocument().createElement(filterIdName ? filterIdName : 'id');
+        lineElement.text(_id);
+        tableElement.appendChild(lineElement);
+    
+        lineElement = _referenceDataElement.ownerDocument().createElement(filterValueName ? filterValueName : 'value');
+        lineElement.text(_value);
+        tableElement.appendChild(lineElement);
+            
+        //add table element to reference data
+        _referenceDataElement.appendChild(tableElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createFromEnum</Name>
+				<Source><![CDATA[
+    public static TFMReferenceDataFilterList createFromEnum(EnumName _enumName) 
+    {
+        TFMReferenceDataFilterList	list = new TFMReferenceDataFilterList();
+        SysDictEnum					sde		= new SysDictEnum(enumName2Id(_enumName));
+        SetEnumerator				enums = sde.enumerationSet().getEnumerator();
+        
+        while (enums.moveNext())
+        {
+            list.addValue(sde.index2Symbol(enums.current()),sde.index2Label(enums.current()));
+        }
+
+        return List;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createFromTableName</Name>
+				<Source><![CDATA[
+    public static TFMReferenceDataFilterList createFromTableName(TableName _tableName, FieldName _keyField, FieldName _valueField, boolean _addAllEntry = false)
+    {
+        TFMReferenceDataFilterList	list	= new TFMReferenceDataFilterList();
+        SysDictTable				dt		= new SysDictTable(tableName2Id(_tableName));
+        Common						common  = dt.makeRecord();
+        while select common
+        {
+            list.addValue(strFmt('%1',common.(fieldName2Id(common.tableId,_keyField))),strFmt('%1',common.(fieldName2Id(common.tableId, _valueField))));
+        }
+        if (_addAllEntry)
+        {
+            list.addValue(TFMConstants::All(),"@SYS88603");
+        }
+        return List;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createFromEDT</Name>
+				<Source><![CDATA[
+    public static TFMReferenceDataFilterList createFromEDT(ExtendedDataTypeName _edtName)
+    {
+        SysDictType                 sdtype  = new SysDictType(extendedTypeName2Id(_edtName));
+        TableName                   tblName = sdtype ? sdtype.lookupTable() : '';        
+        SysDictTable                sdt;
+        
+        if (!tblName)
+        {
+            return null;
+        }
+        sdt = new SysDictTable(tableName2Id(tblName));
+        
+        return TFMReferenceDataFilterList::createFromTableName(tblName, fieldId2Name(sdt.id(),sdt.titleField1()), sdt.titleField2() ? fieldId2Name(sdt.id(),sdt.titleField2()) : fieldId2Name(sdt.id(),sdt.titleField1()));
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

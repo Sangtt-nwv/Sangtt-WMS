@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxLabelFile xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFDevice_fi</Name>
+	<LabelContentFileName>TFDevice.fi.label.txt</LabelContentFileName>
+	<LabelFileId>TFDevice</LabelFileId>
+	<Language>fi</Language>
+	<RelativeUriInModelStore>TaskletPlatform\TaskletPlatform\AxLabelFile\LabelResources\fi\TFDevice.fi.label.txt</RelativeUriInModelStore>
+</AxLabelFile>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageSearchConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('Search', "Search")]
+class TFMPageSearchConfiguration extends TFMPageConfiguration
+{
+    TFMListId	listId;
+    boolean			automaticAcceptOnOpen;
+    boolean			hideAfterAccept;
+    boolean			close;
+    boolean         enabled;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmListId</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(classStr(TFMListShortLookup),'list','',true)]
+    public TFMListId parmListId(TFMListId _listId = listId)
+    {
+        TFMList			listCls;
+        listId = _listId;
+        if (className2Id(listId))
+        {
+            listCls = new SysDictClass(className2Id(listId)).makeObject();
+            listId = listCls.parmListName();
+        }
+        return listId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAutomaticAcceptOnOpen</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(false,'header','',true)]
+    public boolean parmAutomaticAcceptOnOpen(boolean _automaticAcceptOnOpen = automaticAcceptOnOpen)
+    {
+        automaticAcceptOnOpen = _automaticAcceptOnOpen;
+        return automaticAcceptOnOpen;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHideAfterAccept</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'header','',true)]
+    public boolean parmHideAfterAccept(boolean _hideAfterAccept = hideAfterAccept)
+    {
+        hideAfterAccept = _hideAfterAccept;
+        return hideAfterAccept;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmEnabled</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'onResultSelected', '', true)]
+    public boolean parmEnabled(boolean _enabled = enabled)
+    {
+        enabled = _enabled;
+        return enabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClose</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute(true,'onResultSelected', '', true)]
+    public boolean parmClose(boolean _close = close)
+    {
+        close = _close;
+        return close;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

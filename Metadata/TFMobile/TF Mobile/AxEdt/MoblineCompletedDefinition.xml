@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtEnum">
+	<Name>MoblineCompletedDefinition</Name>
+	<HelpText>Line Completed Definition defines how to mark the line as completed. Any Registration will mark the line as completed by the first registration. Expected will mark it as completed when the expected qty is reached.</HelpText>
+	<ArrayElements />
+	<Relations />
+	<TableReferences />
+	<EnumType>TFMLineCompletedDefinitionTypes</EnumType>
+</AxEdt>

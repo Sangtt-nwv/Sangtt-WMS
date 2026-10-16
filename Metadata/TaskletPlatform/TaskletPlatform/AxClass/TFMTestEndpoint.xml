@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMTestEndpoint</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMTestEndpoint
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        XML             filexml;
+        #tfm
+        #ifnot.isAX6
+        FileUploadTemporaryStorageResult result = File::GetFileFromUser(classStr(FileUploadTemporaryStorageStrategy));
+        if (result && result.getUploadStatus())
+        {
+            using(System.IO.MemoryStream stream = result.openResult() as System.IO.MemoryStream)
+            {
+                using(System.IO.StreamReader sreader = new System.IO.StreamReader(stream, System.Text.Encoding::UTF8, true))
+                {
+                    filexml = sreader.ReadToEnd();
+                }
+            }
+        }
+        #endif
+        #if.isAX6
+        Dialog          dialog;
+        Filename        filename;
+        DialogField     dialogFilename;
+        DialogField     dialogDelete;
+        //To filter the files while selecting
+        container      conFilter = ["@TFM:XMLfiles" ,'*.xml'];
+        System.IO.StreamReader  reader;
+        System.String           line;
+        InteropPermission       interopPermission;
+   
+        interopPermission = new InteropPermission(InteropKind::ClrInterop);
+        interopPermission.assert();
+        
+        dialog = new dialog();
+        dialogDelete = dialog.addField(extendedTypeStr(TFMReleasedToMobile));
+        dialog.caption("@SYS133030");
+        dialogFilename = dialog.addField(extendedTypeStr(FilenameOpen));
+        //To filter the files while selecting
+        dialog.filenameLookupFilter(conFilter);
+        
+        
+        dialog.run();
+
+        if(dialog.closedOk())
+        {
+            filename = dialogFileName.value();
+            reader = new System.IO.StreamReader(filename, System.Text.Encoding::get_UTF8());
+            filexml = reader.ReadToEnd();
+            reader.Close();
+            reader.Dispose();
+        }
+        else
+        {
+            return;
+        }
+        
+        #endif
+        TFMTestEndpoint::importFromText(filexml);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>importFromText</Name>
+				<Source><![CDATA[
+    public static void importFromText(XML _filexml)
+    {
+        new TFMDocumentConnector().submit(_filexml, newGuid(), 'Client');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

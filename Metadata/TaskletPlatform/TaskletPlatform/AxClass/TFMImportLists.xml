@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMImportLists</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class   TFMImportLists
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        XML             filexml;
+        TFMImportSource	importSource;	
+        DialogField     dialogSource;
+        BinData			binData = new BinData();
+        #tfm
+
+        #ifnot.isAX6
+        FileUploadTemporaryStorageResult result = File::GetFileFromUser(classStr(FileUploadTemporaryStorageStrategy),'cfg');
+        if (result && result.getUploadStatus())
+        {
+            using(System.IO.MemoryStream stream = result.openResult() as System.IO.MemoryStream)
+            {
+                using(System.IO.StreamReader sreader = new System.IO.StreamReader(stream, System.Text.Encoding::UTF8, true))
+                {
+                    filexml = sreader.ReadToEnd();
+                }
+            }
+        }
+        
+        #endif
+        #if.isAX6
+        Dialog          dialog;
+        Filename        filename;
+        DialogField     dialogFilename;
+        DialogField     dialogDelete;
+        //To filter the files while selecting
+        container      conFilter = ["@TFM:TaskletFactoryExportFormat" ,'*.tfe'];
+        System.IO.StreamReader  reader;
+        System.String           line;
+        InteropPermission       interopPermission;
+   
+        interopPermission = new InteropPermission(InteropKind::ClrInterop);
+        interopPermission.assert();
+        
+        dialog = new dialog();
+        dialogDelete = dialog.addField(extendedTypeStr(TFMReleasedToMobile));
+        dialog.caption("@SYS133030");
+        dialogFilename = dialog.addField(extendedTypeStr(FilenameOpen));
+        //To filter the files while selecting
+        dialog.filenameLookupFilter(conFilter);
+        
+        
+        dialog.run();
+
+        if(dialog.closedOk())
+        {
+            filename = dialogFileName.value();
+        reader = new System.IO.StreamReader(filename, System.Text.Encoding::get_UTF8());
+        filexml = reader.ReadToEnd();
+        reader.Close();
+        reader.Dispose();
+    }
+        else
+        {
+            return;
+        }
+        
+        #endif
+        
+        TFMListID firstListId = TFMImportLists::importFromText(filexml, false); // the imported lists will be put in the unapproved state.
+
+        if(firstListId)
+        {
+            // since the firstListId is set then a list was changed and we update the calling form.
+            TFMListsProvider::instance().invalidateProvider();
+            TFMListNewVersion::refreshCallingForm(_args, firstListId);
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>importFromText</Name>
+				<Source><![CDATA[
+    public static TFMListId importFromText(str _filexml, boolean _lockTheLists = true)
+    {
+        TFMListID   firstListId;
+        XmlDocument xmlDoc = new XmlDocument();
+        XmlElement	root;
+        XmlElement	listchild;
+        XmlNode		child;
+        xmlDoc.loadXml(_filexml);
+
+        root = xmlDoc.root();
+        
+        child = root.getNamedElement('resources').getNamedElement('lists').firstChild();
+        while (child)
+        {
+            if (child.nodeType() == XmlNodeType::Element)
+            {
+                listchild = child;
+                //Info (listchild.getAttribute('id'));
+                TFMListID listId = TFMImportLists::importList(child, _lockTheLists);
+                if(!firstListId)
+                {
+                    firstListId =  listId;
+                }
+            }
+            child = child.nextSibling();
+        }
+        child = root.getNamedElement('resources').getNamedElement('fonts').firstChild();
+        while (child)
+        {
+            if (child.nodeType() == XmlNodeType::Element)
+            {
+                listchild = child;
+                //Info (listchild.getAttribute('id'));
+                TFMImportLists::importFont(child);
+            }
+            child = child.nextSibling();
+        }
+
+        return firstListId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>importFont</Name>
+				<Source><![CDATA[
+    public static void importFont(XmlElement _ListConfiguration, boolean _overwrite = false)
+    {
+        TFMFontId		fontId		= _ListConfiguration.getAttribute('id');
+
+        if(TFMFonts::Find(fontId))
+        {
+            info('Font already exits. FontId: ' + fontId);
+            return;
+        }
+
+        NoYes			bold		= _ListConfiguration.getAttribute('bold') == 'true' ? NoYes::Yes : NoYes::No;
+        NoYes			italic		= _ListConfiguration.getAttribute('italic') == 'true' ? NoYes::Yes : NoYes::No;
+        SysColorHex		colorHex	= subStr(_ListConfiguration.getAttribute('color'), strLen(_ListConfiguration.getAttribute('color')), -6);
+        TFMFontSizes	fontSize	= TFMHelper::EnumSymbol2Value(enumNum(TFMFontSizes), _ListConfiguration.getAttribute('size'));
+        TFMFonts::AddOrUpdateFont(fontId,fontSize,bold,italic,colorHex);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>importList</Name>
+				<Source><![CDATA[
+	public static TFMListId importList(XmlElement _listConfiguration, boolean _lockTheList = true)
+    {
+        TFMListId		listId = _listConfiguration.getAttribute('id');
+        TFMListsVersion	listVersion;
+        boolean			displayStatus = _listConfiguration.getAttribute('displayStatus') == 'true';
+        boolean			useSingleSelection = _listConfiguration.getAttribute('useSingleSelection') == 'true';
+        TFMLists		lists = TFMLists::Find(listId); // Ok to use the find lists
+        XmlNode			Node;
+        Version			version;
+        
+		if (lists)
+        {
+            info (strFmt("@TFM:ListalreadyexistsMakingnewVersion", listId));
+        }
+        else
+        {
+            lists.ListId = listId;
+            lists.insert();
+        }
+
+        TFMListsVersion currentListVersion = TFMListsVersion::newestVersion(lists.ListId, false);
+        if(currentListVersion && !currentListVersion.Locked)
+        {
+            error (strFmt("@TFM:ListUnapprovedVersionExists", listId));
+            return lists.ListId;
+        }
+        version = currentListVersion.Version + 1;
+        listVersion.Version = version;
+        listVersion.DisplayStatus = displayStatus;
+        listVersion.useSingleSelection = useSingleSelection;
+        listVersion.ListId = lists.ListId;
+        listVersion.Locked = _lockTheList;
+        listVersion.insert();
+
+        Node = _listConfiguration.firstChild();
+
+		while (Node)
+        {
+            if (Node.nodeType() == XmlNodeType::Element)
+            {
+                TFMImportLists::importNode(listId,version,Node,0);
+            }
+            Node = Node.nextSibling();
+        }
+        return listId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>importNode</Name>
+				<Source><![CDATA[
+    public static void importNode(TFMListId _listId, Version _version, XmlElement _node, refrecId _parent)
+    {
+        XmlNode		NodeXML;
+        TFMListNode	nodeRecord;
+        NodeXML = _node.firstChild();
+		
+        nodeRecord = TFMListNode::makeNode(_listId,_version,_parent,_node);
+
+        while (NodeXML)
+        {
+            if (NodeXML.nodeType() == XmlNodeType::Element)
+            {
+                TFMImportLists::importNode(_listId,_version,NodeXML,nodeRecord.RecId);
+            }
+            NodeXML = NodeXML.nextSibling();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

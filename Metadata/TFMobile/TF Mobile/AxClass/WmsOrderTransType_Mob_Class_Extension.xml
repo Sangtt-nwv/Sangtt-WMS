@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>WmsOrderTransType_Mob_Class_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Extension of the WmsOrderTransType class, in order to utilize protected business logic in the class.
+/// </summary>
+[ExtensionOf(classStr(WmsOrderTransType))]
+final class WmsOrderTransType_Mob_Class_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>MobCheckFinishPickingLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to check if the quantity can be picked.
+    /// </summary>
+    /// <param name = "inventDimPicked">The inventDim buffer.</param>
+    /// <param name = "pickedQty">The quantity to be be picked</param>
+    /// <returns>A WMSOrderTrans instance to be used for the split.</returns>
+    public WMSOrderTrans MobCheckFinishPickingLine(InventDim inventDimPicked, InventQty pickedQty)
+    {        
+        return null;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

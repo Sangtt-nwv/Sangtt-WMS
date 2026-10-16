@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocPostMedia</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class that handles, when media files are being posted asynchronously to the backend from the device.
+/// </summary>
+class TFMDocPostMedia extends TFMDocumentHandler
+{
+   
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return "@TFM:ImageService";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    public Set getDocumentTypes()
+    {
+        Set ret = new Set(Types::String);
+
+        ret.add(methodStr(TFMDocPostMedia,PostMedia));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PostMedia</Name>
+				<Source><![CDATA[
+    private void PostMedia()
+    {
+        
+        TFMMediaID              mediaID = request.getFieldValue('id');//requestXml.root().getNamedElement(TFMConstants::requestData()).getNamedElement('Id').innerText();
+        str                     base64Img = request.getFieldValue('Data');// requestXml.root().getNamedElement(TFMConstants::requestData()).getNamedElement('Data').innerText();
+        TFMMediaQueue::attachImage(mediaID, base64Img, request.parmdeviceID());
+        
+        resultStr = 'Image received';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getReferenceDataMethods</Name>
+				<Source><![CDATA[
+    public Set getReferenceDataMethods()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

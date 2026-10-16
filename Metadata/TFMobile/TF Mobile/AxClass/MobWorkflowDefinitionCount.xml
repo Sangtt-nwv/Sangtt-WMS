@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobWorkflowDefinitionCount</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobWorkflowDefinitionCount extends TFMWorkflowDefinition
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>makeWorkflow</Name>
+				<Source><![CDATA[
+    public void makeWorkflow()
+    {
+        TFMWorkflowsTable wfTable = this.makeEntry(MobConstants::Count());
+
+        wfTable.addStepBlock(classStr(TFMWorkflowBlockDimensions));
+        wfTable.addStepBlock(classStr(TFMWorkflowBlockQuantity));
+
+        TFMGenericParms::CreateOrUpdateParameter(TFMWorkflowsTable::GetWorkflowDomainName(wfTable.WorkflowName), 'SerialNumber', 'validationWarningType', TFMOverDeliveryValidation::Block);
+        TFMGenericParms::CreateOrUpdateParameter(TFMWorkflowsTable::GetWorkflowDomainName(wfTable.WorkflowName), 'ToBin', 'validationWarningType', TFMOverDeliveryValidation::Warn);
+        TFMGenericParms::CreateOrUpdateParameter(TFMWorkflowsTable::GetWorkflowDomainName(wfTable.WorkflowName), 'FromBin', 'validationWarningType', TFMOverDeliveryValidation::Block);
+        TFMGenericParms::CreateOrUpdateParameter(TFMWorkflowsTable::GetWorkflowDomainName(wfTable.WorkflowName), 'Quantity', 'minValue', 0);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

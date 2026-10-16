@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListCustomComponentDimensionDisplay</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListElementAttribute('TFMListCustomComponentDimensionDisplay')]
+class TFMListCustomComponentDimensionDisplay extends TFMListCustomComponent
+{
+    NoYes storageDimensions;
+    NoYes productDimensions;
+    NoYes trackingDimensions;
+    NoYes showItemName;
+    NoYes showItemId;
+    TFMListWidth	width;
+    Set				blackList;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmwidth</Name>
+				<Source><![CDATA[
+    [TFMParameter(100)]
+    public TFMListWidth parmwidth(TFMListWidth _width = width)
+    {
+        width = _width;
+        return width;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        storageDimensions	= NoYes::Yes;
+        productDimensions	= NoYes::Yes;
+        trackingDimensions  = NoYes::Yes;
+        blackList = new Set(Types::Int64);
+        blackList.add(fieldNum(InventDim,InventSiteId ));
+        blackList.add(fieldNum(InventDim,InventStatusId ));
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmItemID</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes,"@SYS12836")]
+    public TFMPromptForUnit parmItemID(TFMPromptForUnit _showItemId = showItemId)
+    {
+        showItemId = _showItemId;
+        return showItemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmItemIName</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes,"@SYS319915")]
+    public TFMPromptForUnit parmItemIName(TFMPromptForUnit _showItemName = showItemName)
+    {
+        showItemName = _showItemName;
+        return showItemName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmStorageDimensions</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes,"@SYS108783")]
+    public TFMPromptForUnit parmStorageDimensions(TFMPromptForUnit _storageDimensions = storageDimensions)
+    {
+        storageDimensions = _storageDimensions;
+        return storageDimensions;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmProductDimensions</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes,"@SYS70071")]
+    public TFMPromptForUnit parmProductDimensions(TFMPromptForUnit _productDimensions = productDimensions)
+    {
+        productDimensions = _productDimensions;
+        return productDimensions;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTrackingDimensions</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes,"@SYS317445")]
+    public TFMPromptForUnit parmTrackingDimensions(TFMPromptForUnit _trackingDimensions = trackingDimensions)
+    {
+        trackingDimensions = _trackingDimensions;
+        return trackingDimensions;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>possibleParents</Name>
+				<Source><![CDATA[
+    public Set possibleParents()
+    {
+        Set ret = super();
+        ret.add('columns');
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>name</Name>
+				<Source><![CDATA[
+    public str name()
+    {        
+        return "@SYS73958";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resourceIcon</Name>
+				<Source><![CDATA[
+    public ResourceName resourceIcon()
+    {
+        return resourceStr(TFMClientDimensionIcon);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SubComponents</Name>
+				<Source><![CDATA[
+    public Map SubComponents() // Pass the parent element instead
+    {
+        Map					expandedVersionOfCustomComponent = new Map(Types::Integer, Types::Class);
+        TFMListColumn		column;
+        TFMListTextElement	textElement;
+        TFMListAttribute	attribute;       
+		if (!width)
+        {
+            width = 100;
+        }
+        column = TFMListColumn::Construct();
+        column.parmwidth(width/2);
+       
+        if (showItemId)
+        {
+            column.addElement(TFMListTextElement::ConstructTextElement('{'+extendedTypeStr(ItemId)+'_label}',TFMFonts::FindOrCreateFromProperties('SmallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        }
+        if (showItemName)
+        {
+            column.addElement(TFMListTextElement::ConstructTextElement('{'+extendedTypeStr(ItemName)+'_label}',TFMFonts::FindOrCreateFromProperties('SmallHeaderFont',TFMFontSizes::small,true,false,'').id));
+        }
+        if (storageDimensions)
+        {
+            textElement = TFMListTextElement::Construct();
+            column.addElement(textElement);
+            textElement.parmText('{dimensionLabelsStorage}');
+            textElement.parmFontId(TFMFonts::FindOrCreateFromProperties('SmallHeaderFont',TFMFontSizes::small,true,false,'').id);
+            textElement.parmVerticalAlignment(TFMVerticalAlignment::Top);
+        }
+        if (trackingDimensions)
+        {
+            textElement = TFMListTextElement::Construct();
+            column.addElement(textElement);
+            textElement.parmText('{dimensionLabelsTracking}');
+            textElement.parmFontId(TFMFonts::FindOrCreateFromProperties('SmallHeaderFont',TFMFontSizes::small,true,false,'').id);
+            textElement.parmVerticalAlignment(TFMVerticalAlignment::Top);
+        }
+        if (productDimensions)
+        {
+            textElement = TFMListTextElement::Construct();
+            column.addElement(textElement);
+            textElement.parmText('{dimensionLabelsProduct}');
+            textElement.parmFontId(TFMFonts::FindOrCreateFromProperties('SmallHeaderFont',TFMFontSizes::small,true,false,'').id);
+            textElement.parmVerticalAlignment(TFMVerticalAlignment::Top);
+        }
+        expandedVersionOfCustomComponent.insert(1, column);
+
+        column = TFMListColumn::Construct();
+        column.parmwidth(width/2);
+        
+        if (showItemId)
+        {
+            column.addElement(TFMListTextElement::ConstructTextElement('{'+extendedTypeStr(ItemId)+'}',TFMFonts::FindOrCreateFromProperties('smallFont',TFMFontSizes::small,false,false,'').id,SysChartHorizontalAlignment::Left,TFMVerticalAlignment::Top));
+        }
+        if (showItemName)
+        {
+            column.addElement(TFMListTextElement::ConstructTextElement('{'+extendedTypeStr(ItemName)+'}',TFMFonts::FindOrCreateFromProperties('smallFont',TFMFontSizes::small,false,false,'').id,SysChartHorizontalAlignment::Left,TFMVerticalAlignment::Top));
+        }
+        if (storageDimensions)
+        {
+            textElement = TFMListTextElement::Construct();
+            column.addElement(textElement);
+            textElement.parmText('{dimensionValuesStorage}');
+            textElement.parmFontId(TFMFonts::FindOrCreateFromProperties('smallFont',TFMFontSizes::small,false,false,'').id);
+            textElement.parmHorizontalAlignment(SysChartHorizontalAlignment::Left);
+            textElement.parmVerticalAlignment(TFMVerticalAlignment::Top);
+        }
+        if (trackingDimensions)
+        {
+            textElement = TFMListTextElement::Construct();
+            column.addElement(textElement);
+            textElement.parmText('{dimensionValuesTracking}');
+            textElement.parmFontId(TFMFonts::FindOrCreateFromProperties('smallFont',TFMFontSizes::small,false,false,'').id);
+            textElement.parmHorizontalAlignment(SysChartHorizontalAlignment::Left);
+            textElement.parmVerticalAlignment(TFMVerticalAlignment::Top);
+        }
+        if (productDimensions)
+        {
+            textElement = TFMListTextElement::Construct();
+            column.addElement(textElement);
+            textElement.parmText('{dimensionValuesProduct}');
+            textElement.parmFontId(TFMFonts::FindOrCreateFromProperties('smallFont',TFMFontSizes::small,false,false,'').id);
+            textElement.parmHorizontalAlignment(SysChartHorizontalAlignment::Left);
+            textElement.parmVerticalAlignment(TFMVerticalAlignment::Top);
+        }
+        expandedVersionOfCustomComponent.add(2, column);
+
+        return expandedVersionOfCustomComponent;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>enrichDataset</Name>
+				<Source><![CDATA[
+    public Map enrichDataset(Common _common, Map _existingMap)
+    {
+        Map				ret = super(_common, _existingMap);
+        InventDim		inventDim;
+        SysDictTable	sdt = new SysDictTable(_common.tableId);
+        MapEnumerator	fieldsAndValues;
+        InventTable		inventTable;
+        str				labels, values;
+		if (_common.tableId == tableNum(InventDim))
+        {
+            inventDim = _common;
+        }
+		if (sdt.fieldName2Id(extendedTypeStr(InventDimId)))
+        {
+            inventDim = InventDim::find(_common.(sdt.fieldName2Id(extendedTypeStr(InventDimId))));
+        }
+        if (sdt.fieldName2Id(extendedTypeStr(ItemId)) || sdt.fieldName2Id(fieldStr(ITMLine, ShipItemId)))
+        {
+            inventTable = InventTable::find(_common.((sdt.fieldName2Id(extendedTypeStr(ItemId)) ? sdt.fieldName2Id(extendedTypeStr(ItemId)) : sdt.fieldName2Id(fieldStr(ITMLine, ShipItemId)))));
+            ret.insert(extendedTypeStr(ItemId)+'_label', sdt.fieldObject(sdt.fieldName2Id(extendedTypeStr(ItemId)) ? sdt.fieldName2Id(extendedTypeStr(ItemId)) : sdt.fieldName2Id(fieldStr(ITMLine, ShipItemId))).label());
+            ret.insert(extendedTypeStr(ItemId), inventTable.ItemId);
+            ret.insert(extendedTypeStr(ItemName)+'_label', "@SYS319915");
+            ret.insert(extendedTypeStr(ItemName), inventTable.itemName(_common));            
+        }
+        if (_common.tableId == tableNum(WHSLicensePlate))
+        {
+            WHSLicensePlateId licensePlateId = _common.(sdt.fieldName2Id(fieldstr(WHSLicensePlate,LicensePlateId)));
+            
+            trackingDimensions = false;
+            productDimensions = false;
+
+            inventDim = TFMInventDimHelper::GetInventDimFromLicensePlate(licensePlateId);
+            if(!inventDim)
+            {
+                // default to existing code if the inventDim was not found;
+                select firstonly inventDim where inventDim.LicensePlateId == licensePlateId;
+            }
+            
+            ret.insert(extendedTypeStr(ItemName), sdt.fieldObject(sdt.fieldName2Id(fieldstr(WHSLicensePlate,LicensePlateId))).label() + ' ' + _common.(sdt.fieldName2Id(fieldstr(WHSLicensePlate,LicensePlateId))));
+        }
+
+        if (!inventDim)
+        {
+            return ret;
+        }
+        if (storageDimensions && !ret.exists('dimensionLabelsStorage') && !ret.exists('dimensionValuesStorage'))
+        {
+            fieldsAndValues = TFMListCustomComponentDimensionDisplay::GetInventDimCollectors(inventDim,tableFieldGroupStr(InventDim, StorageDimensions),blackList).getEnumerator();
+            while (fieldsAndValues.moveNext())
+            {                
+                labels += (labels ? '\n' : '') + fieldsAndValues.currentKey();
+                values += (values ? TFMConstants::lineBreak() : '') + fieldsAndValues.currentValue();
+            }
+            ret.insert('dimensionLabelsStorage', labels);
+            ret.insert('dimensionValuesStorage', values);
+        }
+        if (trackingDimensions && !ret.exists('dimensionLabelsTracking') && !ret.exists('dimensionValuesTracking'))
+        {
+            labels = '';
+            values = '';
+            fieldsAndValues = TFMListCustomComponentDimensionDisplay::GetInventDimCollectors(inventDim,tableFieldGroupStr(InventDim, trackingDimensions),blackList).getEnumerator();
+            while (fieldsAndValues.moveNext())
+            {
+                labels += (labels ? '\n' : '') + fieldsAndValues.currentKey();
+                values += (values ? TFMConstants::lineBreak() : '') + fieldsAndValues.currentValue();
+            }
+            ret.insert('dimensionLabelsTracking', labels);
+            ret.insert('dimensionValuesTracking', values);
+        }
+        if (productDimensions && !ret.exists('dimensionLabelsProduct') && !ret.exists('dimensionValuesProduct'))
+        {
+            labels = '';
+            values = '';
+            fieldsAndValues = TFMListCustomComponentDimensionDisplay::GetInventDimCollectors(inventDim,tableFieldGroupStr(InventDim, productDimensions),blackList).getEnumerator();
+            while (fieldsAndValues.moveNext())
+            {
+                labels += (labels ? '\n' : '') + fieldsAndValues.currentKey();
+                values += (values ? TFMConstants::lineBreak() : '') + fieldsAndValues.currentValue();
+            }
+            ret.insert('dimensionLabelsProduct', labels);
+            ret.insert('dimensionValuesProduct', values);
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetInventDimCollectors</Name>
+				<Source><![CDATA[
+    public static Map GetInventDimCollectors(InventDim _inventDim, FieldGroupName _fieldgroupName, Set _ignoreList)
+    {
+        Map									returnMap = new Map(Types::String, Types::String);
+        SysDictType							dictType;
+        SysDictField						sdf;
+        FieldName							fieldName;
+        SetEnumerator						sEnum = TFMHelper::fieldGroupToSet(tableNum(InventDim),_fieldgroupName).getEnumerator();
+        InventDimParm						dimParm;
+        str									labelForField;
+        dimParm.initFromInventDim(_inventDim);
+
+        while (sEnum.moveNext())
+        {
+            fieldName = sEnum.current();
+            
+            if (!dimParm.(InventDim::dim2dimParm(fieldName2Id(tableNum(InventDim),sEnum.current()))) || _ignoreList.in(fieldName2Id(tableNum(InventDim),sEnum.current())))
+            {
+                continue;
+            }
+            sdf = new SysDictField(tableNum(InventDim), fieldName2Id(tableNum(InventDim),sEnum.current()));
+            
+            dictType = new SysDictType(sdf.typeId());
+            labelForField = dictType.label();
+
+            returnMap.insert(labelForField,_inventDim.(fieldName2Id(tableNum(InventDim),sEnum.current())));
+        }
+
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMImageHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMImageHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>ExifRotateBase64Image</Name>
+				<Source><![CDATA[
+    public static System.IO.Stream ExifRotateBase64Image(str _base64)
+    {
+        return TFMImageHelper::ExifRotateImageStream(new System.IO.MemoryStream(System.Convert::FromBase64String(_base64)));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExifRotateImageStream</Name>
+				<Source><![CDATA[
+    public static System.IO.Stream ExifRotateImageStream(System.IO.Stream _stream)
+    {
+        System.IO.MemoryStream stream;
+        System.Drawing.Image img = TFMImageHelper::ExifRotateImage(System.Drawing.Image::FromStream(_stream));
+        stream = new System.IO.MemoryStream();
+        img.Save(stream,System.Drawing.Imaging.ImageFormat::Jpeg);
+        stream.Position = 0;
+        return stream;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExifRotateImage</Name>
+				<Source><![CDATA[
+    public static System.Drawing.Image ExifRotateImage(System.Drawing.Image _image)
+    {
+        int exifOrientationID = 0x112; //274
+		
+        if (_image && _image.PropertyIdList.Contains(exifOrientationID))
+        {
+            var prop = _image.GetPropertyItem(exifOrientationID);
+            int val = System.BitConverter::ToUInt16(prop.Value, 0);
+            var rot = System.Drawing.RotateFlipType::RotateNoneFlipNone;
+
+            if (val == 3 || val == 4)
+            {
+                rot = System.Drawing.RotateFlipType::Rotate180FlipNone;
+            }
+            else if (val == 5 || val == 6)
+            {
+                rot = System.Drawing.RotateFlipType::Rotate90FlipNone;
+            }
+            else if (val == 7 || val == 8)
+            {
+                rot = System.Drawing.RotateFlipType::Rotate270FlipNone;
+            }
+            if (val == 2 || val == 4 || val == 5 || val == 7)
+            {
+                rot = System.Drawing.RotateFlipType::RotateNoneFlipX;
+            }
+            if (rot != System.Drawing.RotateFlipType::RotateNoneFlipNone)
+            {
+                _image.RotateFlip(rot);
+            }
+            
+        }
+        return _image;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertImageToContainer</Name>
+				<Source><![CDATA[
+    private static container convertImageToContainer(System.Drawing.Image _image)
+    {
+        System.Drawing.Imaging.ImageFormat imgFormat;
+        System.IO.MemoryStream memoryStream = new System.IO.MemoryStream();
+        #ifnot.isAX6
+        imgFormat = System.Drawing.Imaging.ImageFormat::Png;
+        #endif
+        #if.isAX6
+        imgFormat = System.Drawing.Imaging.ImageFormat::get_Png();
+        #endif
+        _image.Save(memoryStream, imgFormat);
+        return Binary::constructFromMemoryStream(memoryStream).getContainer();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Image2Base64</Name>
+				<Source><![CDATA[
+    public static str Image2Base64(System.Drawing.Image _image)
+    {
+        System.IO.MemoryStream memoryStream;
+
+        if(!_image)
+        {
+            return ''; // if no - image no base64.
+        }
+
+        //System.IO.Stream fileStream = System.IO.FileStream::
+        memoryStream = new System.IO.MemoryStream();
+        //fileStream.CopyTo(memoryStream);
+        #ifnot.isAX6
+        _image.Save(memoryStream, System.Drawing.Imaging.ImageFormat::Png);
+        #endif
+        #if.isAX6
+        _image.Save(memoryStream, System.Drawing.Imaging.ImageFormat::get_Png());
+        #endif
+        return System.Convert::ToBase64String(memoryStream.ToArray());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>base64ToImage</Name>
+				<Source><![CDATA[
+    public static System.Drawing.Image base64ToImage(str _base64)
+    {
+        System.Drawing.Image img = null;
+        try
+        {
+            if(_base64)
+            {
+                img = System.Drawing.Image::FromStream(new System.IO.MemoryStream(System.Convert::FromBase64String(_base64)));
+            }
+        }
+        catch(Exception::Error)
+        {
+            //Log that something is wrong.
+        }
+        return img;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>base64ToHtml</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Converts a base64 image to a html output in img tag.
+    /// </summary>
+    public static str base64ToHtml(str _base64, real _width, str _name)
+    {
+        return strFmt('<img width="%1" src="data:image/png;base64, %2" alt="%3" />', _width, _base64, _name);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>scaleImage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Scales <c>System.Drawing.Image</c> object keeping the orignal
+    /// aspect ratio, using high quality scaling.
+    /// </summary>
+    /// <param name = "_image">Image object to be scaled.</param>
+    /// <param name = "_maxWidth">Maximum width of the scaled object.</param>
+    /// <param name = "_maxHeight">Maximum height of the scaled object.</param>
+    /// <returns>The scaled object.</returns>
+    public static System.Drawing.Image scaleImage(System.Drawing.Image _image, int _maxWidth, int _maxHeight)
+    {
+        if (_image == null || _maxWidth <= 0 || _maxHeight <= 0)
+        {
+            throw error(error::wrongUseOfFunction(funcName()));
+        }
+
+        int origWidth = _image.get_Width();
+        int origHeight = _image.get_Height();
+
+        real realOrigWidth = origWidth;
+        real realOrigHeight = origHeight;
+        real realMaxWidth = _maxWidth;
+        real realMaxHeight = _maxHeight;
+
+        real ratioX = realMaxWidth/realOrigWidth;
+        real ratioY = realMaxHeight/realOrigHeight;
+        real ratio = min(ratioX, ratioY);
+
+        int newWidth = real2int(realOrigWidth * ratio);
+        int newHeight = real2int(realOrigHeight * ratio);
+
+        System.Drawing.Rectangle destRect = new System.Drawing.Rectangle(0, 0, newWidth, newHeight);
+        System.Drawing.Bitmap newImage = new System.Drawing.Bitmap(newWidth, newHeight);
+
+        System.Drawing.Graphics graphics;
+        System.Drawing.Imaging.ImageAttributes wrapMode;
+
+        newImage.SetResolution(_image.get_HorizontalResolution(), _image.get_VerticalResolution());
+
+        graphics = System.Drawing.Graphics::FromImage(newImage);
+        
+        graphics.set_InterpolationMode(System.Drawing.Drawing2D.InterpolationMode::HighQualityBicubic);
+        graphics.set_CompositingMode(System.Drawing.Drawing2D.CompositingMode::SourceCopy);
+        graphics.set_CompositingQuality(System.Drawing.Drawing2D.CompositingQuality::HighQuality);
+        graphics.set_SmoothingMode(System.Drawing.Drawing2D.SmoothingMode::HighQuality);
+        graphics.set_PixelOffsetMode(System.Drawing.Drawing2D.PixelOffsetMode::HighQuality);
+
+        wrapMode = new System.Drawing.Imaging.ImageAttributes();
+            
+        wrapMode.SetWrapMode(System.Drawing.Drawing2D.WrapMode::TileFlipXY);
+        graphics.DrawImage(_image, destRect, 0, 0, origWidth, origHeight, System.Drawing.GraphicsUnit::Pixel, wrapMode);
+            
+        
+        return newImage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>frameImage</Name>
+				<Source><![CDATA[
+    public static System.Drawing.Image frameImage(System.Drawing.Image _image)
+    {
+        if (_image == null)
+        {
+            throw error(error::wrongUseOfFunction(funcName()));
+        }
+
+        int origWidth = _image.get_Width();
+        int origHeight = _image.get_Height();
+
+        System.Drawing.Bitmap newImage = new System.Drawing.Bitmap(origWidth, origHeight);
+        System.Drawing.Bitmap oldImage = new System.Drawing.Bitmap(_image);
+        System.Drawing.Color  color, oldColor;
+        System.Drawing.Pen   pen;
+        System.Drawing.Graphics graphics;
+        int r, g, b;
+        int x, dX;
+        int y;
+        int i , j;
+
+        
+        //graphicsFrom = System.Drawing.Graphics::FromImage(_image);
+        for ( y = 0; y < origHeight; y++)
+        {
+            dX = ((y <= 3) || (y >= (origHeight-4)))?1:0;
+            dX = ((y == 0) || (y == (origHeight-1)))?4:dX;
+            dX = ((y == 1) || (y == (origHeight-2)))?2:dX;
+            for (x = dX; x < origWidth - dX; x++)
+            {
+                oldColor = oldImage.GetPixel(x,y);
+                r = real2int((255-((255-oldColor.R)*((y/origHeight)*0.4+0.4))));
+                g = real2int((255-((255-oldColor.G)*((y/origHeight)*0.4+0.4))));
+                b = real2int((255-((255-oldColor.B)*((y/origHeight)*0.4+0.4))));
+                color = System.Drawing.Color::FromArgb(255,r,g,b);
+                newImage.SetPixel(x,y,color);
+            }
+        }
+
+        //graphics.DrawImage(_image, destRect, 0, 0, origWidth, origHeight, System.Drawing.GraphicsUnit::Pixel, wrapMode);
+            
+        graphics = System.Drawing.Graphics::FromImage(newImage);
+        
+        color = System.Drawing.Color::FromArgb(196<<24);
+        pen = new System.Drawing.Pen(color);
+        
+        dX = 4;
+        origWidth--;
+        graphics.DrawLine(pen,dX,0,origWidth-dX,0);
+        graphics.DrawLine(pen,dX,origHeight-1,origWidth-dX,origHeight-1);
+
+        graphics.DrawLine(pen,0,dX,0,origHeight-dX-1);
+        graphics.DrawLine(pen,origWidth,dX,origWidth,origHeight-dX-1);
+
+
+        for(i = 0;i<2;i++)
+        {
+            for(j=0;j<2;j++)
+            {
+                graphics.DrawLine(pen,
+                                2+(i*(origWidth-6))+i,
+                                1+(j*(origHeight-3)),
+                                3+(i*(origWidth-6))+i,
+                                1+(j*(origHeight-3)));
+            }
+        }
+        for(i = 0;i<2;i++)
+        {
+            for(j=0;j<2;j++)
+            {
+                graphics.DrawLine(pen,
+                                1+(i*(origWidth-3))+i,
+                                2+(j*(origHeight-6)),
+                                1+(i*(origWidth-3))+i,
+                                3+(j*(origHeight-6)));
+            }
+        }
+        pen.Dispose();
+        
+        return newImage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resource2Base64</Name>
+				<Source><![CDATA[
+    public static str resource2Base64(str _resStr)
+    {
+        str base64 = TFMMediaProvider::instance().getBase64ForMedia(_resStr);
+        if(base64)
+        {
+            return base64;
+        }
+        
+        base64 = TFMHelper::resource2BinData(_resStr).base64Encode();
+        if(base64)
+        {
+            TFMMediaProvider::instance().setMedia(_resStr, base64, null);
+        }
+        return base64;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

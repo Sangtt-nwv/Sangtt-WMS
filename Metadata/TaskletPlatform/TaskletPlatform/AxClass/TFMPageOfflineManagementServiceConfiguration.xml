@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageOfflineManagementServiceConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPageOfflineManagementServiceConfiguration
+{
+    TFMListId	listId;
+    TFMMenu navigateTo;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getConfigurationName</Name>
+				<Source><![CDATA[
+    public str getConfigurationName()
+    {
+        return 'offlineService';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmListId</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('OfflineManagementOrderList','list','',true)]
+    public TFMListId parmListId(TFMListId _listId = listId)
+    {
+        listId = _listId;
+        return listId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOnItemSelectedNavigateTo</Name>
+				<Source><![CDATA[
+    [TFMPageConfigurationAttributeAttribute('','onItemSelected','navigateTo',true)]
+    public TFMMenu parmOnItemSelectedNavigateTo(TFMMenu _navigateTo = navigateTo)
+    {
+        navigateTo = _navigateTo;
+        return navigateTo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _parent)
+    {
+        XmlElement	serviceNode = _parent.ownerDocument().createElement(this.getConfigurationName());
+        Map			groups = this.populateXML(serviceNode);
+        _parent.appendChild(serviceNode);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateXML</Name>
+				<Source><![CDATA[
+    protected Map populateXML(XmlElement _configNode)
+    {
+        ClassId thisClassId = classIdGet(this);
+        SetEnumerator							methodSet = TFMFormLookupHelper::parmMethodsOnClass(thisClassId).getEnumerator();
+        XmlElement								offlineServiceNode;
+        Map										groups = new Map(Types::String, Types::Class);
+        SysDictMethod							DM;
+        SysDictClass							DC = new SysDictClass(thisClassId);
+        TFMPageConfigurationAttributeAttribute	configAttr;
+        str										GroupKey;
+        str										value;
+
+        while (methodSet.moveNext())
+        {
+            DM = new SysDictMethod(UtilElementType::ClassInstanceMethod, thisClassId, methodSet.current());
+            configAttr = DM.getAttribute(classStr(TFMPageConfigurationAttributeAttribute));
+            if (!configAttr)
+            {
+                continue;
+            }
+
+            value = strFmt('%1',DC.callObject(methodSet.current(),this));
+
+            if (DM.returnTypeName() == extendedTypeStr(TFMPageTitleString) && !strScan(value,'@{',1,strLen(value)))
+            {
+                value = '@{'+value+'}';
+            }
+
+            if (configAttr.parmMandatory() || (value && !configAttr.parmMandatory() && value != strFmt('%1',configAttr.parmDefaultValue())))
+            {
+                GroupKey = configAttr && configAttr.parmXPath() ? configAttr.parmXPath() : '';
+                if (GroupKey && !groups.exists(GroupKey))
+                {
+                    offlineServiceNode = _configNode.ownerDocument().createElement(GroupKey);
+                    _configNode.appendChild(offlineServiceNode);
+                    groups.insert(GroupKey,offlineServiceNode);
+                }
+                offlineServiceNode = GroupKey ? groups.lookup(GroupKey) : _configNode;
+                offlineServiceNode.setAttribute(TFMRegistrationCollector::smallBeginnings(configAttr.parmnodeName() ? configAttr.parmnodeName() : subStr(methodSet.current(),5,10000)),value);
+            }
+        }
+        return groups;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

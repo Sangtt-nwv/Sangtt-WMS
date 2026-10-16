@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMGraphRectInteraction</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class to represent rectangles in a bitmap, that should be interactive.
+/// </summary>
+class TFMGraphRectInteraction
+{
+    real    rTop;
+    real    rBottom;
+    real    rLeft;
+    real    rRight;
+    str     text;
+    str     subText;
+    int     upperColor;
+    int     lowerColor;
+    int     textColor;
+    int     edgeColor;
+    str     updates;
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>draw</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Draw a gradient box in the rectangles space.
+    /// </summary>
+    /// <param name="_bmpDC">
+    /// The bitmap upon which to draw the rect.
+    /// </param>
+    /// <param name="_drawText">
+    /// Should the text be drawn on the bitmap.
+    /// </param>
+    public void draw(System.Drawing.Graphics _bmpDC, boolean _drawText = false)
+    {
+        
+        TFMGraphicsHelper::drawGradient(_bmpDC,real2int(rLeft),real2int(rTop),real2int(rRight-rLeft),real2int(rBottom-rTop),upperColor,lowerColor,true,true);
+        TFMGraphicsHelper::drawBmpEdges(_bmpDC,real2int(rLeft),real2int(rTop),real2int(rRight-rLeft),real2int(rBottom-rTop),edgeColor,true,true);
+        if (_drawText)
+        {
+            this.drawTextAtTopAndSubText(_bmpDC,text,subText,updates);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawTextAtCenter</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to draw text at the center of a rectangle
+    /// </summary>
+    /// <param name="_bmpDC">
+    /// The bitmap upon which to draw the text.
+    /// </param>
+    /// <param name="_text">
+    /// The text to draw.
+    /// </param>
+    public void drawTextAtCenter(System.Drawing.Graphics _bmpDC, str _text = '')
+    {
+        int fontSize = real2int((16.0/124.0)*(rRight-rLeft));
+        ;
+        TFMGraphicsHelper::drawText(_bmpDC,real2int(rLeft+(rRight-rLeft)/2),real2int(rTop+ (rBottom-rTop)/2),textColor,_text,fontSize,SysChartHorizontalAlignment::Auto,  SysChartVerticalAlignment::Auto,true,true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawTextAtTopAndSubText</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to draw text at the top of a rectangle
+    /// </summary>
+    /// <param name="_bmpDC">
+    /// The bitmap upon which to draw the text.
+    /// </param>
+    /// <param name="_text">
+    /// The text to draw.
+    /// </param>
+    /// <param name="_subText">
+    /// The subtext to draw.
+    /// </param>
+    public void drawTextAtTopAndSubText(System.Drawing.Graphics _bmpDC, str _text = '', str _subText ='', str _updatesText = '')
+    {
+        int fontSize = real2int((16.0/124.0)*(rRight-rLeft));
+        System.Drawing.Color    color = System.Drawing.Color::FromArgb(64<<24);
+        System.Drawing.Pen      Pen = new System.Drawing.Pen(color,1);
+
+        TFMGraphicsHelper::drawText(_bmpDC,real2int(rLeft+(rRight-rLeft)/2),real2int(rTop),textColor,_text,fontSize,SysChartHorizontalAlignment::Center,  SysChartVerticalAlignment::Auto,true,true,'Segoe Script',this.iWidth());
+        _bmpDC.DrawLine(Pen,real2int(rLeft),real2int(rTop+fontSize*1.5),real2int(rRight),real2int(rTop+fontSize*1.5));
+
+        TFMGraphicsHelper::drawText(_bmpDC,real2int(rLeft+3),real2int(rTop+fontSize*1.5+2),textColor,_subText,7);
+        TFMGraphicsHelper::drawText(_bmpDC,real2int(rLeft+3),real2int(rBottom-fontSize*1.5+2),255+192<<24 ,'Updates variable '+ _updatesText,7,SysChartHorizontalAlignment::Auto,  SysChartVerticalAlignment::Auto,false,true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>height</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the rectangles height as a real.
+    /// </summary>
+    /// <returns>
+    /// The rectangles height as a real.
+    /// </returns>
+    public real height()
+    {
+        return abs(rBottom - rTop);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>iBottom</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the rectangles bottom position as an integer.
+    /// </summary>
+    /// <returns>
+    /// The rectangles bottom position as an integer.
+    /// </returns>
+    public int iBottom()
+    {
+        return real2int(rBottom);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>iCenterX</Name>
+				<Source><![CDATA[
+    public int iCenterX()
+    {
+        return real2int(this.rCenterX());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>iCenterY</Name>
+				<Source><![CDATA[
+    public int iCenterY()
+    {
+        return real2int(this.rCenterY());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>iHeight</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the rectangles height as an integer.
+    /// </summary>
+    /// <returns>
+    /// The rectangles height as an integer.
+    /// </returns>
+    public int iHeight()
+    {
+        return real2int(abs(rBottom - rTop));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>iLeft</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the rectangles left position as an integer.
+    /// </summary>
+    /// <returns>
+    /// The rectangles left position as an integer.
+    /// </returns>
+    public int iLeft()
+    {
+        return real2int(rLeft);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>iRight</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the rectangles right position as an integer.
+    /// </summary>
+    /// <returns>
+    /// The rectangles right position as an integer.
+    /// </returns>
+    public int iRight()
+    {
+        return real2int(rRight);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>iTop</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the rectangles top position as an integer.
+    /// </summary>
+    /// <returns>
+    /// The rectangles top position as an integer.
+    /// </returns>
+    public int iTop()
+    {
+        return real2int(rTop);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>iWidth</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the rectangles width as an integer.
+    /// </summary>
+    /// <returns>
+    /// The rectangles width as an integer.
+    /// </returns>
+    public int iWidth()
+    {
+        return real2int(abs(rRight - rLeft));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constructor for the <c>BlueGraphRectInteract</c> class.
+    /// </summary>
+    /// <param name="_top">
+    /// Top position of the rectangle.
+    /// </param>
+    /// <param name="_bottom">
+    /// Bottom position of the rectangle.
+    /// </param>
+    /// <param name="_left">
+    /// Left position of the rectangle.
+    /// </param>
+    /// <param name="_right">
+    /// Right position of the rectangle.
+    /// </param>
+    /// <param name="_text">
+    /// Text of the rectangle.
+    /// </param>
+    protected void new(real _top, real _bottom, real _left, real _right, str _text = '', str _subtext = '', str _updates = '')
+    {
+        rTop        = _top;
+        rBottom     = _bottom;
+        rLeft       = _left;
+        rRight      = _right;
+        text        = _text;
+        updates		= _updates;
+        subText     = _subText;
+        upperColor  = 255+255<<8+255<<16+128<<24;
+        lowerColor  = 192+192<<8+255<<16+128<<24;
+        edgeColor   = 127+127<<8+127<<16+128<<24;
+        textColor   = 255+255<<8+255<<16+192<<24;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmEdgeColor</Name>
+				<Source><![CDATA[
+    public int parmEdgeColor(int _edgeColor = edgeColor)
+    {
+        edgeColor = _edgeColor;
+        return edgeColor;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLowerColor</Name>
+				<Source><![CDATA[
+    public int parmLowerColor(int _lowerColor = lowerColor)
+    {
+        lowerColor = _lowerColor;
+        return lowerColor;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmsubText</Name>
+				<Source><![CDATA[
+    public str parmsubText(str _subtext = subtext)
+    {
+        ;
+        subtext = _subtext;
+        return subtext;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTextColor</Name>
+				<Source><![CDATA[
+    public int parmTextColor(int _textColor = textColor)
+    {
+        textColor = _textColor;
+        return textColor;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUpperColor</Name>
+				<Source><![CDATA[
+    public int parmUpperColor(int _upperColor = upperColor)
+    {
+        upperColor = _upperColor;
+        return upperColor;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTop</Name>
+				<Source><![CDATA[
+    public real parmTop(real _top = rTop)
+    {
+        rTop = _top;
+        return rTop;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBottom</Name>
+				<Source><![CDATA[
+    public real parmBottom(real _bottom = rBottom)
+    {
+        rBottom = _bottom;
+        return rBottom;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLeft</Name>
+				<Source><![CDATA[
+    public real parmLeft(real _left = rLeft)
+    {
+        rLeft = _left;
+        return rLeft;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRight</Name>
+				<Source><![CDATA[
+    public real parmRight(real _right = rRight)
+    {
+        rRight = _right;
+        return rRight;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>rBottom</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the rectangles bottom position as a real.
+    /// </summary>
+    /// <returns>
+    /// The rectangles bottom position as a real.
+    /// </returns>
+    public real rBottom()
+    {
+        return rBottom;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>rCenterX</Name>
+				<Source><![CDATA[
+    public real rCenterX()
+    {
+        return rLeft + (rRight-rLeft)/2.0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>rCenterY</Name>
+				<Source><![CDATA[
+    public real rCenterY()
+    {
+        return rTop + (rBottom-rTop)/2.0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>rLeft</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the rectangles left position as a real.
+    /// </summary>
+    /// <returns>
+    /// The rectangles left position as a real.
+    /// </returns>
+    public real rLeft()
+    {
+        return rLeft;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>rRight</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the rectangles right position as a real.
+    /// </summary>
+    /// <returns>
+    /// The rectangles rightposition as a real.
+    /// </returns>
+    public real rRight()
+    {
+        return rRight;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>rTop</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the rectangles top position as a real.
+    /// </summary>
+    /// <returns>
+    /// The rectangles top position as a real.
+    /// </returns>
+    public real rTop()
+    {
+        return rTop;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testIntersection</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Tests if a certain coodinate is inside the rectangle.
+    /// </summary>
+    /// <param name="_x">
+    /// X-coordinate of the point to test.
+    /// </param>
+    /// <param name="_y">
+    /// Y-coordinate of the point to test.
+    /// </param>
+    /// <returns>
+    /// True if point is inside the rectangle, otherwise false.
+    /// </returns>
+    public boolean testIntersection(int _x, int _y)
+    {
+        boolean ret = false;
+        ;
+        if (_x >= rLeft && _x <= rRight && _y >= rTop && _y <= rBottom)
+        {
+            ret = true;
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>width</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the rectangles width as a real.
+    /// </summary>
+    /// <returns>
+    /// The rectangles width as a real.
+    /// </returns>
+    public real width()
+    {
+        return abs(rRight - rLeft);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMGraphRectInteraction Construct(real _top, real _bottom, real _left, real _right, str _text = '', str _subtext = '', str _updates = '')
+    {
+        return new TFMGraphRectInteraction(_top,_bottom,_left,_right,_text,_subtext, _updates);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ConstructCenter</Name>
+				<Source><![CDATA[
+    public static TFMGraphRectInteraction ConstructCenter(real _x, real _y, real _width, real _height, str _text = '', str _subtext = '', str _updates = '', ClassName _overrideName = classStr(TFMGraphRectInteraction))
+    {
+        SysDictClass DC = new SysDictClass(className2Id(_overrideName));
+
+        return DC.makeObject(_y-_height/2.0,_y + _height/2.0,_x - _width/2.0,_x + _width/2.0,_text,_subtext, _updates);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

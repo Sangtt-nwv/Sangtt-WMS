@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDataSourceBlockLookupDefault</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('Lookup', "@SYS40186")]
+class TFMDataSourceBlockLookupDefault extends TFMDataSourceBlock
+{
+    TFMTableNameAndField barcodeField;
+	   
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmBarcodeField</Name>
+				<Source><![CDATA[
+    [TFMParameter('',"@SYS85099")]
+    public TFMTableNameAndField parmBarcodeField(TFMTableNameAndField _barcodeField = barcodeField)
+    {
+        barcodeField = _barcodeField;
+        return barcodeField;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddFields</Name>
+				<Source><![CDATA[
+    public Map AddFields(Common _common)
+    {
+        Map					ret			= super(_common);
+        SysDictTable		sdt = new SysDictTable(_common.tableId);
+        ItemId				itemId;
+        UnitOfMeasureSymbol	unit;
+        InventDimId			inventDimId;
+        InventDim			inventDim;
+        TFMInventDimSetup	mobInventDimSetup;
+        FieldId				itemIdFieldId = sdt.fieldName2Id(extendedTypeStr(ItemId));
+        FieldId				InventDimFieldId = sdt.fieldName2Id(extendedTypeStr(InventDimId));
+
+        if (itemIdFieldId)
+        {
+            itemId = _common.(itemIdFieldId);
+			
+        }
+        if (InventDimFieldId)
+        {
+            inventDimId = _common.(InventDimFieldId);
+            inventDim = InventDim::find(inventDimId);
+        }
+
+        if (barcodeField)
+        {
+            ret.insert(TFMConstants::Barcode(), barcodeField);
+        }
+
+        if (itemId && ds.showImages)
+        {
+            ret.insert('imageId', TFMHelper::imageIDFromDocuref(TFMHelper::FindItemDocuref(itemId,inventDim.inventDimId)));
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

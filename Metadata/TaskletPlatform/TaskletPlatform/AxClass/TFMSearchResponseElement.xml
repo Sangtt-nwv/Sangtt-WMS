@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMSearchResponseElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMSearchResponseElement extends TFMResponseElement
+{
+    Map                         Ids;
+    TFMRequestSearchElement     request;
+    Map                         displayLines1;
+    Map                         displayLines2;
+    Map                         displayLines3;
+    Map                         imageIds;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        
+        Ids = new Map(Types::String, Types::Record);
+        displayLines1 = new Map(Types::String, Types::String);
+        displayLines2 = new Map(Types::String, Types::String);
+        displayLines3 = new Map(Types::String, Types::String);
+        imageIds = new Map(Types::String, Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSearchRequest</Name>
+				<Source><![CDATA[
+    public TFMRequestSearchElement parmSearchRequest(TFMRequestSearchElement _searchRequest = request)
+    {
+        request = _searchRequest;
+        return request;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addResponse</Name>
+				<Source><![CDATA[
+    public void addResponse(Common _buffer, str _id, str _displayLine1 = '', str _displayLine2 = '', str _displayLine3 = '', str _imageId = '')
+    {        
+        Ids.insert(_id,_buffer);
+        
+        if (_displayLine1)
+        {
+            displayLines1.insert(_id, _displayLine1);
+        }
+        if (_displayLine2)
+        {
+            displayLines2.insert(_id, _displayLine2);
+        }
+        if (_displayLine3)
+        {
+            displayLines3.insert(_id, _displayLine3);
+        }
+        if (_imageId)
+        {
+            imageIds.insert(_id, _imageId);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _element)
+    {
+        
+        MapEnumerator		mEnum = Ids.getEnumerator();
+        XmlDocument         returnXML = _element.ownerDocument();        
+        TFMXMLFormatSearch  formatSearch;
+        XmlElement          responseElement          = _element;
+        Common              common;
+        returnXML.appendChild(responseElement);
+        while (mEnum.moveNext())
+        {
+            common = mEnum.currentValue();
+            
+            formatSearch = new TFMXMLFormatSearch();
+            formatSearch.initFromCommon(returnXML,common,1,request.parmType());
+            if (displayLines1.exists(mEnum.currentKey()))
+            {
+                formatSearch.parmDisplayLine1(displayLines1.lookup(mEnum.currentKey()));
+            }
+            if (displayLines2.exists(mEnum.currentKey()))
+            {
+                formatSearch.parmDisplayLine2(displayLines2.lookup(mEnum.currentKey()));
+            }
+            if (displayLines3.exists(mEnum.currentKey()))
+            {
+                formatSearch.parmDisplayLine3(displayLines3.lookup(mEnum.currentKey()));
+            }
+            if (imageIds.exists(mEnum.currentKey()))
+            {
+                formatSearch.parmImageId(imageIds.lookup(mEnum.currentKey()));
+                
+            }
+            formatSearch.parmFieldsToAddMap().insert(TFMConstants::IdValue(),mEnum.currentKey());
+            formatSearch.run();
+        }
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMCategoryAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The TFMCategoryAttribute class is an attribute to register with your classes or methods, that describes which category they belong to
+/// </summary>
+public class TFMCategoryAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    TFMCategoryName        category;
+    HelpTxt                helpText;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(TFMCategoryName _category, HelpTxt _helpText = '')
+    {
+        super();
+ 
+        category = _category;
+        helpText = _helpText;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    ///<summary>
+    /// Returns the key used for storing cached data for this attribute.
+    /// </summary>
+    /// <returns>
+    /// A string representing the cache key.
+    /// </returns>
+    public str parmCacheKey()
+    {
+        return classStr(TFMCategoryAttribute)+';'+category+helpText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCategory</Name>
+				<Source><![CDATA[
+    public TFMCategoryName parmCategory(TFMCategoryName _category = category)
+    {
+        category = _category;
+        return category;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHelpText</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Help text of the control to let the user know what the control does.
+    /// </summary>
+    public HelpTxt parmHelpText(HelpTxt _helpText = helpText)
+    {
+        helpText = _helpText;
+        return helpText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    ///<summary>
+    /// Determines if the same instance should be returned by the extension framework.
+    /// </summary>
+    /// <returns>
+    /// true if the same instance should be returned; otherwise false.
+    /// </returns>
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

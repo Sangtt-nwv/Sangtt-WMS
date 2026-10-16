@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageConfigurationAttributeAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMPageConfigurationAttributeAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    str				xPath;
+    anytype			defaultValue;
+    str				nodeName;
+    boolean			mandatory;
+    boolean			editable;
+    boolean         visibleWhenNoData;
+    boolean			excludeFromXmlOutput;
+    boolean			xmlOutputOnPage;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(anyType _defaultValue, str _xPath, str _nodeName = '', boolean _mandatory = false, boolean _editable = true, boolean _excludeFromXmlOutput = false, boolean _visibleWhenNoData = false, boolean _xmlOutputOnPage = false)
+    {
+        super();
+        defaultValue         = _defaultValue;
+        xPath                = _xPath;
+        nodeName             = _nodeName;
+        mandatory            = _mandatory;
+        editable             = _editable;
+        excludeFromXmlOutput = _excludeFromXmlOutput;
+        visibleWhenNoData    = _visibleWhenNoData;
+        xmlOutputOnPage      = _xmlOutputOnPage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmXPath</Name>
+				<Source><![CDATA[
+    public str parmXPath(str _xPath = xPath)
+    {
+        xPath = _xPath;
+ 
+        return xPath;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMandatory</Name>
+				<Source><![CDATA[
+    public boolean parmMandatory(boolean _mandatory = mandatory)
+    {
+        mandatory = _mandatory;
+        return mandatory;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmVisibleWhenNoData</Name>
+				<Source><![CDATA[
+    public boolean parmVisibleWhenNoData(boolean _visibleWhenNoData = visibleWhenNoData)
+    {
+        visibleWhenNoData = _visibleWhenNoData;
+        return visibleWhenNoData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmEditable</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Indicates whether an attribute is editable by user. This normally means, that the attribute is handled by the system, and shouldn't be made available for edit
+    /// </summary>
+    /// <param name = "_editable">true if attribute should be made available for edit. Otherwise false.</param>
+    /// <returns></returns>
+    public boolean parmEditable(boolean _editable = editable)
+    {
+        editable = _editable;
+        return editable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmExcludeFromXmlOutput</Name>
+				<Source><![CDATA[
+    public boolean parmExcludeFromXmlOutput(boolean _excludeFromXmlOutput = excludeFromXmlOutput)
+    {
+        excludeFromXmlOutput = _excludeFromXmlOutput;
+        return excludeFromXmlOutput;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmXmlOutputOnPage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The element should be placed on the page element instead of the configuration element. E.g. warnonnavigatingback
+    /// </summary>
+    public boolean parmXmlOutputOnPage(boolean _xmlOutputOnPage = xmlOutputOnPage)
+    {
+        xmlOutputOnPage = _xmlOutputOnPage;
+        return xmlOutputOnPage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmnodeName</Name>
+				<Source><![CDATA[
+    public str parmnodeName(str _nodeName = nodeName)
+    {
+        nodeName = _nodeName;
+        return nodeName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDefaultValue</Name>
+				<Source><![CDATA[
+    public anyType parmDefaultValue(anyType _defaultValue = defaultValue)
+    {
+        defaultValue = _defaultValue;
+        return defaultValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMPageAttributeAttribute)+';'+xPath;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectorImageCapture</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegistrationCollectorImageCapture extends TFMRegistrationCollector
+{
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>ImageCaptureStepMap</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates a collector for image capture steps: gif, jpg and png are supported
+    /// </summary>
+    /// <param name="_id"></param>
+    /// <param name="_name"></param>
+    /// <param name="_label"></param>
+    /// <param name="_header"></param>
+    /// <param name="_defaultValue">
+    /// foler to store the image in
+    /// </param>
+    /// <param name="_resolutionHeight"></param>
+    /// <param name="_resolutionWidth"></param>
+    /// <param name="_listSeparator">
+    /// seperator between filename (name) and comment)
+    /// </param>
+    server static Map ImageCaptureStepMap(
+                                                    int _id,
+                                                    str _name,
+                                                    str _label,
+                                                    str _header,
+                                                    str _defaultValue,                                                  
+                                                    str _listSeparator = ';')
+    {
+        Map stepMap = new Map(Types::String, Types::String);
+    
+        stepMap.insert(TFMConstants::AttributeId(),int2str(_id));
+        stepMap.insert(TFMConstants::AttributeName(),_name);
+        stepMap.insert(TFMConstants::AttributeLabel(), _label);
+        stepMap.insert(TFMConstants::AttributeInputType(),enum2Symbol(enumNum(TFMInputTypes),TFMInputTypes::ImageCapture));
+        stepMap.insert(TFMConstants::AttributeHeader(),_header);
+        stepMap.insert(TFMConstants::AttributeDefaultValue(),_defaultValue);
+        stepMap.insert(TFMConstants::AttributeListSeparator(), _listSeparator);
+    
+        return stepMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dataTypeIcon</Name>
+				<Source><![CDATA[
+    public ResourceName dataTypeIcon()
+    {
+        return resourceStr(TFMDatatypeImageCapture);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

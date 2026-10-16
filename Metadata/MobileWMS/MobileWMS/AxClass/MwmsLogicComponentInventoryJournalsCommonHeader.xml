@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicComponentInventoryJournalsCommonHeader</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Common component for header fields for Inventory journal creation
+/// </summary>
+class MwmsLogicComponentInventoryJournalsCommonHeader extends TFMLogicComponent
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Header fields this component may require
+    /// </summary>
+    /// <returns>A MobReferenceDataConfiguration if header fields are needed, otherwise null can be returned</returns>
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        refCon.addCollector(TFMGetReferenceData::defaultDescriptionCollector(1,true));
+    
+        refCon.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(2,extendedTypeStr(inventlocationid), "@SYS6437",methodStr(TFMGetReferenceData,WarehouseList)));
+        return refCon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Registration collectors the component may require
+    /// </summary>
+    /// <returns>A MobRegistrationCollectors object, if collection steps are required, otherwise null can be returned.</returns>
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>requestClassProvided</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method that tells which request Class it's data can be parsed into
+    /// </summary>
+    /// <returns>The name of the request class the components data can be parsed to</returns>
+    public ClassName requestClassProvided()
+    {
+        return classStr(TFMRequestItemAndDimensionElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>provideDataIfPossible</Name>
+				<Source><![CDATA[
+    public Common provideDataIfPossible(Common _table)
+    {
+        Common ret;
+
+        ret = super(_table);
+
+        if (_table.TableId == tableNum(InventJournalTable))
+        {
+            ret = this.initJournalTable(ret);
+        }
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initJournalTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to initialize or update an InventJournalTable buffer
+    /// </summary>
+    /// <param name = "_journalTable">An InventJournalTable buffer</param>
+    /// <returns>An InventJournalTable buffer</returns>
+    protected InventJournalTable initJournalTable(InventJournalTable _journalTable)
+    {
+        InventJournalTableData		        jourTableData;
+        InventJournalName			        inventJournalName;
+        TFMRequestItemAndDimensionElement   docRequest          = request;
+        str							        description			= docRequest.getFieldValue(extendedTypeStr(description));
+        InventLocationId                    inventLocationId    = docRequest.parmWarehouse();
+    
+        // Get the name of the profit/loss journal to create
+        inventJournalName = InventJournalName::find(docRequest.getFieldValue(extendedTypeStr(JournalNameId)),true);
+            
+        jourTableData = JournalTableData::newTable(_journalTable);
+    
+        _journalTable.JournalId            = jourTableData.nextJournalId();
+        _journalTable.initValue();
+        _journalTable.InventLocationId		= inventLocationId;
+        _journalTable.InventSiteId			= InventLocation::find(inventLocationId).InventSiteId;
+        _journalTable.JournalType          = inventJournalType::Movement;
+        _journalTable.MobReleasedToMobile = true;
+        _journalTable.NumOfLines           = 0;
+        jourTableData.initFromJournalName(inventJournalName);
+        _journalTable.Description          = description;
+
+        return _journalTable;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

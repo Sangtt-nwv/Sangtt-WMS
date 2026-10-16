@@ -1,0 +1,560 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMWorkLogForm</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Formclass for the WorkLog form
+/// </summary>
+class TFMWorkLogForm
+{
+    TFMProcessSessionID             sessionId;
+    TFMRegistrationCollectors       collectors;
+    TFMRegistrationCollectors       specialCollectors;
+    Map                             entries;
+    Map                             collectorsMap;
+    Map                             results;
+    Map                             resultStatus;
+    Map                             additionalValuesMap;
+    TFMDrawFlowControl              drawFlowControl;
+    int64                           currentlyPickedRecord;
+    TFMReferenceDataConfiguration   headers;
+    TFMHtmlViewerCtrl               htmlViewer;
+    FormGroupControl                addValueGroup;
+    FormGroupControl                dataGroup;
+    QueryBuildRange                 qbrUser;
+    QueryBuildRange                 qbrDevice;
+    QueryBuildRange                 qbrDate;
+    QueryBuildRange                 qbrDocType;
+    FormDataSource                  ds;
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>updateSessionId</Name>
+				<Source><![CDATA[
+    public TFMProcessRegistrationTmp updateSessionId(TFMProcessSessionID _sessionId,TFMProcessRegistrationTmp   _regTmp)
+    {
+        sessionId = _sessionId;
+        return this.initProcessesFromSession(_regTmp);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>QueueRecordPicked</Name>
+				<Source><![CDATA[
+    public void QueueRecordPicked(RefRecId _queueRecId)
+    {        
+        currentlyPickedRecord = _queueRecId;
+        
+        drawFlowControl.updateControlData();
+
+        if (additionalValuesMap.exists(currentlyPickedRecord))
+        {
+            this.populateGroup(additionalValuesMap.lookup(currentlyPickedRecord));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateGroup</Name>
+				<Source><![CDATA[
+    protected void populateGroup(Map _addValues)
+    {
+        MapEnumerator       mEnum;
+        FormStringControl   fst;
+        FormGroupControl    fgc;
+        boolean             specialHandling;
+        while (addValueGroup.controlCount())
+        {
+            addValueGroup.formRun().design().removeControl(addValueGroup.controlNum(1).id());
+        }
+        if (!_addValues)
+        {
+            return;
+        }
+        addValueGroup.columns(1);
+        fgc = addValueGroup.addControl(FormControlType::Group, 'primaryPropsGroup');
+        fgc.columns(6);
+        mEnum = _addValues.getEnumerator();
+        while(mEnum.moveNext())
+        {
+            specialHandling = TFMfieldFromNameCreator::exists(mEnum.currentKey());
+            if (!extendedTypeName2Id(mEnum.currentKey()) && !specialHandling)
+            {
+                continue;
+            }
+            if (specialHandling)
+            {
+                TFMfieldFromNameCreator::find(mEnum.currentKey()).handleField(mEnum.currentValue(),fgc);
+                continue;
+            }
+
+            fst = fgc.addControl(FormControlType::String, mEnum.currentKey());
+            
+            fst.extendedDataType(extendedTypeName2Id(mEnum.currentKey()));
+            
+            fst.text(mEnum.currentValue());
+        }
+        fgc = addValueGroup.addControl(FormControlType::Group, 'morePropsGroup');
+        fgc.frameOptionButton(3);
+        fgc.optionValue(0);
+        fgc.caption("@TFM:AdditionalProperties");
+        fgc.hideIfEmpty(false);
+        fgc.columns(6);
+        
+        mEnum = _addValues.getEnumerator();
+        while(mEnum.moveNext())
+        {
+            if (extendedTypeName2Id(mEnum.currentKey()))
+            {
+                continue;
+            }
+            fst = fgc.addControl(FormControlType::String, mEnum.currentKey());
+            fst.text(mEnum.currentValue());
+            fst.label(mEnum.currentKey());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaders</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration getHeaders()
+    {
+        return headers;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(TFMDrawFlowControl _drawFlowControl)
+    {
+        TFMDrawFlowControlInteractionWorkLog worklogInteraction;
+        drawFlowControl = _drawFlowControl;  
+        worklogInteraction = drawFlowControl.interactionClass();        
+        worklogInteraction.setWorkLogFormClass(this);
+        htmlViewer = drawFlowControl.formRun().control(drawFlowControl.formRun().controlId(formControlStr(TFMWorkLog, AdditionalValuesHtml)));
+        addValueGroup = drawFlowControl.formRun().control(drawFlowControl.formRun().controlId(formControlStr(TFMWorkLog, addValueGroup)));
+        drawFlowControl.setEditorModeOnControl(true);
+        dataGroup = drawFlowControl.formRun().control(drawFlowControl.formRun().controlId(formControlStr(TFMWorkLog, dataGroup)));
+        this.addFilters();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addFilters</Name>
+				<Source><![CDATA[
+    protected void addFilters()
+    {
+        FormTabControl      ftc = dataGroup.addControl(FormControlType::Tab, 'filters', drawFlowControl.formRun().control(drawFlowControl.formRun().controlId(formControlStr(TFMWorkLog, QF))));
+        FormTabPageControl  ftpc= ftc.addControl(FormControlType::TabPage, 'filtersTabPage');
+        FormStringControl fscUser = ftpc.addControl(FormControlType::String, 'userFilter');
+        ftc.heightMode(ftc.heightMode()+1);
+        ftc.style(TabStyle::FastTabs);
+        ftpc.heightMode(ftpc.heightMode()+1);
+        ftpc.style(TabStyle::FastTabs);
+        ftpc.fastTabExpanded(FastTabExpanded::No);
+        ds = drawFlowControl.formRun().dataSource(tableStr(TFMProcessSessions));
+        ftpc.caption("@SYS190436");
+        qbrUser = ds.queryBuildDataSource().addRange(fieldNum(TFMProcessSessions, CreatedBy));
+        qbrDate = ds.queryBuildDataSource().addRange(fieldNum(TFMProcessSessions, CreatedDateTime));
+        qbrDevice= ds.queryBuildDataSource().addRange(fieldNum(TFMProcessSessions, DeviceId));
+        qbrDocType=ds.queryBuildDataSource().addRange(fieldNum(TFMProcessSessions, Description));
+        fscUser.extendedDataType(extendedTypeNum(userId));
+        fscUser.registerOverrideMethod(methodStr(FormStringControl, modified), methodStr(TFMWorkLogForm, fieldModified), this);
+        FormDateControl dateCon = ftpc.addControl(FormControlType::Date, 'dateFilter');
+        dateCon.label("@TFM:Date");
+        dateCon.registerOverrideMethod(methodStr(FormDateControl, modified), methodStr(TFMWorkLogForm, datefieldModified), this);
+        FormStringControl fscDevice = ftpc.addControl(FormControlType::String, 'deviceFilter');
+        fscDevice.extendedDataType(extendedTypeNum(Name));
+        fscDevice.label("@TFM:TFM57");
+        fscDevice.registerOverrideMethod(methodStr(FormStringControl, modified), methodStr(TFMWorkLogForm, fieldDeviceModified), this);
+        FormStringControl fscDesc = ftpc.addControl(FormControlType::String, 'descFilter');
+        fscDesc.extendedDataType(extendedTypeNum(Description));
+        fscDesc.registerOverrideMethod(methodStr(FormStringControl, modified), methodStr(TFMWorkLogForm, fieldDescModified), this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldModified</Name>
+				<Source><![CDATA[
+    protected void fieldModified(FormStringControl _control)
+    {
+        qbrUser.value(_control.text());
+        ds.executeQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldDescModified</Name>
+				<Source><![CDATA[
+    protected void fieldDescModified(FormStringControl _control)
+    {
+        qbrDocType.value('*'+_control.text()+'*');
+        ds.executeQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldDeviceModified</Name>
+				<Source><![CDATA[
+    protected void fieldDeviceModified(FormStringControl _control)
+    {
+        TFMDeviceTable devTbl;
+        Name name = '*'+_control.text()+'*';
+        str qValue;
+
+        while select devTbl where devTbl.Name like name
+        {
+            qValue = (qValue ? ',' : '') + devTbl.DeviceId;
+        }
+
+        qbrDevice.value(qValue ? qValue : '*');
+        ds.executeQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>datefieldModified</Name>
+				<Source><![CDATA[
+    protected void datefieldModified(FormDateControl _control)
+    {
+        date logDate = _control.dateValue();
+        utcDateTime fromDateSelection, toDateSelection;
+
+        fromDateSelection = datetobeginUtcDateTime(logDate, DateTimeUtil::getUserPreferredTimeZone());
+        toDateSelection = datetoendUtcDateTime(logDate, DateTimeUtil::getUserPreferredTimeZone());
+
+        qbrDate.value(queryRange(fromDateSelection, toDateSelection));
+        ds.executeQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>currentCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors currentCollectors()
+    {
+        TFMRegistrationCollectors cols = collectors;
+
+        if (collectorsMap.exists(currentlyPickedRecord))
+        {
+            cols = collectorsMap.lookup(currentlyPickedRecord);
+        }
+
+        if (cols && entries.exists(currentlyPickedRecord))
+        {
+            TFMWorkLogForm::updateCollectorsFromRequestMap(cols, entries.lookup(currentlyPickedRecord));
+        }
+        
+        return cols;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCurrentResult</Name>
+				<Source><![CDATA[
+    public str getCurrentResult()
+    {
+        return results.exists(currentlyPickedRecord) ? results.lookup(currentlyPickedRecord) : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCurrentResultStatus</Name>
+				<Source><![CDATA[
+    public TFMDocumentQueueStatus getCurrentResultStatus()
+    {
+        return resultStatus.exists(currentlyPickedRecord) ? resultStatus.lookup(currentlyPickedRecord) : TFMDocumentQueueStatus::NewDocument;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCurrentlyPickedMap</Name>
+				<Source><![CDATA[
+    public Map getCurrentlyPickedMap()
+    {
+        if(entries.exists(currentlyPickedRecord))
+        {
+            return entries.lookup(currentlyPickedRecord);
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initProcessesFromSession</Name>
+				<Source><![CDATA[
+    protected TFMProcessRegistrationTmp initProcessesFromSession(TFMProcessRegistrationTmp _regTmp)
+    {
+        TFMDocumentQueue            queue;
+        str                         xml;
+        TFMRequestElement           request;
+        TFMDocumentContentSubject   content;
+        TFMDocumentQueueSessionLink linkTable;
+        Map                         addValues;        
+
+        delete_from _regTmp;
+        
+        entries = new Map(Types::Int64, Types::Class); // XML from Post request
+        collectorsMap  = new Map(Types::Int64, Types::Class);
+        results = new Map(Types::Int64, Types::String); // XML from Post request
+        resultStatus = new Map(Types::Int64, Types::Enum);
+        additionalValuesMap = new Map(Types::Int64, Types::Class);
+        collectors = TFMRegistrationCollectors::Construct();
+        while select queue order by RecId asc
+            join linkTable where linkTable.SessionID == sessionId && linkTable.SessionID && linkTable.MessageId == queue.MessageId
+        {
+            // Find steps prompted for user, convert back to RegCollectors
+            
+            if (queue.DocumentType == TFMConstants::GetRegistrationConfiguration() || queue.DocumentType == TFMConstants::getNextStepsInProcess())
+            {
+                xml = queue.AnswerXML();                
+                collectors.mergeCollectors(TFMRegistrationCollectors::ConstructFromGetRegistrationConfigurationXML(xml));
+                content = queue.ContentSubject;
+                addValues = collectors.AdditionalValues();
+                xml requestXml = queue.RequestXML();
+                if(collectorsMap.exists('Version'))
+                {
+                    XmlDocument xmlDoc = XmlDocument::newXml(xml);
+                    XmlAttribute attribute = xmlDoc.createAttribute('processVersion');
+                    attribute.value(collectorsMap.lookup('Version'));
+                    xmlDoc.appendChild(attribute);
+                    request = TFMXMLDeserializer::DeserializeRequestString(xmlDoc.xml());
+                }
+                else
+                {
+                    request = TFMXMLDeserializer::DeserializeRequestString(requestXml);
+                }
+            }
+            else if (queue.DocumentType == TFMConstants::PostAdhocRegistration())
+            {
+                xml = queue.RequestXML();
+                
+                _regTmp.ContentSubject =queue.ContentSubject;
+                _regTmp.Status = queue.Status;
+                _regTmp.AnswerDateTime = queue.CreatedDateTime;
+                _regTmp.doInsert();
+                TFMRequestElement requestElement = TFMXMLDeserializer::DeserializeRequestString(xml);
+                entries.insert(_regTmp.RecId,requestElement.getFieldMap());
+                results.insert(_regTmp.RecId, queue.getHtmlMessage());
+                resultStatus.insert(_regTmp.RecId, queue.Status);
+                additionalValuesMap.insert(_regTmp.RecId,addValues);
+
+            }
+            else if (strScan(queue.RequestXML(),'<Order backendID="',1,1000))
+            {
+                this.plannedRegistration(_regTmp, queue);
+            }
+            else if (strScan(queue.AnswerXML(),'<BaseOrderLine>',1,1000))
+            {
+                this.findPlannedFlow(_regTmp, queue);
+            }
+
+        }
+
+        if(content)
+        {
+            headers = TFMWorkLogForm::findFilterFromContentSubject(content, request ? request.getFieldMap() : null);
+        } 
+        else
+        {
+            headers = null;
+        }
+        return _regTmp;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findPlannedFlow</Name>
+				<Source><![CDATA[
+    protected void findPlannedFlow(TFMProcessRegistrationTmp _regTmp, TFMDocumentQueue _queue)
+    {
+        XmlDocument                     xmlDoc = XmlDocument::newXml(_queue.AnswerXML());        
+        XmlElement                      xmlElement = xmlDoc.getElementsByTagName(extendedTypeStr(TFMPageID)).item(0);
+        TFMPage                         page = TFMPagesProvider::getAllPages().getPage(xmlElement.innerText());
+        TFMPageOrderLinesConfiguration	conf = page.getConfiguration();
+        TFMService                      service = TFMServiceProvider::getServices().lookup(conf.parmId());
+        collectors = TFMWorkflowsTable::getCollectorsFromWorkflow(service.getWorkflow());
+
+        specialCollectors = TFMRegistrationCollectors::ConstructFromGetRegistrationConfigurationXML(xmlDoc.xml());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>plannedRegistration</Name>
+				<Source><![CDATA[
+    protected void plannedRegistration(TFMProcessRegistrationTmp _regTmp, TFMDocumentQueue _queue)
+    {
+        str                             XML = _queue.RequestXML();
+        TFMRequestBasicElement          request = TFMXMLDeserializer::DeserializeRequestString(XML);
+        TFMRequestOrdersElement         orders = request.parmOrder();
+        TFMRequestLineElement           lineElement;
+        TFMRequestRegistrationElement   registration;
+        ListEnumerator                  Lines = orders.Lines().getEnumerator();
+        ListEnumerator                  regs;
+
+        while (Lines.moveNext()) 
+        {
+            lineElement = Lines.current();
+            regs = lineElement.registrations().getEnumerator();
+            while (regs.moveNext())
+            {
+                registration = regs.current();
+                _regTmp.ContentSubject = registration.parmExtraInfo().parmItemId();
+                _regTmp.Status = _queue.Status;
+                _regTmp.AnswerDateTime = _queue.CreatedDateTime;
+                _regTmp.doInsert();
+                additionalValuesMap.insert(_regTmp.RecId,registration.ExtraInfo().getFieldMap());
+                entries.insert(_regTmp.RecId,registration.getFieldMap());
+            }
+        }
+
+        _regTmp.ContentSubject = "@TFM:Posting";
+        _regTmp.Status = _queue.Status;
+        _regTmp.AnswerDateTime = _queue.CreatedDateTime;
+        _regTmp.doInsert();
+
+        entries.insert(_regTmp.RecId,orders.getFieldMap());
+
+        results.insert(_regTmp.RecId, _queue.getHtmlMessage());
+        resultStatus.insert(_regTmp.RecId, _queue.Status);
+
+        collectorsMap.insert(_regTmp.recId, specialCollectors);
+        additionalValuesMap.insert(_regTmp.RecId,orders.getFieldMap());
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findFilterFromContentSubject</Name>
+				<Source><![CDATA[
+    public static TFMReferenceDataConfiguration findFilterFromContentSubject(TFMDocumentContentSubject _content, Map _valuesMap)
+    {
+        TFMReferenceDataConfiguration   filter;
+        TFMReferenceDataConfiguration   filterCopy;
+        SetEnumerator                   sEnum;
+        TFMRegistrationCollector        collector;
+        TFMRegistrationCollector        collectorCopy;
+        SysDictClass                    sdc;
+        SetEnumerator                   parmMethods;
+        TFMProcess                      process = TFMProcessProvider::GetAllProcessesImpl().getProcess(_content, TFMProcessVersion::newestVersion(_content, true)); //TODO: does the _valuesMap contain the version?
+        if (process)
+        {
+            filter = new TFMReferenceDataConfiguration();
+            filter.mergeCollectors(process.getHeaders());
+        }
+        filterCopy = new TFMReferenceDataConfiguration();
+        if (filter && _valuesMap)
+        {
+            sEnum = filter.getCollectors().getEnumerator();
+            while (sEnum.moveNext())
+            {
+                collector = sEnum.current();
+
+                sdc = new SysDictClass(classIdGet(collector));
+                collectorCopy = sdc.makeObject(collector.parmId(),collector.parmName(), collector.parmHeader(), collector.parmLabel(), collector.parmHelpLabel());                
+                parmMethods = TFMFormLookupHelper::parmMethodsOnClass(sdc.id()).getEnumerator();
+                while (parmMethods.moveNext())
+                {
+                    sdc.callObject(parmMethods.current(),collectorCopy,sdc.callObject(parmMethods.current(),collector));
+                }
+
+                collectorCopy.parmDefaultValue(_valuesMap.exists(collectorCopy.parmName()) ? _valuesMap.lookup(collectorCopy.parmName()) : '');
+                filterCopy.addCollector(collectorCopy);
+            }
+        }
+
+        return filterCopy;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateCollectorsFromRequestMap</Name>
+				<Source><![CDATA[
+    public static void updateCollectorsFromRequestMap(TFMRegistrationCollectors   _collectors, Map _fieldMap)
+    {
+        MapEnumerator               mEnum = _collectors.collectorMap().getEnumerator();
+        
+        TFMRegistrationCollector    collector;
+        //Find registered values for each step
+        while (mEnum.moveNext())
+        {
+            collector = mEnum.currentValue();
+            collector.parmDefaultValue(TFMWorkLogForm::extractTheDefaultValueForTheCollector(collector, _fieldMap));
+            collector.parmActive(TFMWorkLogForm::decideIfTheStepShouldBeActive(collector, _fieldMap));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>decideIfTheStepShouldBeActive</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Determines if the collector should be active or not.
+    /// </summary>
+    public static boolean decideIfTheStepShouldBeActive(TFMRegistrationCollector _collector, Map _fieldMap)    
+    {
+        return _fieldMap.exists(_collector.parmName()) 
+            || ( _collector.parmName() == TFMConstants::ExpirationDate() && _fieldMap.exists(TFMConstants::LotNumber()) && strScan(_fieldMap.lookup(TFMConstants::LotNumber()), ',', 0, 10000) );
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>extractTheDefaultValueForTheCollector</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Extracts the value to set in the default value for the collector in the worklog. There is a special handling for LotNumber.
+    /// </summary>
+    public static str extractTheDefaultValueForTheCollector(TFMRegistrationCollector _collector, Map _fieldMap)    
+    {
+        if(_collector.parmName() == TFMConstants::ExpirationDate() || _collector.parmName() == TFMConstants::LotNumber())
+        {
+            if(_fieldMap.exists(TFMConstants::LotNumber()) && strScan(_fieldMap.lookup(TFMConstants::LotNumber()), ',', 0, 10000))
+            {
+                str lotNumberFieldValue = _fieldMap.lookup(TFMConstants::LotNumber());
+                List lotNumberSplit = strSplit(lotNumberFieldValue, ',');
+                ListEnumerator lotNumberSplitEnum = lotNumberSplit.getEnumerator();
+                if(_collector.parmName() == TFMConstants::ExpirationDate())
+                {
+                    lotNumberSplitEnum.moveNext();
+                    lotNumberSplitEnum.moveNext();
+                    return lotNumberSplitEnum.current();
+                }
+                lotNumberSplitEnum.moveNext();
+                return lotNumberSplitEnum.current();
+            }
+            
+        }
+        return _fieldMap.exists(_collector.parmName()) ? _fieldMap.lookup(_collector.parmName()) : '';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

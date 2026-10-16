@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageListDataBindingFormHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPageListDataBindingFormHelper extends Object
+{
+    FormGroupControl	listGroup; 
+	FormGroupControl	dataBindingGroup;
+    boolean				changeDesignMode;
+    TFMPage				page;
+    TFMHtmlViewerCtrl	dataViewer, relationViewer, designsHtml;
+    FormDataSource		dsDataSource;
+    FormDataSource		doDataSource;
+    QueryBuildRange		qbr;
+    Map					dataHtmls;
+    Map					relationsHtmls;
+    FormGroupControl	viewerControl;
+    FormGridControl		dsGrid;
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>page</Name>
+				<Source><![CDATA[
+    public TFMPage page()
+    {
+        return page;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(FormGroupControl _listGroup, FormGroupControl _dataBindingGroup, TFMHtmlViewerCtrl _designsHtml)
+    {
+        str						html;
+        int						i;
+        FormDataSource			ds;
+        URLUtility				urlUtil = new URLUtility();
+        TFMPageID				pageName = urlUtil.getQueryParamValue('PageId');        
+        
+        super();
+
+        for(i=1;i <= _dataBindingGroup.formRun().dataSourceCount(); i++)
+        {
+            ds = _dataBindingGroup.formRun().dataSource(i);
+			if (ds.table() == tableNum(TFMPageDatasources))
+            {
+                dsDataSource = ds;
+                
+            }
+            else if (ds.table() == tableNum(TFMDisplayLineOverrideLines))
+            {
+                doDataSource = ds;
+            }
+        }
+        if (_listGroup.formRun().args().caller().name() == formStr(TFMPageOverview))
+        {
+            page = _listGroup.formRun().args().caller().getCurrentPage();
+            pageName = page.parmId();
+        }
+
+        page = TFMPagesProvider::getAllPages().getPage(pageName);
+        
+        dsDataSource.queryBuildDataSource().addRange(fieldNum(TFMPageDatasources,PageID)).value(Page ? Page.parmId() : '*');
+        qbr = dsDataSource.queryBuildDataSource().addRange(fieldNum(TFMPageDatasources,recId));
+		dsDataSource.executeQuery();
+        listGroup = _listGroup;
+        dataBindingGroup = _dataBindingGroup;
+        designsHtml = _designsHtml;
+
+        designsHtml.actionDelegate += eventhandler(this.setListOnPage);
+        
+        dataHtmls = new Map(Types::String, Types::String);
+        relationsHtmls = new Map(Types::String, Types::String);
+        dataViewer = listGroup.formRun().control(listGroup.formRun().controlId(formControlStr(TFMPageListDataBinding, dataSetView)));
+        dsGrid = listGroup.formRun().control(listGroup.formRun().controlId(formControlStr(TFMPageListDataBinding, DataSources)));
+        relationViewer = listGroup.formRun().control(listGroup.formRun().controlId(formControlStr(TFMPageListDataBinding, relationsView)));
+        viewerControl  = listGroup.formRun().control(listGroup.formRun().controlId(formControlStr(TFMPageListDataBinding, DesignShowGroup)));
+
+        this.fillListGroup();
+        listGroup.formRun().design().caption(strFmt('%1 (%2) - %3', "@TFM:DataBinding","@TFM:Datatodesign",page.parmId()));
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMPageListDataBindingFormHelper Construct(FormGroupControl _listGroup, FormGroupControl _dataBindingGroup, TFMHtmlViewerCtrl _designsHtml)
+    {
+        return new TFMPageListDataBindingFormHelper(_listGroup, _dataBindingGroup, _designsHtml);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fillListGroup</Name>
+				<Source><![CDATA[
+    public void fillListGroup()
+    {
+        while(listGroup.controlCount())
+        {
+            listGroup.formRun().design().removeControl(listGroup.controlNum(1).id());
+        }
+        while(viewerControl.controlCount())
+        {
+            viewerControl.formRun().design().removeControl(viewerControl.controlNum(1).id());
+        }
+        dataBindingGroup.visible(!changeDesignMode);
+        dsGrid.visible(!changeDesignMode);
+
+        if (changeDesignMode)
+        {
+            this.pickDesigns();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showDesignOnAllDatasources</Name>
+				<Source><![CDATA[
+	protected void showDesignOnAllDatasources()
+    {
+        TFMList				list			= TFMListsProvider::getAllLists().getList(page.getListId());
+        TFMPageDatasources	ds;  
+
+        boolean				noneInitialized = true;
+		
+        str designsHtmlToUse;
+        while select ds where ds.PageID == page.parmId()
+        {
+            designsHtmlToUse += '<div style="background-color: #b4b4ff14;">' 
+                //+ '<span>'+ ds.TableName +'</span>'
+                + this.listHtmlToDesigns(list, null, false) 
+                + '</div>';
+            this.updateDataSetHtmlMap(ds);
+            noneInitialized = false;
+        }
+
+		if (noneInitialized)
+        {
+            designsHtmlToUse += '<div style="background-color: #b4b4ff14;">' + this.listHtmlToDesigns(list, null, false) + '</div>';
+        }
+
+        this.setHtmlOnDesignsHtml('<div style="display: flex; gap: 30px; flex-wrap: wrap;" >' + designsHtmlToUse  + '</div>');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pickDesigns</Name>
+				<Source><![CDATA[
+	protected void pickDesigns()
+    {
+        MapEnumerator			lists			= TFMListsProvider::getAllLists().listMap().getEnumerator();
+        TFMList					list;
+        str                     designsHtmlToUse;
+        TFMPageDatasources		pickedSource = dsDataSource.cursor();
+                                                                  
+		while (lists.moveNext())
+        {
+            list = lists.currentValue();
+            
+            if(list && list.hasApprovedVersion())
+            {
+                designsHtmlToUse += '<div>' + this.listHtmlToDesigns(list, null) + '</div>';
+            }
+        }
+        
+        this.setHtmlOnDesignsHtml('<div style="display: flex; gap: 30px; flex-wrap: wrap;" >' + designsHtmlToUse  + '</div>');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setHtmlOnDesignsHtml</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Since the $control will not be translated the second time the parmHtml is updated we remove the control and add it again.
+    /// </summary>
+    /// <param name = "_html"></param>
+    private void setHtmlOnDesignsHtml(str _html)
+    {
+        int wMode = designsHtml.widthMode();
+        int hMode = designsHtml.heightMode();
+        int ctrlId = designsHtml.id();
+        
+        FormTabPageControl parentGroup = designsHtml.parentControl();
+        parentGroup.formRun().design().removeControl(ctrlId);
+
+        designsHtml = parentGroup.addControlEx(classStr(TFMHtmlViewerCtrl), int2Str(ctrlId));
+        designsHtml.actionDelegate += eventhandler(this.setListOnPage);
+        designsHtml.heightMode(hMode);
+        designsHtml.widthMode(wMode);
+        designsHtml.parmSkipSanitizer(true);
+        designsHtml.parmHtml(_html);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>listHtmlToDesigns</Name>
+				<Source><![CDATA[
+    protected str listHtmlToDesigns(TFMList _list, TFMPageDatasources _dataSet, boolean _clickable = true)
+    {
+        str listDivs = '';
+        listDivs += '<div style="font-size: 18pt; font-weight: bold;">' + _list.parmListName() + (_list.parmDeltaLevel() == TFMDeltaLevel::Overridden ? '<span style="color: #000; font-size: 9pt;">' + "@TFM:Customised" +'</span>' : '') + '</div>';
+        listDivs += TFMListVisualization::getHtmlForList(_list, null,  false, false, _dataSet, 1, '', '', null, null, 400);
+        
+        str clickStr ='';
+        if(_clickable)
+        {
+            clickStr = '<div style="border-radius: 5px; background-color: #FFF; border-color: #C8EBFB" onmouseover="this.style.backgroundColor=\'#C8EBFB\';" onmouseout="this.style.backgroundColor=\'#FFF\';" >';
+            clickStr += '<a href="javascript:void(0);" data-dyn-bind="click: $control.TFMButtonClicked" id="'+ _list.parmListName() +'" >';
+            clickStr += listDivs;
+            clickStr += '</a>';
+            clickStr += '</div>';
+        } 
+        else
+        {
+            clickStr += listDivs;
+        }
+        return clickStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateDataSetHtmlMap</Name>
+				<Source><![CDATA[
+    public void updateDataSetHtmlMap(TFMPageDatasources _pickedSource, boolean _forceUpdate = false)
+    {
+        Common					common;
+        if (!dataHtmls.exists(_pickedSource.TableName + '/' + _pickedSource.OrderType) || _forceUpdate)
+        {
+            TFMList list = TFMListsProvider::getAllLists().getList(page.getListId());
+            common = list.getDataFromDataSet(_pickedSource);
+            dataHtmls.insert(_pickedSource.TableName + '/' + _pickedSource.OrderType, TFMHelper::makeHtmlFromCommon(Common));
+            if (!relationsHtmls.exists(_pickedSource.TableName))
+            {
+                relationsHtmls.insert(_pickedSource.TableName, TFMHelper::makeRelationsHtmlFromCommon(Common));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>windowClickOverrideDS</Name>
+				<Source><![CDATA[
+    public void windowClickOverrideDS(FormButtonControl _sender)
+    {        
+        if (strKeep(_sender.name(),'1234567890') == _sender.name())
+        {
+            qbr.value(_sender.name());
+            dsDataSource.executeQuery();
+        }        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dataSourceChanged</Name>
+				<Source><![CDATA[
+    public void dataSourceChanged(TFMPageDatasources _pickedSource)
+    {
+        this.updateDataSetHtmlMap(_pickedSource);
+        dataViewer.parmHtml(dataHtmls.lookup(_pickedSource.TableName + '/' + _pickedSource.OrderType));
+        relationViewer.parmHtml(relationsHtmls.lookup(_pickedSource.TableName));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DispOverrideChanged</Name>
+				<Source><![CDATA[
+    public void DispOverrideChanged(TFMPageDatasources _pickedSource)
+    {
+        TFMList				list			= TFMListsProvider::getAllLists().getList(page.getListId());
+        str designsHtmlToUse = '<div style="">' + this.listHtmlToDesigns(list, _pickedSource, false) + '</div>';
+        this.setHtmlOnDesignsHtml('<div style="display: flex; gap: 30px; flex-wrap: wrap;" >' + designsHtmlToUse  + '</div>');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>switchDesignMode</Name>
+				<Source><![CDATA[
+    public void switchDesignMode(TFMPageDatasources _pickedSource)
+    {
+        changeDesignMode = !changeDesignMode;
+        this.fillListGroup();
+        if(_pickedSource && !changeDesignMode)
+        {
+            this.DispOverrideChanged(_pickedSource);
+            TFMPagesProvider::instance().invalidateProvider();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>windowClickOverrideDesignPick</Name>
+				<Source><![CDATA[
+    public void windowClickOverrideDesignPick(FormButtonControl _sender)
+    {
+        this.setListOnPage(_sender.name());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setListOnPage</Name>
+				<Source><![CDATA[
+    public void setListOnPage(TFMListId _listId)
+    {
+        DialogButton answer = Box::okCancel(strFmt("@TFM:Switchtodesign1onthepage2", _listId, page.parmId()),DialogButton::Ok);
+        
+        if (answer == DialogButton::Ok)
+        {
+            page.setListId(_listId,true);
+
+            if(changeDesignMode)
+            {
+                this.switchDesignMode(dsDataSource.cursor());
+            }             
+            else
+            {
+                this.fillListGroup();
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

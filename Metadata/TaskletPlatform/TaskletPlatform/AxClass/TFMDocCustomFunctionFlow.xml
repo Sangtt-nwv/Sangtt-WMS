@@ -1,0 +1,763 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocCustomFunctionFlow</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The TFMDocCustomFunctionFlow class is a document handler for all the pages, that has been created using the Custom Function Flow setup.
+/// </summary>
+class TFMDocCustomFunctionFlow extends TFMDocumentHandler
+{
+    #define.lookupPostFix('_lookup')
+    #define.postPostFix('_post')
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public TFMDocumentHandlerDescription description()
+    {
+        TFMDocumentHandlerDescription ret;
+
+        ret = "@TFM:FunctionFlowCustomization";
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeConfig</Name>
+				<Source><![CDATA[
+    public static str makeConfig(TFMMenu _menuName)
+    {
+        // %1 = Name %2 = _lookup %3 = _post
+        str lineBreak = '\r\n';
+        str pageDefinition =    '    <page id="%1" type="UnplannedItemRegistration" icon="mainmenuscaninfo">' + lineBreak +
+                                '      <title defaultValue="@{%1_Label}"/>' + lineBreak +
+                                '      <unplannedItemRegistrationConfiguration type="%1" useRegistrationCollector="true">' + lineBreak +
+                                '        <header configurationKey="%1Header" automaticAcceptAfterLastScan="true"/>' + lineBreak +
+                                '        <requests>' + lineBreak +
+                                '          <getRegistrationConfiguration>%1%2</getRegistrationConfiguration>' + lineBreak +
+                                '          <submit>%1%3</submit>' + lineBreak +
+                                '        </requests>' + lineBreak +
+                                '      </unplannedItemRegistrationConfiguration>' + lineBreak +
+                                '    </page>' + lineBreak;
+        return strFmt(pageDefinition,_menuName, #lookupPostFix, #postPostFix);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeMenuConfig</Name>
+				<Source><![CDATA[
+    public static str makeMenuConfig(TFMMenu _menuName)
+    {
+        // %1 = Name %2 = _lookup %3 = _post
+        str menuPoint =         '          <menuItem id="%1" displayName="@{%1_Label}" icon="mainmenuscaninfo"/>' + '\r\n';
+        return strFmt(menuPoint,_menuName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void process()
+    {
+        str                         requestName;
+        TFMCustomFunctionFlow       flows;        
+        TFMMenu                     MenuName;        
+
+        requestName     = requestXml.root().getAttribute(TFMConstants::AttributeName());
+        MenuName        = subStr(requestName,1,max(strScan(requestName,#lookupPostFix,1,strLen(requestName)),strScan(requestName,#postPostFix,1,strLen(requestName) ) )-1 );
+
+
+        select firstonly flows where flows.TFMMenu == MenuName;
+        
+        if (strScan(requestName,#lookupPostFix,1,strLen(requestName)))
+        {
+            resultStr = this.lookupFlow(flows.TFMMenu);
+        }
+        if (strScan(requestName,#postPostFix,1,strLen(requestName)))
+        {
+            resultStr = this.postFlow(flows.TFMMenu);
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupFlow</Name>
+				<Source><![CDATA[
+    private str lookupFlow(TFMMenu _menuName)
+    {
+        XmlElement                      requestData = requestXml.firstChild().firstChild();
+        XmlElement                      childNode = requestData.firstChild();
+        Map                             values = new Map(Types::String, Types::String);
+        Map                             registrationCollectors  = new Map(Types::integer, Types::Class);
+        Map                             dictFields;
+        MapEnumerator                   mEnum;
+        TFMCustomFunctionFlowParmLines  lines;
+        str                             label;
+        DictEnum                        de;
+
+        while (childNode != null)
+        {
+            values.insert(childNode.name(),childNode.innerText());
+            childNode = childNode.nextSibling();
+        }
+
+        while select lines where !lines.isFilter && lines.TFMMenu == _menuName && !lines.IsFilter
+        {      
+            Label = this.getLabel(lines);
+            if ( lines.BaseType == Types::record && tableName2Id(lines.EDTName))
+            {
+                dictFields = lines.getFields();
+                if (!dictFields.elements())
+                {
+                    dictFields = TFMHelper::getPrimaryKeysFromTableName(lines.EDTName);
+                }
+                mEnum = dictFields.getEnumerator();
+                while (mEnum.moveNext())
+                {
+                    registrationCollectors.insert(registrationCollectors.elements(),TFMRegistrationCollector::getRegistrationCollectorFromDictField(mEnum.currentValue(),registrationCollectors.elements()));
+                }
+            }
+            else if ( lines.BaseType == Types::Enum && enumName2Id(lines.EDTName))
+            {
+                de = new DictEnum(enumName2Id(lines.EDTName));                
+                registrationCollectors.insert(registrationCollectors.elements(), TFMRegistrationCollector::getRegistrationCollectorFromType(Lines.baseType,registrationCollectors.elements(),Lines.parmName,label,label,de.help(),false,1000,de.id()));
+            }
+            else if ( lines.EDTName && extendedTypeName2Id(lines.EDTName))
+            {
+                registrationCollectors.insert(registrationCollectors.elements(), TFMRegistrationCollector::getRegistrationCollectorFromEDTName(lines.EDTName,registrationCollectors.elements(),Lines.parmName));
+            }
+            else if (!Lines.EDTName)
+            {
+                registrationCollectors.insert(registrationCollectors.elements(), TFMRegistrationCollector::getRegistrationCollectorFromType(Lines.baseType,registrationCollectors.elements(),Lines.parmName,label,label,'field'));
+            }
+        }
+        this.Add2Lookup(_menuName,registrationCollectors,values);
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Add2Lookup</Name>
+				<Source><![CDATA[
+    private void Add2Lookup(TFMMenu _menuName, Map _registrationCollectors, Map _additionalValues)
+    {        
+        TFMDocumentNodes        nodes = TFMDocumentNodes::Construct(TFMConstants::registrationCollectorConfiguration());
+        TFMDocumentNode         steps     = nodes.makeChild(nodes.getRoot(),TFMConstants::steps());
+        TFMDocumentNode         addValues;
+        TFMDocumentNode         addValue;
+        MapEnumerator           mEnum = _registrationCollectors.getEnumerator();  
+        TFMCustomFunctionFlow   funcFlow = TFMCustomFunctionFlow::Find(_menuName);
+        Map                     registrationCollectors  = new Map(Types::integer, Types::Class);
+        
+
+        if (!_registrationCollectors.elements())
+        {
+            //Convert result to info step            
+            registrationCollectors.insert(registrationCollectors.elements(), TFMRegistrationCollectorInformation::InformationStepMap(registrationCollectors.elements(),funcFlow.MethodName,"@SYS6769","@SYS6769",TFMDocCustomFunctionFlow::callMethod(funcFlow.ClassName,funcFlow.MethodName,_additionalValues)));
+            mEnum = registrationCollectors.getEnumerator();
+        }
+
+        while (mEnum.moveNext())
+        {
+            TFMRegistrationCollector::addGenericRegistrationStepDocNode(steps,TFMConstants::add(),mEnum.currentValue());
+        }
+        addValues = nodes.makeChild(nodes.getRoot(),'additionalValues');
+        mEnum = _additionalValues.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            addValue = nodes.makeChild(addValues,'additionalValue');
+            addValue.addAttribute('name',mEnum.currentKey());
+            addValue.addAttribute('value',mEnum.currentValue());
+        }
+        if (resultXml == null)
+        {
+            resultXml = nodes.makeXml();
+        }
+        else
+        {
+            nodes.appendToXML(resultXml.root());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postFlow</Name>
+				<Source><![CDATA[
+    private str postFlow(TFMMenu _menuName)
+    {
+        XmlElement                      requestData = requestXml.firstChild().firstChild();
+        XmlElement                      childNode = requestData.firstChild();
+        Map                             values = new Map(Types::String, Types::String);
+        
+        DictField                       df;
+        TFMCustomFunctionFlow           funcFlow = TFMCustomFunctionFlow::Find(_menuName);
+        TFMCustomFunctionFlowParmLines  lines;
+        Map                             dictFields;
+        MapEnumerator                   mEnum;
+        str                             keysValue;
+
+        while (childNode != null)
+        {
+            values.insert(childNode.name(),childNode.innerText());
+            childNode = childNode.nextSibling();
+        }
+        while select lines where lines.TFMMenu == _menuName && lines.BaseType == Types::record
+        {
+            keysValue = '';
+            if (tableName2Id(lines.EDTName))
+            {
+                dictFields = lines.getFields();
+                if (!dictFields.elements())
+                {
+                    dictFields = TFMHelper::getPrimaryKeysFromTableName(lines.EDTName);
+                }
+                mEnum = dictFields.getEnumerator();
+                while (mEnum.moveNext())
+                {
+                    if (values.exists(mEnum.currentKey()))
+                    {
+                        df = mEnum.currentValue();
+                        keysValue += (keysValue ? '_-|-_' : '')+df.name() + '_:_' + values.lookup(mEnum.currentKey());
+                    }
+                }
+                values.insert(Lines.ParmName,keysValue);
+            }
+        }
+
+        return TFMDocCustomFunctionFlow::callMethod(funcFlow.ClassName,funcFlow.MethodName,values);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>callMethodMap</Name>
+				<Source><![CDATA[
+    public static str callMethodMap(str _className, str _methodName, Map _parameters)
+    {
+        ExecutePermission   permission;
+        DictClass           dictClass;
+        anytype             returnValue;
+        // Grants permission to execute the DictClass.callObject method.
+        // DictClass.callObject runs under code access security.
+        permission = new ExecutePermission();
+        permission.assert();
+        dictClass = new DictClass(className2Id(_className));
+        if (dictClass != null)
+        {
+            switch (_parameters.elements())
+            {
+                case 0:
+                    returnValue = dictClass.callStatic(_methodName);
+                    break;
+                case 1:
+                    returnValue = dictClass.callStatic(_methodName, _parameters.lookup(1));
+                    break;
+                case 2:
+                    returnValue = dictClass.callStatic(_methodName, _parameters.lookup(1), _parameters.lookup(2));
+                    break;
+                case 3:
+                    returnValue = dictClass.callStatic(_methodName, _parameters.lookup(1), _parameters.lookup(2), _parameters.lookup(3));
+                    break;
+                case 4:
+                    returnValue = dictClass.callStatic(_methodName, _parameters.lookup(1), _parameters.lookup(2), _parameters.lookup(3), _parameters.lookup(4));
+                    break;
+                case 5:
+                    returnValue = dictClass.callStatic(_methodName, _parameters.lookup(1), _parameters.lookup(2), _parameters.lookup(3), _parameters.lookup(4), _parameters.lookup(5));
+                    break;
+                case 6:
+                    returnValue = dictClass.callStatic(_methodName, _parameters.lookup(1), _parameters.lookup(2), _parameters.lookup(3), _parameters.lookup(4), _parameters.lookup(5), _parameters.lookup(6));
+                    break;
+                case 7:
+                    returnValue = dictClass.callStatic(_methodName, _parameters.lookup(1), _parameters.lookup(2), _parameters.lookup(3), _parameters.lookup(4), _parameters.lookup(5), _parameters.lookup(6), _parameters.lookup(7));
+                    break;
+                case 8:
+                    returnValue = dictClass.callStatic(_methodName, _parameters.lookup(1), _parameters.lookup(2), _parameters.lookup(3), _parameters.lookup(4), _parameters.lookup(5), _parameters.lookup(6), _parameters.lookup(7), _parameters.lookup(8));
+                    break;
+                //... Continue this pattern for the number of parameters we need to support.
+            }
+        }
+        // Closes the code access permission scope.
+        CodeAccessPermission::revertAssert();
+        return any2Str(returnValue);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>callMethodCon</Name>
+				<Source><![CDATA[
+    public static str callMethodCon(str _className, str _methodName, container _parameters)
+    {
+        ExecutePermission   permission;
+        DictClass           dictClass;
+        anytype             returnValue;
+        // Grants permission to execute the DictClass.callObject method.
+        // DictClass.callObject runs under code access security.
+        permission = new ExecutePermission();
+        permission.assert();
+        
+        dictClass = new DictClass(className2Id(_className));
+
+        if (dictClass != null)
+        {
+            switch (conLen(_parameters))
+            {
+                case 0:
+                    returnValue = dictClass.callStatic(_methodName, _parameters);
+                    break;
+                case 1:
+                    returnValue = dictClass.callStatic(_methodName, conPeek(_parameters, 1));
+                    break;
+                case 2:
+                    returnValue = dictClass.callStatic(_methodName, conPeek(_parameters, 1), conPeek(_parameters, 2));
+                    break;
+                case 3:
+                    returnValue = dictClass.callStatic(_methodName, conPeek(_parameters, 1), conPeek(_parameters, 2), conPeek(_parameters, 3));
+                    break;
+                case 4:
+                    returnValue = dictClass.callStatic(_methodName, conPeek(_parameters, 1), conPeek(_parameters, 2), conPeek(_parameters, 3), conPeek(_parameters, 4));
+                    break;
+                case 5:
+                    returnValue = dictClass.callStatic(_methodName, conPeek(_parameters, 1), conPeek(_parameters, 2), conPeek(_parameters, 3), conPeek(_parameters, 4), conPeek(_parameters, 5));
+                    break;
+                case 6:
+                    returnValue = dictClass.callStatic(_methodName, conPeek(_parameters, 1), conPeek(_parameters, 2), conPeek(_parameters, 3), conPeek(_parameters, 4), conPeek(_parameters, 5), conPeek(_parameters, 6));
+                    break;
+                case 7:
+                    returnValue = dictClass.callStatic(_methodName, conPeek(_parameters, 1), conPeek(_parameters, 2), conPeek(_parameters, 3), conPeek(_parameters, 4), conPeek(_parameters, 5), conPeek(_parameters, 6), conPeek(_parameters, 7));
+                    break;
+                case 8:
+                    returnValue = dictClass.callStatic(_methodName, conPeek(_parameters, 1), conPeek(_parameters, 2), conPeek(_parameters, 3), conPeek(_parameters, 4), conPeek(_parameters, 5), conPeek(_parameters, 6), conPeek(_parameters, 7), conPeek(_parameters, 8));
+                    break;
+                //... Continue this pattern for the number of parameters we need to support.
+            }
+        }
+
+        // Closes the code access permission scope.
+        CodeAccessPermission::revertAssert();
+
+        return any2Str(returnValue);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>callMethodConInstance</Name>
+				<Source><![CDATA[
+    public static str callMethodConInstance(object _class, str _methodName, container _parameters)
+    {
+        return any2Str(TFMDocCustomFunctionFlow::callMethodConInstanceAnyType(_class, _methodName, _parameters));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>callMethodConInstanceAnyType</Name>
+				<Source><![CDATA[
+    public static anytype callMethodConInstanceAnyType(object _class, str _methodName, container _parameters)
+    {
+        ExecutePermission   permission;
+        DictClass           dictClass;
+        anytype             returnValue;
+        // Grants permission to execute the DictClass.callObject method.
+        // DictClass.callObject runs under code access security.
+        permission = new ExecutePermission();
+        permission.assert();
+        
+        dictClass = new DictClass(classIdget(_class));
+
+        if (dictClass != null)
+        {
+            switch (conLen(_parameters))
+            {
+                case 0:
+                    returnValue = dictClass.callObject(_methodName,_class);
+                    break;
+                case 1:
+                    returnValue = dictClass.callObject(_methodName,_class, conPeek(_parameters, 1));
+                    break;
+                case 2:
+                    returnValue = dictClass.callObject(_methodName,_class, conPeek(_parameters, 1), conPeek(_parameters, 2));
+                    break;
+                case 3:
+                    returnValue = dictClass.callObject(_methodName,_class, conPeek(_parameters, 1), conPeek(_parameters, 2), conPeek(_parameters, 3));
+                    break;
+                case 4:
+                    returnValue = dictClass.callObject(_methodName,_class, conPeek(_parameters, 1), conPeek(_parameters, 2), conPeek(_parameters, 3), conPeek(_parameters, 4));
+                    break;
+                case 5:
+                    returnValue = dictClass.callObject(_methodName,_class, conPeek(_parameters, 1), conPeek(_parameters, 2), conPeek(_parameters, 3), conPeek(_parameters, 4), conPeek(_parameters, 5));
+                    break;
+                case 6:
+                    returnValue = dictClass.callObject(_methodName,_class, conPeek(_parameters, 1), conPeek(_parameters, 2), conPeek(_parameters, 3), conPeek(_parameters, 4), conPeek(_parameters, 5), conPeek(_parameters, 6));
+                    break;
+                case 7:
+                    returnValue = dictClass.callObject(_methodName,_class, conPeek(_parameters, 1), conPeek(_parameters, 2), conPeek(_parameters, 3), conPeek(_parameters, 4), conPeek(_parameters, 5), conPeek(_parameters, 6), conPeek(_parameters, 7));
+                    break;
+                case 8:
+                    returnValue = dictClass.callObject(_methodName,_class, conPeek(_parameters, 1), conPeek(_parameters, 2), conPeek(_parameters, 3), conPeek(_parameters, 4), conPeek(_parameters, 5), conPeek(_parameters, 6), conPeek(_parameters, 7), conPeek(_parameters, 8));
+                    break;
+                //... Continue this pattern for the number of parameters we need to support.
+            }
+        }
+
+        // Closes the code access permission scope.
+        CodeAccessPermission::revertAssert();
+
+        return returnValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>callMethod</Name>
+				<Source><![CDATA[
+    public static str callMethod(str _className, str _methodName, Map _parameters)
+    {
+                
+        DictMethod          method = new DictMethod(UtilElementType::ClassStaticMethod,className2Id(_className),_methodName);
+        
+        container           parameters = conNull();
+        int                 i;
+        str                 strParmValue;
+        Types               baseType;
+
+        for (i = 1; i <= method.parameterCnt(); i++)
+        {
+            strParmValue = _parameters.lookup(method.parameterName(i));
+            baseType = method.parameterType(i);
+            if (baseType == Types::UserType && method.parameterTypeName(i))
+            {
+                baseType = new DictType(extendedTypeName2Id(method.parameterTypeName(i))).baseType();
+            }
+            parameters += TFMDocCustomFunctionFlow::ConvertToType(strParmValue, baseType,method.parameterTypeName(i));
+        }
+
+        return TFMDocCustomFunctionFlow::callMethodCon(_className, _methodName, parameters);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>enumLabel2Id</Name>
+				<Source><![CDATA[
+    public static int enumLabel2Id(str _value, str _typeName)
+    {
+        SysDictEnum sde;// = new SysDictEnum(enumName2Id(_typeName));
+        SysDictType	sdt;
+        int result;// = sde.symbol2Value(_value);
+        str	label;
+        int i;
+		
+        sde = new SysDictEnum(enumName2Id(_typeName));
+
+		if (sde == null)
+        {
+            sdt = new SysDictType(extendedTypeName2Id(_typeName));
+            sde = new SysDictEnum(sdt.enumId());
+        }
+
+        result = sde.symbol2Value(_value);
+
+		if (result != 255)
+        {
+            return result;
+        } 
+        
+        if(isInteger(_value))
+        {
+            return str2Int(_value);
+        }
+
+        for (i = 0; i < sde.values();i++)
+        {
+            /*label = sde.index2Name(i);
+            label = sde.index2Symbol(i);*/
+            label = sde.index2Label(i);
+			if (label == _value)
+            {
+                return sde.index2Value(i);
+            }
+        }
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ConvertToType</Name>
+				<Source><![CDATA[
+    public static anytype ConvertToType(str _value, Types _type, str _typeName)
+    {
+        anytype result;
+        //SysDictEnum sde;
+        //str kommasep, pointsep;
+        str value = _value;
+        switch(_type)
+        {
+            case Types::Int64 : 
+            case Types::Integer :
+                result = _value ? str2Int64(_value) : 0;
+                break;
+            case Types::Enum :
+                
+                result = (_typeName == 'boolean') ? (_value == 'true' ? 1 : str2Int(_value)) : (_value ? TFMDocCustomFunctionFlow::enumLabel2Id(_value,_typeName) : 0);
+
+                //result = (_typeName == 'boolean') ? str2Int(_value) : (_value ? new DictEnum(enumName2Id(_typeName)).symbol2Value(_value) : 0);
+                
+                break;
+            case Types::Real :
+
+                //System.Globalization.CultureInfo cInfo = System.Globalization.CultureInfo::InvariantCulture;
+                value= value ? value : '0';
+                result = TFMHelper::floatParse(value);
+                /*System.Single float1 = System.Single::Parse(_value, System.Globalization.CultureInfo::InvariantCulture.NumberFormat);
+                System.Single float2 = System.Single::Parse(_value, System.Globalization.CultureInfo::GetCultureInfo('de-DE').NumberFormat);
+                result = System.Math::Min(System.Math::Abs(float1), System.Math::Abs(float2)) * (float1 < 0 ? -1 : 1);*/
+                //result = _value ? min(str2Num(_value)) : 0;
+                break;
+            case Types::Record :
+                result = _value ? TFMDocCustomFunctionFlow::convert2buffer(_value,_typeName): null;
+                break;
+            case Types::Date :
+                result = _value ? str2Date(_value,123) : dateNull();
+                break;
+            default :
+                result = _value;
+        }
+
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convert2buffer</Name>
+				<Source><![CDATA[
+    public static Common convert2buffer(str _value, str _tableName)
+    {
+        List            fieldList = TFMHelper::strSplit(_value,'_-|-_');
+        Map             replacementMap = new Map(Types::String,Types::Class);
+        Map             values = new Map(Types::String, Types::String);
+        str             fieldString;
+        DictField       DF;
+        QueryRun        qr;
+        ListEnumerator  lEnum = FieldList.getEnumerator();
+        Common  ret;
+
+        while (lEnum.moveNext())
+        {
+            fieldString = lEnum.current();
+            container fieldCon = TFMHelper::strSplit(fieldString,'_:_').pack();
+            DF = new DictField(tableName2id(_tableName),fieldname2id(tableName2id(_tableName),conpeek(fieldCon,conlen(fieldCon)-1)));
+            replacementMap.insert(DF.name(),DF);
+            values.insert(DF.name(),conpeek(fieldCon,conlen(fieldCon)));
+        }
+
+        qr = TFMHelper::findBuffersFromMap(values,_tableName,replacementMap);
+
+        qr.next();
+        ret = qr.get(tableName2Id(_tableName));
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public Set getDocumentTypes()
+    {
+        TFMCustomFunctionFlow flows;
+        Set ret = new Set(Types::String);
+        while select flows
+        {
+            ret.add(flows.TFMMenu+ #postPostFix);
+            ret.add(flows.TFMMenu+#lookupPostFix);
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerMenu</Name>
+				<Source><![CDATA[
+    public container registerMenu()
+    {
+        container               ret = conNull();
+        TFMCustomFunctionFlow   flows;
+        while select flows
+        {
+            ret += [flows.TFMMenu , flows.TFMMenu, true, resourceStr(TFMQuarantineOrderIcon)];
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getReferenceDataMethods</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public Set getReferenceDataMethods()
+    {
+        Set ret = new Set(Types::String);
+        ret.add(methodStr(TFMDocCustomFunctionFlow,CustomFunctionFlowReferenceData));
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CustomFunctionFlowReferenceData</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Provides reference data for all the pages, that has been setup in the Custom Function Flow setup.
+    /// </summary>
+    /// <returns>A TFMDocumentNodes instance containing all the headers, that needs to be created as reference data.</returns>
+    public TFMDocumentNodes CustomFunctionFlowReferenceData()
+    {
+        TFMCustomFunctionFlow flows;
+        TFMDocumentNodes nodes = TFMDocumentNodes::Construct('Configuration');
+        TFMDocumentNode confignode;//  = nodes.getRoot();
+        TFMDocumentNode KeyNode;//  = nodes.makeChild(confignode,'Key');
+        TFMDocumentNode valueNode;// = nodes.makeChild(configNode,'Value');
+        boolean         firstTime = true;
+        while select flows
+        {
+            confignode  = firstTime ? nodes.getRoot() : nodes.makeRootSibling('Configuration');
+            KeyNode     = nodes.makeChild(confignode,'Key');
+            valueNode   = nodes.makeChild(configNode,'Value');
+            KeyNode.parmValue(flows.TFMMenu + 'Header');
+            valueNode.setCDataXml(this.makeconfHeader(flows.TFMMenu));
+            firstTime = false;
+        }
+        
+        return firstTime ? null : nodes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeconfHeader</Name>
+				<Source><![CDATA[
+    private XML makeconfHeader(TFMMenu _menu)
+    {
+        TFMCustomFunctionFlowParmLines  lines;
+        TFMCustomFunctionFlowParmLines  tempLines;
+        XmlElement                      linesHeader = TFMGetReferenceData::createHeaderAndLine();
+        Set                             recSet;
+        Map                             dictFields;
+        MapEnumerator                   mEnum;
+        DictField                       df;
+        SetEnumerator                   sEnum;                
+        str                             label = 'field';
+        int i   = 0;
+        while select lines where lines.isFilter && lines.TFMMenu == _menu
+        {
+            recSet = new Set(Types::Record);
+
+            if (lines.baseType == Types::Record)
+            {
+                dictFields = lines.getFields();
+                if (!dictFields.elements())
+                {
+                    dictFields = TFMHelper::getPrimaryKeysFromTableName(lines.EDTName);
+                }
+                mEnum = dictFields.getEnumerator();
+                
+                while (mEnum.moveNext())
+                {
+                    df = mEnum.currentValue();
+                    tempLines.baseType = df.baseType();
+                    if (df.baseType() == Types::Enum)
+                    {
+                        tempLines.EDTName = enumId2Name(df.enumId());
+                    }
+                    else 
+                    {
+                        tempLines.EDTName = extendedTypeId2name(df.typeId());
+                    }
+                    tempLines.ParmName = mEnum.currentKey();
+                    recSet.add(tempLines);
+                }
+            }
+            else
+            {
+                recSet.add(Lines);
+            }
+
+            sEnum = recSet.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                tempLines = sEnum.current();
+                Label = this.getLabel(tempLines);
+                //TODO: reinstate in data collection process 
+                /*TFMGetReferenceData::createHeaderConfigurationElement(linesHeader, i*10, tempLines.ParmName,Label, 100, TFMHelper::baseType2InputType(tempLines.baseType), '', '', '',
+                                               true, true, 0, intMax(), dateTimeUtil::minValue(),dateTimeUtil::maxValue(), 100, false,
+                                               '','','','02,01',false);*/
+                i++;
+            }
+        }
+        return linesHeader.parentNode().xml();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLabel</Name>
+				<Source><![CDATA[
+    private str getLabel(TFMCustomFunctionFlowParmLines  _tempLines)
+    {
+        DictType dt;
+        DictEnum de;
+        str label = '';
+        if (_tempLines.EDTName && extendedTypeName2Id(_tempLines.EDTName))
+        {
+            dt = new DictType(extendedTypeName2Id(_tempLines.EDTName));
+            label = dt.label();
+        }
+        else if (_tempLines.EDTName && enumName2Id(_tempLines.EDTName))
+        {
+            de = new DictEnum(enumName2Id(_tempLines.EDTName));
+            Label = de.label();
+        }
+        Label = Label ? label : str2Capital(strReplace(_tempLines.ParmName, '_', ''));
+
+        return Label;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

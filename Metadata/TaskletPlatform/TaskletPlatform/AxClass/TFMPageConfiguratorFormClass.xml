@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageConfiguratorFormClass</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPageConfiguratorFormClass extends Object implements TFMMenuItemsContainerInterface
+{
+    TFMPage             currentPage;
+    FormDataSource      menuItemsFormDataSource;
+    FormStringControl   menuPageIdControl;
+    public TFMPages     pagesOnForm;
+    str                 lastSelectedMenuItemId;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(TFMPageId _pageId, FormDataSource _menuItemsFormDataSource, FormStringControl _menuPageIdControl)
+    {
+        pagesOnForm = TFMPagesProvider::getAllPages();
+        
+        menuItemsFormDataSource = _menuItemsFormDataSource;
+        menuPageIdControl = _menuPageIdControl;
+
+        currentPage = pagesOnForm.getPage(_pageId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>currentPage</Name>
+				<Source><![CDATA[
+    public TFMPage currentPage()
+    {
+        return currentPage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLastSelectedMenuItemId</Name>
+				<Source><![CDATA[
+    public str parmLastSelectedMenuItemId(str _lastSelectedMenuItemId = lastSelectedMenuItemId)
+    {   
+        lastSelectedMenuItemId = _lastSelectedMenuItemId;
+        return lastSelectedMenuItemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_lookup</Name>
+				<Source><![CDATA[
+    public void control_lookup(FormControl _control)
+    {
+        FormStringControl strControl = _control;
+        if (strControl.extendedDataType() == extendedTypeNum(TFMListId))
+        {
+            TFMFormLookupHelper::lookupListIDs(strControl);
+        }
+        if (strControl.extendedDataType() == extendedTypeNum(TFMServiceId))
+        {
+            TFMFormLookupHelper::lookupServiceIDs(strControl);
+        }
+        else if (strControl.extendedDataType() == extendedTypeNum(TFMMenu))
+        {
+            TFMFormLookupHelper::lookupMenuIDs(strControl);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_modified</Name>
+				<Source><![CDATA[
+    public boolean control_modified(FormControl _control)
+    {
+        MethodName              callMethod = SysTest::hasMethod(_control,methodStr(FormCheckBoxControl, value)) ? methodStr(FormCheckBoxControl, value) : methodStr(FormControl, valueStr);
+        TFMPageConfigParms::CreateOrUpdateParameter(currentPage.parmId(),classId2Name(classIdGet(currentPage.getConfiguration())),_control.name(),new SysDictClass(classIdGet(_control)).callObject(callMethod,_control));
+        if (SysTest::hasMethod(currentPage.getConfiguration(),_control.name()))
+        {
+            new SysDictClass(classIdGet(currentPage.getConfiguration())).callObject(_control.name(),currentPage.getConfiguration(), new SysDictClass(classIdGet(_control)).callObject(callMethod,_control));
+            // Notify other AOSs that the pages has been updated.
+            this.pagesObjectsWasUpdated();
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_EnumModified</Name>
+				<Source><![CDATA[
+    public boolean control_EnumModified(FormComboBoxControl _control)
+    {
+        MethodName              callMethod = SysTest::hasMethod(_control,methodStr(FormCheckBoxControl, value)) ? methodStr(FormCheckBoxControl, value) : methodStr(FormControl, valueStr);
+        str						value = new SysDictClass(classIdGet(_control)).callObject(callMethod,_control);
+        anytype                 typeFromValue = TFMDocCustomFunctionFlow::ConvertToType(value,Types::Enum,enumId2Name(_control.enumTypeValue()));
+        str                     symbolValue = TFMHelper::enumName(_control.enumTypeValue(), typeFromValue);
+
+        TFMPageConfigParms::CreateOrUpdateParameter(currentPage.parmId(),classId2Name(classIdGet(currentPage.getConfiguration())),_control.name(),symbolValue);
+        if (SysTest::hasMethod(currentPage.getConfiguration(),_control.name()))
+        {
+            new SysDictClass(classIdGet(currentPage.getConfiguration())).callObject(_control.name(),currentPage.getConfiguration(), typeFromValue);
+            // Notify other AOSs that the pages has been updated.
+            this.pagesObjectsWasUpdated();
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pagesObjectsWasUpdated</Name>
+				<Source><![CDATA[
+    private void pagesObjectsWasUpdated()
+    {
+        TFMPagesProvider::instance().invalidateProvider();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setTabPages</Name>
+				<Source><![CDATA[
+    public void setTabPages(FormTabControl _tabPage, FormTabControl _offlineTabPage)
+    {
+        this.populateTabPage(_tabPage, _offlineTabPage);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateTabPage</Name>
+				<Source><![CDATA[
+	//TODO: Merge this with TFMDatasourceParametersEdit/TFMDocumentParametersEdit
+    private void populateTabPage(FormTabControl _tabPage, FormTabControl _offlineTabPage)
+    {
+        SetEnumerator							methodSet = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(currentPage.getConfiguration())).getEnumerator();
+        SysDictClass							DC = new SysDictClass(classIdGet(currentPage.getConfiguration()));
+        SysDictMethod							DM;
+        FormTabControl							tabToUse;
+        FormStringControl						strcontrol;
+        FormCheckBoxControl						chkcontrol;
+        FormTabPageControl						fgc;
+        FormGroupControl						subGroup;
+        FormStaticTextControl					NodeText;
+        FormComboBoxControl						comboBox;
+        TFMPageConfigurationAttributeAttribute	configAttr;
+        TFMPageActionAttribute					actionAttr;
+        str										GroupKey;
+        anytype                                 enumlabel;
+        SysDictType								sdt;
+        str										systemType;
+        Types									thetype;
+        Set										groupNames = new Set(Types::String);
+        SetEnumerator							groupNamesEnum;
+        Map										groups = new Map(Types::String, Types::Class);
+        Map										subGroups = new Map(Types::String, Types::Class);
+        Map										addedFields = new Map(Types::String, Types::Class);
+        str										xPath = 'application/pages/page/' + TFMRegistrationCollector::smallBeginnings(subStr(classId2Name(classIdGet(currentPage.getConfiguration())),strLen(classStr(TFMPage))+1,strLen(classId2Name(classIdGet(currentPage.getConfiguration())))));
+        TFMPageXSDParser						parser = TFMPageXsdParserProvider::instance().getEntityImpl();
+        Map										groupAttributes = new Map(Types::String, Types::Class);
+        Map										nodeAttributes;
+        Map										NodeSubNodes;
+        XmlElement								nodeInXSD;
+        Map										AttributeProperties;
+        Set										addField;
+        MapEnumerator							mEnum;
+        MapEnumerator							fieldEnum;
+        ListEnumerator							lEnum;
+        int                                     comboBoxSelectionIndex;
+        str										isModifiedText = '';
+        str                                     pageName;
+        MapEnumerator                           mEnumEdtLookups;
+        
+        pageName = currentPage.parmId();
+
+
+        while (_tabPage.controlCount())
+        {
+            _tabPage.formRun().design().removeControl(_tabPage.controlNum(1).id());
+        }
+
+        while (_offlineTabPage.controlCount())
+        {
+            _offlineTabPage.formRun().design().removeControl(_offlineTabPage.controlNum(1).id());
+        }
+
+        // Find the groups for the parm methods so it can be sorted when subgroups and fields are added later.
+        while (methodSet.moveNext())
+        {
+            DM = new SysDictMethod(UtilElementType::ClassInstanceMethod,classIdGet(currentPage.getConfiguration()), methodSet.current());
+            
+            configAttr = DM.getAttribute(classStr(TFMPageConfigurationAttributeAttribute));
+            
+            GroupKey = configAttr && configAttr.parmXPath() ? configAttr.parmXPath() : 'General';
+            GroupKey = TFMHelper::stripLastCharIfSlash(GroupKey);
+           
+            if (!configAttr)
+            {
+                continue; // if the parm method is not a TFMPageConfigurationAttributeAttribute then skip it.
+            }
+            actionAttr = DM.getAttribute(classStr(TFMPageActionAttribute));
+            if(actionAttr)
+            {
+                continue; // it is an action/menu item on the page so do not add it to the configuration page.
+            }
+            
+            if (!groupNames.in(GroupKey))
+            {
+                groupNames.add(GroupKey);
+            }
+        }
+
+        // Add the groups to the tab page control and add sub groups like primary and additional subgroup.
+        groupNamesEnum = groupNames.getEnumerator();
+        while(groupNamesEnum.moveNext())
+        {
+            GroupKey = groupNamesEnum.current();
+            tabToUse = strScan(GroupKey, 'ffline', 0, 10000) ? _offlineTabPage : _tabPage; // if it contains ffline (offline and Offline) then it is put on the offline configurations page.
+            fgc = tabToUse.addControl(FormControlType::TabPage,GroupKey);
+            fgc.caption(this.convertToNiceText(GroupKey));
+            fgc.caption(strUpr(subStr(fgc.caption(),1,1)) + subStr(fgc.caption(),2,1000));
+            fgc.columns(1);
+    
+            if (!fgc.fastTabExpanded())
+            {
+                fgc.expand();
+            }
+            NodeSubNodes = parser.drillDown(xPath+ (GroupKey == 'General' ? '' : ('/' + GroupKey)),false,true);
+            if (NodeSubNodes.exists(GroupKey))
+            {
+                nodeInXSD = NodeSubNodes.lookup(GroupKey);
+                if (nodeInXSD.innerText())
+                {
+                    NodeText = fgc.addControl(FormControlType::StaticText,GroupKey + '_HelpText');
+                    NodeText.text(strReplace(nodeInXSD.innerText(),"@TFM:Backslash_N",''));
+                    fgc.helpText(strReplace(nodeInXSD.innerText(),"@TFM:Backslash_N",''));
+                }
+            }
+            subGroup = fgc.addControl(FormControlType::Group,GroupKey + '_Primary');
+            subGroup.columns(4);
+            groups.insert(GroupKey,subGroup);
+            subGroup = fgc.addControl(FormControlType::Group,GroupKey + '_additional');
+            subGroup.frameOptionButton(3);
+            subGroup.optionValue(0);
+            subGroup.caption("@TFM:AdditionalProperties");
+            subGroup.hideIfEmpty(false);
+            subGroup.columns(4);
+            subGroups.insert(GroupKey,subGroup);
+            nodeAttributes = parser.drillDown(xPath + (GroupKey == 'General' ? '' : ('/' + GroupKey)),true);
+                
+            groupAttributes.insert(GroupKey,nodeAttributes);
+        }
+    
+        // add the fields
+        methodSet.reset();
+        while (methodSet.moveNext())
+        {
+            DM = new SysDictMethod(UtilElementType::ClassInstanceMethod,classIdGet(currentPage.getConfiguration()), methodSet.current());
+            
+            configAttr = DM.getAttribute(classStr(TFMPageConfigurationAttributeAttribute));
+            
+            GroupKey = configAttr && configAttr.parmXPath() ? configAttr.parmXPath() : 'General';
+            GroupKey = TFMHelper::stripLastCharIfSlash(GroupKey);
+           
+            if (!configAttr)
+            {
+                continue; // if the parm method is not a TFMPageConfigurationAttributeAttribute then skip it.
+            }
+            actionAttr = DM.getAttribute(classStr(TFMPageActionAttribute));
+            if(actionAttr)
+            {
+                continue; // it is an action/menu item on the page so do not add it to the configuration page.
+            }
+
+            subGroup = groups.lookup(GroupKey);
+            nodeAttributes = groupAttributes.lookup(GroupKey);
+            int i = DM.returnId();
+            systemType = DM.returnTypeName();
+            thetype = DM.returnType();
+            sdt = new SysDictType(i);
+            isModifiedText = TFMPageConfigParms::exist(pageName,classId2Name(classIdGet(currentPage.getConfiguration())) ,methodSet.current()) ? '('+"@SYS27395"+')' : '';
+            if (systemType == 'boolean' || (sdt && sdt.enumId() == enumNum(NoYes)))
+            {
+                chkcontrol = subGroup.addControl(FormControlType::CheckBox,methodSet.current());
+                chkcontrol.label(this.convertToNiceText(configAttr.parmnodeName() ? configAttr.parmnodeName() : subStr(methodSet.current(),5,10000)) + isModifiedText);
+                chkcontrol.registerOverrideMethod(methodstr(FormCheckBoxControl, modified),methodstr(TFMPageConfiguratorFormClass, control_modified),this);
+                if (nodeAttributes.exists(configAttr.parmnodeName() ? configAttr.parmnodeName() : subStr(methodSet.current(),5,10000)))
+                {
+                    AttributeProperties = nodeAttributes.lookup(configAttr.parmnodeName() ? configAttr.parmnodeName() : subStr(methodSet.current(),5,10000));
+                    chkcontrol.helpText(AttributeProperties.lookup('annotation'));
+                }
+                chkcontrol.checked(DC.callObject(methodSet.current(),currentPage.getConfiguration()));
+                chkcontrol.enabled(configAttr.parmEditable());
+            }
+
+            else if (sdt && sdt.enumId())
+            {
+                comboBox = subGroup.addControl(FormControlType::ComboBox,methodSet.current());
+                comboBox.enumType(sdt.enumId());
+
+                enumlabel = TFMPageConfigParms::getValue(pageName,classId2Name(classIdGet(currentPage.getConfiguration())) ,methodSet.current(), DC.callObject(methodSet.current(),currentPage.getConfiguration()));
+                comboBoxSelectionIndex = TFMDocCustomFunctionFlow::enumLabel2Id(enumlabel, sdt.name());
+                comboBox.selection(comboBoxSelectionIndex);
+                
+                comboBox.registerOverrideMethod(methodstr(FormComboBoxControl, modified),methodstr(TFMPageConfiguratorFormClass, control_EnumModified),this);
+                comboBox.label(this.convertToNiceText(configAttr.parmnodeName() ? configAttr.parmnodeName() : subStr(methodSet.current(),5,10000)) + isModifiedText);
+            }
+            else
+            {
+                strcontrol = subGroup.addControl(FormControlType::String,methodSet.current());
+                strcontrol.label(this.convertToNiceText(configAttr.parmnodeName() ? configAttr.parmnodeName() : subStr(methodSet.current(),5,10000))+ isModifiedText);
+                strcontrol.registerOverrideMethod(methodstr(FormStringControl, modified),methodstr(TFMPageConfiguratorFormClass, control_modified),this);
+                strcontrol.text(DC.callObject(methodSet.current(),currentPage.getConfiguration()));
+                if (nodeAttributes.exists(configAttr.parmnodeName() ? configAttr.parmnodeName() : subStr(methodSet.current(),5,10000)))
+                {
+                    AttributeProperties = nodeAttributes.lookup(configAttr.parmnodeName() ? configAttr.parmnodeName() : subStr(methodSet.current(),5,10000));
+                    strcontrol.helpText(AttributeProperties.lookup('annotation'));
+                }
+                if (sdt && sdt.id())
+                {
+                    strcontrol.extendedDataType(sdt.id());
+                    strcontrol.lookupButton(2);
+                }
+
+                mEnumEdtLookups = TFMAttributeHandler::getMethodNamesFromSysAttribute(classIdGet(currentPage.getConfiguration()), new TFMLookupMethodForEDTAttribute(extendedTypeId2name(strcontrol.extendedDataType()))).getEnumerator();
+                while (mEnumEdtLookups.moveNext())
+                {
+                    //Special Case, override lookup.
+                    strcontrol.registerOverrideMethod(methodStr(FormStringControl, lookup), mEnumEdtLookups.currentKey(), currentPage.getConfiguration());
+                }
+
+                strcontrol.enabled(configAttr.parmEditable());
+                strcontrol.mandatory(configAttr.parmMandatory());
+            }
+            addField = addedFields.exists(GroupKey) ? addedFields.lookup(GroupKey) : new Set(Types::String);
+            addField.add(configAttr.parmnodeName() ? configAttr.parmnodeName() : subStr(methodSet.current(),5,10000));
+            addedFields.insert(GroupKey,addField);
+        }
+
+        // Add additional attributes from the XSD for the parm method (not yet added)
+        mEnum = subGroups.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            nodeAttributes = groupAttributes.lookup(mEnum.currentKey());
+            fieldEnum = nodeAttributes.getEnumerator();
+            addField = addedFields.exists(mEnum.currentKey()) ? addedFields.lookup(mEnum.currentKey()) : new Set(Types::String);
+            subGroup = mEnum.currentValue();
+            
+            while (fieldEnum.moveNext())
+            {
+                isModifiedText = TFMPageConfigParms::exist(pageName,classId2Name(classIdGet(currentPage.getConfiguration())), TFMPageConfigParms::ConstructMethodNameForPageConfigParam(mEnum.currentKey(), fieldEnum.currentKey())) ?  '('+"@SYS27395"+')' : '';
+                if (addField.in(fieldEnum.currentKey()) || 'configurationKey' == fieldEnum.currentKey())
+                {
+                    continue;
+                }
+                AttributeProperties = fieldEnum.currentValue();
+
+                if(AttributeProperties.lookup('annotation') && strScan(AttributeProperties.lookup('annotation'), 'DEPRECATED:', 0, 1000))
+                {
+                    continue; // no reason to include deprecated controls.
+                }
+
+                if (AttributeProperties.exists('type') && strScan(AttributeProperties.lookup('type'),'boolean',1,1000))
+                {
+                    chkcontrol = subGroup.addControl(FormControlType::CheckBox, TFMPageConfigParms::ConstructMethodNameForPageConfigParam(mEnum.currentKey(), fieldEnum.currentKey()));
+                    chkcontrol.label(this.convertToNiceText(fieldEnum.currentKey()) + isModifiedText);
+                    chkcontrol.registerOverrideMethod(methodstr(FormCheckBoxControl, modified),methodstr(TFMPageConfiguratorFormClass, control_modified),this);
+                    
+                    chkcontrol.helpText(AttributeProperties.lookup('annotation'));
+                    
+                    chkcontrol.checked(TFMPageConfigParms::getValue(pageName,classId2Name(classIdGet(currentPage.getConfiguration())), TFMPageConfigParms::ConstructMethodNameForPageConfigParam(mEnum.currentKey(), fieldEnum.currentKey()), AttributeProperties.exists('default') ? AttributeProperties.lookup('default') == 'true' : false));
+                    continue;
+                }
+                else if (AttributeProperties.exists('enumValues'))
+                {
+                    comboBox = subGroup.addControl(FormControlType::ComboBox, TFMPageConfigParms::ConstructMethodNameForPageConfigParam(mEnum.currentKey(), fieldEnum.currentKey()));
+                    comboBox.label(this.convertToNiceText(fieldEnum.currentKey()) + isModifiedText);
+                    comboBox.helpText(AttributeProperties.lookup('annotation'));
+                    lEnum = TFMHelper::strSplit(AttributeProperties.lookup('enumValues'),'|').getEnumerator();
+                    while (lEnum.moveNext())
+                    {
+                        comboBox.add(conPeek(TFMHelper::strSplit(lEnum.current(),'¤').pack(),4));
+                                                
+                    }
+                    if(TFMPageConfigParms::exist(pageName,classId2Name(classIdGet(currentPage.getConfiguration())), TFMPageConfigParms::ConstructMethodNameForPageConfigParam(mEnum.currentKey(), fieldEnum.currentKey())))
+                    {
+                        comboBox.selectText(TFMPageConfigParms::getValue(pageName,classId2Name(classIdGet(currentPage.getConfiguration())), TFMPageConfigParms::ConstructMethodNameForPageConfigParam(mEnum.currentKey(), fieldEnum.currentKey()), ''));
+                    }
+                    if(TFMPageConfigParms::exist(pageName,classId2Name(classIdGet(currentPage.getConfiguration())), TFMPageConfigParms::ConstructMethodNameForPageConfigParam(mEnum.currentKey(), fieldEnum.currentKey())))
+                    {
+                        comboBox.selectText(TFMPageConfigParms::getValue(pageName,classId2Name(classIdGet(currentPage.getConfiguration())), TFMPageConfigParms::ConstructMethodNameForPageConfigParam(mEnum.currentKey(), fieldEnum.currentKey()), ''));
+                    }
+                    comboBox.registerOverrideMethod(methodstr(FormStringControl, modified),methodstr(TFMPageConfiguratorFormClass, control_modified),this);
+                    continue;
+                }
+                strcontrol = subGroup.addControl(FormControlType::String, TFMPageConfigParms::ConstructMethodNameForPageConfigParam(mEnum.currentKey(), fieldEnum.currentKey()));
+                strcontrol.label(this.convertToNiceText(fieldEnum.currentKey()) + isModifiedText);
+                strcontrol.registerOverrideMethod(methodstr(FormStringControl, modified),methodstr(TFMPageConfiguratorFormClass, control_modified),this);
+                strcontrol.helpText(AttributeProperties.lookup('annotation'));
+                strcontrol.text(TFMPageConfigParms::getValue(pageName,classId2Name(classIdGet(currentPage.getConfiguration())), TFMPageConfigParms::ConstructMethodNameForPageConfigParam(mEnum.currentKey(), fieldEnum.currentKey()), ''));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertToNiceText</Name>
+				<Source><![CDATA[
+    private str convertToNiceText(str _missingSpaces)
+    {
+        return TFMHelper::convertCamelCaseToNiceText(_missingSpaces);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateTypeBarcodePropertiesWithGs1AIs</Name>
+				<Source><![CDATA[
+    public void populateTypeBarcodePropertiesWithGs1AIs(FormGroupControl _fgc)
+    {
+        TFMGS1AISetup ais;
+        str aisStr;
+        FormGroupControl aisGroup = _fgc.addControl(FormControlType::Group, 'aisGroup');
+        aisGroup.columns(4);
+        aisGroup.caption("@TFM:ApplicationIdentifierSetup");
+        while select ais order by Name
+        {
+            aisStr = System.String::Format('{0:00}', ais.GS1AI);
+            TFMFormHelper::type2FormControl(aisGroup, extendedTypeNum(NoYesId), extendedTypeNum(NoYesId), ais.Name +'_'+ int2Str(ais.GS1AI), strFmt('%1',TFMGS1AITypeBarcodeSetup::enabled(currentPage.parmId(),ais.Name,ais.GS1AI)), ais.Name + ' (' + aisStr + ')', methodStr(TFMPageConfiguratorFormClass, GS1AI_modified),this);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GS1AI_modified</Name>
+				<Source><![CDATA[
+    public boolean GS1AI_modified(FormCheckBoxControl _sender)
+    {
+        container content = strSplit(_sender.name(),'_').pack();
+        Name AIname = conpeek(content,conLen(content)-1);
+        int  GS1AI  = conpeek(content,conLen(content));
+
+        TFMGS1AITypeBarcodeSetup::setEnabled(currentPage.parmId(),AIname,GS1AI,_sender.checked());
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setActiveMenuItem</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Set the active menu item on data source.
+    /// </summary>
+    /// <param name = "_selectMenuItemId">The MenuPageId</param>
+    public void setActiveMenuItem(str _selectMenuItemId)
+    {
+        if(_selectMenuItemId)
+        {
+            menuItemsFormDataSource.executeQuery();
+            if(!menuItemsFormDataSource.findValue(fieldName2Id(tableNum(TFMPageMenuItems), 'MenuPageID'), _selectMenuItemId))
+            {
+                menuItemsFormDataSource.findValue(fieldName2Id(tableNum(TFMPageMenuItems), 'MenuPageID'), _selectMenuItemId);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveMenuItemsSetup</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Saves the menu item setup for the current page.
+    /// </summary>
+    /// <param name = "promotedMenuItemIds"></param>
+    /// <param name = "nonPromotedItemIds"></param>
+    public void saveMenuItemsSetup(List _menuItemsSetup)
+    {
+        ListEnumerator   menuItemEnumerator;
+        TFMPageMenuItems pageMenuItems;
+        TFMMenuConfigContract contract;
+        Set menuItemIds = new Set(Types::String);
+
+        menuItemEnumerator = _menuItemsSetup.getEnumerator();
+        int lineCounter = 1;
+
+        ttsbegin;
+
+        //Update the placement and if the menu items are promoted
+        while(menuItemEnumerator.moveNext())
+        {
+            contract = menuItemEnumerator.current();
+            pageMenuItems = TFMPageMenuItems::find(currentPage.parmId(), contract.parmPageId());
+            pageMenuItems.PromotedItem = contract.parmPromoted();
+            pageMenuItems.LineNumber = lineCounter;
+            pageMenuItems.write();
+            lineCounter++;
+            menuItemIds.add(contract.parmPageId() );
+        }
+
+        // Delete the menu items that is not in the list
+        while select forUpdate pageMenuItems where pageMenuItems.PageID == currentPage.parmId() && !pageMenuItems.Mandatory
+        {
+            if(!menuItemIds.in(pageMenuItems.MenuPageID))
+            {
+                pageMenuItems.delete();
+                if(pageMenuItems.MenuPageID == this.parmLastSelectedMenuItemId())
+                {
+                    this.parmLastSelectedMenuItemId('');
+                }
+            }
+        }
+
+        ttsCommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showAddMenuItemsFormLookup</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Shows the loolup for the MenuPageId to create a link to a new page.
+    /// </summary>
+    public void showAddMenuItemsFormLookup()
+    {
+        menuItemsFormDataSource.create();
+        menuPageIdControl.setFocus();
+        menuPageIdControl.lookup();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

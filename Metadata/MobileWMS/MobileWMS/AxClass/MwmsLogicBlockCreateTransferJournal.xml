@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockCreateTransferJournal</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic block needed to create a transfer journal
+/// </summary>
+class MwmsLogicBlockCreateTransferJournal extends MwmsLogicBlockjournalsCommon implements TFMLogicBlockDataCollectionInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method provides the header fields, that are needed to find out which data should be collected.
+    /// </summary>
+    /// <returns>A MobReferenceDataConfiguration object, containing registration collectors for the header.</returns>
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        return components.getHeaders();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicBlockCreateTransferJournal Construct()
+    {
+        return new MwmsLogicBlockCreateTransferJournal();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+
+        categories.add("@SYS6437");
+        categories.add("@SYS8801");
+        components.addComponent(new MwmsLogicComponentInventoryJournalsCommonHeader());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>autoCreatedProcesses</Name>
+				<Source><![CDATA[
+    public Set autoCreatedProcesses()
+    {
+        Set ret = super();
+        TFMProcess process = TFMProcess::Construct('CreateTransferJournal');
+        process.addBlock(this);
+        ret.add(Process);        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return methodstr(MobimageHandlerCombinedImages, transferJournalIcon);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Name of the block Type.
+    /// </summary>
+    /// <returns>Name of the block</returns>
+    public Name blockName()
+    {
+        return "@MobileWMS:CreateTransferJournal";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method gives you the registration collectors for this data collection block.
+    /// </summary>
+    /// <returns>A collection of registration collectors.</returns>
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method is called before the post method, and gives the option to add extra registration collectors for the user to be prompted for before the post method is executed.
+    /// </summary>
+    /// <returns>Returns a MobRegistrationCollectors object if the user must be further prompted, otherwise it returns null</returns>
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method executed when all data has been collected, and contains the posting logic.
+    /// </summary>
+    /// <returns>A MobPostResponseData object.</returns>
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData                 response = TFMPostResponseData::Construct();
+        InventJournalName			        inventJournalName;
+        
+        // Get the name of the journal to create
+        inventJournalTable.clear();
+        inventJournalName = InventJournalName::find(MobParameters::find().InventJournalNameTransfer,true);
+        docRequest.addField(extendedTypeStr(JournalNameId),inventJournalName.JournalNameId);
+        inventJournalTable.JournalType          = inventJournalType::Transfer;
+        inventJournalTable = components.provideDataIfPossible(inventJournalTable);
+        inventJournalTable.insert();
+
+        response.parmResponseText("@MobileWMS:MEL47");
+
+        return response;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

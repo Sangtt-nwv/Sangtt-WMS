@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicStepOperatorDeclareVariable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicStepOperatorDeclareVariable extends TFMLogicBlock implements TFMLogicStepOperatorInterface
+{
+    TFMFlowVariableName             variableName;
+    str                             startValue;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        outputs = TFMLogicInputOutputContainer::Construct();        
+        outputs.addConnectionName('');
+                
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        return variableName ? ("@TFM:Variable" + variableName + (startValue ? '='+startValue : '')) : "@TFM:DeclareVariable";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMBlobVariable);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmVariableName</Name>
+				<Source><![CDATA[
+    [TFMParameter('')]
+    public TFMFlowVariableName parmVariableName(TFMFlowVariableName _variableName = variableName)
+    {
+        variableName = _variableName;
+        return variableName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmStartValue</Name>
+				<Source><![CDATA[
+    [TFMParameter('', "@TFM:Startvalue")]
+    public Name parmStartValue(Name _startValue = startValue)
+    {
+        startValue = _startValue;
+        return startValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runLogic</Name>
+				<Source><![CDATA[
+    public str runLogic ( TFMRequestElement _request )
+    {
+        _request.logicContext().addFieldContent(variableName, startValue,true);
+        _request.makeLogEntry (strFmt('Added variable %1 with the value "%2"', variableName, startValue));
+        return '';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

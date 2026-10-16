@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocAddPickLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+// <summary>
+/// Document Handler class for adding count lines to count journals.
+/// </summary>
+[
+    TFMTableName(tableStr(ProdJournalTable)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticmethodStr(MobConstants,AddPickLine), methodStr(MobDocAddPickLine,createAddPickLineConfiguration)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticmethodStr(MobConstants,AddPickLine), methodStr(MobDocAddPickLine,postAddPickLine))
+]
+class MobDocAddPickLine extends TFMDocumentHandler
+{
+    InventDim               inventDim;
+    InventTable             inventTable;
+    ProdJournalTable        prodJournalTable;
+    ProdJournalBOM          prodJournalBOM;
+    TFMInventDimSetup       mobInventDimSetup;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getProdJournalBOM</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(ProdJournalBOM))]
+    public ProdJournalBOM getProdJournalBOM()
+    {
+        return prodJournalBOM;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getprodJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(prodJournalTable))]
+    public ProdJournalTable getprodJournalTable()
+    {
+        return prodJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public TFMDocumentHandlerDescription description()
+    {
+        TFMDocumentHandlerDescription ret = "@MobileWMS:AddPickLine";
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages pages = MobPageHelper::getPagesFromClass(this);
+        TFMPageUnplannedItemRegistration	addPickLineUnplannedPage = pages.getPage('AddPickLine');
+
+        addPickLineUnplannedPage.parmId('AddPickLine');
+        addPickLineUnplannedPage.parmIcon(resourceStr(MobStatePlus));
+        addPickLineUnplannedPage.parmTitle("@MobileWMS:AddPickLine");
+        addPickLineUnplannedPage.parmAvailableForMenuPages(false);
+        
+        return pages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddPickLineHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Create Tag Counting Journal Lines page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration AddPickLineHeader()
+    {
+        TFMReferenceDataConfiguration refConf = new TFMReferenceDataConfiguration();        
+        
+        // Warehouse
+        refConf.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(1, MobConstants::Warehouse(), "@SYS6437", methodStr(TFMGetReferenceData,WarehouseList)));
+    
+        // Journal ID
+        refConf.addCollector(TFMGetReferenceData::defaultJournalIdCollector(2, extendedTypeStr(JournalId), true));
+        
+        refConf.addCollector(TFMGetReferenceData::defaultItemIdCollector(3,true,false,extendedTypeStr(ItemIdBase)));
+
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public void process()
+    {
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createAddPickLineConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create an add pick line configuration
+    /// </summary>
+    /// <returns>A Map containing all the registration collectors, that the user should be prompted for.</returns>
+    public Map createAddPickLineConfiguration() 
+    {
+        Map                                 returnMap;
+        int                                 add = 10;
+        InventDimParm                       parm;
+        InventDimParm                       inventDimParm;
+        TFMRequestItemAndDimensionElement   pickRequest = request as TFMRequestItemAndDimensionElement;
+        InventOnhand                        inventOnhand;
+        InventDim                           defaultValuesDim;
+        InventDim	                        iDim = pickRequest.parmInventDim();
+        TFMRegistrationCollectorText        prefixCollector = new TFMRegistrationCollectorText(100, MobConstants::CollectorMapFieldPrefix(), '', '', '');
+        
+        inventDimParm.initFromInventDim(iDim);
+        parm = InventDimParm::xorParms(inventDimParm,InventDimParm::activeDimFlag(InventDimGroupSetup::newInventTable(pickRequest.parmInventTable())));
+		
+        if (!pickRequest.parmInventTable())
+        {
+            throw Error ("@SYS133447");
+        }
+
+        parm.InventSiteIdFlag = NoYes::No;
+        parm.InventLocationIdFlag = NoYes::No;
+        mobInventDimSetup = TFMInventDimSetup::Construct(pickRequest.parmInventTable());
+        #if.isAX6
+        parm.WMSPalletIdFlag = mobInventDimSetup.registerWMSPallet();
+        parm.WMSLocationIdFlag = !mobInventDimSetup.registerWMSPallet();
+        #endif
+
+        returnMap = MobInventDimHelper::GetInventDimCollectors(add,mobInventDimSetup,parm, null, null, defaultValuesDim);
+        TFMRegistrationCollector::prefixCollectorMapFields(returnMap);
+        inventOnhand = InventOnhand::newParameters(pickRequest.parmItemId(), inventDim, inventDimParm);
+        returnMap.insert(   extendedTypeStr(Qty),
+                            TFMRegistrationCollectorDecimal::DecimalStepMap(1000,
+                                                                            extendedTypeStr(Qty),
+                                                                            "@SYS130676",
+                                                                            new SysDictType(extendedTypeNum(Qty)).label(),
+                                                                            '',
+                                                                            false,
+                                                                            strFmt('%1',inventOnhand.availPhysical()),0,10000000,14));
+
+        prefixCollector.parmDefaultValue(MobConstants::collectorMapHelperPrefix());
+        prefixCollector.parmVisible(false);
+        returnMap.insert(MobConstants::CollectorMapFieldPrefix(), prefixCollector.getMap());
+        
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postAddPickLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to post Pick lines.
+    /// </summary>
+    [TFMPostMethod(tableStr(ProdjournalBOM))]
+    protected void postAddPickLine()
+    {
+        str                                 journalId;
+        InventDimId                         inventDimId;
+        ProdjournalBOM                      prodJournalBOMtmp;
+        TFMRequestItemAndDimensionElement   addLineRequest = request as TFMRequestItemAndDimensionElement;
+        Qty                                 qty = str2int(addLineRequest.getFieldValue(extendedTypeStr(Qty)));
+        
+        // This function will simple add a line to the journal
+        // The counted quantity is not set. This must be done using the normal registration
+        // Find the journal and validate that lines can be added
+        
+        journalId           = addLineRequest.parmJournalId();
+        inventDim           = addLineRequest.parmInventDim();
+
+        // First try to find the journal with the exact value from the mobile device
+        // (this will fail if the journal id is prefixed)
+        if ( !ProdJournalTable::exist(journalId))
+        {
+            // That did not work -> remove the first character and try again
+            journalId = strDel(journalId,1,1);
+    
+            ProdJournalTable::checkExist(journalId);
+        }
+    
+        prodJournalTable  = ProdJournalTable::find(journalId, true);
+    
+        // If the journal cannot be found now the journal does not exist
+        if (!prodJournalTable)
+        {
+            throw error(ProdJournalTable::txtNotExist());
+        }
+    
+        // Now validate that the journal has not been posted
+        if (prodJournalTable.Posted)
+        {
+            throw error(strFmt("@SYS18421",prodJournalTable.JournalId));
+        }
+
+        inventTable = InventTable::find(addLineRequest.parmItemId());
+        
+        prodJournalBOM.initFromInventTable(inventTable);
+    
+        // Don't set the invent dim id on the line before we have validated if a line with the same values exists
+        
+        inventDimId                     = InventDim::findOrCreate(addLineRequest.createInventDim(inventDim)).inventDimId;
+        
+        
+        prodJournalBOM = this.initProdJournalBOMCreate(inventTable);
+    
+    
+        // Now set the invent dim id
+        prodJournalBOM.InventDimId  = inventDimId;
+    
+        prodJournalBOM.JournalId   = prodJournalTable.JournalID;
+        prodJournalBOM.ProdId       = prodJournalTable.ProdId;
+        prodJournalBOM.BOMConsump   = qty ? qty : 1;
+        prodJournalBOM.BOMProposal  = qty ? qty : 1;
+        prodJournalBOM.InventConsump = qty ? qty : 1;
+        prodJournalBOM.InventProposal = qty ? qty : 1;
+        
+        prodJournalBOM.insert();
+
+        prodJournalTable.NumOfLines = ProdJournalBOM::journalLineCount(prodJournalTable.JournalId);
+        prodJournalTable.update();
+    
+        resultStr = "@SYS80122"; 
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initProdJournalBOMCreate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initializes the prodJournalBOM buffer.
+    /// </summary>
+    /// <param name = "_inventTable">An inventTable buffer.</param>
+    /// <returns>An prodJournalBOM buffer</returns>
+    protected prodJournalBOM initProdJournalBOMCreate(InventTable _inventTable)
+    {
+        date                    pickDate            = MobHelper::today();
+        JournalTableData        journalTableData    = JournalTableData::newTable(prodJournalTable);
+        ProdJournalStatic       journalStatic       = journalTableData.journalStatic();
+        ProdJournalBOM          prodJournalBOMret;
+        
+        ProdJournalTransData  journalTransData      = journalStatic.newJournalTransData(prodJournalBOM,journalTableData);
+        
+        prodJournalBOMret.clear();
+        journalTransData.initFromJournalTable();
+        prodJournalBOMret.TransDate        = pickDate;
+        prodJournalBOMret.initFromInventTable(_inventTable);
+
+        return prodJournalBOMret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

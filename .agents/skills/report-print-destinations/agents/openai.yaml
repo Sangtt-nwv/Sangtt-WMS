@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Report Print Destinations"
+  short_description: "Email, print, or archive an SSRS report from X++"
+  default_prompt: "Use $report-print-destinations to set a report's output destination for this D365FO change."

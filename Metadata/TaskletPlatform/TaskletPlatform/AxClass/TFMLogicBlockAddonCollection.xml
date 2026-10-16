@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicBlockAddonCollection</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicBlockAddonCollection
+{
+    Map blockAddons;
+    TFMProcess                              process;
+    int latestId;
+    Map addedClasses;
+    FormGroupControl                        subFgc;
+    FormMenuButtonControl                   fmbc;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMLogicBlockAddonCollection Construct(TFMProcess _process)
+    {
+        return new TFMLogicBlockAddonCollection(_process);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    private void new(TFMProcess _process)
+    {
+        blockAddons = new Map(Types::Integer, Types::Class);
+        addedClasses= new Map(Types::String, Types::Class);
+        process = _process;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockAddons</Name>
+				<Source><![CDATA[
+    public Map blockAddons(TFMLogicBlock _block)
+    {
+        return blockAddons.exists(_block.getInstanceID()) ? blockAddons.lookup(_block.getInstanceID()) : new Map(Types::String, Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addBlockAddon</Name>
+				<Source><![CDATA[
+    public void addBlockAddon(TFMLogicBlock _block, TFMLogicBlockAddon _addon)
+    {
+        Map addons = this.blockAddons(_block);
+        addons.insert(classId2Name(classIdGet(_addon)), _addon);
+        blockAddons.insert(_block.getInstanceID(),addons);
+        if (process.parmVersion() < 1)
+        {
+            //Code Layer, don't create table entries
+            return;
+        }
+        TFMProcessBlockAddons::addAddonToBlock(process, _block, _addon);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeBlockAddon</Name>
+				<Source><![CDATA[
+    public void removeBlockAddon(TFMLogicBlock _block, TFMLogicBlockAddon _addon)
+    {
+        Map addons = this.blockAddons(_block);
+        if (addons.exists(classId2Name(classIdGet(_addon))))
+        {
+            addons.remove(classId2Name(classIdGet(_addon)));            
+        }
+        blockAddons.insert(_block.getInstanceID(),addons);
+        TFMProcessBlockAddons::removeAddonToBlock(process, _block, _addon);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyBlockHeaders</Name>
+				<Source><![CDATA[
+    public void modifyBlockHeaders(TFMLogicBlock _block, TFMReferenceDataConfiguration _refConf)
+    {
+        MapEnumerator                           mEnum;
+        TFMLogicBlockAddon                      addon;
+        mEnum = this.blockAddons(_block).getEnumerator();
+        while (mEnum.moveNext())
+        {
+            addon = mEnum.currentValue();
+            addon.modifyHeaderCollectors(_refConf);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyBlockCollectors</Name>
+				<Source><![CDATA[
+    public void modifyBlockCollectors(TFMLogicBlock _block, TFMRegistrationCollectors _collectors)
+    {
+        MapEnumerator                           mEnum;
+        TFMLogicBlockAddon                      addon;
+        mEnum = this.blockAddons(_block).getEnumerator();
+        while (mEnum.moveNext())
+        {
+            addon = mEnum.currentValue();
+            addon.modifyRegistrationCollectors(_collectors);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyDataBeforePost</Name>
+				<Source><![CDATA[
+    public void modifyDataBeforePost(TFMLogicBlock _block)
+    {
+        MapEnumerator                           mEnum;
+        TFMLogicBlockAddon                      addon;
+        mEnum = this.blockAddons(_block).getEnumerator();
+        while (mEnum.moveNext())
+        {
+            addon = mEnum.currentValue();
+            addon.modifyDataBeforePost(_block);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRequest</Name>
+				<Source><![CDATA[
+    public void modifyRequest(TFMLogicBlock _block, TFMRequestElement _request)
+    {
+        MapEnumerator                           mEnum;
+        TFMLogicBlockAddon                      addon;
+        mEnum = this.blockAddons(_block).getEnumerator();
+        while (mEnum.moveNext())
+        {
+            addon = mEnum.currentValue();
+            _request.makeLogEntry(strFmt('Modifying request with Modifier %1', addon.addonName()));
+            addon.modifyRequest(_request);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRequestBeforePost</Name>
+				<Source><![CDATA[
+    public void modifyRequestBeforePost(TFMLogicBlock _block, TFMRequestElement _request)
+    {
+        MapEnumerator                           mEnum;
+        TFMLogicBlockAddon                      addon;
+        mEnum = this.blockAddons(_block).getEnumerator();
+        while (mEnum.moveNext())
+        {
+            addon = mEnum.currentValue();
+            _request.makeLogEntry(strFmt('Modifying request before post with Modifier %1', addon.addonName()));
+            addon.modifyRequestBeforePost(_request);
+            
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addonClicked</Name>
+				<Source><![CDATA[
+    public void addonClicked(FormButtonControl _control)
+    {
+        FormControl                             fc;
+        TFMLogicBlockCollection                 blockCollection = process.blockCollection();
+        TFMLogicBlock                           logicBlock = blockCollection.blockFromHash(latestId);
+        TFMLogicBlockAddon                      addon = new SysDictClass(className2Id(_control.name())).makeObject();
+
+        this.addBlockAddon(logicBlock, addon);
+        this.addAddonClassToBlock(addon);
+
+        str controlName = classId2Name(classIdGet(addon));
+        fc = fmbc.formRun().design().controlName(controlName);
+        if(fc)
+        {
+            fc.visible(false);
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeAddonClicked</Name>
+				<Source><![CDATA[
+    public void removeAddonClicked(FormButtonControl _control)
+    {
+        
+        TFMLogicBlockCollection                 blockCollection = process.blockCollection();
+        TFMLogicBlock                           logicBlock = blockCollection.blockFromHash(latestId);
+        TFMLogicBlockAddon                      addon = new SysDictClass(className2Id(subStr(_control.name(),4,100))).makeObject();
+        FormGroupControl                        fgc;
+        FormControl                             fc;
+
+        this.removeBlockAddon(logicBlock, addon);
+        if (addedClasses.exists(_control.name()))
+        {
+            fgc = addedClasses.lookup(_control.name());
+            fgc.formRun().design().removeControl(fgc.id());
+        }
+
+        fc = fmbc.formRun().design().controlName(classId2Name(classIdGet(addon)));
+        if(fc)
+        {
+            fc.visible(true);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addGUI</Name>
+				<Source><![CDATA[
+    public void addGUI(TFMLogicBlock _block, FormGroupControl _fgc, TFMProcess _process, int _latestBlockId)
+    {
+        FormButtonControl                       fbc;
+        
+        TFMLogicBlockAddon                      addon;
+        MapEnumerator                           mBlockAddons;
+        MapEnumerator                           mEnumAddonsAvailable;
+
+        subFgc = _fgc.addControl(FormControlType::Group, 'addonsgroup');
+
+        process = _process;
+        latestId = _latestBlockId;
+
+        subFgc.caption("@TFM:Modifiers");
+        subFgc.extendedStyle('group_Container');
+            
+        fmbc = subFgc.addControl(FormControlType::MenuButton, 'menuButton');
+        fmbc.text('➕');
+
+        mBlockAddons = this.blockAddons(_block).getEnumerator();
+        while (mBlockAddons.moveNext())
+        {
+            addon = mBlockAddons.currentValue();
+            this.addAddonClassToBlock(addon);
+        }
+
+        Map blockAddOnsMap = this.blockAddons(_block);
+        mEnumAddonsAvailable = TFMLogicBlockAddon::listOfAddonsAvailable(_block).getEnumerator();
+        while (mEnumAddonsAvailable.moveNext())
+        {
+            fbc = fmbc.addControl(FormControlType::Button, mEnumAddonsAvailable.currentKey());
+            fbc.text(mEnumAddonsAvailable.currentValue());
+            fbc.registerOverrideMethod(methodStr(FormButtonControl, clicked), methodStr(TFMLogicBlockAddonCollection, addonClicked), this);
+            fbc.visible(!blockAddOnsMap.exists(mEnumAddonsAvailable.currentKey()));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addAddonClassToBlock</Name>
+				<Source><![CDATA[
+    protected void addAddonClassToBlock(TFMLogicBlockAddon _addon)
+    {
+        FormButtonControl                       fbc;
+        FormGroupControl                        addonFgc;
+        FormStaticTextControl                   fstc;
+        addonFgc = subFgc.addControl(FormControlType::Group, (classId2Name(classIdGet(_addon)))+'grp');
+        addonFgc.caption(_addon.addonName());
+        addonFgc.extendedStyle('group_Container');
+        fstc = addonFgc.addControl(FormControlType::StaticText, 'desc'+(classId2Name(classIdGet(_addon))));
+        fstc.text(_addon.addonDescription());
+        fbc = addonFgc.addControl(FormControlType::Button, 'btn'+(classId2Name(classIdGet(_addon))));
+        fbc.text('➖');
+        fbc.registerOverrideMethod(methodStr(FormButtonControl, clicked), methodStr(TFMLogicBlockAddonCollection, removeAddonClicked), this);
+        addonFgc.hideIfEmpty(false);
+        addedClasses.insert('btn'+classId2Name(classIdGet(_addon)), addonFgc);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

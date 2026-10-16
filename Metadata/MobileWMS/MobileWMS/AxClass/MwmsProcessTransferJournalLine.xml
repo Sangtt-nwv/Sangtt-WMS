@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsProcessTransferJournalLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Process definition class for journal line creation for tag counting. Combines several logic blocks
+/// </summary>
+class MwmsProcessTransferJournalLine extends TFMProcess
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsProcessTransferJournalLine Construct(Name _processName = staticMethodStr(TFMConstants, TransferJournalLine), AddUpdate _addOrUpdate = AddUpdate::Update)
+    {
+        return new MwmsProcessTransferJournalLine(_processName, _addOrUpdate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaders</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration getHeaders()
+    {
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(Name _processName = staticMethodStr(TFMConstants, TransferJournalLine), AddUpdate _addOrUpdate = AddUpdate::Update)
+    {
+        processName = _processName;
+        super();
+        MwmsProcessTagCountingJournalLine::createBlocksSetup(_addOrUpdate, this, MwmsLogicBlockCreateTransferJournalLine::Construct(), MwmsLogicBlockCreateTransferJournalLicensePlateLine::Construct());
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

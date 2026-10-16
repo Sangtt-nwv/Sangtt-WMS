@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMConnectionWizard</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMConnectionWizard extends SysWizard
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>formname</Name>
+				<Source><![CDATA[
+    FormName formname()
+    {
+        return formstr(TFMDeviceConnectionGuideForm);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        //info(strFmt("Welcome"));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setupNavigation</Name>
+				<Source><![CDATA[
+    public void setupNavigation()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validate</Name>
+				<Source><![CDATA[
+    public boolean validate()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public static str description()
+    {
+        return "@TFM:TFMConnectionWizard";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args args)
+    {
+        TFMConnectionWizard wizard = new TFMConnectionWizard();
+        if (wizard.prompt())
+        {
+            wizard.run();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

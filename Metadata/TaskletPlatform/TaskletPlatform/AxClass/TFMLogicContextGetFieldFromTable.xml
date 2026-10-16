@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContextGetFieldFromTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDescription("Gets the value from a field on a table or other objects in the context")]
+class TFMLogicContextGetFieldFromTable extends TFMLogicContextObject
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        
+        outputType = TFMLogicContextTypes::None;
+        noOfInput = 0;
+        categories.add("Data");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Name</Name>
+				<Source><![CDATA[
+    public Name Name()
+    {
+        return "Get Context Value From Table";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>outputType</Name>
+				<Source><![CDATA[
+    public TFMLogicContextTypes outputType()
+    {
+        TFMLogicContextTypes                    ret;
+        TFMLogicContextFunctionsDataContract    fdc;
+        TFMFlowVariableContextLookupField       fieldName;
+        str                                     tableName;
+        str                                     tableFieldName;
+        str                                     methodName;
+
+        ret = super();
+        if (!dataContract)
+        {
+            return ret;
+        }
+
+        fdc = dataContract;
+
+        fieldName = conPeek(fdc.parmParameters(),1);
+
+        [tableName, tableFieldName, methodName] = TFMLogicContext::splitString2TableFieldAndMethod(fieldName);
+
+        if (tableName && tableFieldName && !methodName)
+        {
+            SysDictField sdf = new SysDictField(tableName2Id(tableName), fieldName2Id(tableName2Id(tableName), tableFieldName));
+
+            ret = this.DictField2ContextType(sdf);
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DictField2ContextType</Name>
+				<Source><![CDATA[
+    public TFMLogicContextTypes DictField2ContextType(SysDictField _sdf)
+    {
+        TFMLogicContextTypes ret; 
+
+        if (_sdf.enumId() == enumNum(NoYes) || (_sdf.typeId() &&  new SysDicTtype(_sdf.typeId()).enumId() == enumNum(NoYes)))
+        {
+            return TFMLogicContextTypes::Boolean;
+        }
+        switch (_sdf.baseType())
+        {
+            case Types::Date :
+            case Types::UtcDateTime :
+                ret= TFMLogicContextTypes::Date;
+                break;
+            case Types::Integer :
+            case Types::Int64 :
+                ret = TFMLogicContextTypes::Integer;
+                break;
+            case Types::Real :
+                ret = TFMLogicContextTypes::Decimal;
+                break;
+            default :
+                ret = TFMLogicContextTypes::String;
+                break;
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public Object process(TFMFlowVariableContextLookupField _fieldName = '')
+    {
+        Map ret = new Map(Types::String, Types::Anytype);
+        ret.insert('',context.replaceWithValue(_fieldName, new Map(Types::String, Types::String), false));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

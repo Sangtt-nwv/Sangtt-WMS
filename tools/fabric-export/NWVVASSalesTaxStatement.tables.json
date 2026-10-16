@@ -1,0 +1,203 @@
+{
+  "description": "Source table sets for rebuilding NWVVASSalesTaxStatement in Fabric from temporary CSV extracts.",
+  "tableSets": {
+    "Core": [
+      "TaxTrans",
+      "NWVVASTaxStatementLineTaxCode",
+      "NWVVASTaxStatementLine",
+      "NWVVASTaxStatement",
+      "NWVVASParameters",
+      "LedgerJournalTrans"
+    ],
+    "CustomSetupOnly": [
+      "NWVVASTaxStatementLineTaxCode",
+      "NWVVASTaxStatementLine",
+      "NWVVASTaxStatement",
+      "NWVVASParameters"
+    ],
+    "CoreAndFallback": [
+      "TaxTrans",
+      "NWVVASTaxStatementLineTaxCode",
+      "NWVVASTaxStatementLine",
+      "NWVVASTaxStatement",
+      "NWVVASParameters",
+      "LedgerJournalTrans",
+      "CustInvoiceJour",
+      "CustTable",
+      "ProjInvoiceJour",
+      "TaxRegistration",
+      "TaxRegistrationTypeApplicabilityRule",
+      "TaxRegistrationLegislationTypes",
+      "DirPartyLocation",
+      "TaxVATNumTable"
+    ],
+    "All": [
+      "TaxTrans",
+      "NWVVASTaxStatementLineTaxCode",
+      "NWVVASTaxStatementLine",
+      "NWVVASTaxStatement",
+      "NWVVASParameters",
+      "LedgerJournalTrans",
+      "CustInvoiceJour",
+      "CustTable",
+      "ProjInvoiceJour",
+      "TaxRegistration",
+      "TaxRegistrationTypeApplicabilityRule",
+      "TaxRegistrationLegislationTypes",
+      "DirPartyLocation",
+      "TaxVATNumTable",
+      "CompanyInfo",
+      "LogisticsLocation",
+      "LogisticsLocationRole",
+      "DirPartyPostalAddressView",
+      "Ledger",
+      "Currency"
+    ]
+  },
+  "tables": [
+    {
+      "name": "TaxTrans",
+      "group": "Core",
+      "objectType": "Table",
+      "companyScoped": true,
+      "dateColumn": "TransDate",
+      "notes": "Primary posted tax fact source for the sales tax statement."
+    },
+    {
+      "name": "NWVVASTaxStatementLineTaxCode",
+      "group": "Core",
+      "objectType": "Table",
+      "companyScoped": true,
+      "notes": "Custom setup bridge from TaxCode to VAS tax statement line/version/direction."
+    },
+    {
+      "name": "NWVVASTaxStatementLine",
+      "group": "Core",
+      "objectType": "Table",
+      "companyScoped": true,
+      "notes": "Custom setup line table used to derive VATType."
+    },
+    {
+      "name": "NWVVASTaxStatement",
+      "group": "Core",
+      "objectType": "Table",
+      "companyScoped": true,
+      "notes": "Custom tax statement version header."
+    },
+    {
+      "name": "NWVVASParameters",
+      "group": "Core",
+      "objectType": "Table",
+      "companyScoped": true,
+      "notes": "Custom VAS parameter table for language, signatories, and VAT identity mode."
+    },
+    {
+      "name": "LedgerJournalTrans",
+      "group": "Core",
+      "objectType": "Table",
+      "companyScoped": true,
+      "dateColumn": "TransDate",
+      "notes": "Fallback source when TaxTrans.TaxGroup is blank."
+    },
+    {
+      "name": "CustInvoiceJour",
+      "group": "Fallback",
+      "objectType": "Table",
+      "companyScoped": true,
+      "dateColumn": "InvoiceDate",
+      "notes": "Sales customer fallback for tax company name and tax registration number."
+    },
+    {
+      "name": "CustTable",
+      "group": "Fallback",
+      "objectType": "Table",
+      "companyScoped": true,
+      "notes": "Customer fallback source for Party and VATNum."
+    },
+    {
+      "name": "ProjInvoiceJour",
+      "group": "Fallback",
+      "objectType": "Table",
+      "companyScoped": true,
+      "dateColumn": "InvoiceDate",
+      "notes": "Project invoice fallback when TaxTrans.Source is Project."
+    },
+    {
+      "name": "TaxRegistration",
+      "group": "VatIdentity",
+      "objectType": "Table",
+      "companyScoped": false,
+      "notes": "VAT identity fallback when NWVVASParameters.VATByTaxRegistration is enabled."
+    },
+    {
+      "name": "TaxRegistrationTypeApplicabilityRule",
+      "group": "VatIdentity",
+      "objectType": "Table",
+      "companyScoped": false,
+      "notes": "Tax registration applicability rule used by NWVUtility."
+    },
+    {
+      "name": "TaxRegistrationLegislationTypes",
+      "group": "VatIdentity",
+      "objectType": "Table",
+      "companyScoped": false,
+      "notes": "Filters tax registration fallback to TAXID."
+    },
+    {
+      "name": "DirPartyLocation",
+      "group": "VatIdentity",
+      "objectType": "Table",
+      "companyScoped": false,
+      "notes": "Links party to tax registration location."
+    },
+    {
+      "name": "TaxVATNumTable",
+      "group": "VatIdentity",
+      "objectType": "Table",
+      "companyScoped": false,
+      "notes": "VAT identity fallback when VATByTaxRegistration is disabled."
+    },
+    {
+      "name": "CompanyInfo",
+      "group": "Header",
+      "objectType": "Table",
+      "companyScoped": false,
+      "notes": "Header/legal entity source."
+    },
+    {
+      "name": "LogisticsLocation",
+      "group": "Header",
+      "objectType": "Table",
+      "companyScoped": false,
+      "notes": "Header business location source."
+    },
+    {
+      "name": "LogisticsLocationRole",
+      "group": "Header",
+      "objectType": "Table",
+      "companyScoped": false,
+      "notes": "Header business location role source."
+    },
+    {
+      "name": "DirPartyPostalAddressView",
+      "group": "Header",
+      "objectType": "View",
+      "companyScoped": false,
+      "notes": "Header address view used by NWVVASCompanyInfoTmp."
+    },
+    {
+      "name": "Ledger",
+      "group": "Header",
+      "objectType": "Table",
+      "companyScoped": true,
+      "notes": "Accounting currency source."
+    },
+    {
+      "name": "Currency",
+      "group": "Header",
+      "objectType": "Table",
+      "companyScoped": false,
+      "notes": "Currency format source for NWVVASFormatDecimal and NWVVASFormatSeparator."
+    }
+  ]
+}

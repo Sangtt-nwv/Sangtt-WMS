@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMExpressionEditor</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMExpressionEditor extends FormRun
+{
+    Common							callingRecord;
+    FieldId							returnFieldId;
+    TFMExpressionEditorFormClass	formClass;
+    FormStringControl               expressionStringControl;
+	
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>currentExpression</Name>
+				<Source><![CDATA[
+    public display str currentExpression()
+    {
+		if (formClass)
+        {
+            return formClass.currentExpression();
+        }
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>closed</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public boolean closed()
+    {
+        boolean ret;
+
+        ret = super();
+        expressionStringControl.modified();
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()    
+	{
+        SysDictTable		dt;
+        SysDictField		sdf;
+        SetEnumerator		fields;
+        str					fieldName;
+        ListEnumerator		lEnum = TFMExpressions::getPossibleExpressions().getEnumerator();
+        int					pos;
+        int					endPos;
+        str					existingExp, existingParm;
+        List				expList;
+        ListEnumerator		expListEnum;
+        str					preFixStr;
+        formClass	= new TFMExpressionEditorFormClass(ParmGroup,ParmListBox, FirstParmText,CurrentExpressionString,HtmlHelpView);
+		
+		super();
+        callingRecord  = element.args().record();
+        expressionStringControl = element.args().caller();
+        dt = new SysDictTable(callingRecord.tableId);
+        if (dt)
+        {
+            fields = dt.fields().getEnumerator();
+            while(fields.moveNext())
+            {
+                sdf = fields.current();
+                fieldName = sdf.name();
+   
+                if (sdf.typeId() == extendedTypeNum(TFMExpression))
+                {
+                    returnFieldId = sdf.id();
+                    ExpressionString.text(callingRecord.(returnFieldId));
+                }
+            }
+        }
+        pos = strScan(ExpressionString.text(),'(',0,1000);
+
+		if (pos)
+        {
+            existingExp = subStr(ExpressionString.text(),1,pos - 1);
+            endPos = strScan(ExpressionString.text(),')',0,1000);
+            existingParm = subStr(ExpressionString.text(),pos + 1, endPos - pos - 1);
+            expList = TFMHelper::strSplit(existingExp,' ');
+            postFixString.text(subStr(ExpressionString.text(),endPos + 1,10000));
+			if (expList.elements())
+            {
+				// Prefix exists
+                existingExp = '';
+                expListEnum = expList.getEnumerator();
+				while (expListEnum.moveNext())
+                {                    
+                    preFixStr += existingExp + ' ';
+					//prefixString.text(prefixString.text()+ existingExp + ' ');
+                    existingExp = expListEnum.current();
+                }
+            }
+        }
+        else if (strScan(ExpressionString.text(),'[value]',0,1000))
+        {
+            pos = strScan(ExpressionString.text(),'[value]',0,1000);
+            prefixStr = subStr(ExpressionString.text(),1,pos - 1);
+
+            postFixString.text(subStr(ExpressionString.text(),pos + 7,10000));
+            existingExp = '[value]';
+		}
+        else
+		{
+            prefixStr = ExpressionString.text();
+		}
+        prefixString.text(prefixStr);
+        
+        CommandListBox.add('None');
+        CommandListBox.add('[value]');
+
+		while (lEnum.moveNext())
+        {
+            CommandListBox.add(lEnum.current());
+            
+        }
+        CommandListBox.selectText(existingExp);
+        CommandListBox.selectionChange();
+		
+        formClass.updateParmGroup(existingExp,existingParm);
+		
+        formClass.updateExpression();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>task</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_p1"></param>
+    /// <returns></returns>
+    public int task(int _p1)
+    {
+        int ret;
+    
+        ret = super(_p1);
+
+        if (_p1 == 272) // Save button clicked
+        {
+            if (callingRecord)
+            {
+                callingRecord.(returnFieldId) = prefixString.text() + ' ' + currentExpressionString.text() + (currentExpressionString.text() && postfixString.text() ? ' ' : '') + postfixString.text();
+                ExpressionString.text(callingRecord.(returnFieldId));
+            }
+            else if (expressionStringControl)
+            {
+                expressionStringControl.text(prefixString.text() + ' ' + currentExpressionString.text() + (currentExpressionString.text() && postfixString.text() ? ' ' : '') + postfixString.text());
+                ExpressionString.text(expressionStringControl.text());
+                expressionStringControl.modified();
+            }
+        }
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>CommandListBox</Name>
+				<Type>ListBox</Type>
+				<Methods>
+					<Method>
+						<Name>selectionChange</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public int selectionChange()
+        {
+			int ret = super();
+            formClass.commandBoxChanged(this);
+            formClass.updateExpression();
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ParmListBox</Name>
+				<Type>ListBox</Type>
+				<Methods>
+					<Method>
+						<Name>selectionChange</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public int selectionChange()
+        {
+            int ret;
+    
+            ret = super();
+
+            formClass.parmGroupSelectionChanged();
+            
+            formClass.updateExpression();
+			
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">@SYS4004674</Caption>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>FormTabControl1</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Expressions</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>ExpressionsGroup</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>ExpressionString</Name>
+										<AllowEdit>No</AllowEdit>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>String</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@TFM:SavedExpression</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>FormGroupControl1</Name>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>PrefixString</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Label>@SYS22501</Label>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>CurrentExpressionString</Name>
+												<AllowEdit>No</AllowEdit>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>String</Type>
+												<WidthMode>SizeToAvailable</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Label>@SYS1997</Label>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>PostFixString</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Label>@TFM:postfix</Label>
+											</AxFormControl>
+										</Controls>
+										<Columns>3</Columns>
+										<Caption>@TFM:CurrentExpression</Caption>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS1997</Caption>
+						<FastTabExpanded>Always</FastTabExpanded>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Commands</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>ListGroup</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormListBoxControl">
+										<Name>CommandListBox</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>ListBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Label>@TFM:AvailableExpressions</Label>
+										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>ParmUberGroup</Name>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl>
+												<Name>HtmlHelpView</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<FormControlExtension>
+													<Name>TFMHtmlViewerCtrl</Name>
+													<ExtensionComponents />
+													<ExtensionProperties>
+														<AxFormControlExtensionProperty>
+															<Name>htmlField</Name>
+															<Type>String</Type>
+														</AxFormControlExtensionProperty>
+														<AxFormControlExtensionProperty>
+															<Name>addCopyLinkField</Name>
+															<Type>String</Type>
+														</AxFormControlExtensionProperty>
+														<AxFormControlExtensionProperty>
+															<Name>formatAsXmlField</Name>
+															<Type>String</Type>
+														</AxFormControlExtensionProperty>
+													</ExtensionProperties>
+												</FormControlExtension>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormListBoxControl">
+												<Name>ParmListBox</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>ListBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Items />
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>FirstParmText</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Label>@TFM:FirstParameterText</Label>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>ParmGroup</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls />
+												<HideIfEmpty>No</HideIfEmpty>
+											</AxFormControl>
+										</Controls>
+										<Caption>@SYS7764</Caption>
+									</AxFormControl>
+								</Controls>
+								<Columns>2</Columns>
+							</AxFormControl>
+						</Controls>
+						<Caption>@TFM:Commands</Caption>
+						<FastTabExpanded>Always</FastTabExpanded>
+					</AxFormControl>
+				</Controls>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

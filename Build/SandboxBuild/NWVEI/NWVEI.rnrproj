@@ -1,0 +1,1372 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <BuildTasksDirectory Condition="'$(BuildTasksDirectory)' == ''">$(MSBuildProgramFiles32)\MSBuild\Microsoft\Dynamics\AX</BuildTasksDirectory>
+    <Model>NWVEI</Model>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <OutputPath>bin</OutputPath>
+    <SchemaVersion>2</SchemaVersion>
+    <GenerateCrossReferences>True</GenerateCrossReferences>
+    <RunAppCheckerRules>False</RunAppCheckerRules>
+    <LogAppcheckerDiagsAsErrors>False</LogAppcheckerDiagsAsErrors>
+    <DeployOnline>False</DeployOnline>
+    <ProjectGuid>{5fbe284b-767b-4b9c-b6ab-a6e130c5ad8c}</ProjectGuid>
+    <Name>NWVEI</Name>
+    <RootNamespace>NWVEI</RootNamespace>
+    <StartupType>Class</StartupType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <Configuration>Debug</Configuration>
+    <DBSyncInBuild>False</DBSyncInBuild>
+    <GenerateFormAdaptors>False</GenerateFormAdaptors>
+    <Company>
+    </Company>
+    <Partition>initial</Partition>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DataEntityExpandParentChildRelations>False</DataEntityExpandParentChildRelations>
+    <DataEntityUseLabelTextAsFieldName>False</DataEntityUseLabelTextAsFieldName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.Common.targets">
+  </Import>
+  <Import Project="$(BuildTasksDirectory)\Microsoft.Dynamics.Framework.Tools.BuildTasks.17.0.targets">
+  </Import>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Action Menu Items\" />
+    <Folder Include="Security Privileges\" />
+    <Folder Include="Base Enums\" />
+    <Folder Include="Forms\" />
+    <Folder Include="Label Files\" />
+    <Folder Include="Classes\" />
+    <Folder Include="Menu Extensions\" />
+    <Folder Include="Display Menu Items\" />
+    <Folder Include="Security Duties\" />
+    <Folder Include="Table Extensions\" />
+    <Folder Include="Form Extensions\" />
+    <Folder Include="Security Roles\" />
+    <Folder Include="Tables\" />
+    <Folder Include="Resources\" />
+    <Folder Include="Data Entity Views\" />
+    <Folder Include="Data Entity View Extensions\" />
+    <Folder Include="Extended Data Types\" />
+    <Content Include="AxClass\NWVEIApiClientBase">
+      <SubType>Content</SubType>
+      <Name>NWVEIApiClientBase</Name>
+      <Link>Classes\NWVEIApiClientBase</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIApiClientFactory">
+      <SubType>Content</SubType>
+      <Name>NWVEIApiClientFactory</Name>
+      <Link>Classes\NWVEIApiClientFactory</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIApiClientFPT">
+      <SubType>Content</SubType>
+      <Name>NWVEIApiClientFPT</Name>
+      <Link>Classes\NWVEIApiClientFPT</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIApiClientHilo">
+      <SubType>Content</SubType>
+      <Name>NWVEIApiClientHilo</Name>
+      <Link>Classes\NWVEIApiClientHilo</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIApiClientMISA">
+      <SubType>Content</SubType>
+      <Name>NWVEIApiClientMISA</Name>
+      <Link>Classes\NWVEIApiClientMISA</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIApiClientThaiSon">
+      <SubType>Content</SubType>
+      <Name>NWVEIApiClientThaiSon</Name>
+      <Link>Classes\NWVEIApiClientThaiSon</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIApiClientVacom">
+      <SubType>Content</SubType>
+      <Name>NWVEIApiClientVacom</Name>
+      <Link>Classes\NWVEIApiClientVacom</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIApiClientViettel">
+      <SubType>Content</SubType>
+      <Name>NWVEIApiClientViettel</Name>
+      <Link>Classes\NWVEIApiClientViettel</Link>
+    </Content>
+    <Content Include="AxClass\NWVEICleanupData">
+      <SubType>Content</SubType>
+      <Name>NWVEICleanupData</Name>
+      <Link>Classes\NWVEICleanupData</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIConstant">
+      <SubType>Content</SubType>
+      <Name>NWVEIConstant</Name>
+      <Link>Classes\NWVEIConstant</Link>
+    </Content>
+    <Content Include="AxClass\NWVEICustFreeInvoice_Form_CustInvoiceTableDS_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEICustFreeInvoice_Form_CustInvoiceTableDS_Extension</Name>
+      <Link>Classes\NWVEICustFreeInvoice_Form_CustInvoiceTableDS_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEICustFreeInvoice_Form_EventHandler">
+      <SubType>Content</SubType>
+      <Name>NWVEICustFreeInvoice_Form_EventHandler</Name>
+      <Link>Classes\NWVEICustFreeInvoice_Form_EventHandler</Link>
+    </Content>
+    <Content Include="AxClass\NWVEICustFreeInvoice_Form_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEICustFreeInvoice_Form_Extension</Name>
+      <Link>Classes\NWVEICustFreeInvoice_Form_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEICustInvoiceJournal_Form_CustInvoiceJourDS_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEICustInvoiceJournal_Form_CustInvoiceJourDS_Extension</Name>
+      <Link>Classes\NWVEICustInvoiceJournal_Form_CustInvoiceJourDS_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEICustInvoiceJournal_Form_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEICustInvoiceJournal_Form_Extension</Name>
+      <Link>Classes\NWVEICustInvoiceJournal_Form_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEICustInvoiceJour_Table_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEICustInvoiceJour_Table_Extension</Name>
+      <Link>Classes\NWVEICustInvoiceJour_Table_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEICustInvoiceTable_Table_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEICustInvoiceTable_Table_Extension</Name>
+      <Link>Classes\NWVEICustInvoiceTable_Table_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIEnableEI">
+      <SubType>Content</SubType>
+      <Name>NWVEIEnableEI</Name>
+      <Link>Classes\NWVEIEnableEI</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIEncryptFunction">
+      <SubType>Content</SubType>
+      <Name>NWVEIEncryptFunction</Name>
+      <Link>Classes\NWVEIEncryptFunction</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIGenerateMapping">
+      <SubType>Content</SubType>
+      <Name>NWVEIGenerateMapping</Name>
+      <Link>Classes\NWVEIGenerateMapping</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIGenerateMappingToViettel">
+      <SubType>Content</SubType>
+      <Name>NWVEIGenerateMappingToViettel</Name>
+      <Link>Classes\NWVEIGenerateMappingToViettel</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIImportCategoryFromJson">
+      <SubType>Content</SubType>
+      <Name>NWVEIImportCategoryFromJson</Name>
+      <Link>Classes\NWVEIImportCategoryFromJson</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIImportCategoryFromXml">
+      <SubType>Content</SubType>
+      <Name>NWVEIImportCategoryFromXml</Name>
+      <Link>Classes\NWVEIImportCategoryFromXml</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIInventJournalTable_Table_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIInventJournalTable_Table_Extension</Name>
+      <Link>Classes\NWVEIInventJournalTable_Table_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIInventJournalTransfer_Form_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIInventJournalTransfer_Form_Extension</Name>
+      <Link>Classes\NWVEIInventJournalTransfer_Form_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIInventJournalTransfer_Form_InventJournalTableDS_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIInventJournalTransfer_Form_InventJournalTableDS_Extension</Name>
+      <Link>Classes\NWVEIInventJournalTransfer_Form_InventJournalTableDS_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIInventJournalTrans_Table_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIInventJournalTrans_Table_Extension</Name>
+      <Link>Classes\NWVEIInventJournalTrans_Table_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIInventTransferJour_Form_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIInventTransferJour_Form_Extension</Name>
+      <Link>Classes\NWVEIInventTransferJour_Form_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIInventTransferJour_Form_InventTransferJourDS_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIInventTransferJour_Form_InventTransferJourDS_Extension</Name>
+      <Link>Classes\NWVEIInventTransferJour_Form_InventTransferJourDS_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIInventTransferJour_Table_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIInventTransferJour_Table_Extension</Name>
+      <Link>Classes\NWVEIInventTransferJour_Table_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIInventTransferTable_Table_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIInventTransferTable_Table_Extension</Name>
+      <Link>Classes\NWVEIInventTransferTable_Table_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIIssueInvoice">
+      <SubType>Content</SubType>
+      <Name>NWVEIIssueInvoice</Name>
+      <Link>Classes\NWVEIIssueInvoice</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIIssueInvoiceBase">
+      <SubType>Content</SubType>
+      <Name>NWVEIIssueInvoiceBase</Name>
+      <Link>Classes\NWVEIIssueInvoiceBase</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIIssueInvoiceFactory">
+      <SubType>Content</SubType>
+      <Name>NWVEIIssueInvoiceFactory</Name>
+      <Link>Classes\NWVEIIssueInvoiceFactory</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIIssueInvoice_BKAV">
+      <SubType>Content</SubType>
+      <Name>NWVEIIssueInvoice_BKAV</Name>
+      <Link>Classes\NWVEIIssueInvoice_BKAV</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIIssueInvoice_FPT">
+      <SubType>Content</SubType>
+      <Name>NWVEIIssueInvoice_FPT</Name>
+      <Link>Classes\NWVEIIssueInvoice_FPT</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIIssueInvoice_Hilo">
+      <SubType>Content</SubType>
+      <Name>NWVEIIssueInvoice_Hilo</Name>
+      <Link>Classes\NWVEIIssueInvoice_Hilo</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIIssueInvoice_MISA">
+      <SubType>Content</SubType>
+      <Name>NWVEIIssueInvoice_MISA</Name>
+      <Link>Classes\NWVEIIssueInvoice_MISA</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIIssueInvoice_Thaison">
+      <SubType>Content</SubType>
+      <Name>NWVEIIssueInvoice_Thaison</Name>
+      <Link>Classes\NWVEIIssueInvoice_Thaison</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIIssueInvoice_Vacom">
+      <SubType>Content</SubType>
+      <Name>NWVEIIssueInvoice_Vacom</Name>
+      <Link>Classes\NWVEIIssueInvoice_Vacom</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIIssueInvoice_Viettel">
+      <SubType>Content</SubType>
+      <Name>NWVEIIssueInvoice_Viettel</Name>
+      <Link>Classes\NWVEIIssueInvoice_Viettel</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIIssueInvoice_VNPT">
+      <SubType>Content</SubType>
+      <Name>NWVEIIssueInvoice_VNPT</Name>
+      <Link>Classes\NWVEIIssueInvoice_VNPT</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIJsonBuilder">
+      <SubType>Content</SubType>
+      <Name>NWVEIJsonBuilder</Name>
+      <Link>Classes\NWVEIJsonBuilder</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIJsonBuilderBase">
+      <SubType>Content</SubType>
+      <Name>NWVEIJsonBuilderBase</Name>
+      <Link>Classes\NWVEIJsonBuilderBase</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIJsonBuilder_FPT">
+      <SubType>Content</SubType>
+      <Name>NWVEIJsonBuilder_FPT</Name>
+      <Link>Classes\NWVEIJsonBuilder_FPT</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIJsonBuilder_MISA">
+      <SubType>Content</SubType>
+      <Name>NWVEIJsonBuilder_MISA</Name>
+      <Link>Classes\NWVEIJsonBuilder_MISA</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIJsonBuilder_ThaiSon">
+      <SubType>Content</SubType>
+      <Name>NWVEIJsonBuilder_ThaiSon</Name>
+      <Link>Classes\NWVEIJsonBuilder_ThaiSon</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIJsonBuilder_Vacom">
+      <SubType>Content</SubType>
+      <Name>NWVEIJsonBuilder_Vacom</Name>
+      <Link>Classes\NWVEIJsonBuilder_Vacom</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIJsonBuilder_Viettel">
+      <SubType>Content</SubType>
+      <Name>NWVEIJsonBuilder_Viettel</Name>
+      <Link>Classes\NWVEIJsonBuilder_Viettel</Link>
+    </Content>
+    <Content Include="AxClass\NWVEILedgerVoucher_Class_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEILedgerVoucher_Class_Extension</Name>
+      <Link>Classes\NWVEILedgerVoucher_Class_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEILogisticsPostalAddress_From_Eventhandler">
+      <SubType>Content</SubType>
+      <Name>NWVEILogisticsPostalAddress_From_Eventhandler</Name>
+      <Link>Classes\NWVEILogisticsPostalAddress_From_Eventhandler</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIMapVisualizerBuild">
+      <SubType>Content</SubType>
+      <Name>NWVEIMapVisualizerBuild</Name>
+      <Link>Classes\NWVEIMapVisualizerBuild</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIMapVisualizerControl">
+      <SubType>Content</SubType>
+      <Name>NWVEIMapVisualizerControl</Name>
+      <Link>Classes\NWVEIMapVisualizerControl</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProjIntercompanyInvoice_Form_CustInvoiceTableDS_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIProjIntercompanyInvoice_Form_CustInvoiceTableDS_Extension</Name>
+      <Link>Classes\NWVEIProjIntercompanyInvoice_Form_CustInvoiceTableDS_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProjIntercompanyInvoice_Form_EventHandler">
+      <SubType>Content</SubType>
+      <Name>NWVEIProjIntercompanyInvoice_Form_EventHandler</Name>
+      <Link>Classes\NWVEIProjIntercompanyInvoice_Form_EventHandler</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProjIntercompanyInvoice_Form_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIProjIntercompanyInvoice_Form_Extension</Name>
+      <Link>Classes\NWVEIProjIntercompanyInvoice_Form_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProjInvoiceJournalV2_Form_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIProjInvoiceJournalV2_Form_Extension</Name>
+      <Link>Classes\NWVEIProjInvoiceJournalV2_Form_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProjInvoiceJournalV2_Form_ProjInvoiceJourDS_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIProjInvoiceJournalV2_Form_ProjInvoiceJourDS_Extension</Name>
+      <Link>Classes\NWVEIProjInvoiceJournalV2_Form_ProjInvoiceJourDS_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProjInvoiceJournal_Form_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIProjInvoiceJournal_Form_Extension</Name>
+      <Link>Classes\NWVEIProjInvoiceJournal_Form_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProjInvoiceJournal_Form_ProjInvoiceJourDS_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIProjInvoiceJournal_Form_ProjInvoiceJourDS_Extension</Name>
+      <Link>Classes\NWVEIProjInvoiceJournal_Form_ProjInvoiceJourDS_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProjInvoiceJour_Table_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIProjInvoiceJour_Table_Extension</Name>
+      <Link>Classes\NWVEIProjInvoiceJour_Table_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProjInvoiceProposalDetailV2_Form_EventHandler">
+      <SubType>Content</SubType>
+      <Name>NWVEIProjInvoiceProposalDetailV2_Form_EventHandler</Name>
+      <Link>Classes\NWVEIProjInvoiceProposalDetailV2_Form_EventHandler</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProjInvoiceProposalDetailV2_Form_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIProjInvoiceProposalDetailV2_Form_Extension</Name>
+      <Link>Classes\NWVEIProjInvoiceProposalDetailV2_Form_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProjInvoiceProposalDetailV2_Form_ProjProposalJourDS_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIProjInvoiceProposalDetailV2_Form_ProjProposalJourDS_Extension</Name>
+      <Link>Classes\NWVEIProjInvoiceProposalDetailV2_Form_ProjProposalJourDS_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProjInvoiceProposalDetail_Form_EventHandler">
+      <SubType>Content</SubType>
+      <Name>NWVEIProjInvoiceProposalDetail_Form_EventHandler</Name>
+      <Link>Classes\NWVEIProjInvoiceProposalDetail_Form_EventHandler</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProjInvoiceProposalDetail_Form_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIProjInvoiceProposalDetail_Form_Extension</Name>
+      <Link>Classes\NWVEIProjInvoiceProposalDetail_Form_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProjInvoiceProposalDetail_Form_ProjProposalJourDS_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIProjInvoiceProposalDetail_Form_ProjProposalJourDS_Extension</Name>
+      <Link>Classes\NWVEIProjInvoiceProposalDetail_Form_ProjProposalJourDS_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProjProposalJour_Table_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIProjProposalJour_Table_Extension</Name>
+      <Link>Classes\NWVEIProjProposalJour_Table_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProviderCategorySchemaPreview">
+      <SubType>Content</SubType>
+      <Name>NWVEIProviderCategorySchemaPreview</Name>
+      <Link>Classes\NWVEIProviderCategorySchemaPreview</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProviderConfigExport">
+      <SubType>Content</SubType>
+      <Name>NWVEIProviderConfigExport</Name>
+      <Link>Classes\NWVEIProviderConfigExport</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIProviderConfigImport">
+      <SubType>Content</SubType>
+      <Name>NWVEIProviderConfigImport</Name>
+      <Link>Classes\NWVEIProviderConfigImport</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIRequestBuilder_BKAV">
+      <SubType>Content</SubType>
+      <Name>NWVEIRequestBuilder_BKAV</Name>
+      <Link>Classes\NWVEIRequestBuilder_BKAV</Link>
+    </Content>
+    <Content Include="AxClass\NWVEISalesEditLines_Form_EventHandler">
+      <SubType>Content</SubType>
+      <Name>NWVEISalesEditLines_Form_EventHandler</Name>
+      <Link>Classes\NWVEISalesEditLines_Form_EventHandler</Link>
+    </Content>
+    <Content Include="AxClass\NWVEISalesParmTable_Table_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEISalesParmTable_Table_Extension</Name>
+      <Link>Classes\NWVEISalesParmTable_Table_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEISeedHiloConfigData">
+      <SubType>Content</SubType>
+      <Name>NWVEISeedHiloConfigData</Name>
+      <Link>Classes\NWVEISeedHiloConfigData</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIUpdateVatInforAction">
+      <SubType>Content</SubType>
+      <Name>NWVEIUpdateVatInforAction</Name>
+      <Link>Classes\NWVEIUpdateVatInforAction</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIUtility">
+      <SubType>Content</SubType>
+      <Name>NWVEIUtility</Name>
+      <Link>Classes\NWVEIUtility</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIUtility_VNPT">
+      <SubType>Content</SubType>
+      <Name>NWVEIUtility_VNPT</Name>
+      <Link>Classes\NWVEIUtility_VNPT</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIVendEditInvoice_Form_EventHandler">
+      <SubType>Content</SubType>
+      <Name>NWVEIVendEditInvoice_Form_EventHandler</Name>
+      <Link>Classes\NWVEIVendEditInvoice_Form_EventHandler</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIVendInvoiceInfoTable_Table_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIVendInvoiceInfoTable_Table_Extension</Name>
+      <Link>Classes\NWVEIVendInvoiceInfoTable_Table_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIVendInvoiceJournal_Form_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIVendInvoiceJournal_Form_Extension</Name>
+      <Link>Classes\NWVEIVendInvoiceJournal_Form_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIVendInvoiceJournal_Form_VendInvoiceJourDS_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIVendInvoiceJournal_Form_VendInvoiceJourDS_Extension</Name>
+      <Link>Classes\NWVEIVendInvoiceJournal_Form_VendInvoiceJourDS_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIVendInvoiceJour_Table_Extension">
+      <SubType>Content</SubType>
+      <Name>NWVEIVendInvoiceJour_Table_Extension</Name>
+      <Link>Classes\NWVEIVendInvoiceJour_Table_Extension</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIXMLBuilder_Hilo">
+      <SubType>Content</SubType>
+      <Name>NWVEIXMLBuilder_Hilo</Name>
+      <Link>Classes\NWVEIXMLBuilder_Hilo</Link>
+    </Content>
+    <Content Include="AxClass\NWVEIXMLBuilder_VNPT">
+      <SubType>Content</SubType>
+      <Name>NWVEIXMLBuilder_VNPT</Name>
+      <Link>Classes\NWVEIXMLBuilder_VNPT</Link>
+    </Content>
+    <Content Include="AxClass\NWV_CreateRealInvoiceJob">
+      <SubType>Content</SubType>
+      <Name>NWV_CreateRealInvoiceJob</Name>
+      <Link>Classes\NWV_CreateRealInvoiceJob</Link>
+    </Content>
+    <Content Include="AxDataEntityView\NWVEIAPISetupEntity">
+      <SubType>Content</SubType>
+      <Name>NWVEIAPISetupEntity</Name>
+      <Link>Data Entity Views\NWVEIAPISetupEntity</Link>
+    </Content>
+    <Content Include="AxDataEntityView\NWVEIMappingDetailEntity">
+      <SubType>Content</SubType>
+      <Name>NWVEIMappingDetailEntity</Name>
+      <Link>Data Entity Views\NWVEIMappingDetailEntity</Link>
+    </Content>
+    <Content Include="AxDataEntityView\NWVEIMappingTableEntity">
+      <SubType>Content</SubType>
+      <Name>NWVEIMappingTableEntity</Name>
+      <Link>Data Entity Views\NWVEIMappingTableEntity</Link>
+    </Content>
+    <Content Include="AxDataEntityView\NWVEIProviderCategoryEntity">
+      <SubType>Content</SubType>
+      <Name>NWVEIProviderCategoryEntity</Name>
+      <Link>Data Entity Views\NWVEIProviderCategoryEntity</Link>
+    </Content>
+    <Content Include="AxDataEntityViewExtension\InventJournalTableBiEntity.NWVEI">
+      <SubType>Content</SubType>
+      <Name>InventJournalTableBiEntity.NWVEI</Name>
+      <Link>Data Entity View Extensions\InventJournalTableBiEntity.NWVEI</Link>
+    </Content>
+    <Content Include="AxDataEntityViewExtension\TaxRegistrationLegislativeEntity.NWVEI">
+      <SubType>Content</SubType>
+      <Name>TaxRegistrationLegislativeEntity.NWVEI</Name>
+      <Link>Data Entity View Extensions\TaxRegistrationLegislativeEntity.NWVEI</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIAPITypeStr">
+      <SubType>Content</SubType>
+      <Name>NWVEIAPITypeStr</Name>
+      <Link>Extended Data Types\NWVEIAPITypeStr</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIAuthID">
+      <SubType>Content</SubType>
+      <Name>NWVEIAuthID</Name>
+      <Link>Extended Data Types\NWVEIAuthID</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIBrandCode">
+      <SubType>Content</SubType>
+      <Name>NWVEIBrandCode</Name>
+      <Link>Extended Data Types\NWVEIBrandCode</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIBrandName">
+      <SubType>Content</SubType>
+      <Name>NWVEIBrandName</Name>
+      <Link>Extended Data Types\NWVEIBrandName</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIColor">
+      <SubType>Content</SubType>
+      <Name>NWVEIColor</Name>
+      <Link>Extended Data Types\NWVEIColor</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEICompanyRequirement">
+      <SubType>Content</SubType>
+      <Name>NWVEICompanyRequirement</Name>
+      <Link>Extended Data Types\NWVEICompanyRequirement</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIContractNumber">
+      <SubType>Content</SubType>
+      <Name>NWVEIContractNumber</Name>
+      <Link>Extended Data Types\NWVEIContractNumber</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIDelivery">
+      <SubType>Content</SubType>
+      <Name>NWVEIDelivery</Name>
+      <Link>Extended Data Types\NWVEIDelivery</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIDescriptionString">
+      <SubType>Content</SubType>
+      <Name>NWVEIDescriptionString</Name>
+      <Link>Extended Data Types\NWVEIDescriptionString</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIDiscountDescription">
+      <SubType>Content</SubType>
+      <Name>NWVEIDiscountDescription</Name>
+      <Link>Extended Data Types\NWVEIDiscountDescription</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIEIAuthId">
+      <SubType>Content</SubType>
+      <Name>NWVEIEIAuthId</Name>
+      <Link>Extended Data Types\NWVEIEIAuthId</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIEInvoiceNumber">
+      <SubType>Content</SubType>
+      <Name>NWVEIEInvoiceNumber</Name>
+      <Link>Extended Data Types\NWVEIEInvoiceNumber</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIFOCDescription">
+      <SubType>Content</SubType>
+      <Name>NWVEIFOCDescription</Name>
+      <Link>Extended Data Types\NWVEIFOCDescription</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIInt">
+      <SubType>Content</SubType>
+      <Name>NWVEIInt</Name>
+      <Link>Extended Data Types\NWVEIInt</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIInvoiceId">
+      <SubType>Content</SubType>
+      <Name>NWVEIInvoiceId</Name>
+      <Link>Extended Data Types\NWVEIInvoiceId</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIInvoiceName">
+      <SubType>Content</SubType>
+      <Name>NWVEIInvoiceName</Name>
+      <Link>Extended Data Types\NWVEIInvoiceName</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIInvoiceType">
+      <SubType>Content</SubType>
+      <Name>NWVEIInvoiceType</Name>
+      <Link>Extended Data Types\NWVEIInvoiceType</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIItemName">
+      <SubType>Content</SubType>
+      <Name>NWVEIItemName</Name>
+      <Link>Extended Data Types\NWVEIItemName</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEInvoiceNote">
+      <SubType>Content</SubType>
+      <Name>NWVEInvoiceNote</Name>
+      <Link>Extended Data Types\NWVEInvoiceNote</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIPassword">
+      <SubType>Content</SubType>
+      <Name>NWVEIPassword</Name>
+      <Link>Extended Data Types\NWVEIPassword</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIPattern">
+      <SubType>Content</SubType>
+      <Name>NWVEIPattern</Name>
+      <Link>Extended Data Types\NWVEIPattern</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIPaymDescription">
+      <SubType>Content</SubType>
+      <Name>NWVEIPaymDescription</Name>
+      <Link>Extended Data Types\NWVEIPaymDescription</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIPaymId">
+      <SubType>Content</SubType>
+      <Name>NWVEIPaymId</Name>
+      <Link>Extended Data Types\NWVEIPaymId</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIProviderElement">
+      <SubType>Content</SubType>
+      <Name>NWVEIProviderElement</Name>
+      <Link>Extended Data Types\NWVEIProviderElement</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIReason">
+      <SubType>Content</SubType>
+      <Name>NWVEIReason</Name>
+      <Link>Extended Data Types\NWVEIReason</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIRequirement">
+      <SubType>Content</SubType>
+      <Name>NWVEIRequirement</Name>
+      <Link>Extended Data Types\NWVEIRequirement</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIRequirementNumber">
+      <SubType>Content</SubType>
+      <Name>NWVEIRequirementNumber</Name>
+      <Link>Extended Data Types\NWVEIRequirementNumber</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEISerial">
+      <SubType>Content</SubType>
+      <Name>NWVEISerial</Name>
+      <Link>Extended Data Types\NWVEISerial</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEISerialNo">
+      <SubType>Content</SubType>
+      <Name>NWVEISerialNo</Name>
+      <Link>Extended Data Types\NWVEISerialNo</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEISize">
+      <SubType>Content</SubType>
+      <Name>NWVEISize</Name>
+      <Link>Extended Data Types\NWVEISize</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEISourceDocumentId">
+      <SubType>Content</SubType>
+      <Name>NWVEISourceDocumentId</Name>
+      <Link>Extended Data Types\NWVEISourceDocumentId</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEISourceDocumentStr">
+      <SubType>Content</SubType>
+      <Name>NWVEISourceDocumentStr</Name>
+      <Link>Extended Data Types\NWVEISourceDocumentStr</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIString500">
+      <SubType>Content</SubType>
+      <Name>NWVEIString500</Name>
+      <Link>Extended Data Types\NWVEIString500</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIStringMemo">
+      <SubType>Content</SubType>
+      <Name>NWVEIStringMemo</Name>
+      <Link>Extended Data Types\NWVEIStringMemo</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIStyle">
+      <SubType>Content</SubType>
+      <Name>NWVEIStyle</Name>
+      <Link>Extended Data Types\NWVEIStyle</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEITaxValueString">
+      <SubType>Content</SubType>
+      <Name>NWVEITaxValueString</Name>
+      <Link>Extended Data Types\NWVEITaxValueString</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEITemplateCode">
+      <SubType>Content</SubType>
+      <Name>NWVEITemplateCode</Name>
+      <Link>Extended Data Types\NWVEITemplateCode</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEITemplateName">
+      <SubType>Content</SubType>
+      <Name>NWVEITemplateName</Name>
+      <Link>Extended Data Types\NWVEITemplateName</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEITransportation">
+      <SubType>Content</SubType>
+      <Name>NWVEITransportation</Name>
+      <Link>Extended Data Types\NWVEITransportation</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIUnit">
+      <SubType>Content</SubType>
+      <Name>NWVEIUnit</Name>
+      <Link>Extended Data Types\NWVEIUnit</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIUserName">
+      <SubType>Content</SubType>
+      <Name>NWVEIUserName</Name>
+      <Link>Extended Data Types\NWVEIUserName</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEIWebServicesUrl">
+      <SubType>Content</SubType>
+      <Name>NWVEIWebServicesUrl</Name>
+      <Link>Extended Data Types\NWVEIWebServicesUrl</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEI_Int">
+      <SubType>Content</SubType>
+      <Name>NWVEI_Int</Name>
+      <Link>Extended Data Types\NWVEI_Int</Link>
+    </Content>
+    <Content Include="AxEdt\NWVEI_StrMemo">
+      <SubType>Content</SubType>
+      <Name>NWVEI_StrMemo</Name>
+      <Link>Extended Data Types\NWVEI_StrMemo</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEIAPIType">
+      <SubType>Content</SubType>
+      <Name>NWVEIAPIType</Name>
+      <Link>Base Enums\NWVEIAPIType</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEICustomFieldType">
+      <SubType>Content</SubType>
+      <Name>NWVEICustomFieldType</Name>
+      <Link>Base Enums\NWVEICustomFieldType</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEIDescription">
+      <SubType>Content</SubType>
+      <Name>NWVEIDescription</Name>
+      <Link>Base Enums\NWVEIDescription</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEIFilterStatus">
+      <SubType>Content</SubType>
+      <Name>NWVEIFilterStatus</Name>
+      <Link>Base Enums\NWVEIFilterStatus</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEIInvoiceOrderType">
+      <SubType>Content</SubType>
+      <Name>NWVEIInvoiceOrderType</Name>
+      <Link>Base Enums\NWVEIInvoiceOrderType</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEILocationFomat">
+      <SubType>Content</SubType>
+      <Name>NWVEILocationFomat</Name>
+      <Link>Base Enums\NWVEILocationFomat</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEIMappingArea">
+      <SubType>Content</SubType>
+      <Name>NWVEIMappingArea</Name>
+      <Link>Base Enums\NWVEIMappingArea</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEINegativeInvoice">
+      <SubType>Content</SubType>
+      <Name>NWVEINegativeInvoice</Name>
+      <Link>Base Enums\NWVEINegativeInvoice</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEINodeType">
+      <SubType>Content</SubType>
+      <Name>NWVEINodeType</Name>
+      <Link>Base Enums\NWVEINodeType</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEIProvider">
+      <SubType>Content</SubType>
+      <Name>NWVEIProvider</Name>
+      <Link>Base Enums\NWVEIProvider</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEIRequestCategory">
+      <SubType>Content</SubType>
+      <Name>NWVEIRequestCategory</Name>
+      <Link>Base Enums\NWVEIRequestCategory</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEISourceDocument">
+      <SubType>Content</SubType>
+      <Name>NWVEISourceDocument</Name>
+      <Link>Base Enums\NWVEISourceDocument</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEIStatus">
+      <SubType>Content</SubType>
+      <Name>NWVEIStatus</Name>
+      <Link>Base Enums\NWVEIStatus</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEITargetNode">
+      <SubType>Content</SubType>
+      <Name>NWVEITargetNode</Name>
+      <Link>Base Enums\NWVEITargetNode</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEITransferOrderPrice">
+      <SubType>Content</SubType>
+      <Name>NWVEITransferOrderPrice</Name>
+      <Link>Base Enums\NWVEITransferOrderPrice</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEITransferOrderType">
+      <SubType>Content</SubType>
+      <Name>NWVEITransferOrderType</Name>
+      <Link>Base Enums\NWVEITransferOrderType</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEITransformType">
+      <SubType>Content</SubType>
+      <Name>NWVEITransformType</Name>
+      <Link>Base Enums\NWVEITransformType</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEIType">
+      <SubType>Content</SubType>
+      <Name>NWVEIType</Name>
+      <Link>Base Enums\NWVEIType</Link>
+    </Content>
+    <Content Include="AxEnum\NWVEIValueSource">
+      <SubType>Content</SubType>
+      <Name>NWVEIValueSource</Name>
+      <Link>Base Enums\NWVEIValueSource</Link>
+    </Content>
+    <Content Include="AxForm\NWVEIAddGroup">
+      <SubType>Content</SubType>
+      <Name>NWVEIAddGroup</Name>
+      <Link>Forms\NWVEIAddGroup</Link>
+    </Content>
+    <Content Include="AxForm\NWVEIAdjustTOInfo">
+      <SubType>Content</SubType>
+      <Name>NWVEIAdjustTOInfo</Name>
+      <Link>Forms\NWVEIAdjustTOInfo</Link>
+    </Content>
+    <Content Include="AxForm\NWVEIEInvoiceJournal">
+      <SubType>Content</SubType>
+      <Name>NWVEIEInvoiceJournal</Name>
+      <Link>Forms\NWVEIEInvoiceJournal</Link>
+    </Content>
+    <Content Include="AxForm\NWVEIItemTranslation">
+      <SubType>Content</SubType>
+      <Name>NWVEIItemTranslation</Name>
+      <Link>Forms\NWVEIItemTranslation</Link>
+    </Content>
+    <Content Include="AxForm\NWVEILog">
+      <SubType>Content</SubType>
+      <Name>NWVEILog</Name>
+      <Link>Forms\NWVEILog</Link>
+    </Content>
+    <Content Include="AxForm\NWVEIMapToProvider">
+      <SubType>Content</SubType>
+      <Name>NWVEIMapToProvider</Name>
+      <Link>Forms\NWVEIMapToProvider</Link>
+    </Content>
+    <Content Include="AxForm\NWVEIParameter">
+      <SubType>Content</SubType>
+      <Name>NWVEIParameter</Name>
+      <Link>Forms\NWVEIParameter</Link>
+    </Content>
+    <Content Include="AxForm\NWVEIUnitTranslation">
+      <SubType>Content</SubType>
+      <Name>NWVEIUnitTranslation</Name>
+      <Link>Forms\NWVEIUnitTranslation</Link>
+    </Content>
+    <Content Include="AxFormExtension\CustFreeInvoice.NWVEI">
+      <SubType>Content</SubType>
+      <Name>CustFreeInvoice.NWVEI</Name>
+      <Link>Form Extensions\CustFreeInvoice.NWVEI</Link>
+    </Content>
+    <Content Include="AxFormExtension\CustInvoiceJournal.NWVEI">
+      <SubType>Content</SubType>
+      <Name>CustInvoiceJournal.NWVEI</Name>
+      <Link>Form Extensions\CustInvoiceJournal.NWVEI</Link>
+    </Content>
+    <Content Include="AxFormExtension\InventJournalTransfer.NWVEI">
+      <SubType>Content</SubType>
+      <Name>InventJournalTransfer.NWVEI</Name>
+      <Link>Form Extensions\InventJournalTransfer.NWVEI</Link>
+    </Content>
+    <Content Include="AxFormExtension\InventTransferJour.NWVEI">
+      <SubType>Content</SubType>
+      <Name>InventTransferJour.NWVEI</Name>
+      <Link>Form Extensions\InventTransferJour.NWVEI</Link>
+    </Content>
+    <Content Include="AxFormExtension\InventTransferOrders.NWVEI">
+      <SubType>Content</SubType>
+      <Name>InventTransferOrders.NWVEI</Name>
+      <Link>Form Extensions\InventTransferOrders.NWVEI</Link>
+    </Content>
+    <Content Include="AxFormExtension\LogisticsPostalAddress.NWVEI">
+      <SubType>Content</SubType>
+      <Name>LogisticsPostalAddress.NWVEI</Name>
+      <Link>Form Extensions\LogisticsPostalAddress.NWVEI</Link>
+    </Content>
+    <Content Include="AxFormExtension\ProjIntercompanyInvoice.NWVEI">
+      <SubType>Content</SubType>
+      <Name>ProjIntercompanyInvoice.NWVEI</Name>
+      <Link>Form Extensions\ProjIntercompanyInvoice.NWVEI</Link>
+    </Content>
+    <Content Include="AxFormExtension\ProjInvoiceJournal.NWVEI">
+      <SubType>Content</SubType>
+      <Name>ProjInvoiceJournal.NWVEI</Name>
+      <Link>Form Extensions\ProjInvoiceJournal.NWVEI</Link>
+    </Content>
+    <Content Include="AxFormExtension\ProjInvoiceJournalV2.NWVEI">
+      <SubType>Content</SubType>
+      <Name>ProjInvoiceJournalV2.NWVEI</Name>
+      <Link>Form Extensions\ProjInvoiceJournalV2.NWVEI</Link>
+    </Content>
+    <Content Include="AxFormExtension\ProjInvoiceProposalDetail.NWVEI">
+      <SubType>Content</SubType>
+      <Name>ProjInvoiceProposalDetail.NWVEI</Name>
+      <Link>Form Extensions\ProjInvoiceProposalDetail.NWVEI</Link>
+    </Content>
+    <Content Include="AxFormExtension\ProjInvoiceProposalDetailV2.NWVEI">
+      <SubType>Content</SubType>
+      <Name>ProjInvoiceProposalDetailV2.NWVEI</Name>
+      <Link>Form Extensions\ProjInvoiceProposalDetailV2.NWVEI</Link>
+    </Content>
+    <Content Include="AxFormExtension\SalesEditLines.NWVEI">
+      <SubType>Content</SubType>
+      <Name>SalesEditLines.NWVEI</Name>
+      <Link>Form Extensions\SalesEditLines.NWVEI</Link>
+    </Content>
+    <Content Include="AxFormExtension\VendEditInvoice.NWVEI">
+      <SubType>Content</SubType>
+      <Name>VendEditInvoice.NWVEI</Name>
+      <Link>Form Extensions\VendEditInvoice.NWVEI</Link>
+    </Content>
+    <Content Include="AxFormExtension\VendInvoiceJournal.NWVEI">
+      <SubType>Content</SubType>
+      <Name>VendInvoiceJournal.NWVEI</Name>
+      <Link>Form Extensions\VendInvoiceJournal.NWVEI</Link>
+    </Content>
+    <Content Include="AxLabelFile\NWVEI_en-US">
+      <SubType>Content</SubType>
+      <Name>NWVEI_en-US</Name>
+      <Link>Label Files\NWVEI_en-US</Link>
+    </Content>
+    <Content Include="NWVEI.en-US.label.txt">
+      <SubType>Content</SubType>
+      <Name>NWVEI.en-US.label.txt</Name>
+      <Link>Label Files\NWVEI.en-US.label.txt</Link>
+      <DependentUpon>AxLabelFile\NWVEI_en-US</DependentUpon>
+    </Content>
+    <Content Include="AxMenuExtension\NWVEI.NWVEI">
+      <SubType>Content</SubType>
+      <Name>NWVEI.NWVEI</Name>
+      <Link>Menu Extensions\NWVEI.NWVEI</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\NWVEICancelInvoice">
+      <SubType>Content</SubType>
+      <Name>NWVEICancelInvoice</Name>
+      <Link>Action Menu Items\NWVEICancelInvoice</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\NWVEICleanupData">
+      <SubType>Content</SubType>
+      <Name>NWVEICleanupData</Name>
+      <Link>Action Menu Items\NWVEICleanupData</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\NWVEIDeleteDraftInvoice">
+      <SubType>Content</SubType>
+      <Name>NWVEIDeleteDraftInvoice</Name>
+      <Link>Action Menu Items\NWVEIDeleteDraftInvoice</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\NWVEIDraftInvoice">
+      <SubType>Content</SubType>
+      <Name>NWVEIDraftInvoice</Name>
+      <Link>Action Menu Items\NWVEIDraftInvoice</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\NWVEIEnableEI">
+      <SubType>Content</SubType>
+      <Name>NWVEIEnableEI</Name>
+      <Link>Action Menu Items\NWVEIEnableEI</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\NWVEIGenerateMapping">
+      <SubType>Content</SubType>
+      <Name>NWVEIGenerateMapping</Name>
+      <Link>Action Menu Items\NWVEIGenerateMapping</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\NWVEIImportCategoryFromJson">
+      <SubType>Content</SubType>
+      <Name>NWVEIImportCategoryFromJson</Name>
+      <Link>Action Menu Items\NWVEIImportCategoryFromJson</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\NWVEIImportCategoryFromXml">
+      <SubType>Content</SubType>
+      <Name>NWVEIImportCategoryFromXml</Name>
+      <Link>Action Menu Items\NWVEIImportCategoryFromXml</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\NWVEIPrintEInvoice">
+      <SubType>Content</SubType>
+      <Name>NWVEIPrintEInvoice</Name>
+      <Link>Action Menu Items\NWVEIPrintEInvoice</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\NWVEIPublishEInvoice">
+      <SubType>Content</SubType>
+      <Name>NWVEIPublishEInvoice</Name>
+      <Link>Action Menu Items\NWVEIPublishEInvoice</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\NWVEISendInvoice">
+      <SubType>Content</SubType>
+      <Name>NWVEISendInvoice</Name>
+      <Link>Action Menu Items\NWVEISendInvoice</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\NWVEIUpdateDraftEInvoice">
+      <SubType>Content</SubType>
+      <Name>NWVEIUpdateDraftEInvoice</Name>
+      <Link>Action Menu Items\NWVEIUpdateDraftEInvoice</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\NWVEIUpdateTaxInfo">
+      <SubType>Content</SubType>
+      <Name>NWVEIUpdateTaxInfo</Name>
+      <Link>Action Menu Items\NWVEIUpdateTaxInfo</Link>
+    </Content>
+    <Content Include="AxMenuItemAction\NWVEIUpdateVatInfo">
+      <SubType>Content</SubType>
+      <Name>NWVEIUpdateVatInfo</Name>
+      <Link>Action Menu Items\NWVEIUpdateVatInfo</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\NWVEIAddGroup">
+      <SubType>Content</SubType>
+      <Name>NWVEIAddGroup</Name>
+      <Link>Display Menu Items\NWVEIAddGroup</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\NWVEIAdjustTOInfo">
+      <SubType>Content</SubType>
+      <Name>NWVEIAdjustTOInfo</Name>
+      <Link>Display Menu Items\NWVEIAdjustTOInfo</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\NWVEIEInvoiceJournal">
+      <SubType>Content</SubType>
+      <Name>NWVEIEInvoiceJournal</Name>
+      <Link>Display Menu Items\NWVEIEInvoiceJournal</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\NWVEIEInvoiceJournalListPage">
+      <SubType>Content</SubType>
+      <Name>NWVEIEInvoiceJournalListPage</Name>
+      <Link>Display Menu Items\NWVEIEInvoiceJournalListPage</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\NWVEIEInvoiceJournal_AP">
+      <SubType>Content</SubType>
+      <Name>NWVEIEInvoiceJournal_AP</Name>
+      <Link>Display Menu Items\NWVEIEInvoiceJournal_AP</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\NWVEIEInvoiceJournal_AR">
+      <SubType>Content</SubType>
+      <Name>NWVEIEInvoiceJournal_AR</Name>
+      <Link>Display Menu Items\NWVEIEInvoiceJournal_AR</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\NWVEIEInvoiceJournal_IM">
+      <SubType>Content</SubType>
+      <Name>NWVEIEInvoiceJournal_IM</Name>
+      <Link>Display Menu Items\NWVEIEInvoiceJournal_IM</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\NWVEIEInvoiceJournal_Proj">
+      <SubType>Content</SubType>
+      <Name>NWVEIEInvoiceJournal_Proj</Name>
+      <Link>Display Menu Items\NWVEIEInvoiceJournal_Proj</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\NWVEIItemTranslation">
+      <SubType>Content</SubType>
+      <Name>NWVEIItemTranslation</Name>
+      <Link>Display Menu Items\NWVEIItemTranslation</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\NWVEILog">
+      <SubType>Content</SubType>
+      <Name>NWVEILog</Name>
+      <Link>Display Menu Items\NWVEILog</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\NWVEIMapToProvider">
+      <SubType>Content</SubType>
+      <Name>NWVEIMapToProvider</Name>
+      <Link>Display Menu Items\NWVEIMapToProvider</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\NWVEIParameter">
+      <SubType>Content</SubType>
+      <Name>NWVEIParameter</Name>
+      <Link>Display Menu Items\NWVEIParameter</Link>
+    </Content>
+    <Content Include="AxMenuItemDisplay\NWVEIUnitTranslation">
+      <SubType>Content</SubType>
+      <Name>NWVEIUnitTranslation</Name>
+      <Link>Display Menu Items\NWVEIUnitTranslation</Link>
+    </Content>
+    <Content Include="AxResource\NWVEIMapVisualizer_htm">
+      <SubType>Content</SubType>
+      <Name>NWVEIMapVisualizer_htm</Name>
+      <Link>Resources\NWVEIMapVisualizer_htm</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Html\NWVEIMapVisualizer.htm">
+      <SubType>Content</SubType>
+      <Name>NWVEIMapVisualizer.htm</Name>
+      <Link>Resources\NWVEIMapVisualizer.htm</Link>
+      <DependentUpon>AxResource\NWVEIMapVisualizer_htm</DependentUpon>
+    </Content>
+    <Content Include="AxResource\NWVEIMapVisualizer_js">
+      <SubType>Content</SubType>
+      <Name>NWVEIMapVisualizer_js</Name>
+      <Link>Resources\NWVEIMapVisualizer_js</Link>
+    </Content>
+    <Content Include="AxResource\ResourceContent\Scripts\NWVEIMapVisualizer_js.js">
+      <SubType>Content</SubType>
+      <Name>NWVEIMapVisualizer_js.js</Name>
+      <Link>Resources\NWVEIMapVisualizer_js.js</Link>
+      <DependentUpon>AxResource\NWVEIMapVisualizer_js</DependentUpon>
+    </Content>
+    <Content Include="AxSecurityDuty\NWVEIMaintainDuty">
+      <SubType>Content</SubType>
+      <Name>NWVEIMaintainDuty</Name>
+      <Link>Security Duties\NWVEIMaintainDuty</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\NWVEIAPISetupEntityMaintain">
+      <SubType>Content</SubType>
+      <Name>NWVEIAPISetupEntityMaintain</Name>
+      <Link>Security Privileges\NWVEIAPISetupEntityMaintain</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\NWVEIAPISetupEntityView">
+      <SubType>Content</SubType>
+      <Name>NWVEIAPISetupEntityView</Name>
+      <Link>Security Privileges\NWVEIAPISetupEntityView</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\NWVEIMaintainPrivilege">
+      <SubType>Content</SubType>
+      <Name>NWVEIMaintainPrivilege</Name>
+      <Link>Security Privileges\NWVEIMaintainPrivilege</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\NWVEIMappingDetailEntityMaintain">
+      <SubType>Content</SubType>
+      <Name>NWVEIMappingDetailEntityMaintain</Name>
+      <Link>Security Privileges\NWVEIMappingDetailEntityMaintain</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\NWVEIMappingDetailEntityView">
+      <SubType>Content</SubType>
+      <Name>NWVEIMappingDetailEntityView</Name>
+      <Link>Security Privileges\NWVEIMappingDetailEntityView</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\NWVEIMappingTableEntityMaintain">
+      <SubType>Content</SubType>
+      <Name>NWVEIMappingTableEntityMaintain</Name>
+      <Link>Security Privileges\NWVEIMappingTableEntityMaintain</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\NWVEIMappingTableEntityView">
+      <SubType>Content</SubType>
+      <Name>NWVEIMappingTableEntityView</Name>
+      <Link>Security Privileges\NWVEIMappingTableEntityView</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\NWVEIProviderCategoryEntityMaintain">
+      <SubType>Content</SubType>
+      <Name>NWVEIProviderCategoryEntityMaintain</Name>
+      <Link>Security Privileges\NWVEIProviderCategoryEntityMaintain</Link>
+    </Content>
+    <Content Include="AxSecurityPrivilege\NWVEIProviderCategoryEntityView">
+      <SubType>Content</SubType>
+      <Name>NWVEIProviderCategoryEntityView</Name>
+      <Link>Security Privileges\NWVEIProviderCategoryEntityView</Link>
+    </Content>
+    <Content Include="AxSecurityRole\NWVEIMaintainRole">
+      <SubType>Content</SubType>
+      <Name>NWVEIMaintainRole</Name>
+      <Link>Security Roles\NWVEIMaintainRole</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIAdjustTOInfoTmp">
+      <SubType>Content</SubType>
+      <Name>NWVEIAdjustTOInfoTmp</Name>
+      <Link>Tables\NWVEIAdjustTOInfoTmp</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIAPISetup">
+      <SubType>Content</SubType>
+      <Name>NWVEIAPISetup</Name>
+      <Link>Tables\NWVEIAPISetup</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIAPISetupStaging">
+      <SubType>Content</SubType>
+      <Name>NWVEIAPISetupStaging</Name>
+      <Link>Tables\NWVEIAPISetupStaging</Link>
+    </Content>
+    <Content Include="AxTable\NWVEICurrency">
+      <SubType>Content</SubType>
+      <Name>NWVEICurrency</Name>
+      <Link>Tables\NWVEICurrency</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIHeader">
+      <SubType>Content</SubType>
+      <Name>NWVEIHeader</Name>
+      <Link>Tables\NWVEIHeader</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIItemTranslation">
+      <SubType>Content</SubType>
+      <Name>NWVEIItemTranslation</Name>
+      <Link>Tables\NWVEIItemTranslation</Link>
+    </Content>
+    <Content Include="AxTable\NWVEILines">
+      <SubType>Content</SubType>
+      <Name>NWVEILines</Name>
+      <Link>Tables\NWVEILines</Link>
+    </Content>
+    <Content Include="AxTable\NWVEILinesGroup">
+      <SubType>Content</SubType>
+      <Name>NWVEILinesGroup</Name>
+      <Link>Tables\NWVEILinesGroup</Link>
+    </Content>
+    <Content Include="AxTable\NWVEILog">
+      <SubType>Content</SubType>
+      <Name>NWVEILog</Name>
+      <Link>Tables\NWVEILog</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIMappingDetail">
+      <SubType>Content</SubType>
+      <Name>NWVEIMappingDetail</Name>
+      <Link>Tables\NWVEIMappingDetail</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIMappingDetailStaging">
+      <SubType>Content</SubType>
+      <Name>NWVEIMappingDetailStaging</Name>
+      <Link>Tables\NWVEIMappingDetailStaging</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIMappingTable">
+      <SubType>Content</SubType>
+      <Name>NWVEIMappingTable</Name>
+      <Link>Tables\NWVEIMappingTable</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIMappingTableStaging">
+      <SubType>Content</SubType>
+      <Name>NWVEIMappingTableStaging</Name>
+      <Link>Tables\NWVEIMappingTableStaging</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIMetadataSetup">
+      <SubType>Content</SubType>
+      <Name>NWVEIMetadataSetup</Name>
+      <Link>Tables\NWVEIMetadataSetup</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIParameter">
+      <SubType>Content</SubType>
+      <Name>NWVEIParameter</Name>
+      <Link>Tables\NWVEIParameter</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIPaymentMethod">
+      <SubType>Content</SubType>
+      <Name>NWVEIPaymentMethod</Name>
+      <Link>Tables\NWVEIPaymentMethod</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIProviderCategory">
+      <SubType>Content</SubType>
+      <Name>NWVEIProviderCategory</Name>
+      <Link>Tables\NWVEIProviderCategory</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIProviderCategoryStaging">
+      <SubType>Content</SubType>
+      <Name>NWVEIProviderCategoryStaging</Name>
+      <Link>Tables\NWVEIProviderCategoryStaging</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIRefTableName">
+      <SubType>Content</SubType>
+      <Name>NWVEIRefTableName</Name>
+      <Link>Tables\NWVEIRefTableName</Link>
+    </Content>
+    <Content Include="AxTable\NWVEISetup">
+      <SubType>Content</SubType>
+      <Name>NWVEISetup</Name>
+      <Link>Tables\NWVEISetup</Link>
+    </Content>
+    <Content Include="AxTable\NWVEITaxBreakdowns">
+      <SubType>Content</SubType>
+      <Name>NWVEITaxBreakdowns</Name>
+      <Link>Tables\NWVEITaxBreakdowns</Link>
+    </Content>
+    <Content Include="AxTable\NWVEITaxValue">
+      <SubType>Content</SubType>
+      <Name>NWVEITaxValue</Name>
+      <Link>Tables\NWVEITaxValue</Link>
+    </Content>
+    <Content Include="AxTable\NWVEITemplate">
+      <SubType>Content</SubType>
+      <Name>NWVEITemplate</Name>
+      <Link>Tables\NWVEITemplate</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIUnitTranslation">
+      <SubType>Content</SubType>
+      <Name>NWVEIUnitTranslation</Name>
+      <Link>Tables\NWVEIUnitTranslation</Link>
+    </Content>
+    <Content Include="AxTable\NWVEIUserPermission">
+      <SubType>Content</SubType>
+      <Name>NWVEIUserPermission</Name>
+      <Link>Tables\NWVEIUserPermission</Link>
+    </Content>
+    <Content Include="AxTableExtension\CustInvoiceJour.NWVEI">
+      <SubType>Content</SubType>
+      <Name>CustInvoiceJour.NWVEI</Name>
+      <Link>Table Extensions\CustInvoiceJour.NWVEI</Link>
+    </Content>
+    <Content Include="AxTableExtension\CustInvoiceTable.NWVEI">
+      <SubType>Content</SubType>
+      <Name>CustInvoiceTable.NWVEI</Name>
+      <Link>Table Extensions\CustInvoiceTable.NWVEI</Link>
+    </Content>
+    <Content Include="AxTableExtension\InventJournalTable.NWVEI">
+      <SubType>Content</SubType>
+      <Name>InventJournalTable.NWVEI</Name>
+      <Link>Table Extensions\InventJournalTable.NWVEI</Link>
+    </Content>
+    <Content Include="AxTableExtension\InventJournalTableHistory.NWVEI">
+      <SubType>Content</SubType>
+      <Name>InventJournalTableHistory.NWVEI</Name>
+      <Link>Table Extensions\InventJournalTableHistory.NWVEI</Link>
+    </Content>
+    <Content Include="AxTableExtension\InventJournalTrans.NWVEI">
+      <SubType>Content</SubType>
+      <Name>InventJournalTrans.NWVEI</Name>
+      <Link>Table Extensions\InventJournalTrans.NWVEI</Link>
+    </Content>
+    <Content Include="AxTableExtension\InventTransferJour.NWVEI">
+      <SubType>Content</SubType>
+      <Name>InventTransferJour.NWVEI</Name>
+      <Link>Table Extensions\InventTransferJour.NWVEI</Link>
+    </Content>
+    <Content Include="AxTableExtension\InventTransferTable.NWVEI">
+      <SubType>Content</SubType>
+      <Name>InventTransferTable.NWVEI</Name>
+      <Link>Table Extensions\InventTransferTable.NWVEI</Link>
+    </Content>
+    <Content Include="AxTableExtension\ProjInvoiceJour.NWVEI">
+      <SubType>Content</SubType>
+      <Name>ProjInvoiceJour.NWVEI</Name>
+      <Link>Table Extensions\ProjInvoiceJour.NWVEI</Link>
+    </Content>
+    <Content Include="AxTableExtension\ProjProposalJour.NWVEI">
+      <SubType>Content</SubType>
+      <Name>ProjProposalJour.NWVEI</Name>
+      <Link>Table Extensions\ProjProposalJour.NWVEI</Link>
+    </Content>
+    <Content Include="AxTableExtension\SalesParmTable.NWVEI">
+      <SubType>Content</SubType>
+      <Name>SalesParmTable.NWVEI</Name>
+      <Link>Table Extensions\SalesParmTable.NWVEI</Link>
+    </Content>
+    <Content Include="AxTableExtension\TaxRegistration.NWVEI">
+      <SubType>Content</SubType>
+      <Name>TaxRegistration.NWVEI</Name>
+      <Link>Table Extensions\TaxRegistration.NWVEI</Link>
+    </Content>
+    <Content Include="AxTableExtension\TaxRegistrationLegislativeStaging.NWVEI">
+      <SubType>Content</SubType>
+      <Name>TaxRegistrationLegislativeStaging.NWVEI</Name>
+      <Link>Table Extensions\TaxRegistrationLegislativeStaging.NWVEI</Link>
+    </Content>
+    <Content Include="AxTableExtension\VendInvoiceInfoTable.NWVEI">
+      <SubType>Content</SubType>
+      <Name>VendInvoiceInfoTable.NWVEI</Name>
+      <Link>Table Extensions\VendInvoiceInfoTable.NWVEI</Link>
+    </Content>
+    <Content Include="AxTableExtension\VendInvoiceJour.NWVEI">
+      <SubType>Content</SubType>
+      <Name>VendInvoiceJour.NWVEI</Name>
+      <Link>Table Extensions\VendInvoiceJour.NWVEI</Link>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPostAdhocRegistration_mob_extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classstr(TFMPostAdhocRegistration))]
+final class TFMPostAdhocRegistration_mob_extension
+{
+    /*protected void findClass()
+    {
+        DictMethod method;
+        TFMDocumentTypeAttribute docTypeAttribute;
+        next findClass();
+        UserConnection uc = new UserConnection();
+        uc.ttsbegin();
+        TFMDocumentHandler subHandler =  this.subHandler();
+        method = subHandler.parmMethod();
+        if (!method)
+        {
+            docTypeAttribute = new TFMDocumentTypeAttribute(subStr(classStr(TFMPostAdhocRegistration),4,100), request.ContentType());
+            method = TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classIdGet(docHandler),docTypeAttribute);
+        }
+        MobPostOrderPromptOverride::FindAndExecute(subHandler,subHandler.getRequestDataMap(), method.name());
+        uc.ttscommit();
+
+    }*/
+
+}
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+</AxClass>

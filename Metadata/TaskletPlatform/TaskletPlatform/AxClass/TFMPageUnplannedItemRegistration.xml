@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageUnplannedItemRegistration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMpageType('UnplannedItemRegistration', "Unplanned Item Registration")]
+class TFMPageUnplannedItemRegistration extends TFMPage
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        description = "@TFM:TheUnplannedItemRegistrationpage";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPageTiles</Name>
+				<Source><![CDATA[
+    protected void addPageTiles()
+    {
+        str formName;
+        str navtotext;
+        TFMCollectorMapAttribute    attribute = new TFMCollectorMapAttribute(classStr(TFMGetRegistrationConfiguration), this.parmId());
+        TFMDocumentTypeAttribute    docTypeattr = new TFMDocumentTypeAttribute(classStr(TFMGetRegistrationConfiguration), this.parmId());
+        
+
+        if (docHand && ((TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classIdGet(docHand),attribute) != null) || (TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classIdGet(docHand),docTypeattr) != null)))
+        {
+            navtotext = strFmt("@TFM:Opensuptheflow1", attribute.parmContentType());
+        }
+        else if (docHand)
+        {
+            navtotext = "@TFM:Postsdirectly";
+        }
+
+        if (TFMProcessProvider::GetAllProcessesImpl().processExists(attribute.parmContentType()))
+        {
+            formName = formStr(TFMProcessOverview);
+            navtotext = strFmt("@TFM:Opensuptheflow1", attribute.parmContentType());
+        }
+
+        super();
+        this.addHtmlEntry("@TFM:Whenheaderisaccepted", navtotext,formName,resourceStr(TFMEntityCustomizations));
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

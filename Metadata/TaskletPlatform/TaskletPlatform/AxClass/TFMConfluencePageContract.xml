@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMConfluencePageContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+public class TFMConfluencePageContract
+{
+    protected str id;
+    protected TFMConfluencePageBodyContract bodyContract;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>body</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('body')]
+    public TFMConfluencePageBodyContract body(TFMConfluencePageBodyContract _body = bodyContract)
+    {
+        bodyContract = _body;
+        return _body;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>id</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('id')]
+    public str id(str _id = id)
+    {
+        if (!prmisdefault(_id))
+        {
+            id = _id;
+        }
+        return _id;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

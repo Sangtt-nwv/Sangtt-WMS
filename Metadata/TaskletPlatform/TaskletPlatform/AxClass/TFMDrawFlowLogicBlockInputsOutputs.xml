@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowLogicBlockInputsOutputs</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+class TFMDrawFlowLogicBlockInputsOutputs
+{
+    List connection;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        connection = new List(Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMDrawFlowLogicBlockInputsOutputs Construct(List _connection)
+    {
+        TFMDrawFlowLogicBlockInputsOutputs contract = new TFMDrawFlowLogicBlockInputsOutputs();
+        contract.parmConnection(_connection);
+        return contract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmConnection</Name>
+				<Source><![CDATA[
+    [DataMember('connections'), DataCollectionAttribute(Types::Class, classStr(TFMDrawFlowLogicBlockConnectionContract))]
+    public List parmConnection(List _connection = Connection)
+    {
+        connection = _connection;
+        return connection;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateBlockLinkMap</Name>
+				<Source><![CDATA[
+    public void updateBlockLinkMap(Map _blockLinks, Name _connectionName)
+    {
+        TFMDrawFlowLogicBlockConnectionContract connCont;
+        ListEnumerator lEnum = Connection.getEnumerator();
+        while (lEnum.moveNext())
+        {
+            connCont = lEnum.current();
+            
+            _blockLinks.insert(str2Int(connCont.parmNode()), _connectionName);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

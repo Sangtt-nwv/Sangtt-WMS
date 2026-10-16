@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicStepOperatorVariableContextLookupInterface</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+interface TFMLogicStepOperatorVariableContextLookupInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>lookupVariableContext</Name>
+				<Source><![CDATA[
+    public Map lookupVariableContext()
+    {
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmVariableName</Name>
+				<Source><![CDATA[
+    public TFMFlowVariableName parmVariableName(TFMFlowVariableName _variableName)
+    {
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

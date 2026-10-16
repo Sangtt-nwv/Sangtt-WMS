@@ -1,0 +1,876 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPage</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPage
+{
+    str						title;
+    str						name;
+    TFMPageType				type;
+    TFMImageName			iconName;
+    TFMPageConfiguration	configuration;
+    str						filterName;
+    Description255			description;
+    FormTabControl			tabPage;
+    boolean					isMandatoryContextMenu;
+    boolean                 availableForMenuPages = true;
+    boolean                 canOnlyBeAttachedToGroupsItBelongsTo;
+    Map						actions;
+    Set                     belongsToMenuGroups = new Set(Types::String);  // the menu group that the page belongs to.
+    TFMDocumentHandler		docHand;
+    Map						tileEntries;
+    Map                     tileForms;
+    Set						referencedPages;
+    boolean					alwaysIncludeInOutput;
+    int						numberOfPromotedItems;
+    Set						dsBlocks;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getPageActions</Name>
+				<Source><![CDATA[
+	public Map getPageActions()
+    {
+        actions = actions == null ? this.DefaultActions() : actions;
+        return actions;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAlwaysIncludeInOutput</Name>
+				<Source><![CDATA[
+    public boolean parmAlwaysIncludeInOutput(boolean _alwaysIncludeInOutput = alwaysIncludeInOutput)
+    {
+        alwaysIncludeInOutput = _alwaysIncludeInOutput;
+        return alwaysIncludeInOutput;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDataSourceBlock</Name>
+				<Source><![CDATA[
+    public void addDataSourceBlock(TFMDataSourceBlock _dsBlock)
+    {
+        dsBlocks.add(_dsBlock);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDataSourceBlocks</Name>
+				<Source><![CDATA[
+	public Set getDataSourceBlocks()
+    {
+        return dsBlocks;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>referencedPages</Name>
+				<Source><![CDATA[
+	public Set referencedPages()
+    {
+        SetEnumerator	parmMethods;
+        MapEnumerator	menuItems;
+        SysDictMethod	methods;
+        TFMPageID		pageId;
+
+        if (referencedPages != null)
+        {
+            return referencedPages;
+        }
+        referencedPages = new Set(Types::String);
+        parmMethods = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(configuration),false,Types::Class).getEnumerator();
+
+        SysDictClass configurationSysDictClass = new SysDictClass(classIdGet(configuration));
+
+		while (parmMethods.moveNext())
+        {
+            methods = parmMethods.current();
+            if( methods.returnTypeName() == extendedTypeStr(TFMPageID))
+            {
+                pageId = configurationSysDictClass.callObject(methods.name(),configuration);
+                referencedPages.add(pageId);
+            }
+        }
+        menuItems = TFMPageMenuItemsFormHelper::getPageMenuItemStateConfigurations(name).getEnumerator();
+		while (menuItems.moveNext())
+        {
+            referencedPages.add(menuItems.currentKey());
+        }
+        return referencedPages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveAllParms</Name>
+				<Source><![CDATA[
+    public void saveAllParms()
+    {
+        //SetEnumerator parmMethods = TFMFormLookupHelper::parmMethodsOnClass(classId2Name(classIdGet(configuration)),false,Types::Class).getEnumerator();
+        //SysDictMethod methods;
+        //while (parmMethods.moveNext())
+        //{
+        //    methods = parmMethods.current();
+        //    if (methods.getAttribute(classStr(TFMPageConfigurationAttributeAttribute)) != null)
+        //    {
+        //        //Only attributes should be saved
+        //        //TFMPageConfigParms::CreateOrUpdateParameter(name,classId2Name(classIdGet(configuration)),methods.name(),new SysDictClass(classIdGet(configuration)).callObject(methods.name(),configuration));
+        //    }
+        //}
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pageSpecificListTags</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Tags specific for this page type, including example data
+    /// </summary>
+    /// <returns>A map with tag name as key, and example data as value. For use in List Design view.</returns>
+	public Map pageSpecificListTags()
+    {
+        return new Map(Types::String, Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentHandler</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandler getDocumentHandler()
+    {
+        return docHand;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDocumentHandler</Name>
+				<Source><![CDATA[
+    public void setDocumentHandler(TFMDocumentHandler _docHand)
+    {
+        docHand = _docHand;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFilter</Name>
+				<Source><![CDATA[
+    public str parmFilter(str _filterName = filterName)
+    {
+        filterName = _filterName;
+        return filterName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmId</Name>
+				<Source><![CDATA[
+    [TFMPageAttributeAttribute('')]
+    public str parmId(str _name = name)
+    {
+        if (configuration &&  _name != name)
+        {
+            name = _name;
+            configuration.parmName(name);
+            if(!configuration.parmType())
+            {
+                configuration.parmType(name);
+            }
+        }
+
+        name = _name;
+
+        return name;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmNumberOfPromotedItems</Name>
+				<Source><![CDATA[
+    [TFMPageAttributeAttribute('','menu',3)]
+    public int parmNumberOfPromotedItems(int _numberOfPromotedItems = numberOfPromotedItems)
+    {
+        numberOfPromotedItems = _numberOfPromotedItems;
+        return numberOfPromotedItems;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAvailableForMenuPages</Name>
+				<Source><![CDATA[
+    public boolean parmAvailableForMenuPages(boolean _availableForMenuPages = availableForMenuPages)
+    {
+        availableForMenuPages = _availableForMenuPages;
+        return availableForMenuPages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsMandatoryContextMenu</Name>
+				<Source><![CDATA[
+    public boolean parmIsMandatoryContextMenu(boolean _isMandatoryContextMenu = isMandatoryContextMenu)
+    {
+        isMandatoryContextMenu = _isMandatoryContextMenu;
+        return isMandatoryContextMenu;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCanOnlyBeAttachedToGroupsItBelongsTo</Name>
+				<Source><![CDATA[
+    public boolean parmCanOnlyBeAttachedToGroupsItBelongsTo(boolean _canOnlyBeAttachedToGroupsItBelongsTo = canOnlyBeAttachedToGroupsItBelongsTo)
+    {
+        canOnlyBeAttachedToGroupsItBelongsTo = _canOnlyBeAttachedToGroupsItBelongsTo;
+        return canOnlyBeAttachedToGroupsItBelongsTo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTitle</Name>
+				<Source><![CDATA[
+    public str parmTitle(str _title = title)
+    {
+        title = _title;
+
+        // legacy handling of titles
+        if (!strScan(title,' ',1,1000) && subStr(title,1,4) == 'Page' && subStr(title,strLen(title)-4,5) == 'Title')
+        {
+            return '@{'+title+'}';
+        }
+
+        return title;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        SysDictClass DC = new SysDictClass(classIdGet(this));
+        TFMPageTypeAttribute  pageTypeAttr = DC.getAttribute(classStr(TFMPageTypeAttribute));
+
+        if (pageTypeAttr)
+        {
+            type = pageTypeAttr.parmPageType();
+
+            this.initFromType();
+        }
+        tileEntries = new Map(Types::String, Types::String);
+        tileForms = new Map(Types::String, Types::String);
+        description = strFmt("@TFM:Thisisa1page",type);
+        referencedPages = null;
+        numberOfPromotedItems = 3;
+        dsBlocks = new Set(Types::Class);
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isLimitByTheBelongingGroup</Name>
+				<Source><![CDATA[
+    public boolean isLimitByTheBelongingGroup(str _groupId)
+    {
+        return !this.canOnlyBeAttachedToGroupsItBelongsTo || this.belongsToGroup(_groupId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>belongsToGroup</Name>
+				<Source><![CDATA[
+    public boolean belongsToGroup(str _groupId)
+    {
+        return this.belongsToMenuGroups.in(_groupId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPageBelongsToMenuGroups</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Adds the menu group that the page belongs to - refers to the categories previously added in the TFMMenuAttribute on the document handler.
+    /// </summary>
+    public void addPageBelongsToMenuGroups(str _menuGroup)
+    {
+        belongsToMenuGroups.add(_menuGroup);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPageBelongsToMenuGroups</Name>
+				<Source><![CDATA[
+    public Set getPageBelongsToMenuGroups()
+    {
+        return belongsToMenuGroups;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addAction</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Adds a menu item to the page
+    /// </summary>
+    public TFMMenuItemStateConfiguration addAction(TFMPageID _pageName, int _promoted = -1, int _promoteOffset = 0)
+    {
+        TFMMenuItemStateConfiguration conf;
+        if (actions == null)
+        {
+            actions = this.DefaultActions(_promoteOffset);
+        }
+        conf = TFMMenuItemStateConfiguration::Construct(_pageName,_promoted);
+        actions.insert(conf.parmMenuItemName(),conf);
+        return conf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addActionClass</Name>
+				<Source><![CDATA[
+    public void addActionClass(TFMMenuItemStateConfiguration _menuItemStateConf,int _promoteOffset = 0)
+    {
+        if (actions == null)
+        {
+            actions = this.DefaultActions(_promoteOffset);
+        }
+        actions.insert(_menuItemStateConf.parmMenuItemName(),_menuItemStateConf);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addAdhocAction</Name>
+				<Source><![CDATA[
+    public TFMMenuItemStateConfiguration addAdhocAction(MethodName _methodName, int _promoted = -1, int _promoteOffset = 0, TFMPageID _navigateToOnSuccesfulPost = '')
+    {
+        TFMMenuItemStateConfiguration				conf;
+        TFMPageLineAdhocRequestAttribute			adhocAttribute = new TFMPageLineAdhocRequestAttribute(_methodName,'','',true);
+        TFMPageActionAttribute						pageAction;
+        TFMPageAdhocMenuItemsAdditionalProperties	additionalProps;
+        TFMDocumentHandler							handler = SysExtensionAppClassFactory::getClassFromSysAttribute(classStr(TFMDocumentHandler), adhocAttribute);
+        SysDictClass								sdc;
+        Array										clsAttributes;
+        int											i;
+        SysDictMethod								sdm;
+        TFMDocumenttypeAttribute					docTypeAttr;
+        if (actions == null)
+        {
+            actions = this.DefaultActions(_promoteOffset);
+        }
+        sdc = new SysDictClass(classIdGet(handler));
+        clsAttributes = sdc.getAttributes(classStr(TFMPageLineAdhocRequestAttribute));
+        if (0 == clsAttributes.lastIndex())
+        {
+            return null;
+        }
+        for (i = 1; i <= clsAttributes.lastIndex(); i++)
+        {
+            adhocAttribute = clsAttributes.value(i);
+            if (adhocAttribute.parmMethodName() == _methodName)
+            {
+                pageAction = new TFMPageActionAttribute(TFMPageMenuItemTypes::AdhocAction,adhocAttribute.parmIcon(),_promoted > -1,false);
+                //Find Post Adhoc Document
+                sdm = new SysDictMethod(UtilElementType::ClassInstanceMethod,sdc.id(), _methodName);
+                docTypeAttr = sdm.getAttribute(ClassStr(TFMDocumenttypeAttribute));
+                if(docTypeAttr)
+                {
+                    additionalProps = new TFMPageAdhocMenuItemsAdditionalProperties();
+                    additionalProps.parmDocumentType(docTypeAttr.parmDocumentType());
+                    additionalProps.parmContentType(docTypeAttr.parmContentType());
+                    additionalProps.parmRefreshOnSuccess(adhocAttribute.parmRefreshOnSuccess());
+                    additionalProps.parmNavigateTo(_navigateToOnSuccesfulPost);
+                }
+                conf = TFMMenuItemStateConfiguration::Construct(adhocAttribute.parmMethodName(), _promoted, pageAction);
+                conf.parmAdditionalProperties(additionalProps);
+                conf.parmTitle(adhocAttribute.parmTitle());
+            }
+        }
+		
+        actions.insert(conf.parmMenuItemName(),conf);
+        return conf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DefaultActions</Name>
+				<Source><![CDATA[
+    public Map DefaultActions(int _promoteOffset = 0)
+    {
+        Map								defaultActionsMap = new Map(Types::String, Types::Class);
+        TFMMenuItemStateConfiguration	menuItemStateConf;
+        boolean							enabled = true;
+        TFMListId						listId = this.getListId();
+		
+		if (!listId)
+        {
+			//Not a page showing data, and should not have any menu items per default
+            return defaultActionsMap;
+        }
+
+        if (_promoteOffset == -5)
+        {
+            enabled = false;
+        }
+
+        menuItemStateConf = TFMMenuItemStateConfiguration::Construct('RegisterImage', 1 + _promoteOffset);
+        menuItemStateConf.parmEnabled(enabled);
+        if (name != menuItemStateConf.parmMenuItemName())
+        {
+        defaultActionsMap.insert(menuItemStateConf.parmMenuItemName(),menuItemStateConf);
+        }
+
+        menuItemStateConf = TFMMenuItemStateConfiguration::Construct('attachments', 2 + _promoteOffset);
+        menuItemStateConf.parmEnabled(enabled);
+        if (name != menuItemStateConf.parmMenuItemName())
+        {
+			//No Self-reference
+			defaultActionsMap.insert(menuItemStateConf.parmMenuItemName(),menuItemStateConf);
+        }
+
+        menuItemStateConf = TFMMenuItemStateConfiguration::Construct(TFMConstants::MenuItemTypeBarcode(), -1, new TFMPageActionAttribute(TFMPageMenuItemTypes::PageMenuItem));
+        menuItemStateConf.parmEnabled(enabled);
+        menuItemStateConf.getPageActionSetup().parmVisibleWhenNoData(true);
+        defaultActionsMap.insert(menuItemStateConf.parmMenuItemName(),menuItemStateConf);
+
+        return TFMHelper::mergeMaps(defaultActionsMap,actions == null ? new Map(Types::String, Types::Class) : actions);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isPageMenuItemsDataMemberControlled</Name>
+				<Source><![CDATA[
+    public boolean isPageMenuItemsDataMemberControlled()
+    {
+        return this.getListId() != '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromType</Name>
+				<Source><![CDATA[
+    public void initFromType()
+    {
+        configuration = SysExtensionAppClassFactory::getClassFromSysAttribute(classStr(TFMPageConfiguration), new TFMPageTypeAttribute(type,''));
+        if (configuration)
+        {
+            configuration.parmName(name);
+            if(!configuration.parmType())
+            {
+                configuration.parmType(name);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmType</Name>
+				<Source><![CDATA[
+    [TFMPageAttributeAttribute('')]
+    public TFMPageType parmType(TFMPageType _type = type)
+    {
+        type = _type;
+        if (!prmIsDefault(_type))
+        {
+            this.initFromType();
+        }
+        return type;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConfiguration</Name>
+				<Source><![CDATA[
+    public TFMPageConfiguration getConfiguration()
+    {
+        return configuration;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIcon</Name>
+				<Source><![CDATA[
+    [TFMPageAttributeAttribute('')]
+    public TFMImageName parmIcon(TFMImageName _iconName = iconName)
+    {
+        iconName = _iconName;
+        return iconName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPageClass</Name>
+				<Source><![CDATA[
+    public static TFMPage getPageClass(TFMPageType _pageType, str _name)
+    {
+        TFMPageTypeAttribute pageType = new TFMPageTypeAttribute(_pageType,'');
+        TFMPage pageClass = SysExtensionAppClassFactory::getClassFromSysAttribute(classStr(TFMPage), pageType);
+        if (pageClass)
+        {
+            pageClass.parmId(_name);
+            pageClass.parmType(_pageType);
+        }
+        return pageClass;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDescription</Name>
+				<Source><![CDATA[
+    public Description255 parmDescription(Description255 _description = description)
+    {
+        description = _description;
+
+        return description;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initializeDataSources</Name>
+				<Source><![CDATA[
+	public void initializeDataSources()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getXML</Name>
+				<Source><![CDATA[
+    public XMLDocument getXML(TFMPages _pages)
+    {
+        //XML resultXML;
+        XmlDocument xmlDoc = XmlDocument::newBlank();
+        XmlElement  pageElement = xmlDoc.createElement('page');
+        XmlElement	titlePage = xmlDoc.createElement('title');
+        XmlElement	typeBarcodeElement = xmlDoc.createElement(TFMConstants::MenuItemTypeBarcode());
+        XmlElement  actionNode;
+        XmlElement  menuElement;
+        TFMPageMenuItems typeBarcodeMenuItemRow;
+        TFMPage::addMethodsAsAttributes(this, pageElement);
+        Map groups;
+
+        
+        titlePage.setAttribute('defaultValue', TFMTranslationProvider::getTranslation(this.parmTitle()));
+
+        pageElement.appendChild(titlePage);
+
+        if(configuration)
+        {
+            configuration.parmFilter(filterName);
+            groups = configuration.appendToXML(pageElement, this);
+        }
+
+
+        typeBarcodeMenuItemRow = TFMPageMenuItems::find(this.parmId(), TFMConstants::MenuItemTypeBarcode());
+
+        // add typeBarcode element
+        typeBarcodeElement.setAttribute('enabled', (!typeBarcodeMenuItemRow || typeBarcodeMenuItemRow.Hide) ? 'false' : 'OnEmptyListUtilizingDataMember');
+        typeBarcodeElement.setAttribute('dataMember',TFMConstants::MenuItemTypeBarcode());
+
+        TFMGS1AITypeBarcodeSetup::modifyOutput(typeBarcodeElement,name);
+        pageElement.appendChild(typeBarcodeElement);
+
+        if(configuration) // TODO: Put this in, to prevent errors, but we should investigate if it's normal that pages don't always have configuration element.
+        {
+            actionNode = TFMPageMenuItemsHelper::addMenuItemsToXML(this, _pages, pageElement, configuration.GetConfigurationPageName());
+            pageElement.appendChild(actionNode);   
+        }
+
+        // Update number of promoted menu items
+        menuElement = pageElement.getNamedElement('menu');
+        if(menuElement)
+        {
+            menuElement.setAttribute('numberOfPromotedItems', int2Str(TFMPageMenuItemsHelper::getNumberOfPromotedItems(this)));
+        }
+
+        xmlDoc.appendChild(pageElement);
+        
+        return xmlDoc;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addMethodsAsAttributes</Name>
+				<Source><![CDATA[
+    public static void addMethodsAsAttributes(Object _class, XmlElement _xmlElement)
+    {
+        DictClass					dc = new DictClass(classIdGet(_class));
+        XmlElement					subNode;
+        Map							subNodes = new Map(Types::String, Types::Class);
+        MapEnumerator				methods = TFMAttributeHandler::getMethodNamesFromSysAttribute(classIdGet(_class),new TFMPageAttributeAttribute(''),true).getEnumerator();
+        TFMPageAttributeAttribute	pageAttr;
+
+        while (methods.moveNext())
+        {
+            pageAttr = methods.currentValue();
+            if (pageAttr.parmXPath())
+            {
+                subNode = subNodes.exists(pageAttr.parmXPath()) ? subNodes.lookup(pageAttr.parmXPath()) : _xmlElement.ownerDocument().createElement(pageAttr.parmXPath());
+                if (!subNodes.exists(pageAttr.parmXPath()))
+                {
+                    subNodes.insert(pageAttr.parmXPath(),subNode);
+                    _xmlElement.appendChild(subNode);
+                }
+            }
+            else
+            {
+                subNode = _xmlElement;
+            }
+            subNode.setAttribute((pageAttr.parmName() ? pageAttr.parmName() : TFMRegistrationCollector::smallBeginnings(subStr(methods.currentKey(),5,strLen(methods.currentKey())))),dc.callObject(methods.currentKey(),_class));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getListId</Name>
+				<Source><![CDATA[
+	public TFMListId getListId()
+    {
+        Object		config = this.getConfiguration();
+        return SysTest::hasMethod(config, methodStr(TFMPageOrderLinesConfiguration,parmListId )) ? config.parmListId() : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setListId</Name>
+				<Source><![CDATA[
+    public void setListId(TFMListId _listId, boolean _writeAsDelta = false)
+    {
+        Object		config = this.getConfiguration();
+        if (SysTest::hasMethod(config, methodStr(TFMPageOrderLinesConfiguration,parmListId )))
+        {
+            config.parmListId(_listId);
+			if (_writeAsDelta)
+            {
+                TFMPageConfigParms::CreateOrUpdateParameter(this.parmId(),classId2Name(classIdGet(config)),methodStr(TFMPageOrderLinesConfiguration,parmListId ),_listId);
+            }
+		}
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>descriptionHtml</Name>
+				<Source><![CDATA[
+	public str descriptionHtml(boolean _onlyTop = true)
+    {        
+        str					html = '<table height="100%"><tr><td width="85"><img src="'+TFMDocGetMedia::getURLFromIconName(this.parmIcon())+'" width="60px" height="60px"/></td><td colspan="4" width="425px"><h1>' + this.parmId() + '</h1><h3>'+ TFMHelper::convertCamelCaseToNiceText(this.parmType())+ '</h3><h4>'+ description +'</h4></td></tr>';//</table><hr>';
+        MapEnumerator		mEnum;
+        str					imgUrl;
+        str					icon;
+        str					descriptionType;
+        int					i=1;
+        this.addPageTiles();
+
+        mEnum = tileEntries.getEnumerator();
+        while (mEnum.moveNext() && !_onlyTop)
+        {
+            icon = subStr(mEnum.currentValue(),1,strScan(mEnum.currentValue(),'|',1,100)-1);
+            imgUrl = TFMDocGetMedia::getURLFromIconName(strReplace(icon,'|',''));
+            descriptionType = subStr(mEnum.currentValue(),strScan(mEnum.currentValue(),'|',1,100)+1,1000);
+            if (i mod 2)
+            {
+				//even
+				html += '<tr>';
+            }	
+			else
+            {
+				//odd
+                html += '<td>&nbsp;&nbsp;&nbsp;</td>';
+            }
+            html += '<td colspan="2"><br><div style="background-color: #EEEEEE; padding: 10px;border-bottom-style: groove;width: 255px;box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);text-align: left;"><table><tr><td width="55px"><img src="'+imgUrl+'" width="45px" height="45px"/></td><td><h4><b><u>'+mEnum.currentKey()+'</u></b></h4><h3>'+descriptionType+'</h3></td></tr></table></div></td>';
+			if (!(i mod 2))
+            {
+				//odd
+                html += '</tr>';
+            }
+            i++;
+        }
+        
+        return html + '</table>';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tilesImages</Name>
+				<Source><![CDATA[
+    public Map tilesImages()
+    {
+        Map images = new Map(Types::String, Types::String);
+        MapEnumerator		mEnum;
+        str                 tileTitle;
+        str					icon;
+        str					descriptionType;
+        this.addPageTiles();
+
+        mEnum = tileEntries.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            icon = subStr(mEnum.currentValue(),1,strScan(mEnum.currentValue(),'|',1,100)-1);
+            icon = strReplace(icon,'|','');
+            tileTitle = mEnum.currentKey();
+            descriptionType = TFMPage::StripHTML(subStr(mEnum.currentValue(),strScan(mEnum.currentValue(),'|',1,100)+1,1000));
+
+            images.insert(mEnum.currentKey(),TFMHtmlHelper::entityTileHtml(icon,tileTitle,descriptionType));
+        }
+
+        return images;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tileKey2FormName</Name>
+				<Source><![CDATA[
+    public str tileKey2FormName(str _key)
+    {
+        return tileForms.exists(_key) ? tileForms.lookup(_key) : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>StripHTML</Name>
+				<Source><![CDATA[
+    public static System.String StripHTML(System.String _input)
+    {
+        System.String patter = '<.*?>';
+        System.String empty = ''; 
+        System.String res;
+        
+        res =System.Text.RegularExpressions.Regex::Replace(_input, patter, empty);
+        
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPageTiles</Name>
+				<Source><![CDATA[
+    protected void addPageTiles()
+    {
+        TFMListId			listId = this.getListId();
+        TFMPageDatasources	ds;
+        name				model  = this.extensionModel();
+        str					destination;
+
+        if (model)
+        {
+            this.addHtmlEntry("@TFM:OriginModel", model, '', resourceStr(TFMEntityModel));//'<br><p>Originates from extension model ' + model + '</p>';
+        }
+        if (filterName)
+        {
+            this.addHtmlEntry("@TFM:Filterheader",filterName, '', resourceStr(TFMEntityFilter));
+        }
+        if (listId)
+        {
+            this.addHtmlEntry("@TFM:Listdesign", '"' + listId +'" '+"@TFM:usedtochangeitclick" + '<a href="/?cmp=' + curExt() + '&mi=Action%3A' + menuItemActionStr(TFMPageOverviewSubPageNavigator)+ '&FormName='+ FormStr(TFMPageListDataBinding) + '&pageId=' + this.parmId() +'">'+"@SYS136783"+'</a>',FormStr(TFMPageListDataBinding), resourceStr(TFMEntityLists));
+            select count(RecId) from ds where ds.PageID == this.parmId();
+            this.addHtmlEntry("@TFM:DataSources", '<a href="/?cmp=' + curExt() + '&mi=Action%3A' + menuItemActionStr(TFMPageOverviewSubPageNavigator)+ '&FormName='+ FormStr(TFMDataSources)+'&pageId='+this.parmId()+'">'+strFmt("@TFM:datasourcesonpage",ds.RecId)+'</a>', FormStr(TFMDataSources), resourceStr(TFMEntityDatasources));
+        }
+
+        if(this.getConfiguration() && this.getConfiguration().isOfflineEnabled())
+        {
+            this.addHtmlEntry("@SYS39786","@TFM:Offlinemodeenabled", '', resourceStr(TFMOfflineManagementIcon));
+        }
+        else
+        {
+            this.addHtmlEntry("@SYS39786",'', '', resourceStr(TFMOfflineManagementIcon));
+        }
+
+        str overriddenText = '';
+        if (TFMDeltaPages::Find(this.parmId()))
+        {
+            overriddenText = 'Page overridden <br/>' + TFMConstants::lineBreak();
+        }
+        destination = formStr(TFMPageConfigurator);
+
+        this.addHtmlEntry("@SYS304003", overriddenText + '<a href="/?cmp=' + curExt() + '&mi=Action%3A' + menuItemActionStr(TFMPageOverviewSubPageNavigator)+ '&FormName='+ destination + '&PageId=' + this.parmId() +'">' + "@TFM:Configurepage" + '</a>', destination, resourceStr(TFMEntityCustomizations));
+        if (TFMPagesProvider::instance().developerMode() && docHand != null)
+        {
+            this.addHtmlEntry("@TFM:CodeOrigin", strFmt("@TFM:Declaredintheclass1",classId2Name(classIdGet(docHand))), '',resourceStr(TFMEntityClass));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addHtmlEntry</Name>
+				<Source><![CDATA[
+    public void addHtmlEntry(str _headline, str _text, str _formName, str _icon)
+    {
+        if(_text)
+        {
+            tileEntries.insert(_headline,_icon + '|' + _text);
+            tileForms.insert(_headline,_formName);
+        }
+        else
+        {
+            tileEntries.remove(_headline);
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>extensionModel</Name>
+				<Source><![CDATA[
+    public Name extensionModel()
+    {
+        int	modelIgnoreID = TFMVersion::modelForClass(className2Id(classStr(TFMDocumentHandler))).Id;        
+        Microsoft.Dynamics.AX.Metadata.MetaModel.ModelInfo  modelInfo;
+		if (!docHand)
+        {
+            return '';
+        }
+
+		modelInfo = TFMVersion::modelForClass(classIdGet(docHand));
+		if (modelInfo.Id == modelIgnoreID)
+        {
+            return '';
+        }
+        return modelInfo.DisplayName + ', ' +modelInfo.Publisher;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

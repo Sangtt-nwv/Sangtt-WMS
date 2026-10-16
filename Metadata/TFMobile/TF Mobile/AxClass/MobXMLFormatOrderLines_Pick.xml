@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_Pick</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter super class for general picking order lines.
+/// </summary>
+class MobXMLFormatOrderLines_Pick extends TFMXMLFormatOrderLines
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        super();
+
+        this.addMenuItemsConfigurationIfExists(MobConstants::AddPickLine(),-1,false);
+        this.addMenuItemsConfigurationIfExists(MobConstants::CancelPickLine(),-1,false);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

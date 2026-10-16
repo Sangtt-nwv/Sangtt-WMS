@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobCountOrderType</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The MobCountOrderType is an extension of the MobOrder class, and parent class to all count order classes.
+/// </summary>
+abstract class MobCountOrderType extends MobOrder implements TFMOrderTypeInterface
+{
+   
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>OrderType</Name>
+				<Source><![CDATA[
+    public MobOrderTypes OrderType()
+    {
+        return MobConstants::Count();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateResponse</Name>
+				<Source><![CDATA[
+    public static TFMOrderListResponseElement generateResponse(TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+        ListEnumerator				lEnum           = new DictClass(className2Id(classStr(MobCountOrderType))).extendedBy(true).getEnumerator();
+        MobCountOrderType			typeCls;
+        DictClass					dc;
+        Map							returnMap = new Map(Types::string, Types::Record);
+        MapEnumerator				mEnum;
+        int							i = 1;
+        TFMOrderListResponseElement	response = TFMOrderListResponseElement::Construct(MobConstants::Count());
+        while (lEnum.moveNext())
+        {
+            
+            dc = new DictClass(lEnum.current());
+            if (dc == null)
+            {
+                continue;
+            }
+            typeCls = dc.makeObject() as MobCountOrderType;
+            returnMap = MobHelper::mergeMaps(typeCls.getHeaderRecords(_filters, _scannedValue), returnMap);
+            
+        }
+        response.mergeRecordMap(returnMap);
+
+        return response;
+  
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

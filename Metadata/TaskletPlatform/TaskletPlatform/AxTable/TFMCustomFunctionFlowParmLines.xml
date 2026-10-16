@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMCustomFunctionFlowParmLines</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMCustomFunctionFlowParmLines extends common
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getFields</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public Map getFields()
+    {
+        Map                                         retMap = new Map(Types::String, Types::Class);
+        TFMCustomFunctionFlowParmLinesReplacement   repLines;
+        DictField                                   df;
+
+        while select repLines where Replines.TFMMenu == this.TFMMenu && repLines.ParmName == this.ParmName
+        {
+            df = new DictField(tableName2Id(this.EDTName),fieldName2Id(tableName2Id(this.EDTName),repLines.FieldName));
+            retMap.insert(repLines.Name ? repLines.Name : repLines.FieldName,df);
+        }
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:FunctionFlowCustomizationLinesDevDesc</DeveloperDocumentation>
+	<Label>@TFM:FunctionFlowCustomizationLines</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<Tags>NoExport</Tags>
+	<TitleField1>ParmName</TitleField1>
+	<TitleField2>EDTName</TitleField2>
+	<ReplacementKey>LineIdx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ParmName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>baseType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsFilter</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EDTName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>TFMMenu</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ParmName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ParmName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>baseType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsFilter</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EDTName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Header</Name>
+			<Label>@SYS4925</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>TFMMenu</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>TFMMenu</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMMenu</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ParmName</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>baseType</Name>
+			<AllowEdit>No</AllowEdit>
+			<Label>@SYS1201</Label>
+			<EnumType>Types</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsFilter</Name>
+			<Label>@GlobalAddressBook:FilterField</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>EDTName</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>ExtendedDataTypeName</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>LineIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>TFMMenu</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>ParmName</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>TFMCustomFunctionFlow</Name>
+			<Cardinality>OneMore</Cardinality>
+			<RelatedTable>TFMCustomFunctionFlow</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>TFMMenu</Name>
+					<SourceEDT>TFMMenu</SourceEDT>
+					<Field>TFMMenu</Field>
+					<RelatedField>TFMMenu</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

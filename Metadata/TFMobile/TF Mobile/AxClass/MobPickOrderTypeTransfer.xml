@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobPickOrderTypeTransfer</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+#mob
+/// <summary>
+/// The MobPickOrderTypeTransfer class handles the Pick Transfer Order data and posting logic.
+/// </summary>
+[TFMTableNameAttribute(tableStr(InventTransferTable),staticMethodStr(MobConstants,Pick))]
+class MobPickOrderTypeTransfer extends MobPickOrderType
+{
+    #mob
+    InventTransferTable transferTable;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getHeaderRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to get all header records.
+    /// </summary>
+    /// <param name = "_filters"></param>    
+    /// <param name = "_scannedValue"></param>
+    /// <returns></returns>
+    public Map getHeaderRecords(TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+        InventLocation  inventLocation;
+        Map             returnMap = new Map(Types::string, Types::Record);
+        Common			ref = _filters.getReferredRecord();
+
+        if ( ref.tableId == tableNum(MobPackingStation))
+        {
+            return returnMap;
+        }
+        
+        inventLocation = MobHelper::getAllowedInventLocations(curUserId());
+        while select inventLocation where (inventLocation.InventLocationId == _filters.parmWarehouse() || _filters.parmWarehouse() == MobConstants::all())
+        {
+            // Check if sales orders are enabled for this warehouse
+            if (MobHelper::IsPickTransferOrderEnabled(inventLocation.InventLocationId))
+            {
+                // Use the warehouse from the current iteration
+                _filters.parmWarehouse(inventLocation.InventLocationId);
+                returnMap = MobHelper::mergeMaps(returnMap,this.getTransferOrders(_filters,_scannedValue));
+            }
+        }
+        
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_backendID"></param>
+    /// <param name = "_orderElement"></param>
+    /// <returns></returns>
+    public str post(str _backendID, XmlElement _orderElement)
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postRequest</Name>
+				<Source><![CDATA[
+    public str postRequest(TFMRequestOrdersElement _orderElement)
+    {
+        str                             ret;
+        InventTransferId                inventTransferId;
+        InventTransferTable             inventTransferTable;
+        inventTransferParmTable         inventTransferParmTable;
+        InventTransferUpdShip           inventTransferUpdPick;
+        //XMLNodeList                     lineNodeList;
+        MobRegistrations                MobRegistrations, firstMobRegistrations;
+        inventTransferId = this.getInventTransferId(_orderElement.parmBackendID());
+
+        messageId = _orderElement.parmmessageId();//TFMDocumentConnector::getMessageID(_orderElement.ownerDocument().xml());
+    
+        if (!inventTransferId || !InventTransferTable::exist(inventTransferId))
+        {
+            throw error(strFmt(InventTransferTable::txtNotExist(), inventTransferId));
+        }
+        inventTransferTable = InventTransferTable::find(inventTransferId, true);
+    
+        if (inventTransferTable.TransferStatus != InventTransferStatus::Created)
+        {
+            return ''; // Order is already processed.
+        }
+        //lineNodeList = _orderElement.getElementsByTagName( 'Line' );
+    
+        //firstMobRegistrations = TFMRegistrations::SaveRegistrations(lineNodeList, TFMInventRefType::InventTransfer, inventTransferId);
+        firstMobRegistrations = MobRegistrations::SaveRequest(_orderElement.Lines(), MobInventRefType::InventTransfer, inventTransferId);
+    
+        while select forupdate MobRegistrations
+                    index OrderLineNumIdx
+                    where MobRegistrations.InventRefType == MobInventRefType::InventTransfer &&
+                          MobRegistrations.InventRefId   == inventTransferId &&
+                          MobRegistrations.MessageId      == messageID &&
+                          MobRegistrations.CreatedTransactionId == firstMobRegistrations.CreatedTransactionId &&
+                          MobRegistrations.handled     == NoYes::No
+        {
+            MobRegistrations.pick();
+            MobRegistrations.handled = NoYes::Yes;
+            MobRegistrations.Update();
+        }
+    
+        // posting
+        inventTransferParmTable.clear();
+        inventTransferParmTable.initParmDefault();
+        inventTransferParmTable.ParmId                  = RunBaseMultiParm::getSysParmId();
+        inventTransferParmTable.TransferId              = inventTransferId;
+        inventTransferParmTable.UpdateType              = InventTransferUpdateType::Shipment;
+        inventTransferParmTable.AutoReceiveQty          = NoYes::No;
+        inventTransferParmTable.PickUpdateQty           = InventTransferPickUpdateQty::ShipNow;
+        inventTransferParmTable.PrintTransferReceipt    = NoYes::No;
+        inventTransferParmTable.ShipUpdateQty           = InventTransferShipUpdateQty::PickedQty;
+        inventTransferParmTable.LineNum                 = 1;
+        inventTransferParmTable.ExecutedDateTime        = DateTimeUtil::getSystemDateTime(); //postingDate
+    
+        inventTransferUpdPick                           = InventTransferUpdShip::newParmBuffer(inventTransferParmTable);
+
+        inventTransferUpdPick.run();
+        ret = SysLabel::labelId2String2("@MobileWMS:MEL26");
+
+        transferTable = InventTransferTable::find(inventTransferId);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventTransferTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSetAttribute(tableStr(InventTransferTable))]
+    public InventTransferTable getInventTransferTable()
+    {
+        return transferTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBackendID</Name>
+				<Source><![CDATA[
+    public str getBackendID(Common _common)
+    {
+        InventTransferTable inventTransferTable = _common;
+        return tableStr(InventTransferTable) + '/' + fieldStr(InventTransferTable,TransferId) + '/' + inventTransferTable.TransferId + '/' + MobConstants::Pick();//#PickProdOrderPrefix + prodJournalTable.JournalId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventTransferId</Name>
+				<Source><![CDATA[
+    private InventTransferId getInventTransferId(str _backendID)
+    {
+        return conPeek(MobHelper::strSplit(_backendID,'/').pack(),6);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLineRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_backendID"></param>
+    /// <returns></returns>
+    public Map getLineRecords(TFMRequestGetOrderLinesElement _request)
+    {
+        Map                     ret = new Map(Types::String,Types::Record);
+        InventTransferTable     inventTransferTable;
+        InventTransferLine      inventTransferLine;
+        InventTransferId        inventTransferId;
+        InventDim               inventDim;
+        int                     sorting;
+
+        inventTransferId = this.getInventTransferId(_request.parmBackendID());//SubStr(backendid,2,strlen(backendId)); // Remove the prefix
+    
+        if (!inventTransferId || !InventTransferTable::exist(inventTransferId))
+        {
+            throw error(strfmt(InventTransferTable::txtNotExist(),inventTransferId));
+        }
+        select firstonly inventTransferTable
+                    where inventTransferTable.TransferId == inventTransferId;
+    
+        if (! inventTransferTable)
+        {
+            throw error(strfmt(InventTransferTable::txtNotExist(), inventTransferId));
+        }
+        if (inventTransferTable.TransferStatus != InventTransferStatus::Created)
+        {
+            return ret;
+        }
+        while select inventTransferLine
+                    where inventTransferLine.TransferId == inventTransferTable.TransferId
+                    join inventDim
+                        order by wMSLocationId
+                        where inventDim.inventDimId == inventTransferLine.InventDimId
+        {
+            sorting ++;
+            ret.insert( int2str(sorting) + ';' + int642Str(inventTransferLine.RecId),inventTransferLine);
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lineTableId</Name>
+				<Source><![CDATA[
+    public TableId lineTableId()
+    {
+        return tableNum(InventTransferLine);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTransferOrders</Name>
+				<Source><![CDATA[
+    public Map getTransferOrders(TFMRequestFiltersElement _filters, ItemId _scannedValue)
+    {
+        InventTransferTable		inventTransferTable;
+        //inventTransferLine		inventTransferLine;
+        //wMSPickingRoute			wMSPickingRoute;
+        ItemId					itemId;
+        Map						returnMap = new Map(Types::string, Types::Record);
+        Query                   q = new Query();
+        QueryRun                qr;
+        QueryBuildDataSource    qbdsTransferTable;
+        QueryBuildDataSource    qbdsTransferLine;
+        QueryBuildDataSource    qbdsWmsPickingRoute;
+        QueryBuildRange         qbr;
+        
+        if (_filters.getFieldMap().exists(tableStr(ReferenceIdentity)))
+        {
+            return returnMap;
+        }
+
+        if (_scannedValue && InventTable::exist(_scannedValue))
+        {
+            itemId = _scannedValue;
+        }
+        qbdsTransferTable = q.addDataSource( tableNum(InventTransferTable) );
+        if (_filters.parmDeliveryDate())
+        {
+            qbdsTransferTable.addRange(fieldNum(inventTransferTable,ShipDate)).value(strFmt('..%1', queryValue(_filters.parmDeliveryDate())));
+        }
+        if (_filters.parmWarehouse() != MobConstants::All())
+        {
+            qbdsTransferTable.addRange(fieldNum(inventTransferTable,InventLocationIdFrom)).value(queryValue(_filters.parmWarehouse()));
+        }
+        else
+        {
+            qbdsTransferTable.addSortField(fieldNum(inventTransferTable,InventLocationIdFrom));
+        }
+        qbdsTransferTable.addRange(fieldNum(inventTransferTable,TransferStatus)).value(queryValue(InventTransferStatus::Created));
+
+        qbdsTransferLine = qbdsTransferTable.addDataSource(tableNum(inventTransferLine));
+        qbdsTransferLine.joinMode(JoinMode::ExistsJoin);
+        qbdsTransferLine.addLink(fieldNum(inventTransferTable,TransferId),fieldNum(inventTransferLine,TransferId));
+        qbdsTransferLine.addRange(fieldNum(inventTransferLine,QtyRemainShip)).value('> 0');
+
+        qbr = qbdsTransferLine.addRange(fieldNum(inventTransferLine,QtyShipped));
+        qbr.value( strFmt('(%2.%1 > %2.%3)',
+                          fieldStr(InventTransferLine,QtyTransfer),
+                          qbdsTransferLine.name(),
+                          fieldStr(inventTransferLine,QtyShipped)) );
+
+        if (itemId)
+        {
+            qbdsTransferLine.addRange(fieldNum(inventTransferLine,itemId)).value(queryValue(itemId));
+        }
+
+        qbdsWmsPickingRoute = qbdsTransferLine.addDataSource(tableNum(wMSPickingRoute));
+        qbdsWmsPickingRoute.joinMode(JoinMode::NoExistsJoin);
+        qbdsWmsPickingRoute.addLink(fieldNum(wMSPickingRoute,transRefId),fieldNum(inventTransferLine,TransferId));
+    
+        /*
+        while select inventTransferTable
+                where (!_filters.parmDeliveryDate() ||
+                        inventTransferTable.ShipDate <= _filters.parmDeliveryDate()) &&
+                              (_filters.parmWarehouse() == #All ||
+                               inventTransferTable.InventLocationIdFrom == _filters.parmWarehouse()) &&
+                               inventTransferTable.TransferStatus == InventTransferStatus::Created
+                
+                exists join inventTransferLine
+                    where inventTransferLine.TransferId         == inventTransferTable.TransferId &&
+                          inventTransferLine.QtyRemainShip      > 0 &&
+                          inventTransferLine.QtyTransfer > inventTransferLine.QtyShipped &&
+                          (!itemId ||
+                           inventTransferLine.ItemId == itemId)
+                notexists join wMSPickingRoute where wMSPickingRoute.transRefId == inventTransferLine.TransferId*/
+        TFMFilterAdditionsDataBinding::modifyQuery(methodStr(MobDocPickOrder,PickOrderFilters) + strReplace(_filters.getFieldValue(extendedTypeStr(TFMOrderTypes)),';',''),q,_filters);
+        qr = new QueryRun(q);
+        while (qr.next())
+		{
+            inventTransferTable = qr.get(tableNum(InventTransferTable));
+            if (MobInventLocationsGroupRights::existsUser(curUserId(), inventTransferTable.inventLocationIdFrom))
+            {
+                //returnMap.insert(tableStr(InventTransferTable) + ';' + int642Str(inventTransferTable.RecId), inventTransferTable);
+                returnMap.insert(this.getBackendID(inventTransferTable), inventTransferTable);
+            }
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

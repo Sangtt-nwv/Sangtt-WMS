@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobMediaItem</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobMediaItem 
+{
+    private str name;
+    private str base64;
+    private str url;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(str _name)
+    {
+        this.name = _name;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmName</Name>
+				<Source><![CDATA[
+    public str parmName(str _name = name)
+    {
+        name = _name;
+        return name;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBase64</Name>
+				<Source><![CDATA[
+    public str parmBase64(str _base64 = base64)
+    {
+        base64 = _base64;
+        return base64;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmURL</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The url for the media. Only insert permanent URLs. Use the base64 for non-permanent URLs.
+    /// </summary>
+    public str parmURL(str _url = url)
+    {
+        url = _url;
+        return url;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBase64ForHtml</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Helper method for the base64 string version usable for insertion in HTML img tags.
+    /// </summary>
+    /// <returns>a base64 str usable for insertion in HTML img tags.</returns>
+    public str getBase64ForHtml()
+    {
+        return 'data:image/png;base64,' + base64;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMediaForHtml</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Helper method for getting the URL when present else using the Base64 version of the menu item.
+    /// </summary>
+    /// <returns>a String usable for insertion in HTML img tags.</returns>
+    public str getMediaForHtml()
+    {
+        if(url)
+        {
+            return url;
+        }
+        return this.getBase64ForHtml();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

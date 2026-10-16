@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMInputHandler</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMInputHandler
+{
+    TFMRequestElement       request;
+    XmlDocument             requestXml;
+
+    TFMDocumentMessageId    messageId;
+    TFMResponseElement      responseElement;
+    XmlDocument             resultXml;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setRequest</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to set the request XML.
+    /// </summary>
+    /// <param name = "_xml">The request XML as a string.</param>
+    public void setRequest(TFMRequestElement _request)
+    {
+        request = _request;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setRequestXml</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to set the request XML.
+    /// </summary>
+    /// <param name = "_xml">The request XML as a string.</param>
+    public void setRequestXml(XmlDocument _xml)
+    {
+        requestXml = _xml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMessageId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// get or set the message ID the current document has.
+    /// </summary>
+    /// <param name = "_msgID">The messageID to set. Datatype is GUID</param>
+    /// <returns>The current documents message ID as a GUID</returns>
+    public TFMDocumentMessageId parmMessageId(TFMDocumentMessageId _msgID = messageId)
+    {
+        messageId = _msgID;
+        return messageId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preProcess</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Extract values/parameters from the request XML.
+    /// </summary>
+    /// <returns>
+    /// true if the run method should continue processing the values.
+    /// </returns>
+    /// <remarks>
+    /// Should not throw any error/exception - rather return false.
+    /// May not do any processing.
+    /// Default is returns true
+    /// </remarks>
+    public boolean preProcess()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentContentSubject</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Return information about the request.
+    /// </summary>
+    /// <returns>
+    /// Information text
+    /// </returns>
+    /// <remarks>
+    /// Data should be retrieved in the preProcess method.
+    /// information is shown in document queue.
+    /// </remarks>
+    public TFMDocumentContentSubject getDocumentContentSubject()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public abstract void run()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResultTable</Name>
+				<Source><![CDATA[
+    public abstract Common getResultTable()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResponseElement</Name>
+				<Source><![CDATA[
+    public TFMResponseElement getResponseElement()
+    {
+        return responseElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTTSHandlingRequired</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Needs the TTS handling is requried. E.g. does this method post and change tables that requires the ttsbegin to be called outside the method.
+    /// </summary>
+    /// <returns></returns>
+    public boolean getTTSHandlingRequired()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

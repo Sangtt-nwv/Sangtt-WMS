@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageMenuItemsFormHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPageMenuItemsFormHelper
+{
+    FormDataSource					ds;
+    FormWindowControl				prevsender;
+    QueryBuildRange					qbr;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMPageMenuItemsFormHelper Construct(FormDataSource _ds)
+    {
+        return new TFMPageMenuItemsFormHelper(_ds);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(FormDataSource _ds)
+    {
+        ds = _ds;
+        QueryBuildDataSource qbds = ds.queryBuildDataSource();
+        qbr = qbds.addRange(fieldNum(TFMPageMenuItems,PageID ));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>latestID</Name>
+				<Source><![CDATA[
+    public TFMPageID latestID()
+    {
+        return prevsender != null ? strReplace(prevsender.name(),'_MenuItem_','') : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPageMenuItemStateConfigurations</Name>
+				<Source><![CDATA[
+    //public void showPageTiles(FormGroupControl _fgc)
+    //{
+    //    FormWindowControl				fwc;
+    //    TFMPages						pages;
+    //    TFMPage							page;
+    //    MapEnumerator					pEnum;
+    //    boolean							foundFirst;
+
+    //    pages = TFMPagesProvider::getAllPages();
+    //    pEnum = pages.getPages().getEnumerator();
+    //    while (pEnum.moveNext())
+    //    {
+    //        page = pEnum.currentValue();
+    //        if (classIdGet(page.getConfiguration()) == classNum(TFMPageUnplannedItemRegistrationConfiguration))
+    //        {
+    //            //Don't add Unplanned Item Registration pages
+    //            continue;
+    //        }
+    //        fwc = _fgc.addControl(FormControlType::Image, page.parmId() + '_MenuItem_');
+
+    //        fwc.imageLocation(SysImageLocation::URL);
+    //        if(page.parmIcon())
+    //        {
+    //            fwc.normalImage(TFMDocGetMedia::getURLFromIconName(page.parmIcon())); //TODO: This has to create the image each time - or at least get the image from the tempoary story.
+    //        }
+    //        fwc.label(page.parmId() );
+    //        fwc.labelPosition(5);
+    //        fwc.imagemode(1);
+    //        fwc.helpText(page.parmId());
+    //        fwc.widthMode(-1);
+    //        fwc.widthValue(75);
+    //        fwc.heightMode(-1);
+    //        fwc.heightValue(75);
+    //        fwc.registerOverrideMethod(methodStr(FormWindowControl,clicked ),methodStr(TFMPageMenuItemsFormHelper,windowClickOverride ), this);
+    //        if (!foundFirst)
+    //        {
+    //            this.windowClickOverride(fwc);
+    //        }
+    //        foundFirst = true;
+    //    }
+    //}
+
+    public static Map getPageMenuItemStateConfigurations(str _pageName, TFMPages _pages = TFMPagesProvider::getAllPages())
+    {
+        TFMPageMenuItems	menuItemsTable;
+        Map					foundPages;
+        TFMPage				page;
+        Map					actions = new Map (Types::String, Types::Class); //menuItems
+        MapEnumerator		mEnum;
+        TFMMenuItemStateConfiguration menuItem;
+        MapEnumerator		pageEnum;
+
+        if (!_pageName)
+        {
+            return actions;
+        }
+
+        page = _pages.getPage(_pageName);
+        actions = page.getPageActions() == null ? actions : page.getPageActions();
+
+        while select menuItemsTable where menuItemsTable.PageID == _pageName
+        {
+            if(!menuItemsTable.Hide && (!page.getConfiguration() || ((page.getConfiguration().isOfflineEnabled() && menuItemsTable.MenuItemType == TFMPageMenuItemTypes::OfflinePageMenuItem)) || (menuItemsTable.MenuItemType != TFMPageMenuItemTypes::OfflinePageMenuItem))) // Do not add the menu state configuration and skipif is hidden and skip offline menu items if the page is not in offline mode.
+            {
+                menuItem = TFMMenuItemStateConfiguration::Construct(menuItemsTable.MenuPageID, !menuItemsTable.PromotedItem ? -1 : menuItemsTable.LineNumber);
+                menuItem.parmEnabled(true);
+                menuItem.parmIcon(menuItemsTable.Icon);
+                menuItem.parmTitle(menuItemsTable.Title);
+                actions.insert(menuItem.parmMenuItemName(),menuItem);
+            }
+        }		
+        return actions;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMenuItemTitleStr</Name>
+				<Source><![CDATA[
+    public static str getMenuItemTitleStr(TFMPageMenuItems _record, TFMPages _pages)
+    {
+        str imgStr;
+        TFMPage page;
+
+        if(_record.Title)
+        {
+            imgStr = _record.Title;
+        }
+        else
+        {
+            page = _pages.getPage(_record.MenuPageID);
+            if(page != null)
+            {
+                imgStr = page.parmTitle();
+            }
+            else
+            {
+                imgStr = _record.MenuPageID;
+            }
+        }
+        return imgStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMenuItemIconStr</Name>
+				<Source><![CDATA[
+    public static str getMenuItemIconStr(TFMPageMenuItems _record, TFMPages _pages)
+    {
+        str imgStr;
+        TFMPage page;
+
+        if(_record.Icon)
+        {
+            imgStr = _record.Icon;
+        }
+        else
+        {
+            page = _pages.getPage(_record.MenuPageID);
+            if(page != null)
+            {
+                imgStr = page.parmIcon();
+            }
+            else
+            {
+                imgStr = _record.MenuPageID;
+            }
+        }
+        return imgStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>windowClickOverride</Name>
+				<Source><![CDATA[
+    public void windowClickOverride(FormWindowControl _sender)
+    {
+  
+        if (prevsender != null)
+        {
+            prevsender.heightValue(75);
+            prevsender.widthValue(75);
+        }
+        _sender.heightValue(95);
+        _sender.widthValue(95);
+
+        qbr.value(strReplace(_sender.name(),'_MenuItem_',''));
+        ds.executeQuery();
+
+        prevsender = _sender;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

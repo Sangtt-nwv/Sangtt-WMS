@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocumentQueue</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobDocumentQueue extends common
+{
+    
+    
+
+}
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+	<DeveloperDocumentation>@MobileWMS:DocumentQueueDevDesc</DeveloperDocumentation>
+	<FormRef>TFMDocumentQueue</FormRef>
+	<Label>@MobileWMS:MobileWMS2</Label>
+	<TableGroup>Transaction</TableGroup>
+	<Tags>NoExport</Tags>
+	<TitleField1>DocumentType</TitleField1>
+	<TitleField2>Status</TitleField2>
+	<CacheLookup>NotInTTS</CacheLookup>
+	<ClusteredIndex>MessageIdIdx</ClusteredIndex>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedTransactionId>Yes</ModifiedTransactionId>
+	<PrimaryIndex>MessageIdIdx</PrimaryIndex>
+	<ReplacementKey>MessageIdIdx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>createdDateTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MessageId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DocumentType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Status</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Answer</Name>
+			<Label>@MobileWMS:MobileWMS50</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>AnswerXML</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Answered</Name>
+			<Label>@MobileWMS:MobileWMS23</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>AnswerDateTime</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Created</Name>
+			<Label>@SYS12659</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>createdDateTime</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Identification</Name>
+			<Label>@SYS5711</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DeviceId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DocumentType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ContentSubject</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Original</Name>
+			<Label>@SYS5301</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>RequestXMLOriginal</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS50012</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Status</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>createdDateTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ContentSubject</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DocumentType</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Request</Name>
+			<Label>@MobileWMS:MobileWMS49</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ResultXML</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Result</Name>
+			<Label>@SYS6769</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ResultXML</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Status</Name>
+			<Label>@SYS25532</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Status</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Rest</Name>
+			<Label>@SYS2801</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>RequestXML</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>AnswerDateTime</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentAnswerDateTime</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>AnswerXML</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentXML</ExtendedDataType>
+			<HelpText>@MobileWMS:MobileWMS75</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@MobileWMS:MobileWMS50</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ContentSubject</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentContentSubject</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DeviceId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentDeviceId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>RefTableId</Name>
+			<ExtendedDataType>RefTableId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>RefRecId</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DocumentType</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentTypeId</ExtendedDataType>
+			<HelpText>@MobileWMS:MobileWMS8</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldGuid">
+			<Name>MessageId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentMessageId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>RequestXML</Name>
+			<ExtendedDataType>TFMDocumentXML</ExtendedDataType>
+			<HelpText>@MobileWMS:MobileWMS74</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@MobileWMS:MobileWMS49</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>RequestXMLOriginal</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>TFMDocumentXML</ExtendedDataType>
+			<HelpText>@MobileWMS:MobileWMS128</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@MobileWMS:MobileWMS127</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ResultXML</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentXML</ExtendedDataType>
+			<HelpText>@MobileWMS:MobileWMS76</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SYS6769</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Status</Name>
+			<EnumType>TFMDocumentQueueStatus</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>UserId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>UserId</ExtendedDataType>
+			<HelpText>@MobileWMS:MobileWMS3</HelpText>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldContainer">
+			<Name>CallStack</Name>
+			<ExtendedDataType>SysContainer</ExtendedDataType>
+			<Label>@SYS65092</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SessionID</Name>
+			<ExtendedDataType>TFMProcessSessionID</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>MessageIdIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>MessageId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>UserIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>createdDateTime</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>UserId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>DocumentType</Name>
+			<Cardinality>OneMore</Cardinality>
+			<RelatedTable>MobDocumentType</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>DocumentType</Name>
+					<Field>DocumentType</Field>
+					<RelatedField>TypeId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>Devices</Name>
+			<RelatedTable>MobDeviceTable</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>DeviceId</Name>
+					<Field>DeviceId</Field>
+					<RelatedField>DeviceId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

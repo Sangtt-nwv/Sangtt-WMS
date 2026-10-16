@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_ReceivePurch</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for receive Purchase order lines.
+/// </summary>
+[TFMTableNameAttribute(tableStr(PurchLine))]
+class MobXMLFormatOrderLines_ReceivePurch extends MobXMLFormatOrderLines_Receive
+{
+    PurchLine               purchLine;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        UnitOfMeasureSymbol inventUnit;
+        PurchTable			pt;
+        MobDocReceiveOrder recDoc = new MobDocReceiveOrder();
+        MobDocPickOrder pickDoc = new MobDocPickOrder();
+        recDoc.fillInParms();
+        pickDoc.fillInParms();
+    
+        super();
+		
+        purchLine               = common;
+        inventDim               = purchLine.inventDim();
+    
+        this.setInventDim(purchLine.ItemId);
+
+        if (purchLine.RemainInventPhysical < 0)
+        {
+            fromBin                 = '@type=location;' + inventDim.wMSLocationId;
+            if (mobInventDimSetup.registerWMSPallet())
+            {                
+                fromBin               = '@type='+"@WAX67"+';' + inventDim.LicensePlateId;
+            }
+            toBin                   = MobConstants::NotUsed();
+        }
+    
+        orderBackendId          = MobOrder::constructFromTableName(tableStr(PurchTable),orderType) ? MobOrder::constructFromTableName(tableStr(PurchTable),orderType).getBackendID(PurchTable::find(PurchLine.PurchId)) : MobHelper::generateBackendId(pt,orderType);//#ReceivePurchOrderPrefix + purchLine.PurchId;
+        lineNumber              = purchLine.InventTransId;
+        itemNumber              = purchLine.ItemId;
+        description             = InventTable::find(purchLine.itemId).productName(new xInfo().language());
+        registeredQuantity      = MobConstants::NotUsed0();
+        inventUnit              = InventTable::find(purchLine.ItemId).inventUnitId();
+        unitOfMeasure           = inventUnit; /*purchLine.PurchUnit;*/
+        quantity                = MobHelper::formatItemQty(purchLine.RemainInventPhysical, inventUnit,true);
+		
+        this.addBarcode(purchLine.BarCode);
+        status                  = MobConstants::NotUsed0();
+        displayLine2            = purchLine.ItemId;
+        displayLine1            = InventTable::find(purchLine.itemId).productName(new xInfo().language());
+        displayLine3            = strFmt("@SYS76498","@SYS3794",inventDim.wMSLocationId);
+        
+        if (InventModelGroupItem::findByItemIdLegalEntity(PurchLine.ItemId).modelGroup().QuarantineControl)
+        {
+            displayLine4            = (displayLine5 ? displayLine4 + '\r\n' + displayLine5 : displayLine4);
+            displayLine5  = strFmt("@MobileWMS:ordersToQuarantine",InventLocation::find(InventDim.InventLocationId).InventLocationIdQuarantine);
+            
+        }
+        underDeliveryValidation = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),PurchParameters::find().SubDelivery ? TFMUnderDeliveryValidation::None : TFMUnderDeliveryValidation::Block); //Must be able to handle partial receipt
+        overDeliveryValidation  = MobHelper::enumName(enumnum(TFMOverDeliveryValidation),PurchParameters::find().OverDelivery ? TFMOverDeliveryValidation::None : TFMOverDeliveryValidation::Block); //Must be able to handle partial receipt
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

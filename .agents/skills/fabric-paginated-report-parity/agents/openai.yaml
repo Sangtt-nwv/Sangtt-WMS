@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fabric Paginated Report Parity"
+  short_description: "Build, test, and publish Fabric paginated parity reports"
+  default_prompt: "Use $fabric-paginated-report-parity to read the source report, run the connection-first trial when needed, achieve 1:1 parity in RDL, and publish it to Fabric safely."

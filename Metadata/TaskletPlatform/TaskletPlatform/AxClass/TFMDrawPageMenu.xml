@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawPageMenu</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMpageType('Menu', "Menu Page")]
+class TFMDrawPageMenu extends TFMDrawPage
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>DrawPage</Name>
+				<Source><![CDATA[
+    public void DrawPage(TFMPage _page, TFMHtmlViewerCtrl _htmlViewer)
+    {
+        Map								menuItemsMap;
+        Map                             translations = TFMTranslationProvider::getAllTranslationsForCurrentUserLanguage();
+        str                             title;
+        str                             icon;
+        TFMPage					        page;
+        TFMPages                        pages = TFMPagesProvider::getAllPages();
+        TFMMenuPermissions		        perms;
+        Set                             drawnPages = new Set(Types::String);
+        str                             menuPageContent;
+        str                             htmlOutput;
+
+        menuPageContent = strFmt('<div style="width: %1px;min-width: %1px;max-width: %1px; overflow: hidden; border: 1px solid rgba(221, 221, 221, 1);">', TFMDrawPage::contentWidth);
+
+        menuItemsMap = this.getMenuItemButtons(_page.parmId(), pages);
+
+        while select perms order by MenuLineNumber where perms.MenuGroup == _page.parmId()
+        {
+            // we only draw the same page once e.g. if they are in several UserGroups
+            if(drawnPages.in(perms.Menu))
+            {
+                continue;
+            }
+            drawnPages.add(perms.Menu);
+
+            page = pages.getPage(perms.Menu);
+            title = perms.Menu;
+            if (page)
+            {
+                title = page.parmTitle();
+                icon = TFMDocGetMedia::getURLFromIconName(page.parmIcon());
+            } 
+            else
+            {
+                icon = TFMDocGetMedia::getURLFromIconName(resourceStr(TFMMissingImage));
+            }
+
+            title =  strReplace(strReplace(title,'@{',''),'}','');
+            title = translations.exists(title) ? translations.lookup(title) : title;
+
+            var menuItemNode = '<div class="grid-square" >'
+                    +     '<div class="center">'
+                    +     '<img class="menuicon" src="' + icon + '" data-src="' + icon + '" title="' + title + '"/>' 
+                    + '</div>'
+                    + '<div class="menutitle">' + title + '</div>'
+                    + '</div>';
+
+            menuPageContent += menuItemNode;
+        }
+
+        menuPageContent += '</div>';
+        htmlOutput += TFMDrawPage::drawWithDevice(menuPageContent, menuItemsMap, TFMListVisualization::getMenuTitle(_page.parmTitle()), _page.parmIcon());
+        _htmlViewer.parmSkipSanitizer(true);
+        _htmlViewer.parmHtml(htmlOutput);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

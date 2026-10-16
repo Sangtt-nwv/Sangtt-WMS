@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMCreateMenuSettings</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Job to create default menu settings
+/// </summary>
+class TFMCreateMenuSettings  
+{
+    #tfm
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    //Run at first time setup - Setup of menues, configuration and default admin for the mobile device
+    public static void main(Args _args)
+    {
+        UserGroupInfo userGroup_admin;
+        UserGroupInfo userGroup_user;
+        #tfm
+        
+
+        ttsBegin;
+
+        select firstOnly userGroup_admin where userGroup_admin.id == TFMConstants::TFMAdmin();
+        if(!userGroup_admin)
+        {
+            userGroup_admin.id = TFMConstants::TFMAdmin();
+            userGroup_admin.name = "@TFM:TFM177";
+            userGroup_admin.insert();
+
+        }
+
+        select firstOnly userGroup_user where userGroup_user.id == TFMConstants::TFMUser();
+        if(!userGroup_user)
+        {
+            userGroup_user.id = TFMConstants::TFMUser();
+            userGroup_user.name = "@TFM:TFM178";
+            userGroup_user.insert();
+        }
+
+        ttsCommit;
+
+        TFMCreateMenuSettings::getMenuFromDocuments();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMenuFromDocuments</Name>
+				<Source><![CDATA[
+    public static void getMenuFromDocuments(boolean _dontAdd = false)
+    {
+        DictClass           dc = new DictClass(className2Id(classStr(TFMDocumentHandler)));
+        DictClass           subClass;
+        List                extendingClasses = dc.extendedBy(true);
+        ListEnumerator      lEnum = extendingClasses.getEnumerator();
+        Object              docHand;
+        container           menuContainer;
+        int                 counter;
+        int                 length;
+        TFMMenu             menu;
+        TFMMenuDescription  description;
+        boolean             add2menu;
+        str                 menuIcon;
+        
+        while (lEnum.moveNext())
+        {
+            subClass = new DictClass(lEnum.current());
+            if (subClass.isAbstract())
+            {
+                continue;
+            }
+            docHand = subClass.makeObject() as TFMDocumentHandler;
+            menuContainer = subClass.callObject(methodStr(TFMDocumentHandler,registerMenu),docHand);
+            if (menuContainer == conNull())
+            {
+                continue;
+            }
+            counter = 1;
+            length = conLen(menuContainer);
+            while(counter <= length)
+            {
+                [menu, description, add2menu, menuIcon] = conpeek(menuContainer,counter);
+                TFMCreateMenuSettings::addMenu(menu, description, add2menu && !_dontAdd);
+                counter++;
+            }
+            
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>oneClickSetupMenu</Name>
+				<Source><![CDATA[
+	public static Map oneClickSetupMenu()
+    {        
+        DictClass           dc = new DictClass(classnum(TFMDocumentHandler));
+        DictClass           subClass;
+        List                extendingClasses = dc.extendedBy(true);
+        ListEnumerator      lEnum = extendingClasses.getEnumerator();
+        Set					categories = new Set(Types::String);
+        Map					retMap = new Map (Types::string, Types::String);
+        SetEnumerator		sEnum;
+        int					i;
+        TFMMenuAttribute    menuAttribute;        
+        Array               attributeArray;
+        str					prefix;
+        
+        while (lEnum.moveNext())
+        {
+            subClass = new DictClass(lEnum.current());
+            if (subClass == null || subClass.isAbstract())
+            {
+                continue;
+            }
+            attributeArray = subClass.getAttributes(classStr(TFMMenuAttribute));
+            for (i = 1; i <= attributeArray.lastIndex(); i++)
+            {
+                menuAttribute = attributeArray.value(i);
+                categories = Set::union(categories,menuAttribute.getCategories());
+                
+                sEnum = menuAttribute.getCategories().getEnumerator();
+                while (sEnum.moveNext())
+                {
+                    retMap.insert(menuAttribute.parmName()+sEnum.current(),menuAttribute.parmName()+sEnum.current());
+                    //prefix = (sEnum.current() == 'Inbound' ? '1' : (sEnum.current() == 'Outbound' ? '2' : ''))
+                }                
+                if (menuAttribute.parmOneClickSetup())
+                {
+                    prefix = menuAttribute.parmName() == TFMConstants::Pick() ? '1' : (menuAttribute.parmName() == 'Receive' ? '2' : (menuAttribute.parmName() == 'Count' ? '3' : ''));
+                    retMap.insert(prefix + menuAttribute.parmName(),menuAttribute.parmName());
+                }
+            }
+
+        }
+        sEnum = categories.getEnumerator();
+
+        while (sEnum.moveNext())
+        {
+            if (sEnum.current() == 'ManufacturingExecution')
+            {
+                continue;
+            }
+            
+            retMap.insert('www'+sEnum.current()+'Folder',sEnum.current()+'Folder');
+        }
+
+            return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addMenu</Name>
+				<Source><![CDATA[
+    private static void addMenu(TFMMenu _menuName, TFMMenuDescription _description, boolean _add2menu)
+    {
+        TFMMenuOptions      menuOptions;
+        TFMMenuPermissions  menuPermissions;
+        ttsbegin;
+
+        select firstonly forupdate menuOptions
+                where menuOptions.Menu == _menuName;
+        menuOptions.Menu = _menuName;
+        menuOptions.MenuDescription = _description;
+        menuOptions.write();
+
+        if (_add2menu)
+        {
+            select firstonly forupdate menuPermissions
+                    where menuPermissions.Menu == _menuName
+                       && menuPermissions.UserGroupId == TFMConstants::TFMAdmin();
+            menuPermissions.Menu = _menuName;
+            menuPermissions.UserGroupId = TFMConstants::TFMAdmin();
+            menuPermissions.write();
+
+            select firstonly forupdate menuPermissions
+                    where menuPermissions.Menu == _menuName
+                       && menuPermissions.UserGroupId == TFMConstants::TFMUser();
+            menuPermissions.Menu = _menuName;
+            menuPermissions.UserGroupId = TFMConstants::TFMUser();
+            menuPermissions.write();
+        }
+        ttscommit;
+        //info (_menuName + ' added');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

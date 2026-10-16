@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockjournalsCommon</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// A common Logic class for all inventory journal headers
+/// </summary>
+class MwmsLogicBlockjournalsCommon extends MwmsLogicBlock
+{
+    
+    InventJournalTable                  inventJournalTable;
+    TFMRequestItemAndDimensionElement   docRequest;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getInventJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSetAttribute(tableStr(InventJournalTable))]
+    public InventJournalTable getInventJournalTable()
+    {
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        categories.add("@SYS6437");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRequest</Name>
+				<Source><![CDATA[
+    public TFMRequestElement parmRequest(TFMRequestElement _request = request)
+    {
+        TFMRequestElement ret;
+
+        ret = super(_request);
+        if (_request)
+        {
+            docRequest = components.getComponent(classStr(MwmsLogicComponentInventoryJournalsCommonHeader)).componentRequest(_request);
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

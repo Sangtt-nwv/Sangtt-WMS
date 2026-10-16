@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocUnplannedCount</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+#mob
+[
+    TFMTableName(tableStr(inventJournalTable)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticMethodStr(MobConstants,UnplannedCount), methodStr(MobDocUnplannedCount, createUnplannedCountConfiguration)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(MobConstants,UnplannedCount), methodStr(MobDocUnplannedCount, postUnplannedCount)),
+    TFMMenu('UnplannedCount', "@MobileWMS:MobileWMS161", "@MobileWMS:MobileWMS161", resourceStr(MobUnplannedCountIcon), true, true, ['MainMenu', 'Warehouse'])
+]
+class MobDocUnplannedCount extends TFMDocumentHandler
+{
+    InventDim               inventDim;
+    InventTable             inventTable;
+    inventJournalTable      inventJournalTable;
+    InventJournalTrans      inventJournalTrans;
+    TFMInventDimSetup       mobInventDimSetup;
+    boolean                 dimLocked;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getInventJournalTrans</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventJournalTrans))]
+    public InventJournalTrans getInventJournalTrans()
+    {
+        return inventJournalTrans;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getinventJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(inventJournalTable))]
+    public inventJournalTable getinventJournalTable()
+    {
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        TFMDocumentHandlerDescription ret = "@MobileWMS:UnplannedCount";
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UnplannedCountHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Unplanned Count page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration UnplannedCountHeader()
+    {
+        TFMReferenceDataConfiguration refConf = new TFMReferenceDataConfiguration();
+        // List with warehouses
+        refConf.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(1, MobConstants::Warehouse(), "@SYS6437", methodStr(TFMGetReferenceData,WarehouseList)));
+        // Item number text box
+        refConf.addCollector(TFMGetReferenceData::defaultItemIdCollector(2));
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createUnplannedCountConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create an unplanned count configuration.
+    /// </summary>    
+    public Map createUnplannedCountConfiguration()
+    {
+        Map returnMap;// = new Map(Types::Integer, Types::Class);
+        TFMRequestItemAndDimensionElement postRequest = request;
+        //SysDictType dictType;
+        int add = 10;
+        InventDimParm parm;
+        parm =  InventDimParm::activeDimFlag(InventDimGroupSetup::newInventTable(postRequest.parmInventTable()));
+        //if (dimLocked)
+        if (request.parmRawItemId() != request.parmItemId())
+        {
+            Parm.clearProductDimensions();            
+        }
+        
+        parm.InventSiteIdFlag = NoYes::No;
+        parm.InventLocationIdFlag = NoYes::No;
+        
+        #if.isAX6
+        parm.WMSPalletIdFlag = mobInventDimSetup.registerWMSPallet();
+        parm.WMSLocationIdFlag = !mobInventDimSetup.registerWMSPallet();
+        #endif
+                
+        //Ensure, that if item is not serialnumber controlled, ask for Qty instead
+        parm.InventSerialIdFlag = NoYes::Yes;
+
+        returnMap = MobInventDimHelper::GetInventDimCollectors(add,TFMInventDimSetup::Construct(postRequest.parmInventTable()),parm);
+        
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postUnplannedCount</Name>
+				<Source><![CDATA[
+    [TFMPostMethod(tableStr(inventJournalTable))]
+    public void postUnplannedCount()
+    {
+        //XmlNode     requestDataNode = requestXml.root().getNamedElement(#requestData);
+        TFMRequestItemAndDimensionElement postRequest = request;
+        InventDim   inventDimIssue = postRequest.parmInventDim();
+        ItemId      itemId          = postRequest.parmItemId();//MobHelper::ExtractItemId(inventDimIssue, requestDataNode, #ItemNumber);
+        Qty         qty;
+        //MobHelper::ExtractInventDim(inventDimIssue, ItemId, requestDataNode);
+        inventDimIssue = InventDim::findOrCreate(/*dimLocked ? inventDim : */postRequest.createToInventDim(inventDimIssue));
+        
+        if (!postRequest.getFieldValue(MobConstants::Quantity()) && !postRequest.getFieldValue(fieldStr(InventDim,inventSerialId)))
+        {
+            this.addFunctionCollectors(methodStr(MobDocUnplannedCount,createQuantityFollowup));
+            str xml = this.getResult();
+            resultXml = new XmlDocument();
+            resultXml.loadXml(xml);
+            resultStr = 'additional info needed';
+            return;
+        }
+
+        qty = postRequest.getFieldValue(MobConstants::Quantity()) ? postRequest.parmQuantity() : 1; 
+        
+        inventJournalTable = MobPostHelper::PostUnplannedCount(itemId,inventDimIssue,qty);
+        resultStr = SysLabel::labelId2String2("@MobileWMS:CountingPosted");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createQuantityFollowup</Name>
+				<Source><![CDATA[
+    public Map createQuantityFollowup()
+    {
+        TFMRequestItemAndDimensionElement postRequest = request;
+        Map             returnMap = new Map(Types::String, Types::Class);
+        InventOnhand    inventOnhand;
+        InventDim       inventDimOnHand = postRequest.createToInventDim(postRequest.parmInventDim());
+        InventDimParm   inventDimParm;
+        int				add =1000;
+
+        inventDimParm.initFromInventDim(inventDim);
+        inventOnhand = InventOnhand::newParameters(postRequest.parmItemId(), inventDim, inventDimParm);
+        
+        // Add the step to register the Quantity
+        returnMap.insert(MobConstants::Quantity(),TFMRegistrationCollectorDecimal::DecimalStepMap(add,MobConstants::Quantity(),"@SYS130676",new SysDictType(extendedTypeNum(Qty)).label(),'',false,strFmt('%1',inventOnhand.availPhysical()),0,10000000,14));
+         
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

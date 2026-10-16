@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageMenuItemTypes</Name>
+	<Label>@TFM:MenuItemType</Label>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>OpenAction</Name>
+			<Label>@TFM:OpenAction</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>PageMenuItem</Name>
+			<Label>@TFM:PageMenuItem</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>OfflinePageMenuItem</Name>
+			<Label>@TFM:OfflinePageMenuItem</Label>
+			<Value>3</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>showImage</Name>
+			<Label>@TFM:ShowImage</Label>
+			<Value>4</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>typeBarcode</Name>
+			<Label>@TFM:TypeBarcode</Label>
+			<Value>5</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>AdhocAction</Name>
+			<Label>@TFM:AdhocAction</Label>
+			<Value>6</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

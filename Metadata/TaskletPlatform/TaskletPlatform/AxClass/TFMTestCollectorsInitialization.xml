@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMTestCollectorsInitialization</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+// Prefer the name of the class or area being tested with the Test suffix.
+// The test class must transitively extend the SysTestCase class.
+// You can find more information here: https://docs.microsoft.com/en-us/dynamicsax-2012/developer/unit-test-framework
+public class TFMTestCollectorsInitialization extends SysTestCase
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>testCollectorInitialization</Name>
+				<Source><![CDATA[
+    // Test methods must be public, take no parameters and return void.
+    // Their names can start with test, or they can be adorned with the SysTestMethod attribute.
+    /*[SysTestMethod, Hookable(false)]
+    public void MyTest()
+    {
+        // Use the assert* functions to check the outcomes.
+        this.assertNotNull(null);
+    }*/
+
+    // This is a test method because of the test prefix.
+    [Hookable(false)]
+    public void testCollectorInitialization()
+    {
+        
+        TFMLogicComponentDimensions     dimComponent    = new TFMLogicComponentDimensions();
+        TFMRegistrationCollectors       collectors      = dimComponent.registrationCollectors();
+        int                             counter         = 0;
+        str                             times           = int2Str(DateTimeUtil::getTimeNow(Timezone::GMTMINUS0300GREENLAND));
+
+        while (counter < 1000)
+        {
+            this.copyCollectors(collectors);
+            counter++;
+        }
+        times           += ' ' + int2Str(DateTimeUtil::getTimeNow(Timezone::GMTMINUS0300GREENLAND));
+        counter = 0;
+        while (counter < 1000)
+        {
+            dimComponent.registrationCollectors();
+            counter++;
+        }
+        
+        times           += ' ' + int2Str(DateTimeUtil::getTimeNow(Timezone::GMTMINUS0300GREENLAND));
+        this.assertTrue(false,times);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>copyCollector</Name>
+				<Source><![CDATA[
+    protected TFMRegistrationCollector copyCollector(TFMRegistrationCollector _fromCol)
+    {        
+        TFMRegistrationCollector                toCol;
+        SetEnumerator                           parmMethods;
+        SysDictClass                            sdc;
+        
+        sdc = new SysDictClass(classIdGet(_fromCol));
+        toCol = sdc.makeObject();
+        parmMethods = TFMFormLookupHelper::parmMethodsOnClass(sdc.id()).getEnumerator();
+        while (parmMethods.moveNext())
+        {
+            sdc.callObject(parmMethods.current(),toCol,sdc.callObject(parmMethods.current(),_fromCol));
+        }
+        
+        return toCol;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>copyCollectors</Name>
+				<Source><![CDATA[
+    protected TFMRegistrationCollectors copyCollectors(TFMRegistrationCollectors _collectors)
+    {
+        TFMRegistrationCollectors       collectors  = TFMRegistrationCollectors::Construct();
+        MapEnumerator                   mEnum       = _collectors.collectorMap().getEnumerator();
+        TFMRegistrationCollector        col;
+        while (mEnum.moveNext())
+        {
+            col = this.copyCollector(mEnum.currentValue());
+            collectors.addCollector(col);
+        }
+        return collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setup</Name>
+				<Source><![CDATA[
+    public void setup()
+    {
+        // This method will be called before every test method.
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tearDown</Name>
+				<Source><![CDATA[
+    public void tearDown()
+    {
+        // This method will be called after each test method
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setupTestCase</Name>
+				<Source><![CDATA[
+    public void setupTestCase()
+    {
+        // This method is run before any test method
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>teardownTestCase</Name>
+				<Source><![CDATA[
+    public void teardownTestCase()
+    {
+        // This method is run post all test methods.
+        super();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

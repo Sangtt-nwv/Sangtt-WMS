@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicStepOperatorFindTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicStepOperatorFindTable extends TFMLogicBlock implements TFMLogicStepOperatorInterface, TFMLogicBlockProvideTableNamesInterface
+{
+    TableName                           tableName;
+    TFMFlowVariableContextLookupField contextField;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        return tableName ? strFmt("Find %1", tableName) : "Find Table";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tablesProvided</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Provides a set of table names that the current block provides at runtime
+    /// </summary>
+    /// <returns>A set of table names as strings</returns>
+    public Set tablesProvided()
+    {
+        Set tables = new Set(Types::String);
+        if (tableName)
+        {
+            tables.add(tableName);
+        }
+        return tables;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTableName</Name>
+				<Source><![CDATA[
+    [TFMParameter('', "Table To Find")]
+    public TableName parmTableName(TableName _tableName = tableName)
+    {
+        tableName = _tableName;
+        return tableName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmContextField</Name>
+				<Source><![CDATA[
+    [TFMParameter('', "Key Field value")]
+    public TFMFlowVariableContextLookupField parmContextField(TFMFlowVariableContextLookupField _contextField = contextField)
+    {
+        contextField = _contextField;
+        return contextField;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runLogic</Name>
+				<Source><![CDATA[
+    public str runLogic ( TFMRequestElement _request )
+    {        
+        str                 fieldValue = _request.replaceWithValue(contextField);
+        SysDictTable        sdt = new SysDictTable(tableName2Id(tableName));
+        Common              common;
+        SetEnumerator       methodEnum = sdt.methods(false,true,false).getEnumerator();
+
+        while (methodEnum.moveNext())
+        {
+            SysDictMethod sdm = methodEnum.current();
+            if (sdm.name() == 'Find')
+            {
+                
+                common = sdt.makeRecord();
+                if (sdm.parameterCnt() == 2 && sdm.parameterOptional(2))
+                {
+                    common = sdt.callStatic(sdm.name(), fieldValue);
+                }
+                else if (sdm.parameterCnt() == 1 && sdm.parameterOptional(1))
+                {
+                    common = sdt.callStatic(sdm.name());
+                }
+                break;
+            }
+
+        }
+
+        if (common)
+        {
+            _request.logicContext().addDataContext(common, this.parmName());
+        }
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMBlockDatabaseTable);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

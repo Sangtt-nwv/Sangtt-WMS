@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListColumn</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListElementAttribute('column')]
+class TFMListColumn extends TFMListBase implements TFMListElementHierarchyInterface
+{
+    TFMListElements elements;
+    SysColorHex		backgroundColor;
+    TFMListWidth	width;
+    TFMListXAlign xAlign;
+    TFMListYAlign yAlign;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmwidth</Name>
+				<Source><![CDATA[
+    [TFMParameter(100)]
+    public TFMListWidth parmwidth(TFMListWidth _width = width)
+    {
+        width = max(0,_width);
+        return width;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmxAlign</Name>
+				<Source><![CDATA[
+    [TFMParameter('left','','NeverShowOnValue')]
+    public TFMListXAlign parmxAlign(TFMListXAlign _xAlign = xAlign)
+    {
+        xAlign = _xAlign;  // why do the parmAlign exist on Image and Text elements?
+        return xAlign;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmyAlign</Name>
+				<Source><![CDATA[
+    [TFMParameter('top','','NeverShow')]
+    public TFMListYAlign parmyAlign(TFMListYAlign _yAlign = yAlign)
+    {
+        yAlign = _yAlign;
+        return yAlign;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addElement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Helper method to add an element to the elements instead of the column
+    /// </summary>
+    /// <param name = "_element"></param>
+    public void addElement(TFMListBase _element)
+    {
+        if (!elements)
+        {
+            elements = TFMListElements::Construct();
+            baseChildren.insert(baseChildren.elements(), elements);
+        }
+        elements.addChild(_element);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMListColumn Construct(TFMListWidth _width = 0)
+    {
+        TFMListColumn col = new TFMListColumn();
+		if (_width)
+        {
+			col.parmWidth(_width);
+        }
+        return col;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _parent, boolean _expandCustomComponents)
+    {
+        TFMListBase elem;
+        XmlElement		columnElement;
+        MapEnumerator   mEnum;
+        str yAlignStr;
+
+        columnElement =_parent.ownerDocument().createElement('column');
+        columnElement.setAttribute('width',int2Str(width));
+        if(xAlign != SysChartHorizontalAlignment::Auto)
+        {
+            columnElement.setAttribute('xAlign',strLwr(TFMHelper::enumName(enumNum(TFMListXAlign), xAlign)));
+        }
+        yAlignStr = strLwr(TFMHelper::enumName(enumNum(TFMListYAlign), yAlign));
+        columnElement.setAttribute('yAlign', yAlignStr ? yAlignStr : enum2Symbol(enumNum(TFMVerticalAlignment), TFMVerticalAlignment::Top));
+        
+		if (backgroundColor)
+        {
+            columnElement.setAttribute('backgroundColor',backgroundColor);
+        }
+
+        mEnum = this.getChildren().getEnumerator();
+        while (mEnum && mEnum.moveNext())
+        {
+            elem = mEnum.currentValue();
+            // get element to pass xml
+            elem.appendToXML(columnElement, _expandCustomComponents);
+        }
+
+        _parent.appendChild(columnElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBackgroundColor</Name>
+				<Source><![CDATA[
+    [TFMParameter('')]
+    public SysColorHex parmBackgroundColor(SysColorHex _backgroundColor = backgroundColor)
+    {
+        backgroundColor = _backgroundColor;
+        return backgroundColor;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>attributeSummary</Name>
+				<Source><![CDATA[
+    public str attributeSummary()
+    {
+        return "@SYS7069"+':'+int2Str(width) + '%' + (backgroundColor ? "@SYS30436"+':'+backgroundColor : '');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>render</Name>
+				<Source><![CDATA[
+    public void render(TFMListVisualizationInterface _visualizer)
+    {
+        _visualizer.renderColumn(this);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

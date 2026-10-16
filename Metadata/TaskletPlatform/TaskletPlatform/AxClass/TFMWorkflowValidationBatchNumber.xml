@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMWorkflowValidationBatchNumber</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMWorkflowValidationBatchNumber extends TFMWorkflowValidation
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>validationType</Name>
+				<Source><![CDATA[
+    public TFMWorkflowValidationType validationType()
+    {
+        return 'lotNumberValidation';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>label</Name>
+				<Source><![CDATA[
+    public LabelString label()
+    {
+        return "@SYS53635";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isValidationLevelAllowed</Name>
+				<Source><![CDATA[
+    public boolean isValidationLevelAllowed()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocLocateItem</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The Document handler class for the Locate Item page.
+/// </summary>
+[TFMTableName(tableStr(InventSum),staticMethodStr(MobConstants,LocateItem)),
+    TFMDocumentType(classStr(TFMLookup), staticMethodStr(MobConstants,LocateItem), methodStr(MobDocLocateItem, lookupLocateItem)),
+    TFMMenu(staticMethodStr(MobConstants,LocateItem),"@MobileWMS:MobileWMS166","@MobileWMS:MobileWMS166",resourceStr(MobLocateItemIcon),true,true,['MainMenu', 'Warehouse', 'Outbound'],true)
+	]
+class MobDocLocateItem extends TFMDocumentHandler
+{
+    FieldName   fieldNameToOmit;
+    NoYes       enableOmitField;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmFieldNameToOmit</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Parameter to make the summation omit certain fields
+    /// </summary>
+    /// <param name = "_fieldNameToOmit">FieldName on InventDim to omit in selection</param>
+    /// <returns></returns>
+    [TFMParameter('',"@MobileWMS:OmitFieldInSum","@MobileWMS:Summation")]
+    public FieldName parmFieldNameToOmit(FieldName _fieldNameToOmit)
+    {
+        fieldNameToOmit = _fieldNameToOmit;
+        return fieldNameToOmit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmEnableOmitField</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Parameter to make the summation omit certain fields
+    /// </summary>
+    /// <param name = "_fieldNameToOmit">FieldName on InventDim to omit in selection</param>
+    /// <returns></returns>
+    [TFMParameter(NoYes::No,"@MobileWMS:AddShowAllInFilter","@MobileWMS:Summation")]
+    public NoYesId parmEnableOmitField(NoYesId _enableOmitField)
+    {
+        enableOmitField = _enableOmitField;
+        return enableOmitField;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public TFMDocumentHandlerDescription description()
+    {    
+        return "@MobileWMS:LocateItem";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public TFMPages pages()
+    {
+        TFMPages ret = super();
+        TFMPage locateItemPage = ret.getPage(MobConstants::LocateItem());
+        
+        locateItemPage.setListId(classStr(TFMListLookupWithRegistrations));
+        locateItemPage.addAction(MobConstants::CreateQuarantineOrders(),1,3);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupLocateItem</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to return Locate Item elements to the mobile client.
+    /// </summary>
+    /// <returns>A MobLookupResponseElement instance containing the data needed for he lookup page on the mobile device.</returns>
+    protected TFMLookupResponseElement lookupLocateItem()
+    {
+        TFMLookupResponseElement    lookupResponse = TFMLookupResponseElement::Construct(classStr(TFMLookup), MobConstants::LocateItem());
+        TFMRequestWarehouseElement  warehouse = request;
+        // Get the warehouse and item number from the request
+        InventLocationId			inventLocationId    = warehouse.parmWarehouse();
+        ItemId						itemId = warehouse.parmItemId();
+        str                         showAll = warehouse.getFieldValue('showAll');
+        InventLocation              inventLocation;
+        Query                       q = new Query();
+
+        QueryRun                    qr;
+        QueryBuildDataSource        queryBuildDataSource;
+        
+        queryBuildDataSource = q.addDataSource(tableNum(InventLocation));
+        queryBuildDataSource.addRange(fieldnum(InventLocation,InventLocationId)).value(inventLocationId == TFMConstants::All() ? '*' : inventLocationId);
+
+        itemId = !itemId ? warehouse.parmRawItemId() : itemId;
+
+        qr = new QueryRun(q);
+        while (qr.next())
+        {
+            inventLocation = qr.get(tableNum(InventLocation));
+            if (!MobInventLocationsGroupRights::existsUser(curUserId(), inventLocation.inventLocationId))  // Make sure user only sees warehouses, they have access to
+            {
+                continue;
+            }
+
+            MobInventOnhand_availAndPhysical::populateLookupResponse(lookupResponse,itemId,inventLocation.inventLocationId,'',showAll == 'Yes' ? '' : fieldNameToOmit);
+        }
+        
+        return lookupResponse;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LocateItemCfgHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The header/filter for the Locate Item page.
+    /// </summary>
+    /// <returns>The filter fields as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration LocateItemCfgHeader()
+    {
+        TFMReferenceDataConfiguration   refConf = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorList    showAllDimensions;
+        
+        // Warehouse
+        refConf.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(1));
+    
+        // Item
+        refConf.addCollector(TFMGetReferenceData::defaultItemIdCollector(2));   
+     
+        if (enableOmitField)
+        {
+            showAllDimensions = new TFMRegistrationCollectorList(3,'showAll',"@SYS35266", "@SYS35266","@SYS35266");
+            showAllDimensions.parmDataTable(methodStr(TFMGetReferenceData, listNoYes));   
+            showAllDimensions.parmAcceptBarcode(false);
+            refConf.addCollector(showAllDimensions);
+        }
+
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

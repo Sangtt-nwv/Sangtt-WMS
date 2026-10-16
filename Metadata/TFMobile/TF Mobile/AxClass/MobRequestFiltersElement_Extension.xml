@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobRequestFiltersElement_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(ClassStr(TFMRequestFiltersElement))]
+final class MobRequestFiltersElement_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmdeviceID</Name>
+				<Source><![CDATA[
+    public TFMDocumentDeviceId parmdeviceID(TFMDocumentDeviceId _deviceId)
+    {
+        TFMDocumentDeviceId deviceId = next parmdeviceID(_deviceId);
+        TFMDeviceTable		devices = TFMDeviceTable::FindOrCreateDevice(deviceId);
+
+        if (!location)
+        {
+            location = MobInventLocationsGroupRights::getDefaultWarehouse().InventLocationId;
+        }
+
+        return deviceId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        location = MobInventLocationsGroupRights::getDefaultWarehouse() ? MobInventLocationsGroupRights::getDefaultWarehouse().InventLocationId : TFMConstants::All();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDataSourceBlockValuesOverride</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMDataSourceBlockValuesOverride
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>hasModifications</Name>
+				<Source><![CDATA[
+    public abstract boolean hasModifications(TFMDataSourceBlock _blockToModify){}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getClassName</Name>
+				<Source><![CDATA[
+    public abstract ClassName getClassName(){}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyValuesBeforeDelta</Name>
+				<Source><![CDATA[
+    public abstract void modifyValuesBeforeDelta(TFMDataSourceBlock _blockToModify, Common _common = null){}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindOverridesForDataSourceBlock</Name>
+				<Source><![CDATA[
+    public static Set FindOverridesForDataSourceBlock(TFMDataSourceBlock _block)
+    {
+        Set overrides = new Set(Types::Class);
+        ListEnumerator allOverrides = new SysDictClass(classNum(TFMDataSourceBlockValuesOverride)).extendedBy(true).getEnumerator();
+        
+        TFMDataSourceBlockValuesOverride override;
+        while (allOverrides.moveNext())
+        {
+            override = new SysDictClass(allOverrides.current()).makeObject();
+            if (override.hasModifications(_block) && override.getClassName() == classId2Name(classIdGet(_block)))
+            {
+                overrides.add(override);
+            }
+        }
+        return overrides;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

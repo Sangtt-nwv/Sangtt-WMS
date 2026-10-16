@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListOrdersWithImageWideLines</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMListOrdersWithImageWideLines extends TFMListOrdersWithImage
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+    public TFMListConfiguration getList()
+    {
+        TFMListConfiguration ret;
+        useWideLines = true;
+        ret = super();
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

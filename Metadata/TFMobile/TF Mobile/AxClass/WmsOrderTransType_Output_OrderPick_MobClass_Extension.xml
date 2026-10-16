@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>WmsOrderTransType_Output_OrderPick_MobClass_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Extension of the WmsOrderTransType_Output_OrderPick class, in order to utilize protected business logic in the class.
+/// </summary>
+[ExtensionOf(classStr(WmsOrderTransType_Output_OrderPick))]
+final class WmsOrderTransType_Output_OrderPick_MobClass_Extension
+{
+
+    public WMSOrderTrans extraWmsOrderTrans;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>MobCheckFinishPickingLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to check if the quantity can be picked.
+    /// </summary>
+    /// <param name = "inventDimPicked">The inventDim buffer.</param>
+    /// <param name = "pickedQty">The quantity to be be picked</param>
+    /// <param name = "_totalAvailable">Total available quantity on the location to be picked from. Used to determine whether the pick will be negative</param>
+    /// <returns>A WMSOrderTrans instance to be used for the split.</returns>
+    public WMSOrderTrans MobCheckFinishPickingLine(InventDim _inventDimPicked, InventQty _pickedQty, InventQty _totalAvailable)
+    {
+        InventDim               inventDimReserved = wmsOrderTrans.inventDim();
+        InventMovement          inventMovement = this.inventMovement();
+        InventDimParm           inventDimParmFrom;
+        InventUpd_Picked        inventUpd_Picked;
+        RefRecId                originalWmsOrderTransRecId;
+
+        //detect if partial pick in negative invent occurs
+        if (wmsOrderTrans.Qty - _pickedQty > 0 // pick is partial
+            && InventTable::find(wmsOrderTrans.ItemId).modelGroup().NegativePhysical //negative Pick Allowed
+            && (_totalAvailable - _pickedQty) < 0 // Will result in negative pick
+            )
+        {
+            originalWmsOrderTransRecId = wmsOrderTrans.recId;
+        }
+        
+        inventDimParmFrom.initFromInventDim(_inventDimPicked);
+        
+        if (wmsOrderTrans.Qty > _pickedQty && (_totalAvailable - _pickedQty) >= 0)
+        {
+            wmsOrderTrans = wmsOrderTrans.split(_pickedQty);
+        }
+        this.updateReservations(_inventDimPicked, inventDimReserved, inventMovement,false);
+        inventDimParmFrom.initFromInventDim(_inventDimPicked);
+    
+        inventUpd_Picked = InventUpd_Picked::newParameters(inventMovement,
+                            _inventDimPicked, inventDimParmFrom,
+                            inventDimReserved, inventDimParmFrom,
+                            -_pickedQty, wmsOrderTrans.RouteId);
+        if (!inventUpd_Picked.check())
+        {
+            throw(error("@SYS54637"));
+        }
+
+        if (originalWmsOrderTransRecId) //extra split necessary
+        {
+            this.splitWmsOrderTrans(originalWmsOrderTransRecId, _totalAvailable < 0 ? (wmsOrderTrans.Qty- _pickedQty) : (_pickedQty - _totalAvailable));
+            wmsOrderTrans.reread();
+        }
+
+        return wmsOrderTrans;
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getExtraSplittedLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method used to return the extra splitted WMSOrderTrans buffer back to the caller, when an extra split has been performed
+    /// </summary>
+    /// <returns>The splitted WMSOrderTrans buffer, if available</returns>
+    public WMSOrderTrans getExtraSplittedLine()
+    {
+        return extraWmsOrderTrans;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>splitWmsOrderTrans</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to perform the extra split of the original WMSOrderTrans Record, in case of a pick crossing over into negative invent.
+    /// </summary>
+    /// <param name = "_recid">The recid for the record to split</param>
+    /// <param name = "_splitQty">The quantity to split from the original WMSOrderTrans record.</param>
+    protected void splitWmsOrderTrans(RefRecId _recid, InventQty _splitQty)
+    {
+        WMSOrderTrans localWmsOrderTrans;
+
+        select firstonly localWmsOrderTrans where localWmsOrderTrans.RecId == _recid;
+
+        extraWmsOrderTrans = localWmsOrderTrans.split(_splitQty);
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

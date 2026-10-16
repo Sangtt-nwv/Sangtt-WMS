@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocUnplannedMove</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[
+    TFMTableName(tableStr(inventJournalTable)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticMethodStr(MobConstants,UnplannedMove), methodStr(MobDocUnplannedMove, unplannedMoveRegistrationCollectors)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(MobConstants,UnplannedMove), methodStr(MobDocUnplannedMove, postUnplannedMove))
+    ,TFMDocumentType('ValidationExampleMethod'),
+    TFMDocumentType('BatchValidation'),
+    TFMMenu('UnplannedMove', "@MobileWMS:UnplannedMove", "@MobileWMS:MobileWMS163", resourceStr(MobUnplannedMoveIcon), true, true, ['Warehouse'],true)
+]
+class MobDocUnplannedMove extends TFMDocumentHandler
+{
+    TFMInventDimSetup                   mobInventDimSetup;
+    inventJournalTable                  inventJournalTable;
+    TFMRequestItemAndDimensionElement   unplannedMoveRequest;
+    
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getinventJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(inventJournalTable))]
+    public inventJournalTable getinventJournalTable()
+    {
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRequest</Name>
+				<Source><![CDATA[
+    public TFMRequestItemAndDimensionElement parmRequest(           TFMRequestItemAndDimensionElement _request = unplannedMoveRequest)
+    {
+        unplannedMoveRequest = _request;
+        request = request ? request : _request;
+        return unplannedMoveRequest;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UnplannedMoveHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Unplanned Move page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration UnplannedMoveHeader()
+    {
+        TFMReferenceDataConfiguration   refConf = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorList    fromWarehouse = TFMGetReferenceData::createDefaultWarehouseReferenceData(1, strLwr(extendedTypeStr(InventLocationId)), "@SYS25253", methodStr(TFMGetReferenceData,WarehouseList));
+        // Warehouse to move from
+        fromWarehouse.parmLinkedElement(2);
+        fromWarehouse.parmLinkColumn(extendedTypeStr(InventLocationId));
+        refConf.addCollector(fromWarehouse);
+        // Warehouse to move to
+        refConf.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(2,'To'+ strLwr(extendedTypeStr(InventLocationId)), "@SYS8519", methodStr(TFMGetReferenceData,WarehouseList)));
+        // Item number text box
+        refConf.addCollector(TFMGetReferenceData::defaultItemIdCollector(3));        
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public TFMDocumentHandlerDescription description()
+    {
+        TFMDocumentHandlerDescription ret = "@MobileWMS:UnplannedMove";
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preProcess</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public boolean preProcess()
+    {
+		if (classIdGet(request) == classNum(TFMRequestBasicElement))
+        {
+            return true;
+        }
+        // Get the dimension setup for the item
+        unplannedMoveRequest = request;
+        mobInventDimSetup   = TFMInventDimSetup::Construct(unplannedMoveRequest.parmInventTable());
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unplannedMoveRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /*[TFMDocumentType('ValidationExampleMethod')]
+    public void ValidationExampleMethod()
+    {
+        InventLocationId	invLoc= request.getFieldValue(MobConstants::Warehouse());
+        WmsLocationId		value = request.getFieldValue(extendedTypeStr(wMSLocationId));
+
+        throw Error (strFmt("%1 doesn't match %2, try something else",value,invLoc));
+    }
+
+    [TFMDocumentType('BatchValidation')]
+    public void BatchValidation()
+    {
+        InventBatchId	batch = request.parmInventDim().inventBatchId;
+        ItemId			item = request.parmItemId();
+
+        throw Error (strFmt("%1 doesn't match %2, try something else",batch,item));
+    }*/
+
+    
+    public Map unplannedMoveRegistrationCollectors()
+    {
+        Map returnMap;
+        Map replaceLabels = new Map(Types::String, Types::String);
+        Map validationDocs = new Map(Types::String, Types::String);
+        SysDictType dictType;
+        int add = 10;
+        InventDimParm parm, InventDimParm;
+        InventDimParm.initFromInventDim(unplannedMoveRequest.parmInventDim());
+        parm =  InventDimParm::activeDimFlag(InventDimGroupSetup::newInventTable(unplannedMoveRequest.parmInventTable()));
+        parm = InventDimParm::xorParms(inventDimParm,parm);
+        parm.InventSiteIdFlag = NoYes::No;
+        parm.InventLocationIdFlag = NoYes::No;
+        
+        #if.isAX6
+        parm.WMSPalletIdFlag = mobInventDimSetup.registerWMSPallet();
+        
+        #endif
+
+        //Ensure, that if item is not serialnumber controlled, ask for Qty instead
+        parm.InventSerialIdFlag = NoYes::Yes;
+        replaceLabels.insert(extendedTypeStr(WMSLocationId),"@SYS50352");
+        returnMap = MobInventDimHelper::GetInventDimCollectors(add, mobInventDimSetup,parm,replaceLabels, validationDocs);
+        add = returnMap.elements() *10 + add;
+        
+        if (mobInventDimSetup.registerWMSLocation() && !mobInventDimSetup.registerWMSPallet())
+        {
+            // Add the step to register the TO location
+            add+=10;
+            dictType = new SysDictType(extendedTypeNum(WMSLocationId));
+            returnMap.insert(MobConstants::ToLocation(),TFMRegistrationCollectorText::TextStepMap(false,add,'To' + extendedTypeStr(WMSLocationId),"@MobileWMS:MEL44","@SYS50351","@MobileWMS:MEL45",dictType.stringLen()));
+        }
+        else if (mobInventDimSetup.registerWMSPallet())
+        {
+            // Add the step to register the TO location
+            add+=10;
+            dictType = new SysDictType(extendedTypeNum(WHSLicensePlateId));
+            returnMap.insert(MobConstants::ToLocation(),TFMRegistrationCollectorText::TextStepMap(false,add,'To' + new DictField(tablenum(WHSLicensePlate), fieldnum(WHSLicensePlate, LicensePlateId)).name(),new DictField(tablenum(WHSLicensePlate), fieldnum(WHSLicensePlate, LicensePlateId)).Label() + ' ('+"@MobileWMS:MEL45"+')',new DictField(tablenum(WHSLicensePlate), fieldnum(WHSLicensePlate, LicensePlateId)).Label(),"@MobileWMS:MEL45",dictType.stringLen()));
+        }
+
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postUnplannedMove</Name>
+				<Source><![CDATA[
+    [TFMPostMethod(tableStr(inventJournalTable))]
+    public void postUnplannedMove()
+    {
+        InventDim       inventDimIssue;
+        InventDim       inventDimReceipt;
+        Qty             qty;
+        ItemId          itemId = unplannedMoveRequest.parmItemId();
+        
+        inventDimIssue.data(unplannedMoveRequest.parmInventDim());
+        inventDimReceipt.data(unplannedMoveRequest.parmInventDim());
+
+        inventDimIssue = unplannedMoveRequest.createFromInventDim(inventDimIssue);
+        inventDimReceipt = unplannedMoveRequest.createToInventDim(inventDimReceipt);
+        qty = unplannedMoveRequest.parmQuantity();
+
+
+        inventJournalTable = MobPostHelper::inventJournalTransfer(qty,itemId,inventDimIssue, inventDimReceipt);
+        resultStr =  "@MobileWMS:MEL47";
+
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockMoveLicensePlate</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic block used to move license plates
+/// </summary>
+class MwmsLogicBlockMoveLicensePlate extends TFMLogicBlock implements TFMLogicBlockDataCollectionInterface
+{
+    InventJournalTable  inventJournalTable;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getinventJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(inventJournalTable))]
+    public inventJournalTable getinventJournalTable()
+    {
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicBlockMoveLicensePlate Construct()
+    {
+        return new MwmsLogicBlockMoveLicensePlate();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        categories.add("@SYS6437");
+        categories.add("@WAX67");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        TFMRegistrationCollectorList    fromWarehouse = TFMGetReferenceData::createDefaultWarehouseReferenceData(1, strLwr(extendedTypeStr(InventLocationId)), "@SYS25253", methodStr(TFMGetReferenceData,WarehouseList));
+        TFMRegistrationCollectorText    lpField;
+        // Warehouse to move from
+        fromWarehouse.parmLinkedElement(2);
+        fromWarehouse.parmLinkColumn(extendedTypeStr(InventLocationId));
+        refConf.addCollector(fromWarehouse);
+        // Warehouse to move to
+        refConf.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(2,'To'+ strLwr(extendedTypeStr(InventLocationId)), "@SYS8519", methodStr(TFMGetReferenceData,WarehouseList)));
+        // LP text box
+        lpField = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(WHSLicensePlateId));
+        lpField.parmOptional(false);
+        refConf.addCollector(lpField);
+        
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method gives you the registration collectors for this data collection block.
+    /// </summary>
+    /// <returns>A collection of registration collectors.</returns>
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        TFMRegistrationCollectors   regCols = components.getCollectors();
+        TFMRegistrationCollector    regCol  = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(WMSLocationId),'To' + extendedTypeStr(WMSLocationId),"@TFM:MEL44","@SYS50351","@TFM:MEL45");
+        regCols.addCollector(regCol);        
+        return regCols;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData response        = TFMPostResponseData::Construct();
+        wmsLocationid       WMSLocId        = request.getFieldValue('To' + extendedTypeStr(WMSLocationId));
+        WHSLicensePlateId   lp              = request.getFieldValue(extendedTypeStr(WHSLicensePlateId));
+        InventLocationId    warehouse       = request.getFieldValue('To'+ strLwr(extendedTypeStr(InventLocationId)));
+
+        inventJournalTable = MobPostHelper::MoveLicensePlate(lp,warehouse,wmslocid);
+
+        response.parmResponseText(SysLabel::labelId2String2("@TFM:MEL47"));
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMPalletLookupIcon);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        return "@TFM:MoveLicensePlate";
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

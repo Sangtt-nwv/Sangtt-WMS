@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobReceiveOrderTypeArrival</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+#mob
+/// <summary>
+/// The MobPickOrderTypeTransfer class handles the  Arrival Order data and posting logic.
+/// </summary>
+[TFMTableName(tableStr(WMSJournalTable),'Arrival')]
+class MobReceiveOrderTypeArrival extends MobReceiveOrderType
+{
+    #mob
+    Set orderSet;
+    WMSJournalTable JournalTable;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getBackendID</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_common"></param>
+    /// <returns></returns>
+    public str getBackendID(Common _common)
+    {
+        WMSJournalTable WMSJournalTable = _common;
+        return tableStr(WMSJournalTable) + '/' + fieldStr(WMSJournalTable,JournalId) + '/' + WMSJournalTable.JournalId +'/' + 'Arrival';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaderRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_inventLocationID"></param>
+    /// <param name = "_deliveryDate"></param>
+    /// <param name = "_scannedValue"></param>
+    /// <returns></returns>
+    public Map getHeaderRecords(TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+        InventLocation  inventLocation;
+        Map             returnMap = new Map(Types::string, Types::Record);
+        str				orgWareHouse = _filters.parmWarehouse();
+        orderSet = new Set (Types::String);
+        inventLocation = MobHelper::getAllowedInventLocations(curUserId());
+        while select inventLocation where (inventLocation.InventLocationId == orgWareHouse || orgWareHouse == MobConstants::all())
+        {
+            // Check if sales orders are enabled for this warehouse
+            if (MobHelper::IsArrivalJournalEnabled(inventLocation.InventLocationId))
+            {
+                // Use the warehouse from the current iteration
+                _filters.parmWarehouse(inventLocation.InventLocationId);
+                returnMap = MobHelper::mergeMaps(returnMap,this.getArrivalJournals(_filters,_scannedValue));
+            }
+        }
+        _filters.parmWarehouse(orgWareHouse);
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getWMSJournalId</Name>
+				<Source><![CDATA[
+    protected WMSJournalId getWMSJournalId(str _backendID)
+    {
+        return conPeek(MobHelper::strSplit(_backendID,'/').pack(),6);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPostPromptCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to indicate whether or not the user should be prompted for information when posting.
+    /// </summary>
+    /// <returns>A set of registration collectors to prompt the user with when posting.</returns>
+    public Map getPostPromptCollectors(str _backendID)
+    {
+        Map             ret;
+        WMSJournalId    wMSJournalId = this.getWMSJournalId(_backendID);
+
+
+        ret = super(_backendID);
+        if (wMSJournalTable::find(wMSJournalId).inventTransType != InventTransType::Sales)
+        {
+            ret.insert(MobConstants::PackingSlip(),TFMRegistrationCollectorText::TextStepMap(false, 1,MobConstants::PackingSlip(),"@SYS11549", "@SYS11549","@SYS11549",new DictType(extendedTypeNum(PackingSlipId)).stringLen(),false));
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLineRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_backendID"></param>
+    /// <returns></returns>
+    public Map getLineRecords(TFMRequestGetOrderLinesElement _request)
+    {
+        Map             returnMap = new Map(Types::string, Types::Record);
+        WMSJournalId    wMSJournalId = this.getWMSJournalId(_request.parmBackendID());//SubStr(backendid,2,strlen(backendId)); // Remove the prefix
+        WMSJournalTable wMSJournalTable;
+        WMSJournalTrans wMSJournalTrans;
+        int             sorting;
+    
+        if (! wMSJournalId || ! WMSJournalTable::exist(wMSJournalId))
+        {
+            throw error(strfmt(WMSJournalTable::txtNotExist(), wMSJournalId));
+        }
+        wMSJournalTable = wMSJournalTable::find(wMSJournalId);
+        if (wMSJournalTable.posted == NoYes::No)
+        {
+    
+            while select wMSJournalTrans
+                        where wMSJournalTrans.journalId     == wMSJournalId &&
+                              wMSJournalTrans.Qty           >  0
+            {
+                sorting ++;
+                returnMap.insert(tableStr(wMSJournalTrans) + ';' + int642Str(wMSJournalTrans.RecId), wMSJournalTrans);
+                /*MobXMLFormat = TFMXMLFormat::constructFromCommon(resultXml, wMSJournalTrans, sorting);
+                MobXMLFormat.run();*/
+            }
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lineTableId</Name>
+				<Source><![CDATA[
+    public TableId lineTableId()
+    {
+        return tableNum(wMSJournalTrans);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postRequest</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_orderElement"></param>
+    /// <returns></returns>
+    public str postRequest(TFMRequestOrdersElement _orderElement)
+    {
+        
+        WMSJournalId                wMSJournalId = this.getWMSJournalId(_orderElement.parmBackendID());
+        WMSJournalTable             wMSJournalTable;
+        //XMLNodeList                 lineNodeList;
+        MobRegistrations            mobRegistrations;
+        PackingSlipId               packingSlipId;
+        WMSJournalTableData         wMSJournalTableData;
+        WMSJournalCheckPost         wMSJournalCheckPost;
+        Map                         journalTransMap;
+        boolean                     updateTotal;
+        boolean                     doPost;
+        CreatedTransactionId        transID;
+    
+        if (! wMSJournalId || ! WMSJournalTable::exist(wMSJournalId))
+        {
+            throw error(strfmt(WMSJournalTable::txtNotExist(),wMSJournalId));
+        }
+        // Extract the packing slip from the XML
+        packingSlipId       = _orderElement.parmPackingSlip();//_orderElement.getAttribute(#PackingSlip);
+    
+        //lineNodeList = _orderElement.ownerDocument().root().firstChild().firstChild().childNodes();
+    
+        transID = MobRegistrations::SaveRequest(_orderElement.Lines(), MobInventRefType::InventArrival, wMSJournalId).CreatedTransactionId; // Moved iteration/registration of xml here
+        messageId = _orderElement.parmmessageId();//TFMDocumentConnector::getMessageID(_orderElement.ownerDocument().xml());
+        wMSJournalTable = WMSJournalTable::find(wMSJournalId,true);
+    
+        // Save the packingslip
+        wMSJournalTable.packingSlip = packingSlipId;
+        wMSJournalTable.update();
+    
+        wMSJournalTableData = new WMSJournalTableData(wMSJournalTable);
+    
+        wMSJournalTableData.updateBlock(JournalBlockLevel::None,JournalBlockLevel::System,false); // Lock
+    
+        journalTransMap = new Map(Types::Int64, Types::Record);
+    
+        while select forupdate mobRegistrations //order by InventTransId, InventQty desc
+                    index OrderLineNumIdx
+                    where mobRegistrations.InventRefType == MobInventRefType::InventArrival &&
+                          mobRegistrations.InventRefId   == wMSJournalId &&
+                          mobRegistrations.MessageId      == messageID &&
+                          mobRegistrations.CreatedTransactionId == transID &&
+                          mobRegistrations.handled       == NoYes::No
+        {
+            doPost = true;
+            mobRegistrations.arrival(journalTransMap);
+            mobRegistrations.handled = NoYes::Yes;
+            mobRegistrations.Update();
+        }
+    
+        if (doPost)
+        {
+            updateTotal = this.transferRemainArrivalLines(wMSJournalTableData, journalTransMap);
+    
+            select firstonly wmsJournalTable
+                        index hint IdIdx
+                        where wmsJournalTable.journalId == wmsJournalId;
+    
+            // posting
+            infolog.clear(0);
+            wMSJournalCheckPost  = WMSJournalCheckPostReception::newTypeJournalTable(JournalCheckPostType::Post, wMSJournalTable);
+            
+            #ifnot.isAX6
+            wMSJournalCheckPost.runOperation();
+            #endif
+            #if.isAX6
+            wMSJournalCheckPost.run();
+            #endif
+            JournalTable = WMSJournalTable::find(wMSJournalTable.JournalId);
+            if (!JournalTable.Posted)
+            {
+                throw error(strfmt("@MobileWMS:MEL69", JournalTable.JournalId));
+            }
+        }
+    
+        wMSJournalTableData.updateBlock(JournalBlockLevel::System,JournalBlockLevel::None, updateTotal);
+        return SysLabel::labelId2String2("@MobileWMS:MEL22");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getwmsJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(WMSJournalTable))]
+    public WMSJournalTable getwmsJournalTable()
+    {
+        return JournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>transferRemainArrivalLines</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method used to transfer the remaining arrival lines.
+    /// </summary>
+    /// <param name = "_fromJournalTableData">WMSJournalTableData instance to find the journal from.</param>
+    /// <param name = "_journalTransMap">A Map instance containing which line records that has already been updated.</param>
+    /// <returns>True if a new journal is inserted. Otherwise false.</returns>
+    protected boolean transferRemainArrivalLines(WMSJournalTableData    _fromJournalTableData, Map _journalTransMap)//07.01.2011 MSA/PVN
+    {
+        WMSJournalTable        fromWMSJournalTable;
+        WMSJournalTable        toWMSJournalTable;
+        WMSJournalTrans        wMSJournalTrans;
+        WMSJournalTableData    toJournalTableData;
+        boolean                ret;
+        
+        fromWMSJournalTable    = _fromJournalTableData.journalTable();
+    
+        while select forupdate wMSJournalTrans
+            where wMSJournalTrans.JournalId   == fromWMSJournalTable.JournalId
+        {
+            if (! wMSJournalTrans.qty)
+            {
+                wMSJournalTrans.delete();
+                continue;
+            }
+            if (! _journalTransMap.exists(wMSJournalTrans.RecId))
+            {
+                if (! toWMSJournalTable.JournalId)
+                {
+                    toWMSJournalTable      = fromWMSJournalTable.data();
+                    toWMSJournalTable.NumOfLines = 0;
+                    toJournalTableData     = JournalTableData::newTable(toWMSJournalTable);
+                    toWMSJournalTable.JournalId  = toJournalTableData.nextJournalId();
+                }
+                wMSJournalTrans.JournalId  = toWMSJournalTable.JournalId;
+                wMSJournalTrans.update();
+            }
+        }
+    
+        fromWMSJournalTable = WMSJournalTable::find(fromWMSJournalTable.journalId, true);
+    
+        select count(recId) from wMSJournalTrans
+            where wMSJournalTrans.JournalId   == fromWMSJournalTable.JournalId;
+    
+        fromWMSJournalTable.numOfLines        = int642int(wMSJournalTrans.RecId);
+        fromWMSJournalTable.update();
+    
+        if (toWMSJournalTable.JournalId)
+        {
+            select count(recId) from wMSJournalTrans
+                where wMSJournalTrans.JournalId   == toWMSJournalTable.JournalId;
+    
+            toWMSJournalTable.NumOfLines        = int642int(wMSJournalTrans.RecId);
+            toWMSJournalTable.JournalIdOriginal = fromWMSJournalTable.JournalId;
+            toWMSJournalTable.SystemBlocked     = NoYes::No;
+            toWMSJournalTable.insert();
+            ret = true;
+            info(strfmt("@MobileWMS:MEL70", toWMSJournalTable.NumOfLines, toWMSJournalTable.JournalIdOriginal, toWMSJournalTable.JournalId));
+        }
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getArrivalJournals</Name>
+				<Source><![CDATA[
+    protected Map getArrivalJournals(TFMRequestFiltersElement _filters, ItemId _itemId)
+    {
+        WMSJournalTable         wMSJournalTable;
+        Query                   q = new Query();
+        QueryRun                qr;
+        QueryBuildDataSource    qbdsWMSJournalTable;
+        QueryBuildDataSource    qbdsWMSJournalTrans;
+        QueryBuildDataSource    qbdsInventDim1;
+        QueryBuildDataSource    qbdsInventDim2;
+        int                     sorting;
+        Map                     returnMap = new Map (Types::String, Types::Record);
+    
+        qbdsWMSJournalTable = q.addDataSource( tableNum( WMSJournalTable ) );
+        qbdsWMSJournalTable.addSortField(fieldNum(WMSJournalTable, JournalId), SortOrder::Descending);
+        qbdsWMSJournalTable.addRange(fieldNum(WMSJournalTable, inventTransType)).value( queryValue(InventTransType::Purch) + ',' + queryValue(InventTransType::TransferOrderReceive) );
+        qbdsWMSJournalTable.addRange(fieldNum(WMSJournalTable, Posted)).value( queryValue(NoYes::No) );
+        qbdsWMSJournalTable.addRange(fieldNum(WMSJournalTable, journalType)).value( queryValue(WmsJournalType::Reception) );
+    
+        qbdsInventDim1 = qbdsWMSJournalTable.addDataSource(tableNum(InventDim), 'dim1');
+        qbdsInventDim1.joinMode(JoinMode::ExistsJoin);
+        qbdsInventDim1.addLink(fieldNum(wMSJournalTable,InventDimId), fieldNum(InventDim,InventDimId));
+        qbdsInventDim1.addRange(fieldNum(InventDim, InventSiteId)).value( queryValue(InventLocation::find(_filters.parmWarehouse()).InventSiteId) );
+        qbdsInventDim1.addRange(fieldNum(InventDim, InventLocationId)).value(queryValue(_filters.parmWarehouse()));
+    
+        qbdsWMSJournalTrans = qbdsWMSJournalTable.addDataSource(tableNum(WMSJournalTrans));
+        qbdsWMSJournalTrans.joinMode(JoinMode::ExistsJoin);
+        qbdsWMSJournalTrans.addLink(fieldNum(wMSJournalTable,JournalId), fieldNum(WMSJournalTrans,JournalId));
+        qbdsWMSJournalTrans.addRange(fieldNum(WMSJournalTrans,Qty)).value('> 0');
+    
+        if (_filters.parmDeliveryDate())
+        {
+            qbdsWMSJournalTrans.addRange(fieldNum(WMSJournalTrans,TransDate)).value( strFmt('.. %1', queryValue(_filters.parmDeliveryDate())) );
+        }
+    
+        if (_itemId)
+        {
+            qbdsWMSJournalTrans.addRange(fieldNum(WMSJournalTrans,itemId)).value( queryValue(_itemId) );
+    
+            if (itemInventDim)
+            {
+                qbdsInventDim2 = qbdsWMSJournalTrans.addDataSource(tableNum( InventDim ));
+                qbdsInventDim2.joinMode( JoinMode::ExistsJoin );
+                qbdsInventDim2.addLink( fieldNum(WMSJournalTrans,InventDimId), fieldNum(InventDim,InventDimId));
+    
+                InventDim::queryAddRange(qbdsInventDim2, itemInventDim);
+            }
+        }
+        TFMFilterAdditionsDataBinding::modifyQuery(methodStr(MobDocReceiveOrder, ReceiveOrderFilters) + strReplace(_filters.getFieldValue(extendedTypeStr(TFMOrderTypes)),';',''),q,_filters);
+        qr = new QueryRun( q );
+        while(qr.next())
+        {
+            wMSJournalTable = qr.get(tableNum(WMSJournalTable));
+            if (orderSet.in(wMSJournalTable.journalId))
+            {
+                continue;
+            }
+            sorting++;
+            returnMap.insert(this.getBackendID(wMSJournalTable) ,wMSJournalTable);
+            /*MobXMLFormat = TFMXMLFormat::constructFromCommon(resultXml, wMSJournalTable, sorting);
+            MobXMLFormat.run();*/
+            orderSet.add(wMSJournalTable.journalId);
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

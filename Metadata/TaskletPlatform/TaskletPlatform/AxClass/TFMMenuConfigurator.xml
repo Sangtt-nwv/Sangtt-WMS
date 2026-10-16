@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMenuConfigurator</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMMenuConfigurator
+{
+    static boolean      customGroupsCreated = false;
+
+    FormComboBoxControl	comboBox;
+    TFMMenuMakerCtrl    menuMakerControl;
+    TFMPages            pages;
+    Map                 imageLocations;
+    List                menuItemsForSelectedGroup = new List(Types::String);
+    Map                 availableMenuItems = new Map(Types::String, Types::Class);
+    Map                 availGroupPages = new Map(Types::String, Types::Class);
+    str                 selectedItem;
+    UserGroupId         latestgroupID;
+    FormDataSource		ds;
+
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMMenuConfigurator Construct(FormComboBoxControl _comboBox, TFMMenuMakerCtrl _menuMakerControl)
+    {
+        return new TFMMenuConfigurator(_comboBox, _menuMakerControl);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDS</Name>
+				<Source><![CDATA[
+    public void setDS( FormDataSource _ds)
+    {
+        ds = _ds;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>notifyUpdating</Name>
+				<Source><![CDATA[
+    public void notifyUpdating()
+    {
+        menuMakerControl.sendUpdatingToControl();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constructor for the class
+    /// </summary>
+    protected void new(FormComboBoxControl _comboBox, TFMMenuMakerCtrl _menuMakerControl)
+    {
+        comboBox = _comboBox;
+        menuMakerControl = _menuMakerControl;
+        menuMakerControl.setConfigurator(this);
+        selectedItem = '';
+        
+        pages = TFMPagesProvider::getAllPages();
+
+        this.initMenus(pages);
+      
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setSelectedGroup</Name>
+				<Source><![CDATA[
+    public void setSelectedGroup(TFMPageID _mobPageId)
+    {
+        int indexOfPage = comboBox.find(_mobPageId);
+        if(indexOfPage < 0)
+        {
+            indexOfPage = comboBox.find(TFMConstants::MenuGroupMainMenu());
+        }
+        if(indexOfPage < 0)
+        {
+            indexOfPage = 0;
+        }
+        comboBox.selection(indexOfPage);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initMenus</Name>
+				<Source><![CDATA[
+    public void initMenus(TFMPages _pages)
+    {
+        TFMMenuGroups	menuGroups;
+        TFMPage			currentTFMPage;
+        Map				pageMap			= _pages.getPages();
+        MapEnumerator	pagesEnum		= pageMap.getEnumerator();
+
+        // make sure the main menu has been created.
+        TFMMenuGroups::addItem('MainMenu', true, false);
+
+        // create all controls for the pages.
+        while (pagesEnum.moveNext())
+        {
+            currentTFMPage = pagesEnum.currentValue() as TFMPage;
+            
+            if(!customGroupsCreated)
+            {
+                // Add the Menu Groups that has not been created yet.
+                SetEnumerator categoriesEnum = currentTFMPage.getPageBelongsToMenuGroups().getEnumerator();
+                while(categoriesEnum.moveNext())
+                {
+                    if(TFMMenuGroups::addItem(categoriesEnum.current(), TFMMenuGroups::isUnAttachableInMenus(categoriesEnum.current())))
+                    {
+                        TFMPage menuPage = TFMPagesProvider::createMenuPage(TFMMenuGroups::Find(categoriesEnum.current(), false));
+                        //  we create the menu page. - the page is missing in the get pages because it is created after the createControlForPage.
+                        
+                    }
+                }
+            }
+        }
+
+        // Set up the comboBox
+        while select menuGroups
+        {
+            comboBox.add(menuGroups.MenuGroupId);
+        }
+
+        // other groups are already created.
+        TFMMenuConfigurator::customGroupsCreated = true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isAvailableForPage</Name>
+				<Source><![CDATA[
+    private boolean isAvailableForPage(TFMPage _page)
+    {
+        //// Only add the pages if are available for menus.
+        if(!this.isAvailableInMenus(_page))
+        {
+            return false;
+        }
+
+        if(!_page.parmId())
+        {
+            return false;
+        }
+
+        if(this.isAvailableForTheCurrentGroup(_page))
+        {
+            return true;
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDefaultMenuPermissions</Name>
+				<Source><![CDATA[
+    public void addDefaultMenuPermissions()
+    {
+        TFMMenuGroupId		menuGroupId = comboBox.valueStr();
+        UserGroupInfo		userInfo = ds.cursor();
+        TFMMenuPermissions::addDefaultMenuPermissions(TFMPagesProvider::getAllPages(), userInfo.id, menuGroupId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateUserGroup</Name>
+				<Source><![CDATA[
+    public void updateUserGroup()
+    {
+        TFMMenuPermissions  perms;
+        str					menuName;
+        TFMPage             page;
+        MapEnumerator       pagesEnum;
+        List                selectedMenuItemsPages;
+        UserGroupInfo		userInfo;
+        TFMMenuGroupId		menuGroupId;
+
+        selectedMenuItemsPages  = new List(Types::Class);
+        userInfo = ds.cursor();
+        menuGroupId = comboBox.valueStr();
+        latestgroupID = userInfo.id;
+        availableMenuItems = new Map(Types::String, Types::Class);
+        menuItemsForSelectedGroup = new List(Types::String);
+
+        TFMMenuPermissions::MigrateIfNeeded();
+
+        
+        // Get the selected menu items
+        while select perms order by MenuLineNumber where latestgroupID == perms.UserGroupId && perms.MenuGroup == menuGroupId
+        {
+            menuName = perms.Menu;
+            menuItemsForSelectedGroup.addEnd(menuName);
+            page = pages.getPage(menuName);
+            if(page)
+            {
+                selectedMenuItemsPages.addEnd(page);
+            }
+            
+        }
+
+        // get the available menu items
+        pagesEnum = pages.getPages().getEnumerator();
+        while(pagesEnum.moveNext())
+        {
+            page = pagesEnum.currentValue();
+            if(this.isAvailableForPage(page))
+            {
+                if(!this.isInList(menuItemsForSelectedGroup, page.parmId()))
+                {
+                    availableMenuItems.add(page.parmId(), page);
+                } 
+            }
+        }
+        menuMakerControl.sendMenuItemsToControl(selectedMenuItemsPages, this.availableMenuItems);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>savePermissionsForGroupAndUserGroup</Name>
+				<Source><![CDATA[
+    public void savePermissionsForGroupAndUserGroup(List _newSetup)
+    {
+        TFMMenuPermissions  perms;
+        TFMMenuGroupId		menuGroupId = comboBox.valueStr();
+        int                 counter = 10;
+
+        ttsbegin;
+        delete_from perms where latestgroupID == perms.UserGroupId && perms.MenuGroup == menuGroupId;
+
+        ListEnumerator setupItemsEnumerator = _newSetup.getEnumerator();
+        while(setupItemsEnumerator.moveNext())
+        {
+            perms.clear();
+            perms.UserGroupId = latestgroupID;
+            perms.MenuGroup = menuGroupId;
+            perms.Menu = setupItemsEnumerator.current();
+            perms.MenuLineNumber = counter;
+            perms.write();
+            counter += 1;
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>requestSaveMenuSetup</Name>
+				<Source><![CDATA[
+    public void requestSaveMenuSetup()
+    {
+        menuMakerControl.sendSaveRequestToControl();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isInList</Name>
+				<Source><![CDATA[
+    private boolean isInList(List _listOfAcceptedValues, str _value)
+    {
+        ListEnumerator listEnumerator = _listOfAcceptedValues.getEnumerator();
+        
+        while(listEnumerator.moveNext())
+        {
+            if(listEnumerator.current() == _value)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isAvailableForTheCurrentGroup</Name>
+				<Source><![CDATA[
+    private boolean isAvailableForTheCurrentGroup(TFMPage _page)
+    {
+        // the menu page should not be visible in it's own group and if parm can only be attached then only shown in the group it belongs to.
+        return comboBox.valueStr() != _page.parmId()  && _page.isLimitByTheBelongingGroup(comboBox.valueStr());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isAvailableInMenus</Name>
+				<Source><![CDATA[
+    private boolean isAvailableInMenus(TFMPage _page)
+    {
+        return _page.parmAvailableForMenuPages();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>menuItemImage</Name>
+				<Source><![CDATA[
+    public static System.Drawing.Image menuItemImage(str _iconName, str _title)
+    {
+        System.Drawing.Image		image =  new System.Drawing.Bitmap(400,400);
+        System.Drawing.Image		iconImage;
+        System.Drawing.Graphics		graphics;
+        System.Drawing.Rectangle	rect;
+        str icon = _iconName;
+        str base;
+        icon = icon ? icon : TFMImageHelper::resource2Base64(resourceStr(TFMMissingImage));
+        if(icon)
+        {
+            if (SysResource::checkIfResourceExists(icon))
+            {
+                base = TFMImageHelper::resource2Base64(icon);
+                iconImage = TFMImageHelper::base64ToImage(base);
+            }
+            else
+            {
+                iconImage = TFMImageHelper::base64ToImage(TFMDocGetMedia::getBase64FromName(icon));
+            }
+            image =  new System.Drawing.Bitmap(400,400);
+            graphics =  System.Drawing.Graphics::FromImage(image);
+
+
+            rect = new System.Drawing.Rectangle(80 ,50 ,225 ,225);
+            graphics.DrawImage(iconImage, rect);
+
+            TFMGraphicsHelper::drawText(graphics, 200, 300, 255<<24 , TFMHelper::splitTextToMultilines(_title), 30, SysChartHorizontalAlignment::Center, SysChartVerticalAlignment::Middle ,false);
+
+        }
+        return image;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isStandard</Name>
+				<Source><![CDATA[
+    public boolean isStandard(TFMPage _page)
+    {
+        return _page.belongsToGroup(comboBox.valueStr());
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

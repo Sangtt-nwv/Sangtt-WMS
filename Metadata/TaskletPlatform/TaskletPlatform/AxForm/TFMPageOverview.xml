@@ -1,0 +1,868 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMPageOverview</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMPageOverview extends FormRun
+{
+    QueryBuildRange				qbr;
+    QueryBuildRange				qbrOfflinePages;
+    QueryBuildRange				qbrDataSource;
+    TFMPageOverviewFormClass	pageOverviewClass;
+    Map							pagePreviews;
+    FormCommandButtonControl    saveButton;
+    System.Threading.CancellationTokenSource cancellationTokenForUpdateVisual;
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        TFMPageID				pageName = new URLUtility().getQueryParamValue('PageId');
+        FormStringControl		filterControl;
+        System.Runtime.Caching.ObjectCache memCache = System.Runtime.Caching.MemoryCache::Default;
+        str cacheId = formstr(TFMPageOverview) + TFMPageOverviewFormClass::cacheTimeStamp() + strLwr(curExt());
+        pagePreviews = memCache.Get(cacheId);
+        if(!pagePreviews)
+        {
+            pagePreviews = new Map(Types::String, Types::String);
+            memCache.Add(cacheId, pagePreviews, new System.Runtime.Caching.CacheItemPolicy());
+        }
+        
+        pageOverviewClass = new TFMPageOverviewFormClass(NewGrid, TFMHtmlListCtrl_1);
+        TFMHtmlListCtrl_1.setFormClass(pageOverviewClass);
+        
+        super();
+
+        saveButton = this.control(this.controlId('systemdefinedsavebutton')) as FormCommandButtonControl;
+        saveButton.visible(false);
+        saveButton.enabled(false);       
+
+        DevicePreview.parmSkipSanitizer(true);      
+
+        element.setTimeoutEx(formMethodStr(TFMPageOverview,loadPagesAsync),conNull(),0);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCurrentPage</Name>
+				<Source><![CDATA[
+    public TFMPage getCurrentPage()
+    {
+        return pageOverviewClass.currentPage();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>loadPagesAsync</Name>
+				<Source><![CDATA[
+    public void loadPagesAsync(AsyncTaskResult _result)
+    {
+        pageOverviewClass.loadAllPages();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateVisual</Name>
+				<Source><![CDATA[
+    public void updateVisual()
+    {
+        cancellationTokenForUpdateVisual = new System.Threading.CancellationTokenSource();
+        element.setTimeoutEx(formMethodStr(TFMPageOverview,updateVisualAsync),conNull(),10, cancellationTokenForUpdateVisual.Token);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cancelUpdateVisual</Name>
+				<Source><![CDATA[
+    public void cancelUpdateVisual()
+    {
+        if(cancellationTokenForUpdateVisual)
+        {
+            cancellationTokenForUpdateVisual.Cancel();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateVisualAsync</Name>
+				<Source><![CDATA[
+    public void updateVisualAsync(AsyncTaskResult _result)
+    {
+        str					pageHtml;
+        str                 pageId;
+        this.updateGrid();
+        
+        pageId = pageOverviewClass.currentPage().parmId();
+        str pageOutput = this.getDeviceHtml(pageId);
+        if(!pageOutput)
+        {
+            TFMDeviceVisualization::DrawPage(pageOverviewClass.currentPage(),DevicePreview);
+            pageHtml = DevicePreview.parmHtml();
+            if(strScan(pageHtml, 'loading.gif', 0, 100000) == 0)
+            {
+                pagePreviews.insert(pageId,pageHtml);
+            }
+        } 
+        else
+        {
+            DevicePreview.parmHtml(pageOutput);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDeviceHtml</Name>
+				<Source><![CDATA[
+    public str getDeviceHtml(TFMPageID _pageId, boolean _forceVisualUpdate = false)
+    {
+        if (pagePreviews.exists(_pageId))
+        {
+            return pagePreviews.lookup(pageOverviewClass.currentPage().parmId());
+        }
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removePreviewToForceUpdate</Name>
+				<Source><![CDATA[
+    public void removePreviewToForceUpdate(str _pageId)
+    {
+        pagePreviews.remove(_pageId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateGrid</Name>
+				<Source><![CDATA[
+    public void updateGrid()
+    {
+        element.setTimeoutEx(formMethodStr(TFMPageOverview,updateGridsAsync),conNull(),0);
+        this.updateGridsAsync(null);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateGridsAsync</Name>
+				<Source><![CDATA[
+    public void updateGridsAsync(AsyncTaskResult _result)
+    {
+        OfflinePages.visible(false);
+        if(classNum(TFMPageOfflineManagement) == classIdGet(pageOverviewClass.currentPage()))
+        {
+            qbrOfflinePages.value(pageOverviewClass.currentPage().parmId());
+            TFMPageOfflinePages_ds.executeQuery();
+            OfflinePages.visible(true);
+        }
+        ////Assumption: No page exists, that has data sources, but no List Id*/
+
+        //qbr.value(pageOverviewClass.currentPage().parmId());
+        //TFMPageDatasources_DS.executeQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupDataSources</Name>
+				<Source><![CDATA[
+    private void lookupDataSources(FormStringControl _ctrl)
+    {
+        SysTableLookup sysTableLookup = SysTableLookup::newParameters(tablenum(TFMPageDatasources),_ctrl);
+        sysTableLookup.addLookupfield(fieldnum(TFMPageDatasources, TableName), true);
+        sysTableLookup.parmQuery(TFMPageDatasources_DS.query());
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void init()
+    {
+        super();
+        element.dataHelper().Refreshing += eventhandler(this.onRefresh);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>onRefresh</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Updates the visual appearance of the page. Called when the refresh button is pressed.
+    /// </summary>
+    /// <param name = "_cancelEventArgs"></param>
+    public void onRefresh(FormRunServiceArgs _cancelEventArgs)
+    {
+        pageOverviewClass.updatePage(true);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>TFMDocumentTmpHandlerLookup</Name>
+				<Methods>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int			ret = super();
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>pageIcon</Name>
+						<Source><![CDATA[
+        public display container pageIcon()
+        {
+            ImageReference	imgRef;
+
+            imgRef = ImageReference::constructForUrl(TFMDocGetMedia::getURLFromIconName(pageOverviewClass.currentPage().parmIcon()));
+            return imgRef.pack();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>TFMPageDatasources</Name>
+				<Methods>
+					<Method>
+						<Name>init</Name>
+						<Source><![CDATA[
+        public void init()
+        {
+            super();
+            qbr = TFMPageDatasources_DS.queryBuildDataSource().addRange(fieldNum(TFMPageDatasources, PageId));
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        public void initValue()
+        {
+            super();
+            TFMPageDatasources.PageID = TFMDocumentTmpHandlerLookup.ClassName;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>TFMPageOfflinePages</Name>
+				<Methods>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        public void initValue()
+        {
+            if(pageOverviewClass.currentPage())
+            {
+                TFMPageOfflinePages.PageID = pageOverviewClass.currentPage().parmId();
+            }
+            super();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>init</Name>
+						<Source><![CDATA[
+        public void init()
+        {
+            QueryBuildDataSource qbds;
+            super();
+            qbds = TFMPageOfflinePages_ds.queryBuildDataSource();
+            qbrOfflinePages = qbds.addRange(fieldNum(TFMPageOfflinePages,PageID ));
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>OfflinePageID</DataField>
+						<Methods>
+							<Method>
+								<Name>lookup</Name>
+								<Source><![CDATA[
+            /// <summary>
+            ///
+            /// </summary>
+            /// <param name = "_formControl"></param>
+            /// <param name = "_filterStr"></param>
+            public void lookup(FormControl _formControl, str _filterStr)
+            {
+                TFMPageOfflinePages offlinePagesTable;
+                TFMPages	pagesToShow = new TFMPages();
+                MapEnumerator    allPagesEnum = element.pageOverviewClass.pagesOnForm.getPages().getEnumerator();
+
+                while(allPagesEnum.moveNext())
+                {
+                    TFMPage page = allPagesEnum.currentValue();
+                    TFMPageOrderList orderListPage = page as TFMPageOrderList;
+                    if (orderListPage && orderListPage.getConfiguration())
+                    {
+                        TFMPageOrderListConfiguration orderListPageConf = page.getConfiguration() as TFMPageOrderListConfiguration;
+
+                        if(orderListPageConf.parmOperationMode() == TFMOfflineModeTypes::offline)
+                        {
+                            // don't add if the page was added earlier
+                            select firstonly offlinePagesTable where offlinePagesTable.PageID == pageOverviewClass.currentPage().parmId() && offlinePagesTable.OfflinePageID == page.parmId();
+                            if(!offlinePagesTable.RecId)
+                            {
+                                pagesToShow.addPage(page);
+                            }
+                        }
+                    }
+                }
+                
+                // Add a fake adhoc registration page to show it in the list.
+                TFMPage fakeAdhocRegistrationsPage = new TFMPage();
+                fakeAdhocRegistrationsPage.parmId('AdhocRegistrations');
+                fakeAdhocRegistrationsPage.parmTitle('AdhocRegistrations');
+
+                select firstonly offlinePagesTable where offlinePagesTable.PageID == pageOverviewClass.currentPage().parmId() && offlinePagesTable.OfflinePageID == fakeAdhocRegistrationsPage.parmId();
+                if(!offlinePagesTable.RecId)
+                {
+                    pagesToShow.addPage(fakeAdhocRegistrationsPage);
+                }
+
+                TFMFormLookupHelper::lookupOfflinePageNames(_formControl, element, pagesToShow);
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>RealFilter</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        public boolean modified()
+        {
+            boolean ret;
+    
+            ret = super();
+            pageOverviewClass.filterText(this.text());
+    
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>textChange</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void textChange()
+        {
+            super();
+            pageOverviewClass.filterText(this.text());
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>TFMDocumentTmpHandlerLookup</Name>
+			<Table>TFMDocumentTmpHandlerLookup</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<AllowEdit>No</AllowEdit>
+					<DataField>ClassName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Description</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>TFMPageDatasources</Name>
+			<Table>TFMPageDatasources</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OrderType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PageID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>showImages</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SortExpression</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SortingField</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableName</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>TFMPageOfflinePages</Name>
+			<Table>TFMPageOfflinePages</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ListID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OfflinePageID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PageID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@TFM:PageOverview</Caption>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
+		<Style xmlns="">SimpleListDetails</Style>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>OuterNavGroup</Name>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>RealFilter</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Label>@SYS2163</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>Navigation</Name>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>Group</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl>
+								<Name>QuickFilter</Name>
+								<Visible>No</Visible>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension>
+									<Name>QuickFilterControl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties>
+										<AxFormControlExtensionProperty>
+											<Name>targetControlName</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>placeholderText</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>defaultColumnName</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+									</ExtensionProperties>
+								</FormControlExtension>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>Grid</Name>
+								<AllowEdit>No</AllowEdit>
+								<Type>Grid</Type>
+								<Visible>No</Visible>
+								<WidthMode>SizeToContent</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormImageControl">
+										<Name>pageIcon</Name>
+										<Height>150</Height>
+										<HeightMode>Manual</HeightMode>
+										<Type>Image</Type>
+										<Width>150</Width>
+										<WidthMode>Manual</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>pageIcon</DataMethod>
+										<DataSource>TFMDocumentTmpHandlerLookup</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataSource>TFMDocumentTmpHandlerLookup</DataSource>
+								<MultiSelect>No</MultiSelect>
+								<ShowRowLabels>No</ShowRowLabels>
+								<Style>List</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>NewGrid</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls />
+								<HideIfEmpty>No</HideIfEmpty>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormContainerControl">
+								<Name>TFMHtmlListCtrl_1</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Container</Type>
+								<FormControlExtension>
+									<Name>TFMHtmlListCtrl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties />
+								</FormControlExtension>
+								<Controls />
+							</AxFormControl>
+						</Controls>
+						<FrameType>None</FrameType>
+						<Style>SidePanel</Style>
+					</AxFormControl>
+				</Controls>
+				<FrameType>None</FrameType>
+				<Style>SidePanel</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>DetailsHeader</Name>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+				<FrameType>None</FrameType>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>DetailsTab</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>preview</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>GroupOverview</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>GroupPreview</Name>
+										<HeightMode>SizeToAvailable</HeightMode>
+										<Type>Group</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>deviceGroup</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls />
+											</AxFormControl>
+										</Controls>
+										<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+										<Columns>2</Columns>
+										<ColumnsMode>Fill</ColumnsMode>
+									</AxFormControl>
+									<AxFormControl>
+										<Name>DevicePreview</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Height>768</Height>
+										<HeightMode>Manual</HeightMode>
+										<Width>400</Width>
+										<WidthMode>Manual</WidthMode>
+										<FormControlExtension>
+											<Name>TFMHtmlViewerCtrl</Name>
+											<ExtensionComponents />
+											<ExtensionProperties>
+												<AxFormControlExtensionProperty>
+													<Name>htmlField</Name>
+													<Type>String</Type>
+												</AxFormControlExtensionProperty>
+												<AxFormControlExtensionProperty>
+													<Name>addCopyLinkField</Name>
+													<Type>String</Type>
+												</AxFormControlExtensionProperty>
+												<AxFormControlExtensionProperty>
+													<Name>formatAsXmlField</Name>
+													<Type>String</Type>
+												</AxFormControlExtensionProperty>
+											</ExtensionProperties>
+										</FormControlExtension>
+									</AxFormControl>
+								</Controls>
+								<HideIfEmpty>No</HideIfEmpty>
+								<Breakable>No</Breakable>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>infoGroup</Name>
+								<HeightMode>Auto</HeightMode>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl>
+										<Name>PageInfo</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<HeightMode>SizeToAvailable</HeightMode>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension>
+											<Name>TFMHtmlViewerCtrl</Name>
+											<ExtensionComponents />
+											<ExtensionProperties>
+												<AxFormControlExtensionProperty>
+													<Name>htmlField</Name>
+													<Type>String</Type>
+												</AxFormControlExtensionProperty>
+												<AxFormControlExtensionProperty>
+													<Name>addCopyLinkField</Name>
+													<Type>String</Type>
+												</AxFormControlExtensionProperty>
+												<AxFormControlExtensionProperty>
+													<Name>formatAsXmlField</Name>
+													<Type>String</Type>
+												</AxFormControlExtensionProperty>
+											</ExtensionProperties>
+										</FormControlExtension>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>TileGroup</Name>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls />
+										<Columns>2</Columns>
+										<Caption>@TFM:Information</Caption>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>ActionTileGroup</Name>
+										<Type>Group</Type>
+										<Width>700</Width>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls />
+										<Columns>2</Columns>
+										<Caption>@TFM:Actions</Caption>
+									</AxFormControl>
+								</Controls>
+								<Breakable>No</Breakable>
+							</AxFormControl>
+						</Controls>
+						<Columns>2</Columns>
+						<Caption>@TFM:Overview</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>OfflinePages</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>TabPage</Type>
+						<Visible>No</Visible>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>FormActionPaneControlOfflineServices</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>FormButtonGroupControlOfflineServices</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>NewMenuItemCopy1</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>New</Command>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>DeleteMenuItemCopy1</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>DeleteRecord</Command>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+								</Controls>
+								<DataSource>TFMPageOfflinePages</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>PageMenuItemGridOfflineServices</Name>
+								<Type>Grid</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>PageItemGrid_PageID</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>OfflinePageID</DataField>
+										<DataSource>TFMPageOfflinePages</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>PageItemGrid_List</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ListID</DataField>
+										<DataSource>TFMPageOfflinePages</DataSource>
+										<LookupOnly>Yes</LookupOnly>
+										<Mandatory>Yes</Mandatory>
+									</AxFormControl>
+								</Controls>
+								<DataSource>TFMPageOfflinePages</DataSource>
+								<VisibleCols>2</VisibleCols>
+								<VisibleColsMode>Fixed</VisibleColsMode>
+							</AxFormControl>
+						</Controls>
+						<Caption>@TFM:OfflineServices</Caption>
+						<DataSource>TFMPageOfflinePages</DataSource>
+					</AxFormControl>
+				</Controls>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts>
+		<AxFormPartReference xmlns="">
+			<Name>HelpPart</Name>
+			<MenuItemName>TFMHelpPart</MenuItemName>
+		</AxFormPartReference>
+	</Parts>
+</AxForm>

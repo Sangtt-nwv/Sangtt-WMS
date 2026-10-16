@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentParametersEdit</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDocumentParametersEdit
+{
+    ClassName						currentClass;
+    FormGroupControl				parmsGroup;
+    FormWindowControl				prevsender;
+    Map                             controlName2ClassName;
+    Map								controlName2Class;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(FormGroupControl				_parmsGroup)
+    {
+        parmsGroup = _parmsGroup;
+        controlName2Class = new Map(Types::String, Types::Class);
+        controlName2ClassName = new Map(Types::String, Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateGroupWithDocParms</Name>
+				<Source><![CDATA[
+    public ClassName populateGroupWithDocParms(ClassId _classId, FormGroupControl _fgc, Name _groupingNameOverride = '', boolean _retainControls = false, Object _classInstance = null)
+    {
+        int								i, j;
+        DictMethod						DM;
+        TFMParameterAttribute			parmAttr;
+        Array							array;
+        Map								otherGroups = new Map(Types::String, Types::Class);
+        FormGroupControl				subGrp;
+        FormControl						fc;
+        SetEnumerator                   sEnum = TFMFormLookupHelper::parmMethodsOnClass(_classId,false, Types::Class).getEnumerator();
+        SysDictClass                    sDC = new SysDictClass(_classId);
+        
+        while (_fgc.controlCount() && !_retainControls)
+        {
+            _fgc.formRun().design().removeControl(_fgc.controlNum(1).id());
+            controlName2Class = new Map(Types::String, Types::Class);
+            controlName2ClassName = new Map(Types::String, Types::String);
+		}
+        
+        currentClass = classId2Name(_classId);
+        i = 0;
+        
+        while (sEnum.moveNext())
+        {
+            i++;
+
+            DM = sEnum.current();
+            array = DM.getAttributes(classstr(TFMParameterAttribute));
+            if (array != null)
+            {
+                for (j = 1; j <= array.lastIndex(); j++)
+                {
+                    parmAttr = array.value(j);
+                        
+                    if (parmAttr.parmGroupString() == "@SYS315099" && _groupingNameOverride)
+                    {
+                        parmAttr.parmGroupString(_groupingNameOverride);
+                    }
+
+                    if (parmAttr.parmGroupString() && otherGroups.exists(parmAttr.parmGroupString()+ '_group'))
+                    {
+                        subGrp = otherGroups.lookup(parmAttr.parmGroupString()+ '_group');
+                    }
+                    else if (parmAttr.parmGroupString() && !otherGroups.exists(parmAttr.parmGroupString()))
+                    {
+                        subGrp = _fgc.addControl(FormControlType::Group,strKeep(parmAttr.parmGroupString(),'abcdefghijklmnopqrstuvwxyz') + int2Str(i) + '_group');
+                        subGrp.arrangeMethod(FormArrangeMethod::Vertical);
+                        subGrp.caption(parmAttr.parmGroupString());
+                        subGrp.breakable(false);
+                        subGrp.extendedStyle('group_Container');
+                        
+                        otherGroups.insert(parmAttr.parmGroupString()+ '_group',subGrp);
+                    }
+                    else 
+                    {
+                        subGrp = _fgc;
+                    }
+
+                    
+                    fc = this.type2FormControl(subGrp, DM.returnType(), DM.returnId(),DM.name(), _classInstance ? sDC.callObject(DM.name(),_classInstance) : parmAttr.parmDefaultValue(),parmAttr.parmLabelString(),parmAttr.parmHelpText());
+
+                    controlName2Class.insert(fc.name(),fc);
+                    controlName2ClassName.insert(fc.name(),currentClass);
+                }
+            }
+        }
+        
+        return currentClass;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getValue</Name>
+				<Source><![CDATA[
+    protected anytype getValue(ClassName _domain, MethodName _key)
+    {
+        return TFMDocumentParameters::getValue(_domain,_key);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>valueExists</Name>
+				<Source><![CDATA[
+    protected boolean valueExists(ClassName _domain, MethodName _key)
+    {
+        return TFMDocumentParameters::exists(_domain,_key);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>type2FormControl</Name>
+				<Source><![CDATA[
+    public FormControl type2FormControl(FormGroupControl _fgc, Types _baseType, ExtendedTypeId _edtId, MethodName _methodName, anytype _defaultValue = null, labelString _labelStringOverride = '', HelpTxt _helpTextOverride = '')
+    {
+        FormStringControl           formStringControl;
+        FormInt64Control            formInt64Control;
+        FormIntControl              formIntControl;
+        FormComboBoxControl         formComboBoxControl;
+        FormCheckBoxControl         formCheckBoxControl;
+        FormTimeControl             formTimeControl;
+        FormDateControl             formDateControl;
+        FormGuidControl             formGuidControl;
+        FormDateTimeControl         formDateTimeControl;
+        FormRealControl             formRealControl;
+        FormSegmentedEntryControl   formSegmentedEntryControl;
+        FormReferenceGroupControl   formReferenceGroupControl;
+        FormControl                 retControl;
+        SysDictType                 sdt = new SysDictType(_edtId);
+        str							isModified = this.valueExists(currentClass,_methodName) ? '('+"@SYS27395"+')' : '';
+        
+        switch(sdt ? sdt.baseType() : _baseType)
+        {
+            case Types::String:
+            case Types::RString:
+            case Types::VarString:
+                formStringControl = _fgc.addControl(FormControlType::String,_methodName);
+                formStringControl.extendedDataType(_edtId);
+                formStringControl.label((_labelStringOverride ? _labelStringOverride : sdt.label()) + isModified);
+                
+                formStringControl.displayHeightMode(0);
+                formStringControl.displayHeightValue(1);
+                formStringControl.text(_defaultValue == null || isModified? this.getValue(currentClass,_methodName) : _defaultValue);
+                formStringControl.registerOverrideMethod(methodstr(formStringControl, modified),methodstr(TFMDocumentParametersEdit, control_modified),this);
+                
+                retControl = formStringControl;
+                break;
+
+            case Types::Integer:
+
+                if (Global::isTypeTime(extendedTypeId2name(_edtId)))
+                {
+                    formTimeControl = _fgc.addControl(FormControlType::Time,_methodName);
+                    formTimeControl.extendedDataType(_edtId);
+                    formTimeControl.value(_defaultValue == null || isModified? this.getValue(currentClass,_methodName) : _defaultValue);
+                    formTimeControl.label((_labelStringOverride ? _labelStringOverride : sdt.label()) + isModified);
+                    formTimeControl.registerOverrideMethod(methodstr(FormTimeControl, modified),methodstr(TFMDocumentParametersEdit, control_modified),this);
+
+                    retControl = formTimeControl;
+                }
+                else
+                {
+                    formIntControl = _fgc.addControl(FormControlType::Integer,_methodName);
+                    formIntControl.extendedDataType(_edtId);
+                    formIntControl.value(_defaultValue == null || isModified? this.getValue(currentClass,_methodName) : _defaultValue);
+                    formIntControl.label((_labelStringOverride ? _labelStringOverride : sdt.label()) + isModified);
+                    formIntControl.registerOverrideMethod(methodstr(formIntControl, modified),methodstr(TFMDocumentParametersEdit, control_modified),this);
+
+                    retControl = formIntControl;
+                }
+                break;
+
+            case Types::Int64:
+                // Reference Controls are created by default for surrogate foreign keys. However, the raw 64-bit
+                // integer should always be displayed. Force all Int64 type fields to use an Int64 Control.
+                retControl = _fgc.addControl(FormControlType::Int64,_methodName);
+
+                formInt64Control = retControl as formInt64Control;
+                if (formInt64Control != null)
+                {
+                    formInt64Control.extendedDataType(_edtId);
+                    formInt64Control.label((_labelStringOverride ? _labelStringOverride : sdt.label()) + isModified);
+                    formInt64Control.value(_defaultValue == null || isModified? this.getValue(currentClass,_methodName) : _defaultValue);
+                    formInt64Control.registerOverrideMethod(methodstr(formInt64Control, modified),methodstr(TFMDocumentParametersEdit, control_modified),this);
+                    retControl = formInt64Control;
+                }
+                else
+                {
+                    formReferenceGroupControl = retControl as FormReferenceGroupControl;
+                    if (formReferenceGroupControl != null)
+                    {
+                        formReferenceGroupControl.extendedDataType(_edtId);
+                        formReferenceGroupControl.label((_labelStringOverride ? _labelStringOverride : sdt.label()) + isModified);
+                        retControl = formReferenceGroupControl;
+                    }
+                    else
+                    {
+                        formSegmentedEntryControl = retControl as formSegmentedEntryControl;
+                        if (formSegmentedEntryControl != null)
+                        {
+                            formSegmentedEntryControl.extendedDataType(_edtId);
+                            formSegmentedEntryControl.label((_labelStringOverride ? _labelStringOverride : sdt.label()) + isModified);
+                            retControl = formSegmentedEntryControl;
+                        }
+                    }
+                }
+
+                break;
+
+            case Types::Enum:
+                if (sdt.enumId() == enumNum(NoYes))
+                {
+                    formCheckBoxControl = _fgc.addControl(FormControlType::CheckBox,_methodName);
+                    
+                    formCheckBoxControl.label((_labelStringOverride ? _labelStringOverride : sdt.label()) + isModified);
+                    formCheckBoxControl.checked(_defaultValue == null || isModified? this.getValue(currentClass,_methodName) : _defaultValue);
+                    formCheckBoxControl.registerOverrideMethod(methodstr(formCheckBoxControl, modified),methodstr(TFMDocumentParametersEdit, control_modified),this);
+                    retControl = formCheckBoxControl;
+                }
+                else
+                {
+                    formComboBoxControl = _fgc.addControl(FormControlType::ComboBox, _methodName);
+                    formComboBoxControl.extendedDataType(_edtId);
+                    formComboBoxControl.label((_labelStringOverride ? _labelStringOverride : sdt.label()) + isModified);
+                    formComboBoxControl.selection(_defaultValue == null || isModified? this.getValue(currentClass,_methodName) : _defaultValue);
+                    formComboBoxControl.registerOverrideMethod(methodstr(formComboBoxControl, modified),methodstr(TFMDocumentParametersEdit, control_EnumModified),this);
+                    retControl = formComboBoxControl;
+                }
+                
+                break;
+
+            case Types::Real:
+                formRealControl = _fgc.addControl(FormControlType::Real, _methodName);
+                formRealControl.extendedDataType(_edtId);
+                formRealControl.label((_labelStringOverride ? _labelStringOverride : sdt.label()) + isModified);
+                formRealControl.registerOverrideMethod(methodstr(formRealControl, modified),methodstr(TFMDocumentParametersEdit, control_modified),this);
+                retControl = formRealControl;
+                
+                break;
+
+            case Types::Guid:
+                formGuidControl = _fgc.addControl(FormControlType::Guid, _methodName);
+                formGuidControl.extendedDataType(_edtId);
+                formGuidControl.label((_labelStringOverride ? _labelStringOverride : sdt.label()) + isModified);
+                retControl = formGuidControl;
+
+                break;
+
+            case Types::Date:
+                formDateControl = _fgc.addControl(FormControlType::Date, _methodName);
+                formDateControl.extendedDataType(_edtId);
+                formDateControl.label((_labelStringOverride ? _labelStringOverride : sdt.label()) + isModified);
+                formDateControl.registerOverrideMethod(methodstr(formDateControl, modified),methodstr(TFMDocumentParametersEdit, control_modified),this);
+                retControl = formDateControl;
+                break;
+
+            case Types::UtcDateTime:
+                formDateTimeControl = _fgc.addControl(FormControlType::DateTime, _methodName);
+                formDateTimeControl.extendedDataType(_edtId);
+                formDateTimeControl.label((_labelStringOverride ? _labelStringOverride : sdt.label()) + isModified);
+                retControl = formDateTimeControl;
+
+                break;
+
+            case Types::Record :
+                formStringControl = _fgc.addControl(FormControlType::String,_methodName);
+                formStringControl.extendedDataType(extendedTypeNum(TableName));
+                formStringControl.label((_labelStringOverride ? _labelStringOverride : sdt.label()) + isModified);
+                
+                formStringControl.displayHeightMode(0);
+                formStringControl.displayHeightValue(1);
+                
+                retControl = formStringControl;
+                break;
+        }
+        if (retControl)
+        {
+            retControl.helpText(_helpTextOverride ? _helpTextOverride : (sdt ? sdt.help() : ''));
+        }
+        return retControl;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_modified</Name>
+				<Source><![CDATA[
+    public boolean control_modified(FormControl _control)
+    {
+        MethodName              callMethod = SysTest::hasMethod(_control,methodStr(FormCheckBoxControl, value)) ? methodStr(FormCheckBoxControl, value) : methodStr(FormControl, valueStr);
+        TFMDocumentParameters::CreateOrUpdateParameter(currentClass, _control.name(), new SysDictClass(classIdGet(_control)).callObject(callMethod,_control));
+        
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_EnumModified</Name>
+				<Source><![CDATA[
+    public boolean control_EnumModified(FormComboBoxControl _control)
+    {
+        MethodName              callMethod = SysTest::hasMethod(_control,methodStr(FormCheckBoxControl, value)) ? methodStr(FormCheckBoxControl, value) : methodStr(FormControl, valueStr);
+        str						value = new SysDictClass(classIdGet(_control)).callObject(callMethod,_control);
+        TFMDocumentParameters::CreateOrUpdateParameter(currentClass, _control.name(), TFMDocCustomFunctionFlow::ConvertToType(value,Types::Enum,enumId2Name(_control.enumTypeValue())));
+        TFMPagesProvider::updateVersion();
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showDocumentParametersTiles</Name>
+				<Source><![CDATA[
+    public void showDocumentParametersTiles(FormGroupControl _fgc)
+    {
+        DictClass                       dc = new DictClass(className2Id(classStr(TFMDocumentHandler)));
+        DictClass                       subClass;
+        TFMDocumentHandler              docHand;
+        List                            extendingClasses = dc.extendedBy(true);
+        ListEnumerator                  lEnum = extendingClasses.getEnumerator();
+        DictMethod						DM;
+        TFMParameterAttribute			parmAttr;
+        Array							array;
+        int								i, j;
+        boolean							foundParm;
+        FormWindowControl				fwc;
+        Map								foundDocs = new Map(Types::String, Types::Class);
+        MapEnumerator					mEnum;
+        while (lEnum.moveNext())
+        {
+            subClass = new DictClass(lEnum.current());
+            if (subClass == null || subClass.isAbstract())
+            {
+                continue;
+            }
+            docHand = subClass.makeObject() as TFMDocumentHandler;
+            foundParm = false;
+            for (i = 1; i <= subClass.objectMethodCnt() && !foundParm; i++)
+            {
+                DM = subClass.objectMethodObject(i);
+                array = DM.getAttributes(classstr(TFMParameterAttribute));
+                if (array != null)
+                {
+                    for (j = 1; j <= array.lastIndex(); j++)
+                    {
+                        parmAttr = array.value(j);
+                        foundParm = true;
+                        
+                    }
+                }
+            }
+            if (foundParm)
+            {
+                foundDocs.insert(docHand.description(),docHand);
+
+            }
+            
+        }
+        foundParm = false;
+        mEnum = foundDocs.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            docHand = mEnum.currentValue();
+            fwc = _fgc.addControl(FormControlType::Image, classId2Name(classIdGet(docHand)));
+            
+            fwc.imageLocation(1);
+            fwc.label(docHand.description());
+            fwc.labelPosition(5);
+            fwc.imagemode(1);
+            fwc.helpText(classId2Name(classIdGet(docHand)));
+            fwc.normalImage(docHand.getIcon());
+            fwc.widthMode(-1);
+            fwc.widthValue(75);
+            fwc.heightMode(-1);
+            fwc.heightValue(75);
+            fwc.registerOverrideMethod(methodStr(FormWindowControl,clicked ),methodStr(TFMDocumentParametersEdit,windowClickOverride ), this);
+            if (!foundParm)
+            {
+                this.windowClickOverride(fwc);
+            }
+            foundParm = true;
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>windowClickOverride</Name>
+				<Source><![CDATA[
+    public void windowClickOverride(FormWindowControl _sender)
+    {
+        FormTabPageControl tpc = parmsGroup.parentControl();
+        parmsGroup.caption(_sender.label());
+        tpc.caption(_sender.label());
+  
+        if (prevsender != null)
+        {
+            prevsender.heightValue(75);
+            prevsender.widthValue(75);
+        }
+        _sender.heightValue(95);
+        _sender.widthValue(95);
+        this.populateGroupWithDocParms(className2Id(_sender.name()),parmsGroup);
+        prevsender = _sender;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

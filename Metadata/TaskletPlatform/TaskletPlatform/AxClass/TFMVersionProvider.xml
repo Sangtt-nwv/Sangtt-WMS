@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMVersionProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMVersionProvider extends xApplication
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getCurrentVersion</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The version provider delivers the version number used in the application configuration file.
+    /// </summary>
+    /// <returns></returns>
+    public static str getCurrentVersion()
+    {
+        TFMVersionProvider versionProvider = new TFMVersionProvider();
+        return versionProvider.getBaseVersionID() + '_' + TFMDocLocalization::getUserLanguage() + '_' + versionProvider.getProviderVersions();  
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBaseVersionID</Name>
+				<Source><![CDATA[
+    public str getBaseVersionID()
+    {
+        System.Collections.IDictionary appWideDictionary = this.inMemoryDictionary();
+        str verIdStr = this.getBaseVersionStrKey();
+        if(!appWideDictionary.Contains(verIdStr))
+        {
+            appWideDictionary.set_Item(verIdStr, this.getBaseVersionValue());
+        }
+        return appWideDictionary.get_Item(verIdStr);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>reset</Name>
+				<Source><![CDATA[
+	public static void reset()
+    {
+        new TFMVersionProvider().resetBaseVersion();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resetBaseVersion</Name>
+				<Source><![CDATA[
+	public void resetBaseVersion()
+    {
+        System.Collections.IDictionary appWideDictionary = this.inMemoryDictionary();
+        str verIdStr = this.getBaseVersionStrKey();
+        appWideDictionary.set_Item(verIdStr, this.getBaseVersionValue());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBaseVersionStrKey</Name>
+				<Source><![CDATA[
+    protected str getBaseVersionStrKey()
+    {
+        return resourceStr(TaskletFactory) + strLwr(curExt());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBaseVersionValue</Name>
+				<Source><![CDATA[
+    protected str getBaseVersionValue()
+    {
+        return strKeep(System.String::Format('{0:s}', DateTimeUtil::utcNow()),'1234567890') + strLwr(curExt());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProviderVersions</Name>
+				<Source><![CDATA[
+    public str getProviderVersions()
+    {
+        SetEnumerator   providerClasses = TFMProvider::getProviders(true).getEnumerator(); //only receive the once that has an instance method so if a provider needs to contribute it most have an instance method.
+        str             providerVersions;
+        TFMProvider     provider;
+        str             pVersion;
+
+        while (providerClasses.moveNext())
+        {
+            provider = providerClasses.current();
+            pVersion = provider.version();
+            if(pVersion)
+            {
+                providerVersions += '.' + pVersion;
+            }
+        }
+
+        return providerVersions;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

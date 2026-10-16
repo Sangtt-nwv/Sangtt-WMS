@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMImportSetup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMImportSetup
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        XML             filexml;
+        str             filename;
+        #tfm
+        #ifnot.isAX6
+        FileUploadTemporaryStorageResult result = File::GetFileFromUser(classStr(FileUploadTemporaryStorageStrategy));
+        if (result && result.getUploadStatus())
+        {
+            using(System.IO.MemoryStream stream = result.openResult() as System.IO.MemoryStream)
+            {
+                using(System.IO.StreamReader sreader = new System.IO.StreamReader(stream, System.Text.Encoding::UTF8, true))
+                {
+                    filexml = sreader.ReadToEnd();
+                    filename = result.getFileName();
+                }
+            }
+        }
+        #endif
+
+        #if.isAX6
+        Dialog          dialog;
+        DialogField     dialogFilename;
+        DialogField     dialogDelete;
+        //To filter the files while selecting
+        container      conFilter = ["@TFM:TaskletFactoryExportFormat" ,'*.tfe'];
+        System.IO.StreamReader  reader;
+        System.String           line;
+        InteropPermission       interopPermission;
+   
+        interopPermission = new InteropPermission(InteropKind::ClrInterop);
+        interopPermission.assert();
+        
+        dialog = new dialog();
+        dialogDelete = dialog.addField(extendedTypeStr(TFMReleasedToMobile));
+        dialog.caption("@SYS133030");
+        dialogFilename = dialog.addField(extendedTypeStr(FilenameOpen));
+        //To filter the files while selecting
+        dialog.filenameLookupFilter(conFilter);
+        
+        
+        dialog.run();
+
+        if(dialog.closedOk())
+        {
+            filename = dialogFileName.value();
+            reader = new System.IO.StreamReader(filename, System.Text.Encoding::get_UTF8());
+            filexml = reader.ReadToEnd();
+            reader.Close();
+            reader.Dispose();
+        }
+        else
+        {
+            return;
+        }
+        
+        #endif
+        
+        TFMImportSetup::importFromText(filexml);
+        TFMProvider::invalidateProviders();        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>importFromText</Name>
+				<Source><![CDATA[
+    public static void importFromText(str _filexml, boolean _deletePreviousRecords = true)
+    {
+        XML             tableXML;
+        Common          currentTable;
+        str             TableName;
+        Set             tables = new Set(Types::String);
+        SetEnumerator   sEnum;
+        int             currentPos = 0;
+        int             endPos = 0;
+        Map             retRecIds = new Map(Types::String, Types::Int64);
+            
+        currentPos  = strScan(_filexml,'<Table:Record',currentPos,strlen(_filexml)-currentPos);
+        endPos      = strScan(_filexml,'</Table:Record',currentPos+1,strlen(_filexml)-currentPos);
+        ttsbegin;
+        
+        while (currentPos)
+        {
+            tableXML  = substr(_filexml,currentPos,endPos-currentPos+15);
+            tableName   = subStr(tableXML,21,strScan(subStr(tableXML,21,50),'"',1,50)-1);
+            if (!tables.in(tableName))
+            {
+                currentTable = new SysDictTable(tableName2Id(tableName)).makeRecord();
+                if (_deletePreviousRecords)
+                {
+                    delete_from currentTable;
+                }
+                tables.add(tableName);
+            }
+            retRecIds = TFMImportSetup::putIntoTable(tableXML,retRecIds);
+            
+            currentPos  = strScan(_filexml,'<Table:Record',currentPos+1,strlen(_filexml)-currentPos);
+            endPos      = strScan(_filexml,'</Table:Record',currentPos+1,strlen(_filexml)-currentPos);
+        
+        }
+        
+        sEnum = tables.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            TFMImportSetup::replaceKeysInTable(sEnum.current(),retRecIds);
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>replaceKeysInTable</Name>
+				<Source><![CDATA[
+    public static void replaceKeysInTable(TableName _tableName, Map _recIds)
+    {
+        DictTable       dt          = new DictTable(tableName2id(_tableName));
+        dictField       df;
+        //DictRelation    dr;
+        DictType        dType;
+        common          common      = dt.makeRecord();
+        str             mapKey;
+        int         fieldCount  = dt.fieldCnt();
+        int         fieldNo     = 0;
+        ttsbegin;
+        while select forupdate common
+        {
+            for (fieldNo = 0; fieldNo <= fieldCount; fieldNo++)
+            {
+                df = new DictField(tableName2Id(_tableName),dt.fieldCnt2Id(fieldNo));
+                if (df.typeId() && new DictType(df.typeId()).extend() == extendedTypeNum(RefRecId))
+                {
+                    dType = new DictType(df.typeId());
+                    str tableLookup = dType.lookupTable();
+                    //dr = dType.getLookupRelation();
+                    mapKey = tableLookup + ';' + int642Str(common.(dt.fieldCnt2Id(fieldNo)));
+
+                    common.(dt.fieldCnt2Id(fieldNo)) = _recIds.exists(mapKey) ? _recIds.lookup(mapKey) : common.(dt.fieldCnt2Id(fieldNo));
+                }
+            }
+            common.doupdate();
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>putIntoTable</Name>
+				<Source><![CDATA[
+    public static Map putIntoTable(XML _xml, Map _recIds)        
+    {
+        XmlDocument     xmlDoc;
+        XmlNode         currentNode;
+        
+        str             xmlVal, fieldName;
+        TableName       tableName   = subStr(_xml,21,strScan(subStr(_xml,21,50),'"',1,50)-1);
+        int             startPos    = 20, endPos;
+        DictTable       dt          = new DictTable(tableName2id(tableName));
+        dictField       df;
+        common          common      = dt.makeRecord();
+        Map             recIDs      = _recIds;
+        Map             classIds    = new Map(Types::String,Types::Int64);
+        MapEnumerator   mEnum;
+        str             oldRecId;
+        
+        xmlDoc = new XmlDocument ();
+        xmlDoc.LoadXml(_xml);
+        
+        currentNode = xmlDoc.firstChild();
+        
+        currentNode = currentNode.firstChild();
+        while (currentNode)        
+        {
+            xmlval = currentNode.xml();
+            xmlVal = subStr(xmlVal,startPos,50);
+            endPos = strScan(xmlVal,'"',1,50);
+            fieldName = subStr(xmlVal,1,endPos-1);
+            df = new DictField(common.TableId,dt.fieldName2Id(fieldName));
+            
+            if (df == null || (df.isSystem() && fieldName != 'RecId'))
+            {
+                if (strScan(fieldName,'AOTName',1, strLen(fieldName)))
+                {
+                    fieldName = subStr(fieldName,1,strScan(fieldName,'AOTName',1, strLen(fieldName))-1);
+                    df = new DictField(common.TableId,dt.fieldName2Id(fieldName));
+                    if (df != null && df.typeId() && (new DictType(df.typeId()).extend() == extendedTypeNum(ClassId) || df.typeId() == extendedTypeNum(ClassId)))
+                    {
+                        classIds.insert(fieldName,className2Id(currentNode.innerText()));
+                    }
+                }
+                currentNode = currentNode.nextSibling();
+                continue;                
+            }
+            
+            xmlVal = currentNode.innerText();
+                             
+            if (fieldName != 'RecId')
+            {
+                common.(dt.fieldName2Id(fieldName)) = TFMImportSetup::convert(xmlVal,typeof(common.(dt.fieldName2Id(fieldName))));
+            }
+            else
+            {
+                oldRecId = xmlVal;
+            }
+            
+            currentNode = currentNode.nextSibling();
+            
+        }
+        mEnum = classIds.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            df = new DictField(common.TableId,dt.fieldName2Id(mEnum.currentKey()));
+            common.(dt.fieldName2Id(mEnum.currentKey())) = mEnum.currentValue();
+
+        }
+        
+        try
+        {
+            common.doInsert();
+            recIDs.insert(tableNAme + ';' + oldRecId,common.RecId);
+        }
+        catch (Exception::DuplicateKeyException)
+        {
+            //clears the last infolog message, which is created by trying to insert a duplicate key message
+            infolog.clear(Global::infologLine() - 1);
+        }
+
+        return recIDs;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convert</Name>
+				<Source><![CDATA[
+    public static anytype convert(str _value, Types _type)
+    {
+        switch(_type)
+        {
+            case Types::Int64:
+            case Types::Integer:
+            case Types::Enum:
+                return str2int64(_value);
+            case Types::Date:
+                return str2DAte(_value,123);
+            case Types::Guid:
+                return str2guid(_value);
+            case Types::Real:
+                return str2num(_value);
+            case Types::RString:
+            case Types::String:
+            case Types::VarString:
+                return _value;
+            case Types::Time:
+                return str2time(_value);
+            case Types::UtcDateTime:
+            return str2datetime(_value,321);            
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

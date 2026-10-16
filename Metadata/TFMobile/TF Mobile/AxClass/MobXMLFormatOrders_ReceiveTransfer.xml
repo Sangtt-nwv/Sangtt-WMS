@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_ReceiveTransfer</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for Receive Transfer orders.
+/// </summary>
+[TFMTableNameAttribute(tableStr(InventTransferTable),staticMethodStr(MobConstants,Receive))]
+class MobXMLFormatOrders_ReceiveTransfer extends MobXMLFormatOrders_Receive
+{
+    InventTransferTable inventTransferTable;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        inventTransferTable     = common;
+        
+        displayLine1            = strfmt('%1: %2',new DictField(tablenum(InventTransferTable), fieldnum(InventTransferTable, TransferId)).Label(),inventTransferTable.TransferId);
+        displayLine2            = strfmt('%1: %2 (%3)', "@SYS25253", InventLocation::find(inventTransferTable.InventLocationIdFrom).Name,inventTransferTable.InventLocationIdFrom);
+        displayLine3            = strfmt('%1: %2',new DictField(tablenum(InventTransferTable), fieldnum(InventTransferTable, ReceiveDate)).Label(),inventTransferTable.ReceiveDate);
+        headerLabel1            = new DictField(tablenum(InventTransferTable), fieldnum(InventTransferTable, TransferId)).Label();
+        headerLabel2            = substr(strfmt('%1 > %2',
+                                                new DictField(tablenum(InventTransferTable), fieldnum(InventTransferTable, InventLocationIdFrom)).label(),
+                                                new DictField(tablenum(InventTransferTable), fieldnum(InventTransferTable, InventLocationIdTo)).label()), 1, 20) ;
+        headerValue1            = inventTransferTable.TransferId;
+        headerValue2            = displayLine1;
+        sorting                 = strKeep(date2Str(DateTimeUtil::date(inventTransferTable.CreatedDateTime),321,2,0,2,0,2),'1234567890');
+
+        super();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

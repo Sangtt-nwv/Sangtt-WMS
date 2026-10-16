@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_PickTransfer</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+#mob
+/// <summary>
+/// XML Formatter class for picking Transfer order lines.
+/// </summary>
+[TFMTableNameAttribute(tableStr(InventTransferLine),staticMethodStr(MobConstants,Pick))]
+public class MobXMLFormatOrderLines_PickTransfer extends MobXMLFormatOrderLines_Pick
+{
+    InventTransferLine inventTransferLine;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        Set				nums = new Set(Types::Integer);
+		
+        super();
+        
+        inventTransferLine  = common;
+        inventDim       = inventTransferLine.inventDim();
+    
+        this.setInventDim(inventTransferLine.ItemId);
+    
+        orderBackendId          = MobOrder::constructFromTableName(tableStr(InventTransferTable),MobConstants::Pick()).getBackendID(InventTransferTable::find(inventTransferLine.TransferId));//#PickTransferOrderPrefix + inventTransferLine.TransferId;
+        lineNumber              = inventTransferLine.InventTransId;
+        itemNumber              = inventTransferLine.ItemId;
+        description             = InventTable::find(inventTransferLine.itemId).productName(new xInfo().language());
+        unitOfMeasure           = inventTransferLine.UnitId;
+        quantity                = MobHelper::formatItemQty(inventTransferLine.QtyRemainShip, unitOfMeasure);
+        registeredQuantity      = MobConstants::NotUsed0(); //Not used at the moment - always set this value to 0
+        status                  = MobConstants::NotUsed0(); //Not used at the moment - always set this value to 0
+        displayLine1            = new DictField(tablenum(InventJournalTrans), fieldnum(InventJournalTrans, ItemId)).Label() + ': ' + inventTransferLine.ItemId;
+        displayLine2            = InventTable::find(inventTransferLine.itemId).productName(new xInfo().language());
+        displayLine3            = new DictField(tablenum(WmsLocation), fieldnum(WmsLocation, WmsLocationId)).Label() + ': ' +inventDim.wMSLocationId;
+        #if.isAX6
+        displayLine3            = (inventDim.wMSPalletId ? inventDim.wMSPalletId + '@' : '') + inventDim.wMSLocationId;
+        #endif
+        underDeliveryValidation = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation), InventParameters::find().InventTransferUnderDelivery ? TFMUnderDeliveryValidation::None : TFMUnderDeliveryValidation::Block);
+        overDeliveryValidation  = MobHelper::enumName(enumnum(TFMOverDeliveryValidation), InventParameters::find().InventTransferOverDelivery ? TFMOverDeliveryValidation::None : TFMOverDeliveryValidation::Block);
+        
+        sorting = int2Str(inventDim.wmsLocation().sortCode);
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

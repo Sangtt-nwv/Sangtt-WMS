@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDataInputEnabledInterface</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+interface TFMDataInputEnabledInterface
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmInputData</Name>
+				<Source><![CDATA[
+    public TableName parmInputData(TableName _inputData)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getData</Name>
+				<Source><![CDATA[
+    public Common getData(TFMRequestElement _request)
+    {
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

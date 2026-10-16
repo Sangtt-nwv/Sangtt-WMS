@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_PickProd</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for picking production orders.
+/// </summary>
+[TFMTableNameAttribute(tableStr(ProdJournalTable))]
+class MobXMLFormatOrders_PickProd extends MobXMLFormatOrders_Pick
+{
+    ProdJournalTable   prodJournalTable;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        ProdJournalBOM   prodJournalBom;
+        super();
+    
+        prodJournalTable        = common;
+        select firstonly prodJournalBom order by TransDate asc where prodJournalBom.JournalId == prodJournalTable.JournalId;
+        displayLine1            = new DictField(tablenum(ProdJournalTable), fieldnum(ProdJournalTable, JournalId)).Label() + ': ' + prodJournalTable.JournalId;
+        displayLine2            = new DictField(tablenum(ProdTable), fieldnum(ProdTable, prodId)).Label() + ': ' + prodJournalTable.prodId;
+        displayLine3            = new DictField(tablenum(ProdTable), fieldnum(ProdTable, ItemId)).Label() + ': ' + ProdTable::find(prodJournalTable.prodId).ItemId;
+        displayLine4            = new DictField(tablenum(prodJournalBom), fieldnum(prodJournalBom, TransDate)).Label() + ': ' + strfmt('%1', prodJournalBom.TransDate);
+        displayLine5            = "@SYS319915" + ': ' + ProdTable::find(prodJournalTable.prodId).inventTable().itemName();
+        headerLabel1            = new DictField(tablenum(ProdJournalTable), fieldnum(ProdJournalTable, JournalId)).Label();
+        headerLabel2            = new DictField(tablenum(ProdTable), fieldnum(ProdTable, prodId)).Label();
+        headerValue1            = prodJournalTable.JournalId;
+        headerValue2            = prodJournalTable.prodId;
+
+        select firstonly prodJournalBom order by TransDate asc where prodJournalBom.JournalId == prodJournalTable.JournalId;
+
+        sorting                 = strKeep(date2Str(prodJournalBom.TransDate,321,2,0,2,0,2),'1234567890');
+
+        if (MenuItemsConf.exists('CartOverview') && MobCarts::FindByReference(prodJournalTable.JournalId) )
+        {
+            MenuItemsConf.remove('CartOverview');
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

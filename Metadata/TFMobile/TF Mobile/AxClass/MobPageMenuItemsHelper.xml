@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobPageMenuItemsHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobPageMenuItemsHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addMenuItemsToXML</Name>
+				<Source><![CDATA[
+    public static XmlElement addMenuItemsToXML(TFMPage _page, TFMPages _pages, XmlElement _pageElement, str _configurationPageTypeName)
+    {
+        return TFMPageMenuItemsHelper::addMenuItemsToXML(_page, _pages, _pageElement, _configurationPageTypeName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addActionToXml</Name>
+				<Source><![CDATA[
+    public static void addActionToXml(XmlElement _actionsNode, TFMPageMenuItems  _menuItemsTable, TFMPages _pages, boolean _dataMemberControlled, int _placement, str _elementName = 'open', boolean _secretMenuItem = false)
+    {
+        TFMPageMenuItemsHelper::addActionToXml(_actionsNode, _menuItemsTable, _pages, _dataMemberControlled, _placement, _elementName, _secretMenuItem );
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findElementForPageSpecificMenuItem</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds the menu item in the XSD documentation
+    /// </summary>
+    public static XmlElement findElementForPageSpecificMenuItem(XmlElement _pageElement, str _nodeName, str _configurationPageTypeName)
+    {
+        return TFMPageMenuItemsHelper::findElementForPageSpecificMenuItem(_pageElement, _nodeName, _configurationPageTypeName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setMenuItemsAttributesValues</Name>
+				<Source><![CDATA[
+    public static void setMenuItemsAttributesValues(TFMPageMenuItems _menuItemsTable, boolean _dataMemberControlled, str _placementStr, XmlElement _menuItemNode, str _title)
+    {
+        TFMPageMenuItemsHelper::setMenuItemsAttributesValues(_menuItemsTable, _dataMemberControlled, _placementStr, _menuItemNode, _title);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isMenuItemElement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks if the xsd field is a menu item element. This is already in the grid so no need to add them again.
+    /// </summary>
+    /// <returns></returns>
+    public static boolean isMenuItemElement(str _nodeName)
+    {
+        return TFMPageMenuItemsHelper::isMenuItemElement(_nodeName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>excludedAttributeNames</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks if the xsd field is a menu item element. This is already in the grid so no need to add them again.
+    /// </summary>
+    /// <returns></returns>
+    public static boolean excludedAttributeNames(str _attributeName)
+    {
+        return TFMPageMenuItemsHelper::excludedAttributeNames(_attributeName);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getNumberOfPromotedItems</Name>
+				<Source><![CDATA[
+    public static int getNumberOfPromotedItems(TFMPage _page)
+    {
+        return TFMPageMenuItemsHelper::getNumberOfPromotedItems(_page);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

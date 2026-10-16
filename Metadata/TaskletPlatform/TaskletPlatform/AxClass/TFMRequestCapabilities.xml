@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestCapabilities</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Microsoft.Dynamics.ApplicationPlatform.Environment;
+[TFMDocumentType('capabilities')]
+class TFMRequestCapabilities extends TFMRequestElement
+{
+    str installer;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmInstaller</Name>
+				<Source><![CDATA[
+    public str parmInstaller(str _installer = installer)
+    {
+        str baseUrl = EnvironmentFactory::GetApplicationEnvironment().Infrastructure.HostUrl;
+        installer = _installer;
+
+        if (!this.checkLicenseMatchEnvironmentCombinationAllowed(installer, baseUrl))
+        {
+            throw Error("@TFM:Thisdemodeviceisonlyallowedinsan");
+        }
+        return installer;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkLicenseMatchEnvironmentCombinationAllowed</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to check whether the device is allowed in the current environment
+    /// </summary>
+    /// <param name = "_installer">Installer Name</param>
+    /// <param name = "_hostURL">Url of the current environment</param>
+    /// <returns>true, if combination is allwoed, otherwise false</returns>
+    public boolean checkLicenseMatchEnvironmentCombinationAllowed(str _installer, str _hostURL)
+    {
+        return !(_installer != 'Managed' && !(strScan(_hostURL,'devaos',1,1000) || strScan(_hostURL,'sandbox',1,1000)));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHandledSubRequests</Name>
+				<Source><![CDATA[
+    public Map getHandledSubRequests()
+    {
+        Map ret;
+
+        ret = super();
+
+        ret.insert('application', classStr(TFMRequestApplication));
+        ret.insert('device', classStr(TFMRequestDeviceElement));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateDeviceCapabilities</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Updates the TFMDeviceCapabilities table with values from the request.
+    /// </summary>
+    public void updateDeviceCapabilities()
+    {
+        TFMRequestApplication requestApplication;
+        TFMRequestDeviceElement requestDevice;
+        TFMRequestBasicElement requestPlatform;
+        str applicationVersion, platformVersion;
+
+        if(TFMDeviceCapabilities::existDevice(this.parmDeviceId()))
+        {
+            requestApplication = this.getSubNodes(TFMConstants::application());
+            requestDevice = this.getSubNodes(TFMConstants::device());
+            requestPlatform = requestDevice ? requestDevice.getSubNodes(TFMConstants::platform()) : null;
+            applicationVersion = requestApplication ? requestApplication.getFieldValue(TFMConstants::version()) : '';
+            platformVersion = requestPlatform ? requestPlatform.getFieldValue(TFMConstants::version()) : '';
+
+            if(applicationVersion)
+            {
+                TFMDeviceCapabilities::createOrUpdateCapabilities(this.parmDeviceId(), TFMConstants::application(), TFMConstants::version(), applicationVersion);
+            }
+            if(platformVersion)
+            {
+                TFMDeviceCapabilities::createOrUpdateCapabilities(this.parmDeviceId(), TFMConstants::platform(), TFMConstants::version(), platformVersion);
+            }
+        }
+        else
+        {
+            TFMRequestCapabilities::pushFieldsToDeviceCapabilities(this, TFMConstants::capabilities());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pushFieldsToDeviceCapabilities</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Push field values from the request element and its children into the TFMDeviceCapabilities table for the given domain.
+    /// </summary>
+    /// <param name = "_requestElement">Request element</param>
+    /// <param name = "_domain">Domain in request structure</param>
+    public static void pushFieldsToDeviceCapabilities(TFMRequestElement _requestElement, str _domain)
+    {
+        Map                 fieldMap;
+        MapEnumerator       fEnum;
+        MapEnumerator       sEnum;
+        TFMRequestElement   child;
+        str                 deviceId;
+        str                 domain;
+        str                 key;
+        str                 value;
+
+        if (!_requestElement)
+        {
+            return;
+        }
+
+        // Resolve device id: prefer element's device id, fall back to root element if present.
+        deviceId = _requestElement.parmdeviceID();
+        if (!deviceId && _requestElement.parmRoot())
+        {
+            deviceId = _requestElement.parmRoot().parmdeviceID();
+        }
+
+        // Domain: use element name if present, otherwise empty string
+        //domain = _requestElement.parmName() ? strFmt('%1', _requestElement.parmName()) : '';
+
+        // Push all fields on this element
+        fieldMap = _requestElement.getFieldMap();
+        if (fieldMap && deviceId)
+        {
+            fEnum = fieldMap.getEnumerator();
+            while (fEnum.moveNext())
+            {
+                key   = fEnum.currentKey();
+                value = fEnum.currentValue();
+
+                // Only persist when we have a deviceId and a key
+                if (key)
+                {
+                    TFMDeviceCapabilities::createOrUpdateCapabilities(deviceId, _domain, key, value);
+                }
+            }
+        }
+
+        // Recurse into subNodes and push their fields as well
+        if (_requestElement.hasSubNodes())
+        {
+            sEnum = _requestElement.getSubnodeMap().getEnumerator();
+            while (sEnum.moveNext())
+            {
+                child = sEnum.currentValue();
+                domain = sEnum.currentKey();
+                // Ensure child has deviceId set so the recursive call can persist values
+                if (child && !child.parmdeviceID() && deviceId)
+                {
+                    child.parmdeviceID(deviceId);
+                }
+                if (child)
+                {
+                    TFMRequestCapabilities::pushFieldsToDeviceCapabilities(child, domain);
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMExportFonts</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.Xml.Linq;
+class TFMExportFonts
+{
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {        
+        str                 fileXml, xmlStr;
+        XDocument           xDoc;
+        XmlDocument         tweakDoc;
+        XmlElement          rootTweak, tweakRes, tweakFonts;
+
+        tweakDoc	= XmlDocument::newXml('<?xml version="1.0" encoding="utf-8"?><application><child>trut</child></application>');
+        rootTweak	= tweakDoc.root();
+        rootTweak.removeAll();
+        tweakRes = tweakDoc.createElement('resources');
+        rootTweak.appendChild(tweakRes);
+        
+        tweakFonts = TFMExportFonts::GetConfigurationXmlForFonts();
+        tweakRes.appendChild(tweakFonts);
+
+        tweakRes.removeAllAttributes();
+        
+        xmlStr = tweakDoc.xml(1);
+        xmlStr =  strReplace(xmlStr,' xmlns=""','');
+        xmlStr = strReplace(xmlStr,'<application>', '<application xmlns="http://schemas.taskletfactory.com/TFM/Application" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.taskletfactory.com/TFM/Application http://schemas.taskletfactory.com/TFM/Application.xsd">');
+        xDoc = XDocument::Parse(xmlStr);
+
+        fileXml = '<?xml version="1.0" encoding="utf-8"?>' + "@TFM:lineBreak"+ xDoc.ToString();
+        TFMExportFonts::sendFileToUser(fileXml, '-fonts-'+date2Str(TFMHelper::today(),321,2,DateSeparator::None,2,DateSeparator::None,2));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetConfigurationXmlForFonts</Name>
+				<Source><![CDATA[
+    public static XmlElement GetConfigurationXmlForFonts()
+    {
+        str                     xmlStr;
+        TFMFonts                fonts;
+        XmlDocument             tweakDoc;
+        XmlElement              child, tweakFonts;
+        
+        tweakDoc	= XmlDocument::newXml('<?xml version="1.0" encoding="utf-8"?><application><child>trut</child></application>');
+        tweakFonts = tweakDoc.createElement('fonts');
+        tweakFonts.setAttribute('tweak', 'replace');
+        
+        while select fonts
+        {
+            child = tweakDoc.createElement('font');
+            child.setAttribute('id', fonts.Id);
+            child.setAttribute('size',TFMHelper::enumName(enumNum(TFMFontSizes),fonts.size));
+            if ( fonts.color)
+            {
+                child.setAttribute('color', '#'+fonts.color);
+            }
+   
+            if (fonts.bold)
+            {
+                child.setAttribute('bold','true');
+            }
+            if (fonts.italic)
+            {
+                child.setAttribute('italic','true');
+            }
+            tweakFonts.appendChild(child);
+        }
+        return tweakFonts;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendFileToUser</Name>
+				<Source><![CDATA[
+    public static void sendFileToUser(str _output, str _listName = '')
+    {
+        str fileName = 'application' + _listName;
+        str contentType = 'application/xml';
+        str fileExtension = '.cfg';//SRSPrintDestinationSettings::findFileNameType(SRSReportFileFormat::PDF, SRSImageFileFormat::BMP);
+        #if.isAX6
+        System.IO.StreamWriter sw;
+        str filePath = WinAPI::getSaveFileName(0,['Tasklet Factory device configuration','*'+fileExtension],'',"@SYS56237",fileExtension,fileName);
+        InteropPermission perm = new InteropPermission(InteropKind::ClrInterop);
+        perm.assert();
+
+        sw = new System.IO.StreamWriter(filePath);
+        sw.Write(_output);
+        sw.Flush();
+        sw.Close();
+        sw.Dispose();
+
+        CodeAccessPermission::revertAssert();
+        
+        
+        #endif
+        #ifnot.IsAX6 //365
+        System.IO.MemoryStream stream = new System.IO.MemoryStream();
+        System.IO.StreamWriter writer = new System.IO.StreamWriter(stream,System.Text.Encoding::GetEncoding(1252));
+        writer.Write(_output);
+        writer.Flush();
+        
+        stream.Position = 0;
+        FileUploadTemporaryStorageStrategy fileUploadStrategy = new FileUploadTemporaryStorageStrategy();
+        FileUploadTemporaryStorageResult fileUploadResult = fileUploadStrategy.uploadFile(stream, fileName + fileExtension, contentType , fileExtension);
+        Browser br = new Browser();
+        br.navigate(fileUploadResult.getDownloadUrl(),false, false);
+        #endif
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

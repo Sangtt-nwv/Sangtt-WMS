@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocTagCounting</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[
+    TFMTableName(tableStr(InventJournalTable), 'TagCounting'),
+    TFMTableName(tableStr(InventJournalTrans_Tag), 'TagCounting'),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticmethodstr(MobConstants,CreateTagCountingJournalLine), methodStr(MobDocTagCounting, createCreateTagCountingJournalLineConf)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticmethodstr(MobConstants,TagCountingJournalLine), methodStr(MobDocTagCounting,postCreateTagCountingJournalLine)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticmethodstr(MobConstants,CreateTagCountingJournalLine), methodStr(MobDocTagCounting, postCreateTagCountingJournalLine)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticmethodstr(MobConstants,CreateTagCountingJournal), methodStr(MobDocTagCounting, postCreateTagCountingJournal)),
+    TFMDocumentType(classStr(TFMLookup), staticmethodstr(MobConstants,TagCountingJournalLine), methodStr(MobDocTagCounting, lookupTagCountingJournalLines)),
+    TFMDocumentType(classStr(TFMLookup), staticmethodstr(MobConstants,TagCountingJournal), methodStr(MobDocTagCounting, lookupTagCountingJournals)),
+    TFMMenu('TagCountingJournal', "@SYS62953", "@SYS62953", resourceStr(MobUnplannedTagCountIcon), true, true, ['Warehouse'])
+]
+class MobDocTagCounting extends TFMDocumentHandler
+{
+    
+    InventDim                           inventDim;    
+    InventJournalTable                  inventJournalTable;
+    TFMInventDimSetup                   mobInventDimSetup;
+    InventJournalTrans_Tag              inventJournalTrans_Tag;    
+    TFMRequestItemAndDimensionElement   docRequest;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return "@SYS62953";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        return MobInventJournalTableCommon::modifyPages(super(),InventJournalType::TagCounting, "@MobileWMS:TagCountingLines", resourceStr(MobUnplannedTagCountIcon),true, classStr(TFMListTagCountingLineWithRegistrations));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventJournalTrans_Tag</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventJournalTrans_Tag))]
+    public InventJournalTrans_Tag getInventJournalTrans_Tag()
+    {
+        return inventJournalTrans_Tag;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getinventJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(inventJournalTable))]
+    public inventJournalTable getinventJournalTable()
+    {
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preProcess</Name>
+				<Source><![CDATA[
+    public boolean preProcess()
+    {
+        docRequest = request;
+        // Get the dimension setup for the item
+        mobInventDimSetup   = TFMInventDimSetup::Construct(docRequest.parmInventTable());
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTagCountingJournalLines</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to return Tag Counting journal line elements to mobile client.
+    /// </summary>
+    /// <returns>A MobLookupResponseElement instance containing the data needed for he lookup page on the mobile device.</returns>    
+    protected TFMLookupResponseElement lookupTagCountingJournalLines()
+    {
+        MobDocTransferJournal::handleDefaultItemIdOrLPCollector(docRequest);
+        return MobInventJournalTableCommon::lookupInventJournalLines(docRequest.parmJournalId(),this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTagCountingJournals</Name>
+				<Source><![CDATA[
+    //#LookupType_TagCountingJournal
+    /// <summary>
+    /// Method to return Tag Counting journals elements to mobile client.
+    /// </summary>
+    /// <returns>A MobLookupResponseElement instance containing the data needed for he lookup page on the mobile device.</returns>
+    protected TFMLookupResponseElement lookupTagCountingJournals()
+    {
+        return MobInventJournalTableCommon::lookupInventJournals(InventJournalType::TagCounting, docRequest.parmJournalId(), docRequest.parmInventLocationId());        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createCreateTagCountingJournalLineConf</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create a Tag Counting Journal Line configuration.
+    /// </summary>    
+    public Map createCreateTagCountingJournalLineConf()
+    {
+        str                 defaultUnitId;
+        InventItemBarcode   inventItemBarcode;
+        Map                 collector;
+        Map                 returnMap = new Map(Types::String, Types::Class);
+        int                 add = 10;
+        MobDocTransferJournal::handleDefaultItemIdOrLPCollector(docRequest);
+        InventDimParm       parm =  InventDimParm::activeDimFlag(InventDimGroupSetup::newInventTable(docRequest.parmInventTable()));
+
+        //Check if license plate is entered
+        if (docRequest.parmLicensePlateId())
+        {
+            //Make info
+            returnMap.insert(extendedTypeStr(WHSLicensePlateId),TFMRegistrationCollectorInformation::InformationStepMap(10,extendedTypeStr(WHSLicensePlateId),strFmt("@MobileWMS:Youhaveaddedthelicenseplate1",docRequest.parmLicensePlateId()),strFmt("@MobileWMS:Youhaveaddedthelicenseplate1",docRequest.parmLicensePlateId()),strFmt("@MobileWMS:Youhaveaddedthelicenseplate1",docRequest.parmLicensePlateId())));
+            return returnMap;
+        }
+        else if(!docRequest.parmItemId())
+        {
+            throw Error("Could not classify to an Item or a License plate");
+        }
+
+        if (TFMInventDimSetup::Construct(InventTable::find(docRequest.parmItemId())).registerLicensePlate())
+        {
+            throw error("A License plate item cannot be added. Please scan the License plate instead");
+        }
+
+        parm.InventSiteIdFlag = NoYes::No;
+        parm.InventLocationIdFlag = NoYes::No;
+        parm.WMSLocationIdFlag = NoYes::No;
+        #if.isAX6
+        parm.WMSPalletIdFlag = mobInventDimSetup.registerWMSPallet();
+        #endif
+        parm.InventSerialIdFlag = NoYes::Yes;
+        returnMap = MobInventDimHelper::GetInventDimCollectors(add, mobInventDimSetup, parm);
+
+
+        if (returnMap.exists(MobConstants::Quantity()))
+        {
+            inventItemBarcode = InventItemBarcode::findInputBarcode(docRequest.parmRawItemId());
+            
+            defaultUnitId = inventItemBarcode ? inventItemBarcode.UnitID : docRequest.parmInventTable().inventUnitId();
+            
+            collector = returnMap.lookup(MobConstants::Quantity());
+            add=any2Int(collector.lookup('id')) - 1;
+    
+            // Add a step to register the unit of measure
+            // Only add units that are convertible for this item
+        
+            returnMap.insert(extendedTypeStr(UnitIDBase),TFMRegistrationCollectorList::ListStepMap(false,add,extendedTypeStr(UnitIDBase),"@SYS40864","@SYS40864",'',MobHelper::getConvertibleUnitList(docRequest.parmInventTable()),false,defaultUnitId));
+    
+        }
+        
+        
+        return returnMap;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postCreateTagCountingJournal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create Tag counting journals.
+    /// </summary>
+    [TFMPostMethod(tableStr(inventJournalTable))]
+    public void postCreateTagCountingJournal()
+    {
+        InventJournalTableData  jourTableData;
+        JournalTableData        journalTableData;
+        InventJournalName       inventJournalName;
+        InventLocationId        inventLocationId;
+        str                     description;
+        InventDimParm			inventDimParm;
+        
+        // Extract the parameters
+        description    = docRequest.getFieldValue(extendedTypeStr(description));
+        inventLocationId = docRequest.parmWarehouse();
+    
+        ttsBegin;
+    
+        // Get the name of the profit/loss journal to create
+        inventJournalName = InventJournalName::find(MobParameters::find().InventJournalNameTagCounting,true);
+    
+        jourTableData = JournalTableData::newTable(inventJournalTable);
+    
+        inventJournalTable.JournalId            = jourTableData.nextJournalId();
+    
+        inventJournalTable.initValue();
+        inventJournalTable.initFromInventJournalName(inventJournalName);
+        inventJournalTable.JournalType          = inventJournalType::TagCounting;
+        inventJournalTable.InventLocationId		= inventLocationId;
+        inventJournalTable.InventSiteId			= InventLocation::find(inventLocationId).InventSiteId;
+        inventJournalTable.MobReleasedToMobile	= true;  
+        
+        InventDimFixedClass::inventDimFixed2InventDimParm(inventJournalTable.InventDimFixed,inventDimParm);
+
+        inventDimParm.WMSLocationIdFlag		= NoYes::Yes;
+        inventDimParm.InventLocationIdFlag	= NoYes::Yes;
+        inventDimParm.InventSiteIdFlag		= NoYes::Yes;
+        
+        inventJournalTable.InventDimFixed = inventDimParm.inventDimFixed();
+
+        journalTableData						= journalTableData::newTable(inventJournalTable);    
+        inventJournalTable.NumOfLines			= 0;
+    
+        jourTableData.initFromJournalName(inventJournalName);
+        inventJournalTable.Description  = description;
+        inventJournaltable.insert();
+    
+        ttsCommit;
+    
+        resultStr = "@MobileWMS:TagCountingJournalcreatedsucessfully";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postCreateTagCountingJournalLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create Tag counting journal lines.
+    /// </summary>
+    [TFMPostMethod(tableStr(InventJournalTrans_Tag))]
+    public void postCreateTagCountingJournalLine()
+    {
+        InventJournalId             inventJournalId;
+        MobDocTransferJournal::handleDefaultItemIdOrLPCollector(docRequest);
+        inventJournalId     = docRequest.parmJournalId();
+    
+        // Find the journal to add a line to
+        inventJournalTable = InventJournalTable::find(inventJournalId,true);
+        if (docRequest.parmLicensePlateId())
+        {
+            //Add lines from license plate
+            this.makeLicensePlateLines(inventJournalTable,docRequest.parmLicensePlateId());
+            return; 
+        } 
+        
+        this.addTagLine(InventJournalTable,docRequest.parmItemId(),docRequest.parmQuantity(), docRequest.parmUnitOfMeasure(), docRequest.createInventDim(inventDim).inventdimId);
+        
+        // Calculate the number of lines
+        inventJournalTable::initTotal(inventJournalTable);
+        inventJournalTable.update();
+    
+        resultStr = strFmt("@MobileWMS:Linecreatedwithtag", inventJournalTrans_Tag.tagId);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeLicensePlateLines</Name>
+				<Source><![CDATA[
+    protected void makeLicensePlateLines(InventJournalTable _inventJournalTable, WHSLicensePlateId _licensePlateId)
+    {
+        InventSum iSum;
+        InventDim inventDimIssue;
+        while select isum
+            join inventDimIssue where inventDimIssue.inventDimId == isum.InventDimId
+            &&   inventDimIssue.LicensePlateId == _licensePlateId && isum.PhysicalInvent
+        {
+            this.addTagLine(_inventJournalTable, iSum.ItemId, iSum.PhysicalInvent, InventTable::find(iSum.ItemId).inventUnitId(),inventDimIssue.inventDimId);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTagLine</Name>
+				<Source><![CDATA[
+    protected InventJournalTrans_Tag addTagLine(InventJournalTable _inventJournalTable, ItemId _itemId, Qty _qty, UnitOfMeasureSymbol _unit, InventDimId _inventDimid)
+    {
+        InventJournalId             inventJournalId = _inventJournalTable.JournalId;
+        LineNum                     lineNum;
+        InventJournalTrans_Tag      tmpInventJournalTrans_Tag;
+        select firstOnly tmpInventJournalTrans_Tag
+            order by tmpInventJournalTrans_Tag.LineNum desc
+            where tmpInventJournalTrans_Tag.JournalId == inventJournalId;
+    
+        lineNum = tmpInventJournalTrans_Tag.lineNum + 1;
+    
+        // Initialize the new journal line
+        inventJournalTrans_Tag.clear();
+        inventJournalTrans_Tag.initFromInventJournalTable(_inventJournalTable);
+        inventJournalTrans_Tag.selectForUpdate(true);
+        inventJournalTrans_Tag.initValue();
+        inventJournalTrans_Tag.initFromInventJournalTable( _inventJournalTable );
+    
+        inventJournalTrans_Tag.lineNum = lineNum;
+
+        inventJournalTrans_Tag.initFromInventTable(InventTable::find(_itemId));
+
+        inventJournalTrans_Tag.unitID = _unit;
+        inventJournalTrans_Tag.Qty    = _qty;
+    
+    
+        inventJournalTrans_Tag.InventDimId      = _inventDimid;
+    
+        // Tag
+        inventJournalTrans_Tag.tagId = num2str(lineNum,0,0,0,0);
+    
+        // Registered on mobile
+        inventJournalTrans_Tag.MobRegisteredOnMobile = true;
+    
+        inventJournalTrans_Tag.Worker = HcmWorker::userId2Worker(curUserId());
+        inventJournalTrans_Tag.insert();
+        return tmpInventJournalTrans_Tag;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CreateTagCountingJournalHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Create Tag Counting Journal page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+	[TFMReferenceDataMethod(staticmethodstr(MobConstants,CreateTagCountingJournal))]
+    public TFMReferenceDataConfiguration CreateTagCountingJournalHeader()
+    {
+        TFMReferenceDataConfiguration refConf = new TFMReferenceDataConfiguration();
+        // Journal Description
+        refConf.addCollector(TFMGetReferenceData::defaultDescriptionCollector(1,true));
+    
+        refConf.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(2,MobConstants::Warehouse(), "@SYS6437",methodStr(TFMGetReferenceData,WarehouseList)));
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CreateTagCountingJournalLineHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Create Tag Counting Journal Lines page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+	[TFMReferenceDataMethod(staticmethodstr(MobConstants,CreateTagCountingJournalLine))]
+    public TFMReferenceDataConfiguration CreateTagCountingJournalLineHeader()
+    {
+        TFMReferenceDataConfiguration refConf = new TFMReferenceDataConfiguration();
+        // Warehouse
+        refConf.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(1,MobConstants::Warehouse(), "@SYS6437",methodStr(TFMGetReferenceData,WarehouseList)));
+        // Journal ID
+        refConf.addCollector(TFMGetReferenceData::defaultJournalIdCollector(2, extendedTypeStr(JournalId), true));
+        // Item number text box
+        
+        refConf.addCollector(TFMGetReferenceData::defaultItemIdOrLPCollector(3,true));
+
+        // Location
+        refConf.addCollector(TFMGetReferenceData::defaultLocationCollector(4, strLwr(extendedTypeStr(wmslocationid)), false, false));
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret = super();
+        ret.insert(MobConstants::CreateTagCountingJournalLine(), "@SYS319116");
+        ret.insert(MobConstants::CreateTagCountingJournal(), "@SYS18287");
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TagCountingJournalLineCfgHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Tag Counting Journal Lines page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+	[TFMReferenceDataMethod(staticmethodstr(MobConstants,TagCountingJournalLine))]
+    public TFMReferenceDataConfiguration TagCountingJournalLineCfgHeader()
+    {
+        return MobInventJournalTableCommon::journalLinesHeader();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TagCountingJournalCfgHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Tag Counting Journal page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+	[TFMReferenceDataMethod(staticmethodstr(MobConstants,TagCountingJournal))]
+    public TFMReferenceDataConfiguration TagCountingJournalCfgHeader()
+    {
+        return MobInventJournalTableCommon::journalLinesHeader();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

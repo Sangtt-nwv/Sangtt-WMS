@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Build Error Triage"
+  short_description: "Diagnose compiler, BP, and infolog errors"
+  default_prompt: "Use $build-error-triage to diagnose this D365FO build or BP error."

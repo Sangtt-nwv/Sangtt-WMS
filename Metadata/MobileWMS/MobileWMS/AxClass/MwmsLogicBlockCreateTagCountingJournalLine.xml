@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockCreateTagCountingJournalLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic block that can create tag counting journal lines
+/// </summary>
+class MwmsLogicBlockCreateTagCountingJournalLine extends MwmsLogicBlockJournalLinesCommon implements TFMLogicBlockDataCollectionInterface, TFMLogicBlockPrePostDataModifyInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicBlockCreateTagCountingJournalLine Construct()
+    {
+        return new MwmsLogicBlockCreateTagCountingJournalLine();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        return "@TaskletMobileWMS:CreateorupdateTagCountinglines";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method provides the header fields, that are needed to find out which data should be collected.
+    /// </summary>
+    /// <returns>A MobReferenceDataConfiguration object, containing registration collectors for the header.</returns>
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        return components.getHeaders();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method gives you the registration collectors for this data collection block.
+    /// </summary>
+    /// <returns>A collection of registration collectors.</returns>
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        return components.getCollectors();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method is called before the post method, and gives the option to add extra registration collectors for the user to be prompted for before the post method is executed.
+    /// </summary>
+    /// <returns>Returns a MobRegistrationCollectors object if the user must be further prompted, otherwise it returns null</returns>
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preparePost</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to set up tables to be used in the posting. Ensures that addons can be made, that can modify the data of the block before posting, when needed.
+    /// </summary>
+    public void preparePost()
+    {
+        this.getTables();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method executed when all data has been collected, and contains the posting logic.
+    /// </summary>
+    /// <returns>A MobPostResponseData object.</returns>
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData                 response = TFMPostResponseData::Construct();
+        
+        if (!inventJournalTrans_tag.tagId)
+        {
+            this.addTagnumber(inventJournalTrans_tag);
+        }
+        // Calculate the number of lines
+        inventJournalTable::initTotal(inventJournalTable);
+        inventJournalTable.update();
+        
+        response.parmResponseText("@SYS80122");
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTagnumber</Name>
+				<Source><![CDATA[
+    protected void addTagnumber(InventJournalTrans_Tag _tagline)
+    {
+        InventJournalId             inventJournalId = _tagline.JournalId;
+        LineNum                     lineNum;
+        InventJournalTrans_Tag      tmpInventJournalTrans_Tag;
+        select firstOnly tmpInventJournalTrans_Tag
+            order by tmpInventJournalTrans_Tag.LineNum desc
+            where tmpInventJournalTrans_Tag.JournalId == inventJournalId;
+    
+        lineNum = tmpInventJournalTrans_Tag.lineNum;
+    
+        _tagline.selectForUpdate(true);
+        _tagline.lineNum = lineNum;
+        // Tag
+        _tagline.tagId = num2str(lineNum,0,0,0,0);
+        _tagline.write();
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMUnplannedTagCountIcon);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMConditionEditorFormClass</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMConditionEditorFormClass
+{
+    FormRun                     formRun;    
+    TFMRegistrationCollector    caller;
+    FormGroupControl            fgc;
+    FormGroupControl            contextGroup;
+    TFMConditions               conditions;
+    TFMDrawFlowControl                          flowControl;
+    TFMDrawFlowControlInteractionStepConditions flowInteraction;
+    TFMLogicContextTypes        fieldOutputType;
+    FormButtonControl           deleteConditionButton;
+        
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMConditionEditorFormClass Construct(FormRun _formrun, FormButtonControl _deleteConditionButton)
+    {
+        
+        TFMConditionEditorFormClass formClass= new TFMConditionEditorFormClass();
+        formClass.parmFormRun(_formrun, _deleteConditionButton);
+        formClass.init();
+        return formClass;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFormRun</Name>
+				<Source><![CDATA[
+    public formRun parmFormRun(FormRun _formrun = formRun, FormButtonControl _deleteConditionButton = deleteConditionButton)
+    {
+        deleteConditionButton = _deleteConditionButton;
+        formRun = _formrun;
+        return formRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateConditions</Name>
+				<Source><![CDATA[
+    public boolean validateConditions()
+    {
+        boolean ret;
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setContextGroup</Name>
+				<Source><![CDATA[
+    public void setContextGroup(FormGroupControl _fgc)
+    {
+        contextGroup =_fgc;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        SysDictMethod   sdm;
+        caller = formRun.args().caller();
+
+        sdm = new SysDictMethod(UtilElementType::ClassInstanceMethod, classIdGet(caller), formRun.args().parm());
+        fieldOutputType = TFMConditionEditorFormClass::types2ContextType(sdm.returnType());
+        
+        fgc = formRun.design().addControl(FormControlType::Group, 'uberGroup');
+        if (caller.parmConditions())
+        {
+            conditions = caller.parmConditions();
+            //this.ConditionsGuiBuild(conditions, formRun.args().parm());
+        }
+        else
+        {
+            conditions = TFMConditions::Construct();
+        }
+        flowControl = formRun.design().controlName(formControlStr(TFMConditionEditor,ConditionFlow));
+        flowInteraction = flowControl.interactionClass();
+        flowInteraction.parmMethodName(formRun.args().parm());
+        flowInteraction.setDomainAndProcess(caller.getSetDomain());
+        flowInteraction.setStepName(caller.getSetKey());
+        flowInteraction.parmBlockName(caller.origins().parmOriginBlockName());
+        flowInteraction.parmConditions(conditions);
+        flowInteraction.parmReturnType(fieldOutputType);
+        
+        this.setEditmode(flowInteraction.allowEdit());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setEditmode</Name>
+				<Source><![CDATA[
+    protected void setEditmode(boolean _allowConditionEdit)
+    {
+        flowControl.setEditorModeOnControl(!_allowConditionEdit);
+        if (contextGroup)
+        {
+            contextGroup.enabled(_allowConditionEdit);
+        }
+        
+        deleteConditionButton.enabled(_allowConditionEdit);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>types2ContextType</Name>
+				<Source><![CDATA[
+    public static TFMLogicContextTypes types2ContextType(Types _type)
+    {
+        TFMLogicContextTypes ret = TFMLogicContextTypes::None;
+        switch(_type)
+        {
+            case Types::String : 
+            case Types::VarString : 
+            case Types::RString :
+                ret = TFMLogicContextTypes::String;
+                break;
+            case Types::Enum : 
+                ret = TFMLogicContextTypes::Boolean;
+                break;
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ConditionsGuiBuild</Name>
+				<Source><![CDATA[
+    public void ConditionsGuiBuild(TFMConditions _conditions, MethodName _methodName)
+    {
+        str                     result = '';
+        TFMCondition            condition;
+        TFMConditionOperator    logicalOperator;
+        MapEnumerator           mEnum;
+        MethodName              mName;
+        Map                     conditionsForMethod;
+        Map                     operationsForMethod;
+        int                     i = 0;
+        
+        if (!_conditions.methodHasConditions(_methodName))
+        {
+            return;
+        }
+        
+        //operationsForMethod = _conditions.operationsForMethod(_methodName);
+        mEnum = _conditions.conditionsForMethod(_methodName).getEnumerator();
+        while (mEnum.moveNext())
+        {
+            condition = mEnum.currentValue();
+            if (i)
+            {
+                this.makeOperatorGroup(condition);
+            }
+            this.conditionToControls(condition);
+            i++;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addCondition</Name>
+				<Source><![CDATA[
+    public void addCondition()
+    {
+        TFMCondition condition = TFMCondition::Construct('',conNull(),'');
+        conditions.addCondition(condition, formRun.args().parm());
+        this.makeOperatorGroup(condition);
+        this.makeConditionGroupings(condition);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteCondition</Name>
+				<Source><![CDATA[
+    public void deleteCondition()
+    {
+        if (Box::okCancel("Are you sure you want to delete the condition?",DialogButton::Cancel) != DialogButton::Ok)
+        {
+            return;
+        }
+        str domain = flowInteraction.getDomain();;
+        TFMProcessId domainKey =  flowInteraction.getProcessId();
+        str methodName = flowInteraction.parmMethodName();
+        Version version = flowInteraction.getVersion();
+
+        TFMConditionsTable::deleteCondition(domain, domainKey, methodName, version);
+        caller.parmConditions().removeAllForMethodName(methodName);
+        formRun.closeOk();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeOperatorGroup</Name>
+				<Source><![CDATA[
+    protected FormGroupControl makeOperatorGroup(TFMCondition _condition)
+    {
+        FormGroupControl operatorGroup = fgc.addControl(FormControlType::Group, 'OperatorGroup' + int2Str(_condition.GetHashCode()));
+        
+        FormComboBoxControl ctrl = operatorGroup.addControl(FormControlType::ComboBox, 'operator' + int2Str(_condition.GetHashCode()));
+        operatorGroup.caption("@TFM:Operator");
+
+        ctrl.enumType(enumNum(TFMConditionOperator));
+        
+        return operatorGroup;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeConditionGroupings</Name>
+				<Source><![CDATA[
+    protected FormGroupControl makeConditionGroupings(TFMCondition _condition)
+    {
+        FormGroupControl conditionGroup = fgc.addControl(FormControlType::Group, 'ConditionGroup' + int2Str(_condition.GetHashCode()));
+        
+        FormGroupControl strCtrl1Group = conditionGroup.addControl(FormControlType::Group, 'Conditionstr1Group' + int2Str(_condition.GetHashCode()));        
+        FormStringControl strCtrl = strCtrl1Group.addControl(FormControlType::String, 'StringControl1'+int2Str(_condition.GetHashCode()));
+        conditionGroup.columns(3);
+        conditionGroup.caption("@TFM:Condition");
+        strCtrl1Group.caption("@TFM:Function");
+        strCtrl.text(_condition.parmDataContract().parmLogicContextClass());
+        strCtrl.registerOverrideMethod(methodStr(FormStringControl, modified), methodStr(TFMConditionEditorFormClass,function_Modified ), this);
+        strCtrl.registerOverrideMethod(methodStr(FormStringControl, lookup), methodStr(TFMConditionEditorFormClass,function_Lookup), this);
+        return conditionGroup;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>conditionToControls</Name>
+				<Source><![CDATA[
+    public void conditionToControls(TFMCondition _condition)
+    {
+        FormGroupControl conditionGroup = this.makeConditionGroupings(_condition);
+        
+        this.addParmsAndFields(_condition, conditionGroup);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addParmsAndFields</Name>
+				<Source><![CDATA[
+    protected void addParmsAndFields(TFMCondition _condition, FormGroupControl _conditionGroup)
+    {
+        TFMLogicContextFunctionsDataContract dc = _condition.parmDataContract();
+        FormGroupControl strCtrl2Group = _conditionGroup.addControl(FormControlType::Group, 'Conditionstr2Group' + int2Str(_condition.GetHashCode()));
+        FormGroupControl strCtrl3Group = _conditionGroup.addControl(FormControlType::Group, 'Conditionstr3Group' + int2Str(_condition.GetHashCode()));
+        FormStringControl strCtrl2 = strCtrl2Group.addControl(FormControlType::String, 'StringControl2'+int2Str(_condition.GetHashCode()));
+        FormStringControl strCtrl3 = strCtrl3Group.addControl(FormControlType::String, 'StringControl3'+int2Str(_condition.GetHashCode()));
+        strCtrl2Group.caption("@TFM:Parameters");
+        strCtrl3Group.caption("@TFM:Field");
+        strCtrl2.text(con2Str(dc.parmParameters(),','));
+
+        
+        
+        strCtrl3.text(dc.parmKeyName());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>function_Modified</Name>
+				<Source><![CDATA[
+    public boolean function_Modified(FormStringControl _fst)
+    {
+        TFMLogicContextObject cObj = conditions.parmContext().getContextObject(_fst.text());
+        TFMCondition condition = conditions.conditionFromHash(str2Int(subStr(_fst.name(),15,113231)),formRun.args().parm());
+        if (condition)
+        {
+            this.addParmsAndFields(condition, _fst.parentControl().parentControl());
+        }
+
+        // inform the current block to update its content
+        flowInteraction.updateHtmlForCurrentNode();
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>function_Lookup</Name>
+				<Source><![CDATA[
+    public void function_Lookup(FormStringControl _fst)
+    {
+        MapEnumerator                   contextEnum     = conditions.parmContext().ObjectList().getEnumerator();
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMDocumentTmpHandlerLookup), _fst);
+        TFMDocumentTmpHandlerLookup     tmpLookup;
+        TFMLogicContextObject           cObj;
+        TFMDescriptionAttribute         descAtt;
+
+        sysTableLookup.addLookupfield(fieldNum(TFMDocumentTmpHandlerLookup,className),true);
+        sysTableLookup.addLookupfield(fieldNum(TFMDocumentTmpHandlerLookup,Description));
+
+        tmpLookup.setTmp();
+
+        while (contextEnum.moveNext())
+        {
+            cObj = contextEnum.currentValue();            
+            tmpLookup.ClassName = cObj.Name();
+            descAtt = new SysDictClass(classIdGet(cObj)).getAttribute(classStr (TFMDescriptionAttribute));
+
+            tmpLookup.Description = descAtt ? descAtt.parmDescription() : '';
+            tmpLookup.insert();
+        }
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

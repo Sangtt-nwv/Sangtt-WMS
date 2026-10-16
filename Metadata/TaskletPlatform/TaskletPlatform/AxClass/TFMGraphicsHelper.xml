@@ -1,0 +1,1068 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMGraphicsHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMGraphicsHelper
+{
+ 
+    #define.VistaTrans(0.25)
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>color2hex</Name>
+				<Source><![CDATA[
+    public static SysColorHex color2hex(OLE_Color _color, boolean _switchBlueRed = false)
+    {
+        SysColorHex  retColor;
+        System.Drawing.Color	color =  System.Drawing.ColorTranslator::FromWin32(_color);
+        int						Red = color.R;
+        int						Green = color.G;
+        int						Blue = color.B;
+        int						colorInt = (_switchBlueRed ? Red : Blue) + Green << 8  + (_switchBlueRed ? Blue : Red) << 16;
+
+        retColor = int2Hex(colorInt);
+        return strRFix(retColor, 6, '0'); // make sure that it will return 6 chars even when having 00FF00 that earlier just produced FF00.
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>scaleColor</Name>
+				<Source><![CDATA[
+    public static int scaleColor(int _color, real _scalar)
+    {
+        System.Drawing.Color color =  System.Drawing.Color::FromArgb(_color);
+        real red	= color.R;
+        real green	= color.G;
+        real blue	= color.B;
+        color = System.Drawing.Color::FromArgb(255, real2int(red * _scalar), real2int(green * _scalar), real2int(blue * _scalar));
+        return color.ToArgb();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>hex2color</Name>
+				<Source><![CDATA[
+    public static OLE_Color hex2color(SysColorHex _color)
+    {
+        System.Drawing.Color color =  System.Drawing.Color::FromArgb(hex2Int(_color));
+        return System.Drawing.ColorTranslator::ToOle(color);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addBackgroundColor</Name>
+				<Source><![CDATA[
+    public static System.Drawing.Bitmap addBackgroundColor(System.Drawing.Bitmap _image, int _backRed = 255, int _backGreen= 255, int _backBlue = 255, int _backAlpha = 255)
+    {
+        int i, j;
+        System.Drawing.Bitmap bmp = new System.Drawing.Bitmap(_image.Width,_image.Height);
+        System.Drawing.Graphics g = System.Drawing.Graphics::FromImage(bmp);
+        g.DrawRectangle(new System.Drawing.Pen(new System.Drawing.SolidBrush(System.Drawing.Color::FromArgb(_backAlpha, _backRed, _backGreen, _backBlue))), 0, 0, _image.Width, _image.Height);
+        /*for (i = 0; i <_image.Width; i++)
+        {
+            for (j= 0; j < _image.Height; j++)
+            {
+                bmp.SetPixel(i,j,System.Drawing.Color::FromArgb(_backAlpha, _backRed, _backGreen, _backBlue));
+            }
+        }*/
+
+        g.DrawImage(_image,0,0,_image.Width,_image.Height);
+        return bmp;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>entityTileImage</Name>
+				<Source><![CDATA[
+    public static System.Drawing.Image entityTileImage(str _iconName, str _title, str _description)
+    {
+        System.Drawing.Image		image;
+        System.Drawing.Image		baseImage;
+        System.Drawing.Image		iconImage;
+        System.Drawing.Graphics		graphics;
+        System.Drawing.Rectangle	rect;
+        str icon = _iconName;
+        str base;
+
+        image = TFMImageHelper::base64ToImage(TFMImageHelper::resource2Base64(resourceStr(TFMTileBackground)));
+        icon = icon ? icon : TFMImageHelper::resource2Base64(resourceStr(TFMTaskletLogo));
+        if(icon)
+        {
+            if (SysResource::checkIfResourceExists(icon))
+            {
+                base = TFMImageHelper::resource2Base64(icon);
+                iconImage = TFMImageHelper::base64ToImage(base);
+            }
+            else
+            {
+                iconImage = TFMImageHelper::base64ToImage(TFMDocGetMedia::getBase64FromName(icon));
+            }
+            baseImage =  new System.Drawing.Bitmap(image.Width * 2 ,image.Height * 2);
+            graphics =  System.Drawing.Graphics::FromImage(baseImage);
+            
+            //rect = new System.Drawing.Rectangle(20 ,20 ,image.Width * 2 -20 ,image.Height * 2 -20);
+            //rect = new System.Drawing.Rectangle(2 ,2 ,image.Height - 10 , image.Height - 10);
+            //graphics.DrawImage(image, rect);
+
+            //TFMGraphicsHelper::drawGradient(graphics, image.Height ,30,image.Width * 2 - image.Height -1,image.Height*2 - 60,235 + 235 << 8 + 235 << 16 + 255 << 24, 212 + 212 << 8 + 212 << 16 + 255 << 24,false,false);
+
+            //TFMGraphicsHelper::drawBmpEdges(graphics, image.Height+1 ,31,image.Width * 2 - image.Height -3,image.Height*2 - 62, 255 << 24,false,false);
+            //TFMGraphicsHelper::drawBmpEdges(graphics, image.Height ,30,image.Width * 2 - image.Height -1,image.Height*2 - 60, 255 << 24,false,false);
+
+            rect = new System.Drawing.Rectangle(0 ,0 ,image.Height*2 , image.Height*2);
+            //rect = new System.Drawing.Rectangle(2 ,2 ,image.Height - 10 , image.Height - 10);
+            graphics.DrawImage(iconImage, rect);
+            
+            TFMGraphicsHelper::drawText(graphics, image.Width + image.Height -1 , 15, 255<<24 , _title, 20, SysChartHorizontalAlignment::Center, SysChartVerticalAlignment::Top ,true,false,'Verdana',image.Width * 2 - image.Height*2);
+            TFMGraphicsHelper::drawText(graphics, image.Width + image.Height -1 , 80, 255<<24 , _description, 14, SysChartHorizontalAlignment::Center, SysChartVerticalAlignment::Top ,false,false,'Verdana',image.Width * 2 - image.Height*2,true);
+            
+        }
+        return baseImage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dampenRGB</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Dampens an RGB integer by a scale
+    /// </summary>
+    /// <param name="_rgbInt">
+    /// The RGB integer to dampen.
+    /// </param>
+    /// <param name="_scale">
+    /// The scale by which to dampen the colors in the integer.
+    /// </param>
+    /// <returns>
+    /// The resulting RGB value.
+    /// </returns>
+    public static int dampenRGB(int _rgbInt, real _scale)
+    {
+        int r,g,b,a;
+        [r,g,b,a] =  [_rgbInt & 0xff, (_rgbInt & 0xff00)>>8 , (_rgbInt & 0xff0000)>>16, (_rgbInt & 0xff000000)>>24];
+        r = min(max(r*_scale,0),255);
+        g = min(max(g*_scale,0),255);
+        b = min(max(b*_scale,0),255);
+        return a << 24 + b<<16 + g<<8 + r;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawLine</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Draws a rectangle on the specified <c>System.Drawing.Graphics</c> object.
+    /// </summary>
+    /// <param name="_bmpDC">
+    ///    The <c>System.Drawing.Graphics</c> object to draw on.
+    /// </param>
+    /// <param name="_x0">
+    ///    The x coordinate of the upper left corner.
+    /// </param>
+    /// <param name="_y0">
+    ///    The y coordinate of the upper left corner.
+    /// </param>
+    /// <param name="_w">
+    ///    The width of the rectangle.
+    /// </param>
+    /// <param name="_h">
+    ///    The height of the rectangle.
+    /// </param>
+    /// <param name="_col">
+    ///    The color to draw with.
+    /// </param>
+    /// <param name="_roundCorner">
+    ///    true if rectangle corners must be rounded; otherwise, false.
+    /// </param>
+    /// <param name="_vistaLook">
+    ///    true if the rectangle must have a vista look; otherwise, false.
+    /// </param>
+    public static void drawLine(System.Drawing.Graphics _bmpDC, int _xStart,int _yStart,int _xEnd,int _yEnd,int _col, boolean _dashed, boolean _vistaLook)
+    {
+        //int                  dX;
+        //int                  i;
+        //int                  j;
+        //int                  w;
+        System.Drawing.Color color;
+        System.Drawing.Pen   pen;
+        InteropPermission    perm;
+        int                  col;
+
+        
+        if(_vistaLook)
+            col = _col  + real2int(#vistaTrans*255)<<24;
+        else
+            col = _col;
+        color = System.Drawing.Color::FromArgb(col);
+        perm = new InteropPermission(InteropKind::ClrInterop);
+        perm.assert();
+
+        //BP deviation documented
+        pen = new System.Drawing.Pen(color);
+        if (_dashed)
+        {
+            _bmpDC.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode::AntiAlias;
+            pen.DashCap = System.Drawing.Drawing2D.DashCap::Round;
+            pen.DashStyle = System.Drawing.Drawing2D.DashStyle::DashDotDot;
+        }
+        _bmpDC.DrawLine(pen,_xStart,_yStart,_xEnd,_yEnd);
+        
+        pen.Dispose();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawBmpEdges</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Draws a rectangle on the specified <c>System.Drawing.Graphics</c> object.
+    /// </summary>
+    /// <param name="_bmpDC">
+    ///    The <c>System.Drawing.Graphics</c> object to draw on.
+    /// </param>
+    /// <param name="_x0">
+    ///    The x coordinate of the upper left corner.
+    /// </param>
+    /// <param name="_y0">
+    ///    The y coordinate of the upper left corner.
+    /// </param>
+    /// <param name="_w">
+    ///    The width of the rectangle.
+    /// </param>
+    /// <param name="_h">
+    ///    The height of the rectangle.
+    /// </param>
+    /// <param name="_col">
+    ///    The color to draw with.
+    /// </param>
+    /// <param name="_roundCorner">
+    ///    true if rectangle corners must be rounded; otherwise, false.
+    /// </param>
+    /// <param name="_vistaLook">
+    ///    true if the rectangle must have a vista look; otherwise, false.
+    /// </param>
+    public static void drawBmpEdges(System.Drawing.Graphics _bmpDC, int _x0,int _y0,int _w,int _h,int _col, boolean _roundCorner, boolean _vistaLook)
+    {
+        int                  dX;
+        int                  i;
+        int                  j;
+        int                  w;
+        System.Drawing.Color color;
+        System.Drawing.Pen   pen;
+        InteropPermission    perm;
+        int                  col;
+
+        w = _w - 1;
+        if(_vistaLook)
+    col = _col  + real2int(#vistaTrans*255)<<24;
+        else
+    col = _col;
+        color = System.Drawing.Color::FromArgb(col);
+        perm = new InteropPermission(InteropKind::ClrInterop);
+        perm.assert();
+
+        //BP deviation documented
+        pen = new System.Drawing.Pen(color);
+        if(_roundCorner)
+    dX = 4;
+
+        _bmpDC.DrawLine(pen,_x0+dX,_y0,_x0+w-dX,_y0);
+        _bmpDC.DrawLine(pen,_x0+dX,_y0+_h-1,_x0+w-dX,_y0+_h-1);
+
+        _bmpDC.DrawLine(pen,_x0,_y0+dX,_x0,_y0+_h-dX-1);
+        _bmpDC.DrawLine(pen,_x0+w,_y0+dX,_x0+w,_y0+_h-dX-1);
+
+        if(!_roundCorner)
+    return;
+
+        for(i = 0;i<2;i++)
+    for(j=0;j<2;j++)
+        {
+            _bmpDC.DrawLine(pen,
+                        _x0+2+(i*(w-6))+i,
+                        _y0+1+(j*(_h-3)),
+                        _x0+3+(i*(w-6))+i,
+                        _y0+1+(j*(_h-3)));
+        }
+
+        for(i = 0;i<2;i++)
+    for(j=0;j<2;j++)
+        {
+            _bmpDC.DrawLine(pen,
+                        _x0+1+(i*(w-3))+i,
+                        _y0+2+(j*(_h-6)),
+                        _x0+1+(i*(w-3))+i,
+                        _y0+3+(j*(_h-6)));
+        }
+        pen.Dispose();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawText</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Draws a string on the specified <c>System.Drawing.Graphics</c> object.
+    /// </summary>
+    /// <param name="_bmpDC">
+    ///    The <c>System.Drawing.Graphics</c> object to draw on.
+    /// </param>
+    /// <param name="_x">
+    ///    The x coordinate of the starting point.
+    /// </param>
+    /// <param name="_y">
+    ///    The y coordinate of the starting point.
+    /// </param>
+    /// <param name="_col">
+    ///    The color to draw width.
+    /// </param>
+    /// <param name="_text">
+    ///    The text to draw.
+    /// </param>
+    /// <param name="_fontSize">
+    ///    The font size to draw with.
+    /// </param>
+    /// <param name="_center">
+    ///    true if the text is centered around the starting point; otherwise, false.
+    /// </param>
+    /// <param name="_bold">
+    ///    true if the text is drawn as bold; otherwise, false.
+    /// </param>
+    public static int drawText(System.Drawing.Graphics _bmpDC, int _x,int _y, int _col,str _text, int _fontSize, SysChartHorizontalAlignment _xAlign = SysChartHorizontalAlignment::Auto, SysChartVerticalAlignment _yAlign = SysChartVerticalAlignment::Auto, boolean _bold = false, boolean _italic = false, FontName _fontName = 'Verdana', int _maxWidth = 0, boolean _splitToMultipleLines = false)
+    {
+        real i = 0;
+        real j = 0;
+        System.Drawing.Color		color;
+        System.Drawing.Brush		brush;
+        System.Drawing.Font			font;
+        System.Drawing.StringFormat format;
+        System.Drawing.SizeF		mySize;
+        System.Drawing.FontStyle    style;
+        InteropPermission			perm;
+        int                         noOfLines;
+        str                         splitText = '';
+        
+        perm = new InteropPermission(InteropKind::ClrInterop);
+        perm.assert();
+        style = System.Drawing.FontStyle::Regular;
+        if (_bold)
+        {
+            style = System.Drawing.FontStyle::Bold;
+        }
+        //BP deviation documented
+        font = new System.Drawing.Font(_fontName /*'Segoe Script'*/,_fontSize,style);
+        
+        color = System.Drawing.Color::FromArgb(_col);
+        //BP deviation documented
+        brush = new System.Drawing.SolidBrush(color);
+        //BP deviation documented
+        format = new System.Drawing.StringFormat();
+        mySize = _bmpDC.MeasureString(_text,font);
+        if (_maxWidth && real2int(mySize.get_Width()) > _maxWidth && !_splitToMultipleLines)
+        {
+            i = _maxWidth / mySize.Width;
+            font = new System.Drawing.Font(_fontName /*'Segoe Script'*/,real2int(_fontSize * i),style);
+            mySize = _bmpDC.MeasureString(_text,font);
+            i = 0;
+        }
+
+        if (_maxWidth && real2int(mySize.get_Width()) > _maxWidth && _splitToMultipleLines)
+        {
+            i = mySize.get_Width() / _maxWidth;
+            noOfLines = System.Math::Ceiling(i);
+            splitText = TFMGraphicsHelper::splitTextToMultipleLines(_text,noOfLines);
+
+            mySize = _bmpDC.MeasureString(splitText,font);
+            i = 0;
+        }
+
+        if(_xAlign == SysChartHorizontalAlignment::Center)
+        {
+            i = mySize.get_Width()/2;//2;
+        }
+        else if (_xAlign == SysChartHorizontalAlignment::Right)
+        {
+            i = mySize.get_Width();//2;
+        }
+        if (_yAlign == SysChartVerticalAlignment::Bottom)
+        {
+            j = mySize.get_Height();
+        }
+        else if (_yAlign == SysChartVerticalAlignment::Middle)
+        {
+            j = mySize.get_Height()/2;
+        }
+        /*else if (_yAlign == SysChartVerticalAlignment::Top)
+        {
+            j = 0;// mySize.get_Height();
+        }*/
+        
+
+        _bmpDC.set_TextRenderingHint(System.Drawing.Text.TextRenderingHint::AntiAlias);
+        _bmpDC.DrawString((splitText ? splitText : _text),font,brush,_x-real2int(i),_y-real2int(j),format);
+
+        brush.Dispose();
+        j = mySize.get_Height();
+        return j;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>splitTextToMultipleLines</Name>
+				<Source><![CDATA[
+    public static str splitTextToMultipleLines( str _text, int _noOfLines)
+    {
+        str             retText;
+        int             strLength = strLen(_text);
+        int             lenDelta = strLength / _noOfLines;
+        int             prevPos;
+        Map             splitPos = new Map (Types::Integer, Types::Integer);
+        MapEnumerator   mEnum;
+        int i;
+        int j;
+        for (i = 1; i< _noOfLines; i++)
+        {
+            for(j = 0; j < lenDelta/2 && !splitPos.exists(i); j++)
+            {
+                if(subStr(_text,lenDelta*i + j,1) == ' ')
+                {
+                    splitPos.insert(i,lenDelta*i + j);
+                }
+                else if (subStr(_text,lenDelta*i - j,1) == ' ')
+                {
+                    splitPos.insert(i,lenDelta*i - j);
+                }
+            }
+            if (!splitPos.exists(i))
+            {
+                splitPos.insert(i,lenDelta*i);
+            }
+        }
+        mEnum = splitPos.getEnumerator();
+        prevPos = 0;
+        while (mEnum.moveNext())
+        {
+            retText += subStr(_text,prevPos,mEnum.currentValue()) + TFMConstants::lineBreak();
+            prevPos = mEnum.currentValue();
+        }
+        retText += subStr(_text,prevPos,10000);
+        return retText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>measureText</Name>
+				<Source><![CDATA[
+    public static container measureText(System.Drawing.Graphics _bmpDC, str _text, int _fontSize, boolean _bold = false, boolean _italic = false, FontName _fontName = 'Verdana')
+    {
+        real i = 0;
+        real j = 0;
+        
+        
+        System.Drawing.Font			font;
+        System.Drawing.SizeF		mySize;
+        System.Drawing.FontStyle    style;
+        InteropPermission			perm;
+        ;
+        perm = new InteropPermission(InteropKind::ClrInterop);
+        perm.assert();
+        style = System.Drawing.FontStyle::Regular;
+        if (_bold)
+        {
+            style = System.Drawing.FontStyle::Bold;
+        }
+        //BP deviation documented
+        font = new System.Drawing.Font(_fontName /*'Segoe Script'*/,_fontSize,style);
+        
+        mySize = _bmpDC.MeasureString(_text,font);
+        i = mySize.get_Width();
+        j = mySize.get_Height();
+        return [i,j];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawGradient</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Draws a rectangle gradient on the specified <c>System.Drawing.Graphics</c> object.
+    /// </summary>
+    /// <param name="_bmpDC">
+    ///    The <c>System.Drawing.Graphics</c> object to draw on.
+    /// </param>
+    /// <param name="_x0">
+    ///    The x coordinate of the upper left corner of the rectangle.
+    /// </param>
+    /// <param name="_y0">
+    ///    The y coordinate of the upper left corner of the rectangle.
+    /// </param>
+    /// <param name="_w">
+    ///    The width of the rectangle.
+    /// </param>
+    /// <param name="_h">
+    ///    The height of the rectangle
+    /// </param>
+    /// <param name="_uCol">
+    ///    The upper color of the gradient.
+    /// </param>
+    /// <param name="_lCol">
+    ///    The lower color of the gradient.
+    /// </param>
+    /// <param name="_roundCorner">
+    ///    true if the rectangle must be drawn with rounded corners; otherwise, false.
+    /// </param>
+    /// <param name="_vistaLook">
+    ///    true if the gradient must have a vista look; otherwise, false.
+    /// </param>
+    public static void drawGradient(System.Drawing.Graphics _bmpDC, int _x0,int _y0,int _w,int _h,int _uCol,int _lCol, boolean _roundCorner, boolean _vistaLook)
+    {
+        int                  i;
+        int                  myWidth;
+        int                  col;
+        int                  ur,ug,ub,lr,lg,lb,r,g,b,or,og,ob;
+        real                 w;
+        int                  dX;
+        //int                  resW = 0;
+        //int                  resH = 0;
+        //int                  xMargin = 3;
+        System.Drawing.Pen   pen;
+        System.Drawing.Color color;
+        InteropPermission    perm;
+
+        int makeVista(int _col, int _i, int _iMax)
+        {
+            return real2int((255-((255-_col)*((_i/_iMax)*0.4+0.4))));
+        }
+        container rgbInt2Con(int _rgbInt)
+        {
+            return [_rgbInt & 0xff, (_rgbInt & 0xff00)>>8 , (_rgbInt & 0xff0000)>>16];
+        }
+        int rgb2int(RGBint _r, RGBint _g, RGBint _b)
+        {
+            return _r  + _g<<8 + _b<<16;
+        }
+
+        perm = new InteropPermission(InteropKind::ClrInterop);
+        perm.assert();
+
+        [ur,ug,ub] = rgBint2Con(_uCol);
+        [lr,lg,lb] = rgBint2Con(_lCol);
+
+        dX = 0;
+
+        myWidth = _w-1;
+
+
+        for(i = _y0;i<_y0+_h;i++)
+        {
+            if (_h != 1)
+            {
+                w = (i-_y0)/(_h-1);
+                if(_vistaLook)
+            w = w*w;
+
+                or =w*lr+(1-w)*ur;
+                og = w*lg+(1-w)*ug;
+                ob = w*lb+(1-w)*ub;
+                r = or;
+                g = og;
+                b = ob;
+                if(_vistaLook && (i-_y0 <(_h/2)))
+                {
+                    r = makeVista(r,i-_y0,_h/2);
+                    g = makeVista(g,i-_y0,_h/2);
+                    b = makeVista(b,i-_y0,_h/2);
+                }
+                col = rgb2int(b,g,r);
+
+                col += 255<<24;
+
+                if(_roundCorner)
+                {
+                    dX = ((i <= _y0+3) || (i >= (_y0+_h-4)))?1:0;
+                    dX = ((i == _y0) || (i == (_y0+_h-1)))?4:dX;
+                    dX = ((i == _y0+1) || (i == (_y0+_h-2)))?2:dX;
+                }
+                color = System.Drawing.Color::FromArgb(col);
+                //BP deviation documented
+                pen = new System.Drawing.Pen(color);
+                _bmpDC.DrawLine(pen,_x0+dX,i,_x0+myWidth-dX,i);
+
+                pen.Dispose();
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>switchTOBGR</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Switches an RGB integer to a BGR integer.
+    /// </summary>
+    /// <param name="_rgbInt">
+    /// The RGB integer to switch.
+    /// </param>
+    /// <returns>
+    /// The resulting BGR value.
+    /// </returns>
+    public static int switchTOBGR(int _rgbInt)
+    {
+        int r,g,b,a;
+        [r,g,b,a] =  [_rgbInt & 0xff, (_rgbInt & 0xff00)>>8 , (_rgbInt & 0xff0000)>>16, (_rgbInt & 0xff000000)>>24];
+        return a << 24 + r<<16 + g<<8 + b;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setImageHtml</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Updates a screen with the supplied bitmap.
+    /// </summary>
+    /// <param name="_bmp">
+    /// The bitmap that should be shown on screen.
+    /// </param>
+    /// <param name="_fwc">
+    /// The <c>htmlViewerControl</c> class on which to display the bitmap.
+    /// </param>
+    public static void  setImageHtml(System.Drawing.Bitmap _bmp, TFMHtmlViewerCtrl _htmlViewer, boolean _canvasWidth = false, real _scale = 1)
+    {
+        //
+        _htmlViewer.parmHtml(TFMGraphicsHelper::makeImageHtml(_bmp,_canvasWidth,_scale));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeImageHtml</Name>
+				<Source><![CDATA[
+    public static str  makeImageHtml(System.Drawing.Bitmap _bmp, boolean _canvasWidth = false, real _scale = 1)
+    {
+        //
+        return '<img src="'+TFMGraphicsHelper::getImageURL(_bmp)+'" alt="image" height="'+(_canvasWidth ? '100%' : int2Str(_bmp.Height * _scale))+'" width="'+(_canvasWidth ? '100%' : int2Str(_bmp.Width * _scale))+'" \>';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setImageHtmlWithWidth</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Updates a screen with the supplied bitmap.
+    /// </summary>
+    /// <param name="_bmp">
+    /// The bitmap that should be shown on screen.
+    /// </param>
+    /// <param name="_fwc">
+    /// The <c>htmlViewerControl</c> class on which to display the bitmap.
+    /// </param>
+    public static void setImageHtmlWithWidth(str _imageName, TFMHtmlViewerCtrl _htmlViewer, int _width)
+    {
+        _htmlViewer.parmHtml( '<img src="' + TFMDocGetMedia::getURLFromIconName(_imageName, true) + '" alt="image" width="'+ int2Str(_width) +'"  />');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getImageURL</Name>
+				<Source><![CDATA[
+    public static str getImageURL(System.Drawing.Bitmap _bmp)
+    {
+            
+        System.IO.MemoryStream ms = new System.IO.MemoryStream();
+        System.Drawing.Imaging.ImageFormat imgFormat = System.Drawing.Imaging.ImageFormat::Png;
+                
+        _bmp.Save(ms, imgFormat);
+            
+        FileUploadTemporaryStorageStrategy fileUploadStrategy = new FileUploadTemporaryStorageStrategy();
+        
+        FileUploadTemporaryStorageResult fileUploadResult = fileUploadStrategy.uploadFile(ms, 'tf');
+        if(fileUploadResult && fileUploadResult.getUploadStatus())
+        {
+            //put process file code here.
+        }
+        else
+        {
+            throw error("@TFM:Unabletoloadfile");
+        }
+
+
+        return fileUploadResult.getDownloadUrl(false);
+        
+            
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initBaseBmp</Name>
+				<Source><![CDATA[
+    public Static System.Drawing.Bitmap initBaseBmp(int _width, int _height, boolean _stripes = true)
+    {
+        InteropPermission			perm = new InteropPermission(InteropKind::ClrInterop);
+        System.Drawing.Pen			pen;
+        System.Drawing.Pen			penBig;
+        System.Drawing.Brush		brush;
+        System.Drawing.Color		color;
+        System.Drawing.Graphics		bmpDC;
+        int							i;
+        System.Drawing.Bitmap		bmpBase;
+        System.Drawing.Image		holeImage = TFMImageHelper::base64ToImage(TFMImageHelper::resource2Base64(resourceStr(TFMPaperHole)));
+        System.Drawing.Rectangle	rect;
+        perm.assert();
+        //BP deviation documented
+        bmpBase = new System.Drawing.Bitmap(_width,_height);
+        bmpDC = System.Drawing.Graphics::FromImage(bmpBase);
+        color = System.Drawing.Color::FromArgb(255 +255<<8 +255 <<16 + 255<<24);
+
+        //BP deviation documented
+        brush = new System.Drawing.SolidBrush(color);
+
+        bmpDC.FillRectangle(brush,0,0,_width,_height);
+        brush.Dispose();
+        if (!_stripes)
+        {
+            return bmpBase;
+        }
+        //bmpDC.set_SmoothingMode(System.Drawing.Drawing2D.SmoothingMode::AntiAlias);
+        color = System.Drawing.Color::FromArgb(255 +164<<8 +164 <<16 + 64<<24);
+        //BP deviation documented
+        Pen = new System.Drawing.Pen(color,1);
+        PenBig = new System.Drawing.Pen(color,2);
+        for (i = 1; i < _height/20;i++)
+        {
+            bmpDC.DrawLine(pen,0,i*20,_width,i*20);
+        }
+        for (i = 1; i < _width/20;i++)
+        {
+   
+            bmpDC.DrawLine(i == 5 ? PenBig : pen,i*20,0,i*20,_height);
+        }
+
+        pen.Dispose();
+
+        for (i = 0; i < 4; i++)
+        {
+            rect = new System.Drawing.Rectangle(30,50 + i* 400,25,25);
+            bmpDC.DrawImage(holeImage,rect);
+        }
+
+        return bmpBase;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawGradientCircle</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Draws a gradient circle on the specified <c>System.Drawing.Graphics</c> object.
+    /// </summary>
+    /// <param name="_bmpDC">
+    ///    The <c>System.Drawing.Graphics</c> object to draw on.
+    /// </param>
+    /// <param name="_x0">
+    ///    The x coordinate of the circle center.
+    /// </param>
+    /// <param name="_y0">
+    ///    The y coordinate of the circle center.
+    /// </param>
+    /// <param name="_radius">
+    ///    The radius of the circle.
+    /// </param>
+    /// <param name="_upColor">
+    ///    The upper color of the gradient.
+    /// </param>
+    /// <param name="_loColor">
+    ///    The lower color of the gradient.
+    /// </param>
+    /// <param name="_noVista">
+    ///    true if the gradient must not have a vista look; otherwise, false.
+    /// </param>
+    public static void drawGradientCircle(System.Drawing.Graphics _bmpDC, int _x0, int _y0, real _radius, int _upColor, int _loColor, boolean _noVista = false)
+    {
+        int yMin, yMax;
+        int y;
+        int xMin, xMax;
+        int col;
+        int ur,ug,ub,lr,lg,lb,r,g,b;
+        real    w;
+        int     resW = 0;
+        int     resH = 0;
+        InteropPermission       perm;
+        System.Drawing.Pen  pen;
+        System.Drawing.Color    color;
+        
+        perm = new InteropPermission(InteropKind::ClrInterop);
+        perm.assert();
+        
+        [ur,ug,ub] = TFMGraphicsHelper::rgBint2Con(_upColor);
+        [lr,lg,lb] = TFMGraphicsHelper::rgBint2Con(_loColor);
+        
+        yMin = _y0 - real2int(_radius);
+        yMax = _y0 + real2int(_radius);
+        
+        for(y = yMin;y<=yMax;y++)
+        
+        {
+            //Color calculation begin
+            w = (y-yMin)/(2*_radius-1);
+            //Exponential Gradient to gain vista-look
+            w = w*w;
+            
+            r =w*lr+(1-w)*ur;
+            g = w*lg+(1-w)*ug;
+            b = w*lb+(1-w)*ub;
+            
+            if(y-yMin <_radius && !_noVista)
+            
+            {
+                r = TFMGraphicsHelper::makeVista(r,y-yMin,real2int(_radius));
+                g = TFMGraphicsHelper::makeVista(g,y-yMin,real2int(_radius));
+                b = TFMGraphicsHelper::makeVista(b,y-yMin,real2int(_radius));
+                
+            }
+            col = TFMGraphicsHelper::rgb2int(b,g,r);
+            
+            //Set alpha
+            col += 255<<24;
+            //Color Calculation end
+            
+            color = System.Drawing.Color::FromArgb(col);
+            //BP deviation documented
+            pen = new System.Drawing.Pen(color);
+            
+            [xMax,xMin] = TFMGraphicsHelper::findIntersections(y, _x0, _y0, _radius);
+            _bmpDC.DrawLine(pen,xMin,y,xMax,y);
+            
+            pen.Dispose();
+            
+        }
+        
+        
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeVista</Name>
+				<Source><![CDATA[
+    public static int makeVista(int _col, int _i, int _iMax)
+        
+    {
+        return real2int(255-((255-_col)*((_i/_iMax)*0.4+0.4)));
+            
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>rgbInt2Con</Name>
+				<Source><![CDATA[
+    public static container rgbInt2Con(int _rgbInt)
+    {
+        return [_rgbInt & 0xff, (_rgbInt & 0xff00)>>8 , (_rgbInt & 0xff0000)>>16];
+            
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>rgb2int</Name>
+				<Source><![CDATA[
+    public static int rgb2int(RGBint _r, RGBint _g, RGBint _b)
+        
+    {
+        return _r  + _g<<8 + _b<<16;
+            
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findIntersections</Name>
+				<Source><![CDATA[
+    public static container findIntersections(int _y, int _cX, int _cY, real _rad)
+        
+    {
+        real radTwo = _rad*_rad;
+        real yTwo   = (_y-_cY)*(_y-_cY);
+        real ret;
+        ;
+        ret = 0;
+        if (radTwo >= yTwo)
+                        ret = sqrt(radTwo - yTwo) + _cX;
+            
+        return [ret,_cX-(ret-_cX)];
+            
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawSpecularOverlay</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Draws a specular overlay on the specified <c>System.Drawing.Graphics</c> object.
+    /// </summary>
+    /// <param name="_bmpDC">
+    ///    The <c>System.Drawing.Graphics</c> object to draw on.
+    /// </param>
+    /// <param name="_x0">
+    ///    The x coordinate of the starting point
+    /// </param>
+    /// <param name="_y0">
+    ///    The y coordinate of the starting point.
+    /// </param>
+    /// <param name="_w">
+    ///    The width of the specular overlay.
+    /// </param>
+    /// <param name="_h">
+    ///    The height of the specular overlay.
+    /// </param>
+    /// <param name="_roundCorner">
+    ///    true if corners must be rounded; otherwise, false.
+    /// </param>
+    public static void drawSpecularOverlay(System.Drawing.Graphics _bmpDC, int _x0,int _y0,int _w,int _h, boolean _roundCorner)
+    
+    {
+        int                  i;
+        int                  myWidth;
+        int                  col;
+        int                  dX;
+        int                  resW = 0;
+        int                  resH = 0;
+        int                  xMargin = 3;
+        System.Drawing.Pen   pen;
+        System.Drawing.Color color;
+        InteropPermission    perm;
+        
+        perm = new InteropPermission(InteropKind::ClrInterop);
+        perm.assert();
+        
+        myWidth = _w-1;
+        
+        for(i = _y0;i<_y0+_h;i++)
+        
+        {
+            col = 0;
+            if((i-_y0 <(_h/2)))
+            
+            {
+                col = TFMGraphicsHelper::specColor(i-_y0,_h/2);
+                
+            }
+            
+            if(_roundCorner)
+            
+            {
+                dX = ((i <= _y0+3) || (i >= (_y0+_h-4)))?1:0;
+                dX = ((i == _y0) || (i == (_y0+_h-1)))?4:dX;
+                dX = ((i == _y0+1) || (i == (_y0+_h-2)))?2:dX;
+                
+            }
+            color = System.Drawing.Color::FromArgb(col);
+            //BP deviation documented
+            pen = new System.Drawing.Pen(color);
+            
+            _bmpDC.DrawLine(pen,_x0+dX,i,_x0+myWidth-dX,i);
+            
+            pen.Dispose();
+            
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>specColor</Name>
+				<Source><![CDATA[
+    public static int specColor(int _i,int _iMax)
+        
+    {
+        return 255<<16+255<<8+255+real2int(255*((_i/_iMax)*0.2+0.2))<<24;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawBmpCircle</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Draws a circle on the specified <c>System.Drawing.Graphics</c> object
+    /// </summary>
+    /// <param name="_bmpDC">
+    ///    The <c>System.Drawing.Graphics</c> object to draw on.
+    /// </param>
+    /// <param name="_x0">
+    ///    The x coordinate of the circle center.
+    /// </param>
+    /// <param name="_y0">
+    ///    The y coordinate of the circle center.
+    /// </param>
+    /// <param name="_radius">
+    ///    The radius of the circle.
+    /// </param>
+    /// <param name="_color">
+    ///    The color of the circle.
+    /// </param>
+    /// <param name="_lineWidth">
+    ///    The width of the line.
+    /// </param>
+    static void drawBmpCircle(System.Drawing.Graphics _bmpDC, int _x0, int _y0, int _radius, int _color, int _lineWidth)
+    
+    {
+        System.Drawing.Pen      pen;
+        System.Drawing.Color    color;
+        InteropPermission       perm;
+        
+        /*int switchTOBGR(int _rgbInt)
+        
+        {
+                    int r,g,b,a;
+                    [r,g,b,a] =  [_rgbInt & 0xff, (_rgbInt & 0xff00)>>8 , (_rgbInt & 0xff0000)>>16, (_rgbInt & 0xff000000)>>24];
+                    return a << 24 + r<<16 + g<<8 + b;
+            
+        }*/
+        
+            perm = new InteropPermission(InteropKind::ClrInterop);
+            perm.assert();
+        
+            color = System.Drawing.Color::FromArgb(TFMGraphicsHelper::switchTOBGR(_color));
+        
+            //BP deviation documented
+            pen   = new System.Drawing.Pen(color,_lineWidth);
+            _bmpDC.set_SmoothingMode(System.Drawing.Drawing2D.SmoothingMode::AntiAlias);
+            _bmpDC.DrawEllipse(pen,_x0-_radius,_y0-_radius,_radius*2,_radius*2);
+        
+        
+            pen.Dispose();
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,658 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListEditorTree</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMListEditorTree
+{
+    FormTreeControl				tree;
+    FormGroupControl			fgc;
+    FormButtonGroupControl		buttonGroup;
+    Map							idXs;
+    Map							idX2recId;
+    Map							actionIds;
+    FormRun						formRun;
+    TFMListId					listID;
+    Version						currentVersion;
+    boolean						VersionLocked;
+    RecId						currentCopy;
+    Name						currentCopyName;
+    TFMPageDatasources          mobPageDataSources;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    private void new(FormTreeControl _tree, FormGroupControl _fgc, FormButtonGroupControl	_buttonGroup, FormRun _formRun, TFMPageDatasources _dataSources)
+    {
+        tree = _tree;
+        fgc = _fgc;
+        buttonGroup = _buttonGroup;
+        mobPageDataSources = _dataSources;
+        formRun = _formRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    Public static TFMListEditorTree Construct(FormTreeControl _tree, FormGroupControl _fgc, FormButtonGroupControl	_buttonGroup, FormRun _formRun, TFMPageDatasources _dataSources)
+    {
+        return new TFMListEditorTree(_tree,_fgc,_buttonGroup, _formRun, _dataSources);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>rebuildTree</Name>
+				<Source><![CDATA[
+    public void rebuildTree()
+    {
+        RecId		newParent = idX2recId.lookup(tree.getFirstSelected());
+        tree.deleteAll();
+        
+        this.buildTree(listID,currentVersion);
+        if (idXs.exists(newParent))
+        {
+            tree.select(idXs.lookup(newParent));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>currentSelectedRecId</Name>
+				<Source><![CDATA[
+    public RecId currentSelectedRecId()
+    {
+        if(!idX2recId || !tree.getFirstSelected())
+        {
+            return 0;
+        }
+        return idX2recId.lookup(tree.getFirstSelected());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setSelection</Name>
+				<Source><![CDATA[
+    public void setSelection(RecId _selectedRecordId)
+    {
+        if(!_selectedRecordId)
+        {
+            tree.selectEx(0, true);
+        }
+        else
+        {
+            if(idXs && idXs.exists(_selectedRecordId))
+            {
+                tree.selectEx(idXs.lookup(_selectedRecordId), true);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTreeItemId</Name>
+				<Source><![CDATA[
+    private TreeItemIdx addTreeItemId(Name _name, int64 _id, anytype _data, TreeItemIdx _parentIdx)
+    {
+        FormTreeItem    formTreeItem = new FormTreeItem();
+        TreeItemIdx     idx;
+        
+        //BP Deviation Documented
+        formTreeItem.text(_name);
+        formTreeItem.data(_data);
+        
+        idx = tree.addItem(_parentIdx, 0, formTreeItem);
+        tree.expand(idx);
+  
+        
+        idXs.insert(_id, idx);
+        idX2recId.insert(idx,_id);
+        
+        return idx;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildTree</Name>
+				<Source><![CDATA[
+    public TreeItemIdx buildTree(TFMListId _listId, Version _currentVersion)
+    {
+        MapEnumerator			mEnum;
+        TreeItemIdx             idx;
+
+                            
+
+        listID			= _listId;
+        currentVersion	= _currentVersion;
+        VersionLocked	= _currentVersion < 1 || TFMListsVersion::Find(listID,currentVersion).Locked;
+        idXs = new Map(Types::Int64,Types::Int64);
+        idX2recId = new Map(Types::Int64,Types::Int64);
+        idx = this.addTreeItemId('listConfiguration',0,'',0);
+        this.buildSubTree(0,idx);
+        
+        tree.fontSize(20);
+        mEnum = idX2recId.getEnumerator();
+        while(mEnum.moveNext())
+        {
+            tree.expand(mEnum.currentKey());
+        }
+
+        return idx;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildSubTree</Name>
+				<Source><![CDATA[
+    private void buildSubTree(RefRecId _parent, TreeItemIdx _parentIdx)
+    {
+        TFMListNode				nodes;
+        str						attributeString = '';
+        TFMListELementAttribute	elementAttr;
+        Object 					theElement;
+        SysDictClass			sdc;
+        
+        while select nodes order by LineNum where nodes.ParentNode == _parent && nodes.ListId == listId && nodes.Version == currentVersion
+        {
+            attributeString = '';
+            
+            elementAttr = new TFMListElementAttribute(nodes.NodeName);
+            theElement	= TFMGetRegistrationConfiguration::getClassFromSysAttribute(classStr(TFMListBase), elementAttr);
+
+            if (classIdGet(theElement) == classNum(TFMListBase) && className2id(nodes.NodeName))
+            {
+                //Test if custom component class
+                sdc = new SysDictClass(className2id(nodes.NodeName));
+                if (sdc.extend() == classNum(TFMListCustomComponent))
+                {
+
+                
+                    theElement = sdc.makeObject();
+                    nodes.NodeName = theElement.name();
+                }
+            }
+
+            TFMHelper::addValueMapToParmMethod(nodes.Attributes(),theElement);
+            attributeString = theElement.attributeSummary();
+            attributeString = attributeString ? (' (' + attributeString +')') : '';
+            
+            this.buildSubTree(nodes.RecId, this.addTreeItemId(nodes.NodeName + attributeString,nodes.RecId,nodes.getXPath(),_parentIdx));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>allowSiblings</Name>
+				<Source><![CDATA[
+    protected boolean allowSiblings(RefRecId _recId)
+    {
+        TFMListNode child, currentMarked;
+        boolean		ret = true;
+
+        select firstonly currentMarked where currentMarked.recid == _recId;
+        
+        select firstonly child where child.ParentNode == _recId;
+
+        if ((child && subStr(child.NodeName, strLen(child.NodeName),1) == 's'))
+        {
+            return false;
+        }
+
+        return ret;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>selectionChanged</Name>
+				<Source><![CDATA[
+    public void selectionChanged(FormTreeItem _OldItem, FormTreeItem _NewItem, FormTreeSelect _how)
+    {
+        TFMPageXSDParser		parser = TFMPageXsdParserProvider::instance().getEntityImpl();
+        str						xPath = 'application/resources/lists/listConfiguration';
+        str						morePath = tree.getItem(tree.getFirstSelected()).data();
+        Map						NodeSubNodes = parser.drillDown(xPath + '/' + morePath);
+        MapEnumerator			mEnum = NodeSubNodes.getEnumerator();
+        XmlElement				XMLNode;
+        FormButtonControl		fbc;
+        str						resStr;
+        RefRecId				currentNodeRecid	= idX2recId.lookup(tree.getFirstSelected());
+        boolean					allowChild = currentNodeRecid && this.allowSiblings(currentNodeRecid)? true : currentNodeRecid == 0;
+        SetEnumerator			sEnum;
+        TFMListCustomComponent	customComponent;
+        TFMListNode				node;
+
+        select firstonly node where node.RecId == currentNodeRecid;
+
+        while (buttonGroup.controlCount())
+        {
+            buttonGroup.formRun().design().removeControl(buttonGroup.controlNum(1).id());
+        }
+
+        actionIds = new Map(Types::Int64, Types::String);
+        fbc = buttonGroup.addControl(FormControlType::Button,'Copy');
+        fbc.text("@SYS345131");
+        fbc.imageLocation(SysImageLocation::URL);
+        fbc.style(ButtonStyle::Tile);
+        fbc.normalImage(SysResource::getImagePath(resourceStr(TFMClientCopyIcon)));
+        fbc.registerOverrideMethod(methodStr(FormButtonControl, clicked), methodStr(TFMListEditorTree, CopyNodeOverride),this);
+
+        if (NodeSubNodes.exists(currentCopyName))
+        {
+            fbc = buttonGroup.addControl(FormControlType::Button,'Paste');
+            fbc.text("@SYS345132");
+            fbc.imageLocation(SysImageLocation::URL);
+            fbc.normalImage(SysResource::getImagePath(resourceStr(TFMClientPasteIcon)));
+            fbc.registerOverrideMethod(methodStr(FormButtonControl, clicked), methodStr(TFMListEditorTree, PasteNodeOverride),this);
+            fbc.style(ButtonStyle::Link);
+            fbc.enabled(!VersionLocked && allowChild);
+        }
+
+        // the listConfiguration and rows node item should always be there.
+        if(strScan(node.NodeName,'listCon',1,30))
+        {
+            return;
+        }
+
+        
+        while (mEnum.moveNext())
+        {
+            XMLNode = mEnum.currentValue();
+            if (strScan(XMLNode.name(), 'attribute',1,100))
+            {
+                continue;
+            }
+            fbc = buttonGroup.addControl(FormControlType::Button,mEnum.currentKey());
+            fbc.text(strFmt("@SYS327737", '\''+mEnum.currentKey()+'\''));
+            fbc.imageLocation(SysImageLocation::URL);
+            resStr = resourceStr(TFMClientAddIcon);
+            
+            if (strScan(mEnum.currentKey(),'column',1,30))
+            {
+                resStr = resourceStr(TFMClientAddColumnIcon);
+            }
+            else if (strScan(mEnum.currentKey(),'row',1,30))
+            {
+                resStr = resourceStr(TFMClientAddRowIcon);
+            }
+            else if (strScan(mEnum.currentKey(),'imageEle',1,30))
+            {
+                resStr = resourceStr(TFMClientAddImageIcon);
+            }
+            else if (strScan(mEnum.currentKey(),'textEle',1,30))
+            {
+                resStr = resourceStr(TFMClientaddTextIcon);
+            }
+            fbc.normalImage(SysResource::getImagePath(resStr));
+            fbc.registerOverrideMethod(methodStr(FormButtonControl, clicked), methodStr(TFMListEditorTree, AddNodeOverride),this);
+            fbc.enabled(!VersionLocked && allowChild);
+            actionIds.insert(fbc.id(), mEnum.currentKey());
+        }
+
+        if(strScan(node.NodeName,'rows',1,30))
+        {
+            return;
+        }
+
+        sEnum = TFMListCustomComponent::getCustomComponents(node.NodeName).getEnumerator();
+        while (sEnum.moveNext())
+        {
+            customComponent = sEnum.current();
+            //Add custom Component
+            fbc = buttonGroup.addControl(FormControlType::Button,classId2Name(classIdGet(customComponent)));
+            fbc.text(customComponent.name());
+            fbc.helpText(customComponent.name());
+            fbc.imageLocation(SysImageLocation::URL);
+            fbc.normalImage(SysResource::getImagePath(customComponent.resourceIcon()));
+            fbc.registerOverrideMethod(methodStr(FormButtonControl, clicked), methodStr(TFMListEditorTree, customNodeClickedOverride),this);
+            fbc.enabled(!VersionLocked);
+        }
+
+        fbc = buttonGroup.addControl(FormControlType::Button,'Delete');
+        fbc.text("@SYS115538");
+        fbc.helpText("@SYS115539");
+        fbc.imageLocation(SysImageLocation::URL);
+        fbc.normalImage(SysResource::getImagePath(resourceStr(TFMClientDeleteIcon)));
+        fbc.registerOverrideMethod(methodStr(FormButtonControl, clicked), methodStr(TFMListEditorTree, DeleteNodeOverride),this);
+        fbc.enabled(!VersionLocked);
+
+        fbc = buttonGroup.addControl(FormControlType::Button,'MoveUp');
+        fbc.text("@SYS321052");
+        fbc.helpText("@SYS320278");
+        fbc.imageLocation(SysImageLocation::URL);
+        fbc.normalImage(SysResource::getImagePath(resourceStr(TFMClientMoveUpIcon)));
+        fbc.registerOverrideMethod(methodStr(FormButtonControl, clicked), methodStr(TFMListEditorTree, MoveNodeOverride),this);
+        fbc.enabled(!VersionLocked);
+
+        fbc = buttonGroup.addControl(FormControlType::Button,'MoveDown');
+        fbc.text("@SYS321053");
+        fbc.helpText("@SYS320277");
+        fbc.imageLocation(SysImageLocation::URL);
+        fbc.normalImage(SysResource::getImagePath(resourceStr(TFMClientMoveDownIcon)));
+        fbc.registerOverrideMethod(methodStr(FormButtonControl, clicked), methodStr(TFMListEditorTree, MoveNodeOverride),this);
+        fbc.enabled(!VersionLocked);
+
+        this.populateAttributes();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateAttributes</Name>
+				<Source><![CDATA[
+    public void populateAttributes()
+    {
+        RecId					recId		= idX2recId.lookup(tree.getFirstSelected());
+        TFMListNode				node;
+        Map						attributes;
+        
+        TFMListELementAttribute	elementAttr;
+        TFMListBase 			theElement;
+        MapEnumerator			mEnum;
+        FormStringControl		fsc;
+        DictMethod				DM;
+        boolean					textFields = false;
+        FormControl				formControl;
+        int						lookupButtonValue;
+        str						parentValue;
+        TFMParameterAttribute	parmAttr;
+
+        SysDictClass			sdc;
+
+        while (fgc.controlCount())
+        {
+            fgc.formRun().design().removeControl(fgc.controlNum(1).id());
+        }
+        fgc.enabled(!VersionLocked);
+
+        select firstonly node where node.RecId == recId;
+
+        parentValue = node.valueParent();
+
+        elementAttr = new TFMListElementAttribute(node.NodeName);
+        theElement	= SysExtensionAppClassFactory::getClassFromSysAttribute(classStr(TFMListBase), elementAttr);
+        
+        if (theElement != null && classIdGet(theElement) != classNum(TFMListBase))
+        {
+            mEnum = TFMFormHelper::getParameterParmMethods(theElement).getEnumerator();
+        }
+
+        if (classIdGet(theElement) == classNum(TFMListBase) && className2id(node.NodeName))
+        {
+            //Test if custom component class
+            sdc = new SysDictClass(className2id(node.NodeName));
+            if (sdc.extend() == classNum(TFMListCustomComponent))
+            {
+                mEnum = TFMFormHelper::getParameterParmMethods(sdc.makeObject()).getEnumerator();
+            }
+        }
+
+        attributes	= node.Attributes();
+        if (mEnum == null)
+        {
+            mEnum = attributes.getEnumerator();
+            textFields = true;
+        }
+        while (mEnum.moveNext())
+        {
+            if (textFields)
+            {
+                fsc = fgc.addControl(FormControlType::String,mEnum.currentKey());
+                fsc.text(attributes.exists(mEnum.currentKey()) ? attributes.lookup(mEnum.currentKey()) : '');
+                fsc.label(mEnum.currentKey());
+                continue;
+            }
+            DM = mEnum.currentKey();
+            parmAttr = mEnum.currentValue();
+
+            if (parentValue && parmAttr.parmGroupString() != "@SYS315099" && parentValue != parmAttr.parmGroupString())
+            {
+                continue;
+            }
+
+            formControl = TFMFormHelper::type2FormControl(fgc,DM.returnId(),DM.returnId(),DM.name(),attributes.exists(subStr(DM.name(),5,100)) ? attributes.lookup(subStr(DM.name(),5,100)) : parmAttr.parmDefaultValue(),parmAttr.parmLabelString() ? parmAttr.parmLabelString() : TFMHelper::convertCamelCaseToNiceText(subStr(DM.name(),5,100)),methodStr(TFMListEditorTree, control_modified),this);
+            if (DM.returnTypeName() == extendedTypeStr(TFMDataSetField))
+            {
+                fsc = formControl;
+                //lookupButtonValue = TFMLists::Find(listID).DEL_PackedQuery != conNull() ? 2 : 0;
+                lookupButtonValue = 2;
+                fsc.lookupButton(lookupButtonValue);
+                fsc.replaceOnLookup(false);
+                fsc.registerOverrideMethod(methodStr(FormStringControl, lookup),methodStr(TFMListEditorTree, lookupDataSetOverride), this);
+            }
+            if (DM.returnTypeName() == extendedTypeStr(SysColorHex))
+            {
+                fsc = formControl;
+                fsc.lookupButton(2);
+                fsc.registerOverrideMethod(methodStr(FormStringControl, lookup),methodStr(TFMListEditorTree, lookupColor), this);
+            }
+
+            if (DM.returnTypeName() == extendedTypeStr(ResourceName))
+            {
+                fsc = formControl;
+                fsc.lookupButton(2);
+                fsc.registerOverrideMethod(methodStr(FormStringControl, lookup),methodStr(TFMListEditorTree, lookupResource), this);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupDataSetOverride</Name>
+				<Source><![CDATA[
+    public void lookupDataSetOverride(FormStringControl _fsc)
+    {
+        TFMFormLookupHelper::lookupDatasetFields(_fsc,listID,strScan(_fsc.name(),'dataMember',1,30) == 0, mobPageDataSources);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupColor</Name>
+				<Source><![CDATA[
+    public void lookupColor(FormStringControl _fsc)
+    {
+        Args args = new Args(formStr(ColorPickerLookup));
+        args.caller(_fsc);
+        args.parm(int2Str(TFMGraphicsHelper::switchTOBGR(TFMGraphicsHelper::hex2color(_fsc.text()))));
+        FormRun lookupFormRun = ClassFactory::formRunClassOnClient(args);
+        lookupFormRun.init();
+
+        _fsc.performFormLookup(lookupFormRun);
+
+        lookupFormRun.wait();
+        _fsc.text(TFMGraphicsHelper::color2hex(TFMGraphicsHelper::switchTOBGR(str2int(args.parm()))));
+        
+        this.control_modified(_fsc);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupResource</Name>
+				<Source><![CDATA[
+    public void lookupResource(FormStringControl _fsc)
+    {
+        Args    args = new Args();
+        Object  lookupFormRun;
+        
+        args.name(formStr(TFMResourceLookup));
+        args.caller(_fsc);
+        lookupFormRun = classfactory.formRunClass(args);
+        lookupFormRun.init();
+        _fsc.performFormLookup(lookupFormRun);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_modified</Name>
+				<Source><![CDATA[
+    public boolean control_modified(FormControl _control)
+    {
+        MethodName              callMethod	= SysTest::hasMethod(_control,methodStr(FormCheckBoxControl, value)) ? methodStr(FormCheckBoxControl, value) : methodStr(FormControl, valueStr);
+        str						value		= new SysDictClass(classIdGet(_control)).callObject(callMethod,_control);
+        RecId					recId		= idX2recId.lookup(tree.getFirstSelected());
+        TFMListNode				node;
+        TFMAttributeName		attrName	= (subStr(_control.name(),1,4) == 'parm' ? subStr(_control.name(),5,100) : _control.name() );
+        
+        select firstonly node where node.RecId == recId;
+
+        node.createOrUpdateParameter(attrName, value);
+
+        this.updateVisual();
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddNodeOverride</Name>
+				<Source><![CDATA[
+    public void AddNodeOverride(FormButtonControl _sender)
+    {
+        if(!tree.getFirstSelected())
+        {
+            return;
+        }
+        str nodeToAdd = actionIds.lookup(_sender.id());
+
+        TFMListNode::addNode(nodeToAdd,idX2recId.lookup(tree.getFirstSelected()),listID, currentVersion);
+        this.updateVisual();
+        this.rebuildTree();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CopyNodeOverride</Name>
+				<Source><![CDATA[
+    public void CopyNodeOverride(FormButtonControl _sender)
+    {
+        if(!tree.getFirstSelected())
+        {
+            return;
+        }
+        currentCopy	= idX2recId.lookup(tree.getFirstSelected());
+        currentCopyName = TFMListNode::Find(currentCopy).NodeName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MoveNodeOverride</Name>
+				<Source><![CDATA[
+    public void MoveNodeOverride(FormButtonControl _sender)
+    {
+        if(!tree.getFirstSelected())
+        {
+            return;
+        }
+        RecId		recToMove = idX2recId.lookup(tree.getFirstSelected());
+        if (_sender.name() == 'MoveUp')
+        {
+            TFMListNode::MoveUp(recToMove);
+        }
+        else
+        {
+            TFMListNode::MoveDown(recToMove);
+        }
+        this.updateVisual();
+        this.rebuildTree();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PasteNodeOverride</Name>
+				<Source><![CDATA[
+    public void PasteNodeOverride(FormButtonControl _sender)
+    {
+        if(!tree.getFirstSelected())
+        {
+            return;
+        }
+        TFMListNode fromNode;
+        TFMListNode toParent;
+        RecId		newParent = idX2recId.lookup(tree.getFirstSelected());
+
+        select firstonly fromNode where fromNode.RecId == currentCopy;
+
+        select firstonly toParent where toParent.RecId == newParent;
+
+        TFMListNode::pasteNodeFromNode(fromNode,toParent);
+        this.updateVisual();
+        this.rebuildTree();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DeleteNodeOverride</Name>
+				<Source><![CDATA[
+    public void DeleteNodeOverride(FormButtonControl _sender)
+    {
+        if(!tree.getFirstSelected())
+        {
+            return;
+        }
+        RecId		currentNode = idX2recId.lookup(tree.getFirstSelected());
+        TFMListNode	listNode;
+        ttsbegin;
+        
+        delete_from listNode where listNode.RecId == currentNode;
+
+        ttscommit;
+        this.updateVisual();
+        this.rebuildTree();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>customNodeClickedOverride</Name>
+				<Source><![CDATA[
+    public void customNodeClickedOverride(FormButtonControl _sender)
+    {
+        if(!tree.getFirstSelected())
+        {
+            return;
+        }
+        RecId		currentNode = idX2recId.lookup(tree.getFirstSelected());
+
+        TFMListNode::addNode(_sender.name(),currentNode,listID,currentVersion);
+        
+        this.updateVisual();
+        this.rebuildTree();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateVisual</Name>
+				<Source><![CDATA[
+    private void updateVisual()
+    {
+        Object FormObj = formRun;
+
+        formObj.updateVisual();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

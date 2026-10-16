@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatLookupToteContent</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableNameAttribute(tableStr(MobToteContent))]
+class MobXMLFormatLookupToteContent extends TFMXMLFormatLookup
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        WMSOrderTrans	orderTrans;
+        ItemId          itemId;
+        InventQty		qty;
+        InventDim       iDim;
+        MobToteContent	toteCon = common;
+        str             itemBarcodesStr = '';
+        
+        select firstonly orderTrans where orderTrans.RecId == toteCon.RefRecId;
+        
+        itemId = orderTrans.ItemId;
+        qty = toteCon.qty;
+        common = orderTrans;
+        super();
+        
+        iDim = orderTrans.inventDim();
+
+        imageId = MobHelper::imageIDFromDocuref(MobHelper::FindItemDocuref(orderTrans.ItemId,orderTrans.InventDimId));
+        
+        displayLine1 = new DictField(tablenum(WMSOrderTrans), fieldnum(WMSOrderTrans, ItemId)).Label() + ' ' + orderTrans.itemId;
+        displayLine2 = strFmt('%1',orderTrans.itemName());
+        displayLine3 = strFmt('%1',qty);
+        displayLine4 = iDim.inventBatchId ? ('Batch: ' + iDim.inventBatchId) : '';
+        displayLine4 += iDim.inventSerialId ? ((displayLine4 ? MobConstants::lineBreak() : '') +  ('Serial: ' + iDim.inventSerialId)) : '';
+
+        displayLine5 = iDim.InventColorId ? ('Color: ' + iDim.InventColorId) : '';
+        displayLine5 += iDim.InventSizeId ? ((displayLine5 ? MobConstants::lineBreak() : '') +  ('Size: ' + iDim.InventSizeId)) : '';
+        displayLine5 += iDim.InventStyleId ? ((displayLine5 ? MobConstants::lineBreak() : '') + ('Style: ' + iDim.InventStyleId)) : '';
+        
+        fieldsToAdd.insert(strLwr(new DictField(tablenum(MobToteTable), fieldnum(MobToteTable, ToteId)).name()), toteCon.ToteId);
+
+        fieldsToAdd.insert(MobConstants::Quantity(), MobHelper::formatItemQty(qty, orderTrans.unitId(),true));
+        fieldsToAdd.insert('UnitOfMeasure', orderTrans.unitId());
+
+        //This is subject of change once a general mechanishm is in place.
+        itemBarcodesStr += MobBarcodeHelper::getItemBarcode(itemId, '', iDim);
+        if(itemBarcodesStr)
+        {
+            this.barcode = itemBarcodesStr;                                                                             
+        }        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

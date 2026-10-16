@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLockedOrders</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMLockedOrders extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    public static TFMLockedOrders find(TFMBackendId _backendid, TFMOrderTypes _ordertype, boolean _forUpdate = false)
+    {
+        TFMLockedOrders  mobLockedOrders;
+            
+        mobLockedOrders.selectForUpdate  (_forUpdate);
+        mobLockedOrders.selectLocked     (_forUpdate);
+    
+        select firstonly mobLockedOrders
+            index hint BackendOrderIdx
+            where mobLockedOrders.BackendId == _backendid &&
+                    (mobLockedOrders.OrderType == _ordertype || !_ordertype);
+   
+        return mobLockedOrders;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exist</Name>
+				<Source><![CDATA[
+    public static boolean exist(TFMBackendId _backendid, TFMDocumentDeviceId _deviceId, UserId _userId)
+    {
+        TFMLockedOrders  mobLockedOrders;
+        
+        select firstonly mobLockedOrders
+            index hint BackendOrderIdx
+            where mobLockedOrders.BackendId == _backendid &&
+                  (mobLockedOrders.DeviceId  == _deviceId   || !_deviceId) &&
+                  (mobLockedOrders.UserID    == _userId     || !_userId);
+   
+        return mobLockedOrders.recid;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isOrderLocked</Name>
+				<Source><![CDATA[
+    public static boolean isOrderLocked(TFMBackendId _backendid, TFMDocumentDeviceId _deviceId, TFMLockingLevel _lockingLevel, UserId _userId = curUserId())
+    {
+        TFMLockedOrders  mobLockedOrders;
+        TFMDocumentDeviceId usedDeviceId = _lockingLevel == TFMLockingLevel::User ? '' : _deviceId;
+        UserId usedUserId = _lockingLevel == TFMLockingLevel::Device ? '' : _userId;
+
+        if (_lockingLevel == TFMLockingLevel::Never)
+        {
+            return false;
+        }
+        
+        select firstonly mobLockedOrders
+            index hint BackendOrderIdx
+            where mobLockedOrders.BackendId == _backendid;
+        
+        if (!mobLockedOrders)
+        {
+            return false;
+        }
+        else if (_lockingLevel == TFMLockingLevel::User)
+        {
+            return mobLockedOrders.UserID != _userId;
+        }
+        else if (_lockingLevel == TFMLockingLevel::Device)
+        {
+            return mobLockedOrders.DeviceId != _deviceId;
+        }
+        else
+        {
+            return !(mobLockedOrders.DeviceId == _deviceId && mobLockedOrders.UserID == _userId);
+        }
+
+        return mobLockedOrders.recid;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unlock</Name>
+				<Source><![CDATA[
+    public static void unlock(TFMBackendId _backendid, TFMOrderTypes _ordertype)
+    {
+        TFMLockedOrders lockedOrder;
+        ttsbegin;
+        lockedOrder = TFMLockedOrders::find(_backendid,_ordertype,true);
+        if (lockedOrder.recId)
+        {
+            lockedOrder.doDelete();
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:LockedOrdersDevDesc</DeveloperDocumentation>
+	<Label>@TFM:LockedOrders</Label>
+	<Tags>NoExport</Tags>
+	<TitleField1>BackendId</TitleField1>
+	<TitleField2>UserID</TitleField2>
+	<ReplacementKey>UniqueIndex</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>BackendId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OrderType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserID</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>BackendId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OrderType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DeviceId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>BackendId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OrderType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserID</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>BackendId</Name>
+			<ExtendedDataType>TFMBackendId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OrderType</Name>
+			<ExtendedDataType>TFMOrderTypes</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>UserID</Name>
+			<ExtendedDataType>UserId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DeviceId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMDocumentDeviceId</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>BackendOrderIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>OrderType</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>BackendId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>UniqueIndex</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>BackendId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>OrderType</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>UserID</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>DeviceId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestApplicationConfigurationElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType('applicationConfiguration')]
+class TFMRequestApplicationConfigurationElement extends TFMRequestElement
+{
+    List configurations;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmConfiguration</Name>
+				<Source><![CDATA[
+   public TFMRequestConfigurationElement parmConfiguration(TFMRequestConfigurationElement _configuration)
+    {
+        if(!configurations)
+        {
+            configurations = new List(Types::Class);
+        }
+        configurations.addEnd(_configuration);
+        return _configuration;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Configurations</Name>
+				<Source><![CDATA[
+    public List Configurations()
+    {
+        return configurations;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHandledSubRequests</Name>
+				<Source><![CDATA[
+    public Map getHandledSubRequests()
+    {
+        Map ret;
+
+        ret = super();
+
+        ret.insert('configuration', classStr(TFMRequestConfigurationElement));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

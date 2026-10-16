@@ -1,0 +1,4 @@
+interface:
+  display_name: "X++ Types and Statements"
+  short_description: "Apply X++ control-flow and type-system rules"
+  default_prompt: "Use $xpp-statement-and-type-rules to validate this X++ logic."

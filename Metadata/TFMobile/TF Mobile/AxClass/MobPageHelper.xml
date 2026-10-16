@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobPageHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobPageHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getPagesFromClass</Name>
+				<Source><![CDATA[
+    public static TFMPages getPagesFromClass(TFMDocumentHandler _handler)
+    {
+        return TFMPageHelper::getPagesFromClass(_handler);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findOrderlistRequestDocuments</Name>
+				<Source><![CDATA[
+	public static container findOrderlistRequestDocuments(TFMDocumentHandler _docHand)
+    {
+        return TFMPageHelper::findOrderlistRequestDocuments(_docHand);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>menuContainer2Classes</Name>
+				<Source><![CDATA[
+    public static Map menuContainer2Classes(container _menuContainer)
+    {
+        return TFMPageHelper::menuContainer2Classes(_menuContainer);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMethodsUsingSysAttribute</Name>
+				<Source><![CDATA[
+    public static Map getMethodsUsingSysAttribute(ClassId _classID, SysAttribute _sysAttribute, boolean _dontMatchParms = false)
+    {
+        return TFMPageHelper::getMethodsUsingSysAttribute(_classID, _sysAttribute, _dontMatchParms);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addOrUpdateUnplannedItemRegistrationPage</Name>
+				<Source><![CDATA[
+    public static TFMPageUnplannedItemRegistration addOrUpdateUnplannedItemRegistrationPage(TFMPages _pages, str _pageId, str _title, str _icon, str _filter = '', str _request = '', str _submit = '')
+    {
+        return TFMPageHelper::addOrUpdateUnplannedItemRegistrationPage(_pages, _pageId, _title, _icon, _filter, _request , _submit);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addOrUpdateLookupPage</Name>
+				<Source><![CDATA[
+    public static TFMPageLookup addOrUpdateLookupPage(TFMPages _pages, str _pageId, str _title, str _icon, str _filter = '', str _listId = '', str _lookup = '', str _submit = '')
+    {
+        return TFMPageHelper::addOrUpdateLookupPage(_pages, _pageId, _title, _icon, _filter , _listId, _lookup, _submit);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setToUnavailableForMenuPages</Name>
+				<Source><![CDATA[
+    public static boolean setToUnavailableForMenuPages(TFMPages _pages, str _pageId)
+    {
+        return TFMPageHelper::setToUnavailableForMenuPages(_pages, _pageId);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

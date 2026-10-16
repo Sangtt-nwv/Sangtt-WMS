@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_Invent</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter super class for general inventory lines.
+/// </summary>
+class MobXMLFormatOrderLines_Invent extends TFMXMLFormatOrderLines
+{
+    InventJournalId JournalID;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setInventDim</Name>
+				<Source><![CDATA[
+    protected void setInventDim(ItemId _itemId)
+    {
+        super(_itemId);
+    
+        // The thing that decides if serial or batch numbers should be validated is
+        // if the journal line has a value in that column.
+        // This is different from standard setup where the item dimension determines this.
+        // The reason for this is to allow the creator of the counting journal to decide
+        // if serial / batch numbers should be validated during counting
+    
+        if (inventDim.inventSerialId)
+        {
+            registerSerialNumber    = true;
+        }
+        else
+        {
+            registerSerialNumber    = false;
+        }
+        serialNumber                = inventDim.inventSerialId;
+    
+        if (inventDim.inventBatchId)
+        {
+            registerBatchNumber       = true;
+        }
+        else
+        {
+            registerBatchNumber       = false;
+        }
+        lotNumber                   = '@type=batch;' + inventDim.inventBatchId;	
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

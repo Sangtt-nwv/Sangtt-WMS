@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockCreateCountingJournalLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic block that can create counting journal lines
+/// </summary>
+class MwmsLogicBlockCreateCountingJournalLine extends MwmsLogicBlockJournalLinesCommon implements TFMLogicBlockDataCollectionInterface, TFMLogicBlockPrePostDataModifyInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicBlockCreateCountingJournalLine Construct()
+    {
+        return new MwmsLogicBlockCreateCountingJournalLine();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        return "Create Counting lines";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method provides the header fields, that are needed to find out which data should be collected.
+    /// </summary>
+    /// <returns>A MobReferenceDataConfiguration object, containing registration collectors for the header.</returns>
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        return components.getHeaders();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method gives you the registration collectors for this data collection block.
+    /// </summary>
+    /// <returns>A collection of registration collectors.</returns>
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        return components.getCollectors();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method is called before the post method, and gives the option to add extra registration collectors for the user to be prompted for before the post method is executed.
+    /// </summary>
+    /// <returns>Returns a MobRegistrationCollectors object if the user must be further prompted, otherwise it returns null</returns>
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preparePost</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to set up tables to be used in the posting. Ensures that addons can be made, that can modify the data of the block before posting, when needed.
+    /// </summary>
+    public void preparePost()
+    {
+        this.getTables();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method executed when all data has been collected, and contains the posting logic.
+    /// </summary>
+    /// <returns>A MobPostResponseData object.</returns>
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData                 response = TFMPostResponseData::Construct();
+        this.addOnhandStuff(inventJournalTrans);
+        // Calculate the number of lines
+        inventJournalTable::initTotal(inventJournalTable);
+        inventJournalTable.update();
+        
+        response.parmResponseText("@SYS80122");
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addOnhandStuff</Name>
+				<Source><![CDATA[
+    protected void addOnhandStuff(InventJournalTrans _line)
+    {
+        InventJournalId             inventJournalId = _line.JournalId;
+        InventDimParm               inventDimParm;
+        inventDim                   localInventDim;
+        
+        TFMRequestItemAndDimensionElement dimensionRequest = request.convertToOtherRequestType(classStr(TFMRequestItemAndDimensionElement));
+
+        _line.Counted = dimensionRequest.parmQuantity();
+        localInventDim = _line.inventDim();
+        inventDimParm.initFromInventDim(localInventDim);
+        inventDimParm = InventDimParm::orParms(inventDimParm,InventJournalTable::journalId2inventDimParm(_line.JournalId));
+        _line.InventOnHand = InventSumDatePhysicalDim::onHandQty(_line.TransDate,_line.ItemId,localInventDim,inventDimParm);
+
+        _line.inventMovement().journalSetCounted();
+        _line.write();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMCountIcon);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

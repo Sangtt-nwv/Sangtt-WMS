@@ -1,0 +1,707 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocGetMedia</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The TFMDocGetMedia class is the document handler for when the mobile device requests an image.
+/// </summary>
+class TFMDocGetMedia extends TFMDocumentHandler
+{
+    #tfm
+    TFMDocumentContentSubject iconRequested;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getDocumentContentSubject</Name>
+				<Source><![CDATA[
+    public TFMDocumentContentSubject getDocumentContentSubject()
+    {
+        return iconRequested;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {        
+        return "@TFM:ImageService";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    public Set getDocumentTypes()
+    {
+        Set ret = new Set(Types::String);
+
+        ret.add(methodStr(TFMDocGetMedia,GetMedia));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dopackItems2Image</Name>
+				<Source><![CDATA[
+    //public static str items2Image(Set _items)
+    //{
+    //    if(!_items || !_items.elements())
+    //    {
+    //        return '';
+    //    }
+    //    str ret;
+    //    real counter = roundUp(sqrt(_items.elements()),1);
+    //    int i;
+    //    SetEnumerator sEnum = _items.getEnumerator();
+    //    System.Drawing.Image    image = new System.Drawing.Bitmap(1000,1000);
+    //    System.Drawing.Image    itemImage;
+    //    System.Drawing.Graphics Graphics;// =  System.Drawing.Graphics::FromImage(image);
+    //    DocuRef docuRef;
+    //    int imgDim = real2int(1000.0 / counter);
+
+    //    //Greedy placement from large to small.
+    //    //Put the largest rectangle remaining into your packed area. If it can't fit anywhere, place it in a place that extends the pack region as little as possible. 
+    //    //Repeat until you finish with the smallest rectangle.
+
+    //    while (sEnum.moveNext())
+    //    {
+    //        docuRef = TFMHelper::findDefaultImageDocuRef(InventTable::find(sEnum.current()));
+    //        itemImage = TFMHelper::getAttachmentAsImage(docuRef);
+    //        itemImage = TFMImageHelper::scaleImage(itemImage,imgDim,imgDim);
+    //        Graphics.DrawImage(itemImage,imgDim * (i mod real2int(counter)), imgDim * (i div real2int(counter)));
+    //        i++;
+    //    }
+    //    ret = TFMImageHelper::Image2Base64(image);
+    //    return ret;
+    //}
+
+    public static str dopackItems2Image(Set _items)
+    {
+        if(!_items || !_items.elements())
+        {
+            return '';
+        }
+        str ret;
+        real counter = roundUp(sqrt(_items.elements()),1);
+        int i;
+        Map         sizemap = new Map(Types::String, Types::String);
+        Map         imageMap = new Map(Types::String, Types::Class);
+        Map         rects = new Map(Types::String,Types::Class);
+        Map         orders = new Map(Types::String, Types::String);
+        SetEnumerator sEnum = _items.getEnumerator();
+        MapEnumerator   mEnum;
+        MapEnumerator   rectEnum;
+        
+        System.Drawing.Image    itemImage;
+        
+        DocuRef docuRef;
+        int imgDim = real2int(1000.0 / counter);
+
+        //Greedy placement from large to small.
+        //Put the largest rectangle remaining into your packed area. If it can't fit anywhere, place it in a place that extends the pack region as little as possible.
+        //Repeat until you finish with the smallest rectangle.
+
+        while (sEnum.moveNext())
+        {
+            docuRef = TFMHelper::findDefaultImageDocuRef(InventTable::find(sEnum.current()));
+            if (!docuRef)
+            {
+                itemImage = TFMImageHelper::base64ToImage(TFMImageHelper::resource2Base64(resourceStr(TFMMissingImage)));
+            }
+            else
+            {
+                itemImage = TFMHelper::getAttachmentAsImage(docuRef);
+            }
+            if(itemImage)
+            {
+                itemImage = TFMImageHelper::scaleImage(itemImage,imgDim*2,imgDim);
+                sizemap.insert(int2Str(1000000 - itemImage.Width * itemImage.Height) + sEnum.current(),sEnum.current());
+                imageMap.insert(sEnum.current(), itemImage);
+                i++;
+            }
+        }
+        i = 0;
+        mEnum = sizemap.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            orders.insert(mEnum.currentValue(),int2Str(i));
+            i++;
+            //Each Image, Largest first
+            itemImage = imageMap.lookup(mEnum.currentValue());
+            int x = 0, y = 0;
+            int extraWidth = 4000;//, extraHeight = 4000;
+            //int totalWidth = 4000, totalHeight = 4000;
+            //int extraArea = 400000000;
+            System.Drawing.Rectangle rect = new System.Drawing.Rectangle(0,0,itemImage.Width,itemImage.Height);
+            System.Drawing.Rectangle totalRect = TFMDocGetMedia::totalRect(rects.getEnumerator());
+            rectEnum = rects.getEnumerator();            
+            while (rectEnum.moveNext())
+            {
+                //placement, place to the right and below each existing rect. Evaluate which placement is best, save that.
+                System.Drawing.Rectangle existingRect = rectEnum.currentValue();
+                
+                //Try right
+                rect.X = existingRect.X + existingRect.Width +2 ;
+                rect.Y = existingRect.Y;
+                if (!TFMDocGetMedia::intersectionTest(rects.getEnumerator(), rect))
+                { 
+                    if (extraWidth > rect.Right)
+                    {
+                        extraWidth = rect.Right;
+                        x = rect.X;
+                        y = rect.Y;
+                    }
+                }
+            }
+            if (extraWidth < totalRect.Height + itemImage.Height || i == _items.elements())
+            {
+                rect.X = x;
+                rect.Y = y;
+            }
+            else
+            {
+                rect.X = 0;
+                rect.Y = totalRect.Bottom + 2;
+            }
+            rects.insert(mEnum.currentValue(),rect);
+        }
+        System.Int32 width = 0;//TFMDocGetMedia::totalRect(rects.getEnumerator()).Width;
+        System.Int32 height= 0;//TFMDocGetMedia::totalRect(rects.getEnumerator()).Height;
+        mEnum = rects.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            System.Drawing.Rectangle elRect = mEnum.currentValue();
+            width = max(width, elRect.X + elRect.Width);
+            height= max(height, elRect.Y + elRect.Height);
+            
+        }
+        i = 0;
+        
+        System.Drawing.Image    image =  new System.Drawing.Bitmap(width,height);// new System.Drawing.Bitmap(TFMDocGetMedia::totalRect(rects.getEnumerator()).Width,TFMDocGetMedia::totalRect(rects.getEnumerator()).Height);
+        System.Drawing.Graphics Graphics =  System.Drawing.Graphics::FromImage(image);
+        mEnum = rects.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            itemImage = imageMap.lookup(mEnum.currentKey());
+            System.Drawing.Rectangle rect = mEnum.currentValue();
+            Graphics.DrawImage(itemImage,rect);
+			if (true)
+            {
+				continue;
+            }
+            Graphics.DrawLine(new System.Drawing.Pen(System.Drawing.Color::Black),rect.X,rect.Y,rect.Right,rect.Y);
+            Graphics.DrawLine(new System.Drawing.Pen(System.Drawing.Color::Black),rect.Right,rect.Y,rect.Right,rect.Bottom);
+            Graphics.DrawLine(new System.Drawing.Pen(System.Drawing.Color::Black),rect.Right,rect.Bottom,rect.X,rect.Bottom);
+            Graphics.DrawLine(new System.Drawing.Pen(System.Drawing.Color::Black),rect.X,rect.Bottom,rect.X,rect.Y);
+            Graphics.DrawString(orders.lookup(mEnum.currentKey()) + ' ' +int2Str(rect.Right) + 'x' + int2Str(rect.Bottom),new System.Drawing.Font('Segoe Script',15),new System.Drawing.SolidBrush(System.Drawing.Color::White),rect.X-1,rect.Y-1);
+            Graphics.DrawString(orders.lookup(mEnum.currentKey()) + ' ' +int2Str(rect.Right) + 'x' + int2Str(rect.Bottom),new System.Drawing.Font('Segoe Script',15),new System.Drawing.SolidBrush(System.Drawing.Color::White),rect.X+1,rect.Y+1);
+            Graphics.DrawString(orders.lookup(mEnum.currentKey()) + ' ' +int2Str(rect.Right) + 'x' + int2Str(rect.Bottom),new System.Drawing.Font('Segoe Script',15),new System.Drawing.SolidBrush(System.Drawing.Color::Black),rect.X,rect.Y);
+            
+                i++;
+        }
+
+        ret = TFMImageHelper::Image2Base64(image);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>totalRect</Name>
+				<Source><![CDATA[
+    private static System.Drawing.Rectangle totalRect(MapEnumerator _rects)
+    {
+        System.Drawing.Rectangle retRect = new System.Drawing.Rectangle(0,0,1,1);
+        while (_rects.moveNext())
+        {
+            System.Drawing.Rectangle rect = _rects.currentValue();
+            retRect.Width = max(retRect.Width, rect.X + rect.Width);
+            retRect.Height= max(retRect.Height, rect.Y + rect.Height);
+        }
+        
+        return retRect;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>intersectionTest</Name>
+				<Source><![CDATA[
+    private static boolean intersectionTest(MapEnumerator _rects, System.Drawing.Rectangle _rect)
+    {        
+        boolean intersects = false;
+        while (_rects.moveNext() && !intersects)
+        {
+            //Check intersection with each placement.
+            System.Drawing.Rectangle intersectRectangle = System.Drawing.Rectangle::Intersect(_rect, _rects.currentValue());
+            intersects = intersects || !intersectRectangle.IsEmpty;
+        }
+        if (intersects)
+        {
+            //No Good placement
+            return intersects;
+        }
+        return intersects;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetMedia</Name>
+				<Source><![CDATA[
+    private void GetMedia()
+    {
+        XmlElement              mediaNode = request.parmOrigXML().root().getNamedElement(TFMConstants::requestData()).getNamedElement('mediaIds').firstChild();
+        Map                     mediaMap = new Map(Types::String, Types::String);
+        
+        while (mediaNode)
+        {
+            iconRequested = mediaNode.innerText();
+            mediaMap.insert(mediaNode.innerText(),TFMDocGetMedia::getBase64FromName(mediaNode.innerText(), request));
+            mediaNode = mediaNode.nextSibling();
+        }
+        
+        this.createResponse(mediaMap);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerImage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public Map registerImage()
+    {
+        Map ret;
+
+        ret = super();
+
+        ret.insert('mainmenubincontent',resourceStr(TFMLocationContentIcon));
+        ret.insert('mainmenucount',resourceStr(TFMCountIcon));
+        ret.insert('mainmenucount-unplanned',resourceStr(TFMUnplannedCountIcon));
+        ret.insert('mainmenucreatepallet',resourceStr(TFMCreatePalletIcon));
+        ret.insert('mainmenulocateitem',resourceStr(TFMLocateItemIcon));        
+        ret.insert('mainmenumove-unplanned',resourceStr(TFMUnplannedMoveIcon));
+        ret.insert('mainmenunegativeadjustment',resourceStr(TFMNegativeAdjustmentIcon));
+        ret.insert('mainmenupallettransport',resourceStr(TFMPalletLookupIcon));
+        ret.insert('mainmenupallettransport-unplanned',resourceStr(TFMPalletMoveIcon));
+        ret.insert('mainmenupick',resourceStr(TFMPickIcon));
+        ret.insert('mainmenuprofitlossjournallookup',resourceStr(TFMProfitLossJournalIcon));
+        ret.insert('mainmenuquarantineorders',resourceStr(TFMQuarantineOrderIcon));
+        ret.insert('mainmenureceive',resourceStr(TFMReceiveIcon));
+        ret.insert('mainmenuscaninfo',resourceStr(TFMRegisterBarcodeIcon));
+        ret.insert('mainmenureportasfinished',resourceStr(TFMReportAsFinishedIcon));
+        ret.insert('mainmenuscaninfoi',resourceStr(TFMScanInfoIcon));
+        ret.insert('mainmenusettings',resourceStr(TFMSettingsIcon));
+        ret.insert('mainmenutagcountingjournallookup',resourceStr(TFMUnplannedTagCountIcon));
+        ret.insert('mainmenutagcountingjournallookup',resourceStr(TFMUnplannedTagCountIcon));
+        ret.insert('finishedPallet',resourceStr(TFMFinishedPallet));
+        ret.insert('stopwatch', resourceStr(TFMStopWatch));
+        ret.insert('camera', resourceStr(TFMCamera));
+        ret.insert('document', resourceStr(TFMDocument));
+        ret.insert('imagecapture', resourceStr(TFMItemImageCapture));
+        ret.insert('itemdimensions', resourceStr(TFMItemPhysicalDimensions));
+        ret.insert('Production', resourceStr(TFMProduction));
+        ret.insert('Outbound', resourceStr(TFMPickIcon));
+        ret.insert('Warehouse', resourceStr(TFMLocationContentIcon));
+        ret.insert('Inbound', resourceStr(TFMReceiveIcon));
+        ret.insert('Miscellaneous', resourceStr(TFMSettingsIcon));
+        ret.insert('errorRed', resourceStr(TFMStateError));
+        ret.insert('StateError', resourceStr(TFMStateError));
+        ret.insert('minus', resourceStr(TFMStateMinus));
+        ret.insert('StateMinus', resourceStr(TFMStateMinus));
+        ret.insert('minusRed', resourceStr(TFMStateMinusRed));
+        ret.insert('StateMinusRed', resourceStr(TFMStateMinusRed));
+        ret.insert('OrderFlagClear', resourceStr(TFMStateOrderFlagClear));
+        ret.insert('StateOrderFlagClear', resourceStr(TFMStateOrderFlagClear));
+        ret.insert('OrderFlagSet', resourceStr(TFMStateOrderFlagSet));
+        ret.insert('StateOrderFlagSet', resourceStr(TFMStateOrderFlagSet));
+        ret.insert('StateOrderFlagSet', resourceStr(TFMStateOrderFlagSet));
+        ret.insert('plus', resourceStr(TFMStatePlus));
+        ret.insert('StatePlus', resourceStr(TFMStatePlus));
+        ret.insert('validation_OK', resourceStr(TFMStateValidation_OK));
+        ret.insert('trashcanempty', resourceStr(TFMTrashCanEmpty));
+        ret.insert('trashcanfilled', resourceStr(TFMTrashCanFilled));
+        ret.insert('StateUnplanned', resourceStr(TFMStateUnplanned));
+        ret.insert('Unplanned', resourceStr(TFMStateUnplanned));
+        ret.insert('productionoutput', resourceStr(TFMProductionOutput));
+        ret.insert('MainMenu', resourceStr(TFMMainMenuIcon));
+        ret.insert('StateLog', resourceStr(TFMStateLog));
+        ret.insert('Log', resourceStr(TFMStateLog));
+        ret.insert('StateUpdate', resourceStr(TFMStateUpdate));
+        ret.insert('Update', resourceStr(TFMStateUpdate));
+        ret.insert('offlineRegistrationService/viewRegistrations', resourceStr(TFMViewRegistrations));
+        ret.insert('offlineRegistrationService/viewPendingRegistrations', resourceStr(TFMViewRegistrations));
+        ret.insert('typeBarcode', resourceStr(TFMTypeBarcode));
+        ret.insert('postAllRegistrations', resourceStr(TFMPost));
+        ret.insert('showImage', resourceStr(TFMShowImage));
+        ret.insert('unlockOrder', resourceStr(TFMUnlocked));
+        ret.insert('unlockOrder_classic', resourceStr(TFMUnlock));
+        ret.insert('cancelOrder', resourceStr(TFMCancelOrder));
+        ret.insert('clearCompletedOrders', resourceStr(TFMRefresh));
+        ret.insert('refresh', resourceStr(TFMRefresh));
+        ret.insert('assembly', resourceStr(TFMAssembly));
+        ret.insert('history', resourceStr(TFMHistoryIcon));
+        ret.insert('list/refresh', resourceStr(TFMRefresh));
+        ret.insert('list/open', resourceStr(TFMOPenMenuItem));
+
+        ret.insert('postAllOrders', resourceStr(TFMPost));
+        ret.insert('postOrder', resourceStr(TFMPost));
+        ret.insert('postAll', resourceStr(TFMPost));
+        ret.insert('viewRegistrations', resourceStr(TFMViewRegistrations));
+        ret.insert('registerOrder', resourceStr(TFMReadyToSend));
+        ret.insert('toggleShowPostedOrders', resourceStr(TFMReadyToSendOk));
+        ret.insert('viewErrorMessage', resourceStr(TFMProgresError));
+        ret.insert('navigateToButton', resourceStr(TFMNavigationButton));
+       
+        ret.insert('cancelRemainingLineQuantity', resourceStr(TFMCancelOrder));
+        ret.insert('finishOrder', resourceStr(TFMReadyToSend));
+        ret.insert('orderLevelRegistrations', resourceStr(TFMOrderLevelRegistrations));
+        ret.insert('toggleOrderLineGrouping', resourceStr(TFMStatePlus));
+        ret.insert('deleteOrderRegistrations', resourceStr(TFMDeleteAllRegistrations));
+        ret.insert('standardItem', resourceStr(TFMStandardItem));
+        ret.insert('emptyLocation', resourceStr(TFMEmptyLocation));
+
+        ret.insert('keyboard', resourceStr(TFMKeyboard));
+        ret.insert('palletTruckWithLicensePlate', resourceStr(TFMPalletTruckWithLicensePlate));
+        ret.insert('boxPicking', resourceStr(TFMBoxPicking));
+        ret.insert('substituteItem', resourceStr(TFMSubstituteItem));
+        
+        
+	
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBase64FromName</Name>
+				<Source><![CDATA[
+    public static str getBase64FromName(str _nameOfImage, TFMRequestElement _request = null)
+    {
+        TFMParameters           parms;
+        TFMImageTable           imgTable;
+        DocuRef                 docuRef;
+        InventItemBarcode       inventItemBarcode;
+        ItemId                  itemId;
+        InventDim               inventDimLookup;
+        InventItemGTIN          inventItemGTIN;
+        System.Drawing.Image    image;
+        System.Drawing.Image    newImage;
+        int						folderPos;
+        TFMImageAggregate		imgAggr;
+        str                     base64Img;
+        boolean                 createFrame = false;
+        str                     imageName = _nameOfImage;
+        
+        TFMMediaProvider mediaProvider = TFMMediaProvider::instance();
+        base64Img = mediaProvider.getBase64ForMedia(_nameOfImage);
+        if(base64Img)
+        {
+            return base64Img;
+        }
+
+        docuRef = TFMHelper::findImageDocuRef(imgTable,parms.DocuTypeId);
+
+        if (!docuRef)
+        {
+            docuRef = docuRef::findRecId(str2Int64(subStr(_nameOfImage,1,strScan(_nameOfImage,'_',1,100))));
+            createFrame = parms.ImageFrames;
+        }
+
+        if (!docuRef)
+        {
+            imgTable = TFMImageTable::Find(_nameOfImage);
+            if(imgTable)
+            {
+                base64Img = TFMImageHelper::Image2Base64(TFMHelper::getAttachmentAsImage(TFMHelper::findImageDocuRef(imgTable)));
+                if(base64Img)
+                {
+                    TFMMediaProvider::instance().setMedia(_nameOfImage, base64Img, null);
+                    return base64Img;
+                }
+            }
+        }
+
+        if (!docuRef && imageName)
+        {
+            // not a folder but verify if the imageName exists and create the base 64.
+            str classImage = TFMDocGetMedia::doesClassHaveImage(imageName);
+            base64Img = TFMImageHelper::resource2Base64(classImage ? classImage : imageName);
+            if(base64Img)
+            {
+                TFMMediaProvider::instance().setMedia(_nameOfImage, base64Img, null);
+                return base64Img;
+            }
+        }
+        if (!docuRef)
+        {
+            //Check if item id or barcode (pinpoint)
+            inventItemBarcode = InventItemBarcode::findInputBarcode(_nameOfImage);
+            if (inventItemBarcode)
+            {
+                itemId = inventItemBarcode.itemId;
+                inventDimLookup = inventItemBarcode.inventDim();
+            }
+            else
+            {
+                inventItemGTIN = InventItemGTIN::findGTIN(_nameOfImage);
+                if (inventItemGTIN)
+                {
+                    itemId = inventItemGTIN.itemId;
+                    inventDimLookup = inventDim::find(inventItemGTIN.inventDimId);
+                }
+                else if (InventTable::exist(_nameOfImage))
+                {
+                    itemId = InventTable::find(_nameOfImage).ItemId;
+                }
+            }
+            docuRef = TFMHelper::FindItemDocuref(itemId,inventDimLookup.inventDimId);
+        }
+
+        
+        
+		if (!docuRef)
+        {
+            base64Img = TFMDocGetMedia::findImageFromImageHandlerClasses(_nameOfImage);
+			if (base64Img)
+            {
+                TFMMediaProvider::instance().setMedia(_nameOfImage, base64Img, null);
+                return base64Img;
+            }
+        }
+
+        if (!docuRef && strScan(_nameOfImage,',',1,strLen(_nameOfImage)))
+        {
+            List itemList = strSplit(_nameOfImage,',');
+            Set itemSet = new Set(Types::String);
+            ListEnumerator lEnum = itemList.getEnumerator();
+            while(lEnum.moveNext())
+            {
+                itemSet.add(lEnum.current());
+            }
+            return TFMDocGetMedia::dopackItems2Image(itemSet);
+            
+        }
+
+		if (!docuRef)
+        {
+            imgAggr = TFMImageAggregate::Find(_nameOfImage); // Migrate to image handler class
+			if(imgAggr)
+            {
+                return imgAggr.getImage();
+            }
+        }
+        if (!docuRef && _nameOfImage && SysResource::checkIfResourceExists(_nameOfImage) && SysResource::getResourceNodeType(SysResource::getResourceNode(_nameOfImage)) == SysResourceType::Image)
+        {
+            return TFMImageHelper::resource2Base64(_nameOfImage);
+        }
+        
+        if (!docuRef)
+        {
+            return TFMImageHelper::resource2Base64(resourceStr(TFMMissingImage));
+        }
+        image = TFMImageHelper::ExifRotateImage(TFMHelper::getAttachmentAsImage(docuRef));
+    
+        if (!image)
+        {
+            return TFMImageHelper::resource2Base64(resourceStr(TFMMissingImage));
+        }
+
+        newImage = TFMImageHelper::scaleImage(image,1000,1000);
+        if ( createFrame)
+        {
+            newImage = TFMImageHelper::frameImage(newImage);
+        }
+        //var props = image.PropertyItems;
+        if (image.PropertyIdList.Contains(274))
+        {
+            newImage.SetPropertyItem(image.GetPropertyItem(274));
+        }
+        base64Img = TFMImageHelper::Image2Base64(newImage);
+        return base64Img;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findImageFromImageHandlerClasses</Name>
+				<Source><![CDATA[
+    private static str findImageFromImageHandlerClasses(str _imageId)
+    {
+        SysDictClass		dc = new SysDictClass(classNum(TFMImageHandler));
+        TFMImageHandler		imageHandler;
+        str					result = '';
+        ListEnumerator subClss = dc.extendedBy(true).getEnumerator();
+
+		while ( subClss.moveNext())
+        {
+            imageHandler = new SysDictClass(subClss.current()).makeObject();
+
+            result = imageHandler.process(_imageId);
+			if (result)
+            {
+                return result;
+            }
+
+        }
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>classImages</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Go through the TFMDocumentHandlers to get a map of registered images. 
+    /// </summary>
+    /// <returns>a map of string as a key value that points to a resourceStr (the value).</returns>
+    public static Map classImages()
+    {
+        DictClass           dc = new DictClass(className2Id(classStr(TFMDocumentHandler)));
+        DictClass           subClass;
+        List                extendingClasses = dc.extendedBy(true);
+        ListEnumerator      lEnum = extendingClasses.getEnumerator();
+        TFMDocumentHandler  docHand;
+        Map					returnMap = new Map(Types::String, Types::String);
+        MapEnumerator		mEnum;
+        Map                 imageSet;
+        
+        while (lEnum.moveNext())
+        {
+            subClass = new DictClass(lEnum.current());
+            if (subClass == null || subClass.isAbstract())
+            {
+                continue;
+            }
+            docHand = subClass.makeObject() as TFMDocumentHandler;
+            imageSet = docHand.registerImage();
+            mEnum = imageSet.getEnumerator();
+            while (mEnum.moveNext())
+            {
+                returnMap.insert(mEnum.currentKey(), mEnum.currentValue());
+            }
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>doesClassHaveImage</Name>
+				<Source><![CDATA[
+    public static str doesClassHaveImage(str _imageID)
+    {        
+        Map       imageSet = TFMDocGetmedia::classImages();
+        
+        if ( imageSet.exists(_imageID))
+        {
+            return imageSet.lookup(_imageID);
+        }
+        
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createResponse</Name>
+				<Source><![CDATA[
+    private void createResponse(Map _medias)
+    {
+        MapEnumerator       mEnum = _medias.getEnumerator();
+        XmlElement          ordersElement;
+        XmlElement             nodeCreated;
+        
+        resultXml   = new XmlDocument();
+        
+        ordersElement = resultXml.appendChild(resultXml.createElement('media'));
+
+        while (mEnum.moveNext())
+        {
+            nodeCreated = resultXml.createElement('image');
+            nodeCreated.setAttribute('id',mEnum.currentKey());
+            nodeCreated.text(mEnum.currentValue());
+            ordersElement.appendChild(nodeCreated);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>base64ToURL</Name>
+				<Source><![CDATA[
+    private static str base64ToURL(str _base64, str _fileName)
+    {
+        FileUploadTemporaryStorageStrategy fileUploadStrategy = new FileUploadTemporaryStorageStrategy();
+        System.IO.Stream Stream = new System.IO.MemoryStream(System.Convert::FromBase64String(_base64));
+        FileUploadTemporaryStorageResult fileUploadResult = fileUploadStrategy.uploadFile(Stream, _fileName + '.png');
+        return fileUploadResult.getDownloadUrl();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getURLFromIconName</Name>
+				<Source><![CDATA[
+    public static str getURLFromIconName(str _iconName, boolean allowBase64Value = true)
+    {
+        TFMMediaProvider mediaProvider = TFMMediaProvider::instance();
+        TFMMediaItem mediaItem = mediaProvider.getMedia(_iconName);
+        str path;
+        if(mediaItem)
+        {
+            // only allow if the caller can retrieve a base64 or the URL is present.
+            if(allowBase64Value || mediaItem.parmURL())
+            {
+                return mediaItem.getMediaForHtml();
+            }
+        }
+        
+        str resourceName	= TFMDocGetMedia::doesClassHaveImage(_iconName);
+        str base64;
+        if (resourceName && SysResource::checkIfResourceExists(resourceName))
+        {
+            path = SysResource::getImagePath(resourceName);
+            mediaProvider.setMedia(_iconName, null, path);
+            return path;
+        }
+
+        if(!_iconName)
+        {
+            return TFMDocGetMedia::getURLFromIconName(resourceStr(TFMMissingImage));
+        }
+
+        if (SysResource::checkIfResourceExists(_iconName))
+        {
+            path = SysResource::getImagePath(_iconName);
+            mediaProvider.setMedia(_iconName, null, path);
+            return path;
+        }
+        base64			= TFMDocGetMedia::getBase64FromName(_iconName);
+        
+        if(allowBase64Value)
+        {
+            mediaProvider.setMedia(_iconName, base64, null);
+            return mediaProvider.getMedia(_iconName).getMediaForHtml();
+        }
+
+        return TFMDocGetMedia::base64ToURL(base64, _iconName);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

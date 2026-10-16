@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContextDimensionSetup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Dimension setup object used in condition delimitations
+/// </summary>
+[TFMDescription("Used to set up item dimension conditions")]
+class TFMLogicContextDimensionSetup extends TFMLogicContextFunctions
+{
+    ItemId                      itemId;
+    TFMInventDimFieldName       fieldName;
+    InventDimGroupSetup         inventDimGroupSetup;
+    Set                         storDims;
+    Set                         prodDims;
+    Set                         tracDims;
+    EcoResProductDimGroupSetup  prodDimSetup;
+    InventTable                 inventTable;
+    str                         prettyName;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        noOfInput = 0;
+        outputType = TFMLogicContextTypes::Boolean;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMLogicContextDimensionSetup Construct()
+    {
+        TFMLogicContextDimensionSetup dimSetup = new TFMLogicContextDimensionSetup();        
+        return dimSetup;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Name</Name>
+				<Source><![CDATA[
+    public Name Name()
+    {
+        return "@TFM:DimensionSetup";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>alternateName</Name>
+				<Source><![CDATA[
+    public Name alternateName(container _parms, str _key)
+    {
+
+        if (fieldName2Id(tableNum(inventDim), conPeek(_parms,1)))
+        {
+            prettyName = new SysDictField(tableNum(InventDim), fieldName2Id(tableNum(inventDim), conPeek(_parms,1))).label();
+            prettyName = strFmt("@TFM:Percent1onpercent2", _key, prettyName);
+        }
+        return prettyName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmItemId</Name>
+				<Source><![CDATA[
+    public ItemId parmItemId(ItemId _itemId = itemId)
+    {
+        ItemId = _itemId;
+        inventTable = InventTable::find(_ItemId);
+        inventDimGroupSetup = InventDimGroupSetup::newInventTable(inventTable);
+        storDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, StorageDimensions));
+        prodDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, ProductDimensions));
+        tracDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, TrackingDimensions));
+        prodDimSetup = EcoResProductDimGroupSetup::newItemId(_ItemId);
+        return ItemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    [DataContract(classStr(TFMInventDimensionSetupContract))]
+    public Object process(TFMInventDimFieldName _fieldName = '', ItemId _itemId = '')
+    {
+        TFMInventDimensionSetupContract         contract = new TFMInventDimensionSetupContract();
+        EcoResStorageDimensionGroupFldSetup     storDimSetup;
+        EcoResTrackingDimensionGroupFldSetup    tracDimSetup;
+        InventDim                               inventDim;
+        FieldId                                 fieldId;
+        itemId = _itemId;
+        fieldName = _fieldName; // Save in class variable, for later use
+
+        if (!InventTable::exist(_itemId) && context.parmExecutedFromDevice())//subStr(_itemId,1,1) != '{' && _fieldName)
+        {
+            //when fieldname is set, and itemid doesn'r have a{, it means the call is from a device, where the {itemid} has been replaced, so we will throw an error instead of returning the contract
+            throw Error(strFmt("@SYS133447"));
+        }
+
+        if (!itemId || !InventTable::exist(itemId))
+        {
+            contract.parmActive(true);            
+            return contract;
+        }        
+
+        this.parmItemId(itemId);
+
+        if ( storDims.in(fieldName))
+        {
+            //storage dimension
+            storDimSetup = EcoResStorageDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getStorageDimensionGroup(),fieldName2Id(tableNum(InventDim),fieldName));
+            contract.parmActive(storDimSetup.IsActive);
+            contract.parmAllowBlank(storDimSetup.IsAllowBlankReceiptEnabled);
+        }
+        else if (prodDims.in(fieldName))
+        {
+            //Product dimension
+            fieldId = fieldName2Id(tableNum(inventDim), fieldName);
+            contract.parmActive(prodDimSetup.getFieldSetup(fieldId).isActive() && (!inventDim || inventDim.(fieldId) == ''));
+            contract.parmAllowBlank(!prodDimSetup.getFieldSetup(fieldId).isMandatory());
+            contract.parmAllowedValues(TFMInventDimHelper::getProductDimensionValues(inventTable.Product ,fieldName));            
+            
+        }
+        else if (tracDims.in(fieldName))
+        {
+            //Tracking Dimension
+            tracDimSetup = EcoResTrackingDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getTrackingDimensionGroup(), fieldName2Id(tableNum(InventDim),fieldName));
+            contract.parmActive(tracDimSetup.IsActive);
+            contract.parmAllowBlank(tracDimSetup.IsAllowBlankReceiptEnabled);
+            InventNumGroup invNumGrp;
+            if (fieldName == fieldStr(InventDim, InventSerialId))
+            {
+                invNumGrp = InventNumGroup::find(inventTable.SerialNumGroupId);
+                
+            }
+            else if (fieldName == fieldStr(InventDim, InventBatchId))
+            {
+                invNumGrp = InventNumGroup::find(inventTable.BatchNumGroupId);
+            }
+            contract.parmManualAllocation(invNumGrp && invNumGrp.ManualAllocation);
+        }
+        inventDim = context.getTableFromAnyBlock(tableStr(InventDim));
+        fieldId = fieldName2Id(tableNum(InventDim),fieldName);
+        contract.parmValueFromContext(inventDim.(fieldId));
+        contract.parmHasValueInContext(contract.parmValueFromContext() != '');
+        return contract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupInventDimFieldName</Name>
+				<Source><![CDATA[
+    [TFMMethodParameter(methodStr(TFMLogicContextDimensionSetup,process), extendedTypestr(TFMInventDimFieldName)), TFMLookupMethodForEDT(extendedTypestr(TFMInventDimFieldName))]
+    public void lookupInventDimFieldName(FormStringControl _callingControl)
+    {
+        InventDimParm                   parm = TFMInventDimHelper::getAllEnabledDimensions();
+        Set								storeDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, StorageDimensions));
+        Set								produDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, ProductDimensions));
+        Set								trackDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, TrackingDimensions));        
+        FieldName						localFieldName;
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpTableName), _callingControl);
+        TmpTableName                    tmpLookup;
+        Set                             combiSet = Set::union(Set::union(storeDims, produDims),trackDims);
+        SetEnumerator			        sEnum = combiSet.getEnumerator();
+
+        sysTableLookup.addLookupfield(fieldNum(TmpTableName,TableName),true);        
+
+        tmpLookup.setTmp();
+        while (sEnum.moveNext())
+        {
+            localFieldName = sEnum.current();
+            
+            if (!parm.(InventDim::dim2dimParm(fieldName2Id(tableNum(InventDim),sEnum.current()))))
+            {
+                continue;
+            }
+            tmpLookup.TableName  = localFieldName;
+            tmpLookup.insert();
+        }
+
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>icon</Name>
+				<Source><![CDATA[
+    public ResourceName icon()
+    {
+        return resourceStr(TFMDatatypeDimensions);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

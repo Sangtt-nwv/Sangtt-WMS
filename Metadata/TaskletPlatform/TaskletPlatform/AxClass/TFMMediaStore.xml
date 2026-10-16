@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMediaStore</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMMediaStore {
+    
+    Map store = new Map(Types::String, Types::Class);
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getMedia</Name>
+				<Source><![CDATA[
+    public TFMMediaItem getMedia(str _mediaId)
+    {
+        if(store.exists(_mediaId))
+        {
+            return store.lookup(_mediaId);
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addMedia</Name>
+				<Source><![CDATA[
+    public void addMedia(TFMMediaItem _item)
+    {
+        store.add(_item.parmName(), _item);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeMedia</Name>
+				<Source><![CDATA[
+    public void removeMedia(str _mediaId)
+    {
+        store.remove(_mediaId);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

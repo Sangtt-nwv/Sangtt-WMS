@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLookupResponseAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMLookupResponseAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    TFMDocumentTypeId           documentType;
+    TFMDocumentContentSubject   contentType;
+    
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(TFMDocumentTypeId _documentType, TFMDocumentContentSubject _contentType = '')
+    {
+        super();
+ 
+        contentType = _contentType;
+        documentType = _documentType;
+        if (documentType == classStr(TFMGetRegistrationConfiguration) || documentType == classStr(TFMPostAdhocRegistration) || documentType == classStr(TFMLookup))
+        {
+            documentType = subStr(documentType,4,100);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmContentType</Name>
+				<Source><![CDATA[
+    public TFMDocumentContentSubject parmContentType(TFMDocumentContentSubject _contentType = contentType)
+    {
+        contentType = _contentType;
+ 
+        return contentType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDocumentType</Name>
+				<Source><![CDATA[
+    public TFMDocumentTypeId parmDocumentType(TFMDocumentTypeId _documentType = documentType)
+    {
+        documentType = _documentType;
+ 
+        return documentType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMLookupResponseAttribute)+';'+documentType+';'+contentType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

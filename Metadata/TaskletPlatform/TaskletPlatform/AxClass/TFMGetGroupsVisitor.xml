@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMGetGroupsVisitor</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public final class TFMGetGroupsVisitor implements TFMIDocumentHandlerVisitor
+{
+    Array               attributeArray;
+    TFMPage             mobPage;
+    TFMPages            mobPages;
+    MapEnumerator		pagesEnum;
+    TFMMenuAttribute    menuAttribute;
+    int					i;
+    Map					categories;
+   
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(Map _categories)
+    {
+        categories = _categories;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>visitDocumentHandler</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Fetches the categories from the TFMMenu attribute
+    /// </summary>
+    void visitDocumentHandler(DictClass subClass, TFMDocumentHandler _documentHandler)
+    {
+        attributeArray = subClass.getAttributes(classStr(TFMMenuAttribute));
+        for (i = 1; i <= attributeArray.lastIndex(); i++)
+        {
+            menuAttribute = attributeArray.value(i);            
+            categories.insert(menuAttribute.parmName(), menuAttribute.getCategories());            
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicStepOperatorDimensionSetupGate</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The Step Operator Dimension Setup Gate Block checks whether an Item has a certain Dimension set up. If it does it runs true.
+/// </summary>
+class TFMLogicStepOperatorDimensionSetupGate extends TFMLogicBlock implements TFMLogicStepOperatorInterface 
+{
+    str                         itemNumber;
+    str                         dimensionFunctionValue;
+    TFMInventDimFieldName       dimensionFieldName;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initializes a new instance of the <c>TFMLogicStepOperatorIf</c> class and sets up output connections.
+    /// </summary>
+    public void new()
+    {
+        super();
+        outputs = TFMLogicInputOutputContainer::Construct();
+        outputs.addConnectionName(TFMConstants::True());
+        outputs.addConnectionName(TFMConstants::False());
+                
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the display name of the block, including comparison details if available.
+    /// </summary>
+    /// <returns>The block name as a string.</returns>
+    public Name blockName()
+    {
+        str blockName = "@TFM:DimensionSetupGate";
+        str valueSetName = "'%1' = '%2'";
+        return dimensionFieldName ? strFmt(valueSetName, dimensionFieldName, dimensionFunctionValue) : blockName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the icon resource string for the block.
+    /// </summary>
+    /// <returns>The icon resource string.</returns>
+    public str blockIcon()
+    {
+        return resourceStr(TFMDimensionSetupGate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDimensionFieldName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets or sets the DimsionField that sould be used in the logic.
+    /// </summary>
+    [TFMParameter('',"@TFM:DimensionField")]
+    public TFMInventDimFieldName parmDimensionFieldName(TFMInventDimFieldName _dimensionFieldName = dimensionFieldName)
+    {
+        dimensionFieldName = _dimensionFieldName;
+        return dimensionFieldName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmItemNumber</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets or sets the the ItemNumbert that sould be used in the logic for setting the ItemId. The default value is {ItemId}
+    /// </summary>
+    [TFMParameter('{ItemId}',"@TFM:ItemNumberField")]
+    public str parmItemNumber(str _itemNumber = itemNumber)
+    {
+        itemNumber = _itemNumber;
+        return itemNumber;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDimensionFunctionValue</Name>
+				<Source><![CDATA[
+    [TFMParameter('',"@TFM:DimensionFunctionValue")]
+    public TFMDimensionFunctionValue parmDimensionFunctionValue(TFMDimensionFunctionValue _dimensionFunctionValue = dimensionFunctionValue)
+    {
+        dimensionFunctionValue = _dimensionFunctionValue;
+        return dimensionFunctionValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runLogic</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Executes the logic step, evaluates the condition, and returns the result as "True" or "False".
+    /// </summary>
+    /// <param name="_request">The request element containing context and values.</param>
+    /// <returns>"True" if the condition is met; otherwise, "False".</returns>
+    public str runLogic ( TFMRequestElement _request )
+    {
+        return this.runGateLogic(_request) ? TFMConstants::True() : TFMConstants::False();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runGateLogic</Name>
+				<Source><![CDATA[
+    protected boolean runGateLogic(TFMRequestElement _request)
+    {
+        Set                                     storDims;
+        Set                                     prodDims;
+        Set                                     tracDims;
+        InventDimGroupSetup                     inventDimGroupSetup;
+        EcoResProductDimGroupSetup              prodDimSetup;
+        EcoResStorageDimensionGroupFldSetup     storDimSetup;
+        EcoResTrackingDimensionGroupFldSetup    tracDimSetup;
+        InventTable                             inventTable;
+        InventDim                               inventDim;
+        FieldId                                 fieldId;
+        FieldName                               fieldName;
+
+        str itemIdStr = _request.replaceWithValue(this.parmItemNumber());
+        if (!itemIdStr || !InventTable::exist(itemIdStr))
+        {
+            return true; 
+        }
+
+        fieldName = this.parmDimensionFieldName();
+        if(!fieldName)
+        {
+            return true; 
+        }
+
+        ItemId itemId = itemIdStr;
+        inventTable = InventTable::find(itemId);
+        inventDimGroupSetup = InventDimGroupSetup::newInventTable(inventTable);
+        storDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, StorageDimensions));
+        prodDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, ProductDimensions));
+        tracDims = TFMHelper::fieldGroupToSet(tableNum(InventDim),tableFieldGroupStr(InventDim, TrackingDimensions));
+        prodDimSetup = EcoResProductDimGroupSetup::newItemId(itemId);
+
+        if ( storDims.in(fieldName))
+        {
+            //storage dimension
+            storDimSetup = EcoResStorageDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getStorageDimensionGroup(),fieldName2Id(tableNum(InventDim),fieldName));
+            if(this.parmDimensionFunctionValue() == TFMConstants::AllowBlank())
+            {
+                return storDimSetup.IsAllowBlankReceiptEnabled;
+            }
+            else if(this.parmDimensionFunctionValue() == TFMConstants::Active())
+            {
+                return storDimSetup.IsActive;
+            }
+        }
+        else if (prodDims.in(fieldName))
+        {
+            //Product dimension
+            fieldId = fieldName2Id(tableNum(inventDim), fieldName);
+            if(this.parmDimensionFunctionValue() == TFMConstants::AllowBlank())
+            {
+                return !prodDimSetup.getFieldSetup(fieldId).isMandatory();
+            }
+            else if(this.parmDimensionFunctionValue() == TFMConstants::Active())
+            {
+                return prodDimSetup.getFieldSetup(fieldId).isActive();
+            }
+            
+        }
+        else if (tracDims.in(fieldName))
+        {
+            //Tracking Dimension
+            tracDimSetup = EcoResTrackingDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getTrackingDimensionGroup(), fieldName2Id(tableNum(InventDim),fieldName));
+            if(this.parmDimensionFunctionValue() == TFMConstants::AllowBlank())
+            {
+                return tracDimSetup.IsActive;
+            }
+            else if(this.parmDimensionFunctionValue() == TFMConstants::Active())
+            {
+                return tracDimSetup.IsAllowBlankReceiptEnabled;
+            }
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupInventDimFieldName</Name>
+				<Source><![CDATA[
+    [TFMMethodParameter(methodStr(TFMLogicStepOperatorDimensionSetupGate,parmDimensionFieldName), extendedTypestr(TFMInventDimFieldName)), TFMLookupMethodForEDT(extendedTypestr(TFMInventDimFieldName))]
+    public void lookupInventDimFieldName(FormStringControl _callingControl)
+    {
+        TFMFormLookupHelper::lookupDimensionSetup(_callingControl);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupDimensionFunctionValue</Name>
+				<Source><![CDATA[
+    [TFMMethodParameter(methodStr(TFMLogicStepOperatorDimensionSetupGate,parmDimensionFunctionValue), extendedTypeStr(TFMDimensionFunctionValue)), TFMLookupMethodForEDT(extendedTypestr(TFMDimensionFunctionValue))]
+    public void lookupDimensionFunctionValue(FormStringControl _callingControl)
+    {
+        FieldName						localFieldName;
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMTmpValue), _callingControl);
+        TFMTmpValue                    tmpLookup;
+        Set                             combiSet = new Set(Types::String);
+
+        combiSet.add(TFMConstants::Active());
+        combiSet.add(TFMConstants::AllowBlank());
+
+        SetEnumerator			        sEnum = combiSet.getEnumerator();
+
+        sysTableLookup.addLookupfield(fieldNum(TFMTmpValue,Value ), true);
+
+        tmpLookup.setTmp();
+        while (sEnum.moveNext())
+        {
+            localFieldName = sEnum.current();
+            tmpLookup.Value  = localFieldName;
+            tmpLookup.insert();
+        }
+
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

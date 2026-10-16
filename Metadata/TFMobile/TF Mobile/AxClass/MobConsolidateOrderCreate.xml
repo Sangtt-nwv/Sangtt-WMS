@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobConsolidateOrderCreate</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobConsolidateOrderCreate extends RunBase
+{
+    QueryRun    queryRun;
+    DialogField dfType;
+    DialogField dfName;
+    dialogGroup dg;
+    dialogGroup dgp;
+    WMSPickingRouteID useRouteId;
+    
+    private DialogField dialogPrinterName;
+    private DialogField dialogPrintMedium;
+    
+    private DialogGroup dialogGroupPrinterSetting;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>showQueryValues</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public boolean showQueryValues()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showQuerySelectButton</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public boolean showQuerySelectButton()
+    {
+        
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastValueElementName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public identifierName lastValueElementName()
+    {
+        identifierName ret = classStr(MobConsolidateOrderCreate);
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    protected boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    public void initParmDefault()
+
+    {
+        Query query;
+        QueryBuildDataSource    qbd;
+        QueryBuildRange			qbr;
+        
+
+        super();
+        /*if (designTable.PackedQuery != conNull())
+        {
+            queryRun = new QueryRun(designTable.PackedQuery);
+            return;
+        }*/
+        query = new Query();
+        qbd = query.addDataSource(tableNum(WMSPickingRoute));
+        qbr = qbd.addRange(fieldNum(WMSPickingRoute,expeditionStatus));
+        qbr.value(queryValue(WMSExpeditionStatus::Registered) + ',' + queryValue(WMSExpeditionStatus::Activated) + ',' + queryValue(WMSExpeditionStatus::Started));     
+        //qbr.status(1);
+   
+        qbd.addRange(fieldNum(WMSPickingRoute,DlvDate)).Value('(DayRange(0,2))');
+        
+
+        queryRun = new QueryRun(query);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryRun</Name>
+				<Source><![CDATA[
+    public QueryRun queryRun()
+    {
+        ;
+        return queryRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Main</Name>
+				<Source><![CDATA[
+    public static void Main(Args _args)
+    {
+        MobConsolidateOrderCreate creator = new MobConsolidateOrderCreate();
+        MobConsolidatedPickingRoutes route;
+        if (_args.parm() == 'Add')
+        {
+            route = _args.record();
+            creator.parmRouteID(route.ConsolidatedPickingRouteId);
+        }
+        if (creator.prompt())
+        {
+            creator.run();
+        }
+
+        //_args.callerFormControl().dataSourceObject().executeQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRouteID</Name>
+				<Source><![CDATA[
+    public WMSPickingRouteID parmRouteID(WMSPickingRouteID _useRouteId = useRouteId)
+    {
+        useRouteId = _useRouteId;
+        return useRouteId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public Object dialog(DialogRunbase _dialog = null, boolean _forceOnClient = false)
+    {
+        dialog dialog;
+
+        dialog = super();
+        dialog.caption( "@MobileWMS:CreateConsolidatedPickingList");
+
+        dialogGroupPrinterSetting = dialog.addGroup("@SYS77551");
+        /*dialogPrinterName = dialog.addFieldValue(extendedTypeStr(PrinterName), 'printerName', "@SYS62708", "@SYS73208");
+        dialogPrinterName.lookupButton(0);
+        dialogPrinterName.registerOverrideMethod(methodstr(FormStringControl, lookup),methodstr(axrRunCustomReport, printer_lookup),this);
+        dialogPrintMedium = dialog.addFieldValue(enumStr(SRSPrintMediumType), 0, "@SYS28144", "@SYS73207");*/
+        //dialogPrintMedium.enabled(false);
+        //dialogPrinterName.enabled(false);
+
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    /*private void printer_lookup(FormStringControl _control)
+    {
+    axrPrinterProvider::lookupPrinterNames(_control);
+    }*/
+
+    /// <summary>
+    ///
+    /// </summary>
+    public void run()
+    {
+        
+        Query						q;
+        WMSPickingRoute				record;
+        //Set							records = new Set(Types::Record);
+        //XML							xml;
+        NumberSeq num = NumberSeq::newGetNum(WMSParameters::numRefWMSPickingRouteId());
+        MobConsolidatedPickingRoutes		header;
+        MobConsolidatedPickingRouteOrders	lines;
+        
+        super();
+        q = queryRun.Query();
+        q.name(classStr(MobConsolidateOrderCreate));
+        if (useRouteId && MobConsolidatedPickingRoutes::Exists(useRouteId))
+        {
+            header = MobConsolidatedPickingRoutes::Find(useRouteId);
+        }
+        else
+        {
+            header.ConsolidatedPickingRouteId = useRouteId ? useRouteId  : num.num();
+            num.used();
+            header.insert();
+        }
+        while (queryRun.next())
+        {
+            record = queryRun.get(tableNum(WMSPickingRoute));
+
+            if (MobConsolidatedPickingRouteOrders::Exists(record.pickingRouteID))
+            {
+                continue;
+            }
+
+            lines.PickingRouteID = record.pickingRouteID;
+            lines.ConsolidatedPickingRouteId = header.ConsolidatedPickingRouteId;
+            lines.insert();
+            
+        }
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

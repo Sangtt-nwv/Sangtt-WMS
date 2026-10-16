@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocLicensePlateOverview</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Document handler for the License Plate overview page
+/// </summary>
+[   TFMTableName(tableStr(WHSLicensePlate),staticMethodStr(MobConstants,LicensePlateLookup)),
+    TFMTableName(tableStr(InventSum),staticMethodStr(MobConstants,LicensePlateInfo)),
+    TFMDocumentType(classStr(TFMLookup), staticMethodStr(MobConstants,LicensePlateLookup), methodStr(MobDocLicensePlateOverview, lookupLicensePlateContent)),
+    TFMDocumentType(classStr(TFMLookup), staticMethodStr(MobConstants,LicensePlateInfo),methodStr(MobDocLicensePlateOverview, lookupLicensePlateInfo)),
+    TFMMenu(staticMethodStr(MobConstants,LicensePlateLookup),"@MobileWMS:LicensePlateInquiry","@WAX834",resourceStr(MobPalletWithItemsIcon),true,true,['Warehouse']),
+    TFMMenu(staticMethodStr(MobConstants,LicensePlateInfo),"@MobileWMS:LicensePlateInfo","@MobileWMS:LicensePlateInfo",resourceStr(MobFinishedPallet),true,true,['Warehouse'])
+]
+class MobDocLicensePlateOverview extends TFMDocumentHandler
+{
+    
+    NoYes enableLicensePlating;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmEnableLicensePlating</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes,"@SYS105144","@WAX834", "NB. if the license plate is turned of then the Processes should be reloaded for Code versions (version 0) - and the already modified processes must be reviewed.'")]
+    public MobPromptForUnit parmEnableLicensePlating(MobPromptForUnit _enableLicensePlating = enableLicensePlating)
+    {
+        enableLicensePlating = _enableLicensePlating;
+        return enableLicensePlating;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return "@WAX834";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret = super();
+
+        ret.insert('LicensePlateLookup', "@MobileWMS:LicensePlateInquiry");
+        ret.insert('LicensePlateLookupMainMenu', MobHelper::capitalLetterSentence("@MobileWMS:LicensePlateInquiry"));//"@WAX834");
+        ret.insert('LicensePlateInfo', MobHelper::capitalLetterSentence("@MobileWMS:LicensePlateInfo"));
+        ret.insert('LicensePlateInfoMainMenu', MobHelper::capitalLetterSentence("@MobileWMS:LicensePlateInfo"));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages					ret = super();
+        TFMPageLookup				lookupPage;
+        TFMPageLookupConfiguration	lookupConfig;
+        
+        lookupPage = ret.getPage( MobConstants::LicensePlateLookup());//MobPageHelper::addOrUpdateLookupPage(ret, MobConstants::LicensePlateLookup(), "@MobileWMS:LicensePlateInquiry", 'MobPalletWithItemsIcon', methodStr(MobDocLicensePlateOverview,LicensePlateLookupHeader));
+        lookupConfig = lookupPage.getConfiguration();
+        lookupConfig.parmNavigateTo(MobConstants::LicensePlateInfo());
+        lookupConfig.parmListId(classStr(TFMListLookupJournalHeader));
+        lookupPage.addAction(MobConstants::UnplannedPalletMove(),1,1);
+        
+
+        lookupPage = ret.getPage(MobConstants::LicensePlateInfo());//MobPageHelper::addOrUpdateLookupPage(ret, MobConstants::LicensePlateInfo(), "@MobileWMS:LicensePlateInfo", 'MobPalletWithItemsIcon', methodStr(MobDocLicensePlateOverview,LicensePlateInfoHeader));
+        lookupPage.addAction(MobConstants::UnplannedMove(),2);
+        lookupPage.addAction('createQuarantineOrder',3);
+        lookupPage.addAction(MobConstants::UnplannedCreatePallet(),1);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerImage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public Map registerImage()
+    {
+        Map ret;
+
+        ret = super();
+        ret.insert('MobPalletWithItemsIcon',resourceStr(MobPalletWithItemsIcon));
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LicensePlateLookupHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The header/filter for the License Plate inquiry page.
+    /// </summary>
+    /// <returns>The filter fields as an XML formatted string.</returns>
+    [TFMReferenceDataMethod(staticMethodStr(MobConstants,LicensePlateLookup))]
+    public TFMReferenceDataConfiguration LicensePlateLookupHeader()
+    {
+        TFMReferenceDataConfiguration refConf = new TFMReferenceDataConfiguration();
+        
+        // Warehouse
+        refConf.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(1,MobConstants::Warehouse(), "@SYS6437", methodStr(TFMGetReferenceData,WarehouseList)));    
+        // Location
+        refConf.addCollector(TFMGetReferenceData::defaultLocationCollector(2));
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LicensePlateInfoHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The header/filter for the License Plate Content page.
+    /// </summary>
+    /// <returns>The filter fields as an XML formatted string.</returns>
+    [TFMReferenceDataMethod(staticMethodStr(MobConstants,LicensePlateInfo))]
+    public TFMReferenceDataConfiguration LicensePlateInfoHeader()
+    {
+        TFMReferenceDataConfiguration conf = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorText lpID = TFMRegistrationCollector::collectorFromField(tablenum(WHSLicensePlate), fieldnum(WHSLicensePlate, LicensePlateId));        
+        lpID.parmName(new DictField(tablenum(WHSLicensePlate), fieldnum(WHSLicensePlate, LicensePlateId)).name());
+        lpID.parmOptional(false);
+        conf.addCollector(lpID);
+        return conf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupLicensePlateContent</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to return Location Content elements to the mobile client.
+    /// </summary>
+    /// <returns>A MobLookupResponseElement instance containing the data needed for he lookup page on the mobile device.</returns>
+    protected TFMLookupResponseElement lookupLicensePlateContent()
+    {
+        TFMLookupResponseElement    lookupResponse = TFMLookupResponseElement::Construct(classStr(TFMLookup), staticMethodStr(MobConstants,LicensePlateLookup));
+        MobBackendId                backendId;
+        InventDim                   inventDim;
+        InventSum                   inventSum;
+        InventLocationId            inventLocationId;
+        WmsLocationId               wmsLocationId;
+        WMSLocation                 WMSLocation;
+        InventDimParm               inventDimParm;
+        InventDim                   inventDimCriteria;
+        Query                       q = new Query();
+        QueryRun                    qr;
+        QueryBuildDataSource        queryBuildDataSource;
+        
+        // Get the warehouse and location from the XML
+        inventLocationId    = request.getFieldValue(MobConstants::Warehouse());//requestNode.getNamedElement(#Warehouse).innerText();
+        wmsLocationId       = request.getFieldValue(MobConstants::Location());//requestNode.getNamedElement(#Location).innerText();
+
+        queryBuildDataSource = q.addDataSource(tableNum(WMSLocation));
+        
+        queryBuildDataSource.addRange(fieldnum(WMSLocation,WMSLocationId)).value(wmsLocationId);
+        queryBuildDataSource.addRange(fieldnum(WMSLocation,InventLocationId)).value(inventLocationId);
+
+        qr = new QueryRun(q);
+        while (qr.next())
+        {
+            WMSLocation = qr.get(tableNum(WMSLocation));
+            // Find the information
+            inventDimCriteria.clear();
+            inventDimCriteria.InventLocationId = WMSLocation.inventLocationId;
+            inventDimCriteria.InventSiteId     = InventLocation::find(WMSLocation.inventLocationId).InventSiteId;
+            inventDimCriteria.wMSLocationId    = WMSLocation.wmsLocationId;
+            inventDimParm.InventLocationIdFlag = NoYes::Yes;
+            inventDimParm.InventSiteIdFlag     = NoYes::Yes;
+            inventDimParm.WMSLocationIdFlag    = NoYes::Yes;
+            //inventDimParm.LicensePlateFlag     = NoYes::Yes;
+    
+    
+            // Sum items pr (warehouse) location
+            while #InventDimSelect(inventDim, inventDimCriteria ,inventDimParm, forcePlaceholders TableId from,SerialIdIdx)
+            join #InventSumQtyFields from inventSum 
+            index hint DimIdIdx
+
+            // Summarized (Batchnumber and Serialnumber)
+            group by inventDim.InventSiteId, inventDim.InventLocationId,
+                     inventDim.WMSLocationId, inventDim.LicensePlateId                     
+            where InventDim.InventDimId == inventSum.InventDimId// && inventSum.Arrived
+            {
+                if (InventDim.LicensePlateId && inventSum.PhysicalInvent != 0)
+                {
+                    backendId = tableStr(WHSLicensePlate) + '/' + fieldStr(WHSLicensePlate,LicensePlateId) + '/' + InventDim.LicensePlateId + '/' + staticMethodStr(MobConstants,LicensePlateLookup);
+            
+                    // Add the necessary steps for the quarantine order
+                    lookupResponse.addResponse(WHSLicensePlate::find(inventDim.LicensePlateId), backendId,null);
+                }
+            }
+        }
+        return lookupResponse;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupLicensePlateInfo</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to return Location Content elements to the mobile client.
+    /// </summary>
+    /// <returns>A MobLookupResponseElement instance containing the data needed for he lookup page on the mobile device.</returns>    
+    protected TFMLookupResponseElement lookupLicensePlateInfo()
+    {
+        TFMLookupResponseElement    lookupResponse = TFMLookupResponseElement::Construct(classStr(TFMLookup), staticMethodStr(MobConstants,LicensePlateInfo));
+        MobBackendId                backendId;
+        InventDim                   inventDim;
+        InventSum                   inventSum;
+        
+        WHSLicensePlateId           lp = request.getFieldValue(extendedTypeStr(WHSLicensePlateId));
+        lp = !lp ? request.getFieldValue(fieldStr(WHSLicensePlate, LicensePlateId)) : lp;
+
+        while select inventSum
+            join inventDim where inventDim.inventDimId == inventSum.InventDimId
+            &&   inventDim.LicensePlateId == lp && inventSum.PhysicalInvent
+        {
+            
+            backendId = tableStr(InventSum) + '/' + fieldStr(InventSum,Recid) + '/' + int642Str(inventSum.RecID) + '/' + staticMethodStr(MobConstants,LicensePlateInfo);
+            
+            // Add the necessary steps for the quarantine order
+            lookupResponse.addResponse(inventSum, backendId,null);
+            
+        }
+            
+        return lookupResponse;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

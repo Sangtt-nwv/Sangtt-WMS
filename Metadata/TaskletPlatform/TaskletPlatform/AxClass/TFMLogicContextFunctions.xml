@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContextFunctions</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMLogicContextFunctions extends TFMLogicContextObject
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    protected void new()
+    {
+        super();
+        categories.add("@SYS10340");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>outputType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public TFMLogicContextTypes outputType()
+    {
+        TFMLogicContextTypes                    ret             = TFMLogicContextTypes::None;
+        TFMLogicContextFunctionsDataContract    dc;
+        SysDictMethod                           sdm             = new SysDictMethod(UtilElementType::ClassInstanceMethod, classIdGet(this), methodStr(TFMLogicContextFunctions, process));
+        ClassName                               contractName;
+        DataContractAttribute                   dca             = sdm.getAttribute(classStr(DataContractAttribute));
+        MapEnumerator                           mEnum;
+        DataMemberAttribute                     dma;
+        
+
+        if (dca && dataContract is TFMLogicContextFunctionsDataContract)
+        {
+            dc = dataContract;
+            contractName = dca.Name();
+            mEnum = TFMAttributeHandler::getMethodNamesFromSysAttribute(className2Id(contractName), new DataMemberAttribute(dc.parmKeyName())).getEnumerator();
+            while (mEnum.moveNext())
+            {
+                sdm = new SysDictMethod(UtilElementType::ClassInstanceMethod, className2Id(contractName), mEnum.currentKey());
+                dma = sdm.getAttribute(classStr(DataMemberAttribute));
+                if (dma && dma.Name() == dc.parmKeyName())
+                {
+                    ret = TFMConditionEditorFormClass::types2ContextType(sdm.returnType());
+                }
+            }
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    /*
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public anytype evaluate(TFMLogicContext _context)
+    {
+        anytype ret;
+        Map     returnMap;
+        TFMLogicContextFunctionsDataContract dc = dataContract;
+        Object  returnObject;
+        super(_context);
+        returnObject = TFMDocCustomFunctionFlow::callMethodConInstanceAnytype(this,methodStr(TFMLogicContextObject,process ),dc.parmParameters());
+        //Evaluate if map or class
+        if (typeOf(returnObject) == Types::Class && classIdGet(returnObject) == classNum(Map))
+        {
+            returnMap = returnObject;
+            return returnMap.exists(dc.parmKeyName()) ? returnMap.lookup(dc.parmKeyName()) : null;
+        }
+        else if (typeOf(returnObject) == Types::Class)
+        {
+            
+            return this.getValueFromObject(returnObject,dc.parmKeyName());
+        }
+
+        return ret;
+    }*/
+
+    
+
+    public Object process()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>icon</Name>
+				<Source><![CDATA[
+    public ResourceName icon()
+    {        
+        return resourceStr(TFMTaskletLogo);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Name</Name>
+				<Source><![CDATA[
+    public Name Name()
+    {
+        return strReplace(classId2Name(classIdGet(this)), classStr(TFMLogicContext), '');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

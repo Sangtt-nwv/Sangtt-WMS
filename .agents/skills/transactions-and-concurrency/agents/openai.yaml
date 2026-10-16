@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Transactions & Concurrency"
+  short_description: "Scope tts blocks and handle UpdateConflict retries"
+  default_prompt: "Use $transactions-and-concurrency to scope a transaction or handle a concurrency conflict for this D365FO change."

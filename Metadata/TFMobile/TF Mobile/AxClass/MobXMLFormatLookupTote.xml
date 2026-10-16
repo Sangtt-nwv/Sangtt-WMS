@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatLookupTote</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableNameAttribute(tableStr(MobToteTable))]
+class MobXMLFormatLookupTote extends TFMXMLFormatLookup
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        MobToteContent  mobReg;
+        WMSOrderTrans	orderTrans;
+        Map				itemIDs = new Map(Types::String,Types::Real);
+        ItemId          itemId;
+        str             itemString = '';
+        str             itemImageStr = '';
+        MapEnumerator   mEnum;
+        MobToteTable	tote = common;        
+        while select mobReg 
+            where mobReg.ToteID == tote.ToteId && mobReg.Qty
+        {
+            select firstonly orderTrans where orderTrans.RecId == mobReg.RefRecId;
+            itemIDs.insert(orderTrans.ItemId, (itemIDs.exists(orderTrans.ItemId) ? itemIDs.lookup(orderTrans.ItemId) : 0) + mobReg.qty);
+            itemId = orderTrans.ItemId;            
+        }
+
+        mEnum = itemIDs.getEnumerator();
+        while(mEnum.moveNext())
+        {
+            itemString += (itemString ? "@MobileWMS:lineBreak" : '') + mEnum.currentKey() + ': ' + MobHelper::formatItemQty(mEnum.currentValue(), inventTable::find(mEnum.currentKey()).inventUnitId()) + ' ' +inventTable::find(mEnum.currentKey()).inventUnitId();
+            itemImageStr += (itemImageStr ? ',' : '') + mEnum.currentKey();
+        }
+
+        super();
+        
+        imageID = itemImageStr;
+        
+        displayLine1 = new DictField(tablenum(MobToteTable), fieldnum(MobToteTable, ToteId)).Label() + ': ' + tote.ToteId;
+        displayLine2 = new DictField(tablenum(MobToteTable), fieldnum(MobToteTable, Weight)).Label() + ': ' + strFmt('%1',tote.Weight);
+        displayLine3 = new DictField(tablenum(MobToteTable), fieldnum(MobToteTable, PackingType)).Label() + ': ' + strFmt('%1',tote.PackingType);
+        displayLine4 = new DictField(tablenum(MobToteTable), fieldnum(MobToteTable, Status)).Label() + ': ' + strFmt('%1',tote.Status);
+        displayLine5 = "@SYS15649" + ': ' + (itemIDs.elements()  > 5 ? strfmt("@MobileWMS:NumberOfItems",itemIDs.elements()) : itemString);
+        
+        fieldsToAdd.insert(MobConstants::Barcode(),tote.ToteId);
+        fieldsToAdd.insert(strLwr(new DictField(tablenum(MobToteTable), fieldnum(MobToteTable, ToteId)).name()), tote.ToteId);
+        fieldsToAdd.insert(extendedTypeStr(MobToteId),strFmt('%1',tote.ToteId));
+        fieldsToAdd.insert(extendedTypeStr(Weight),strFmt('%1',tote.Weight));
+        fieldsToAdd.insert('packingBox',strFmt('%1',tote.PackingType));
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatLookupQuarantineOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+#mob
+[TFMTableNameAttribute(tableStr(InventQuarantineOrder))]
+class MobXMLFormatLookupQuarantineOrder extends TFMXMLFormatLookup
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        InventQuarantineOrder   InventQuarantineOrder = common;
+        InventTable             inventTable = InventTable::find(InventQuarantineOrder.ItemId);
+                
+        super();
+        inventDim = InventQuarantineOrder.inventDim();
+        imageId = MobHelper::imageIDFromDocuref(MobHelper::FindItemDocuref(InventQuarantineOrder.itemId,InventQuarantineOrder.InventDimId));
+        inventTable = InventTable::find(InventQuarantineOrder.itemId);
+
+        displayLine1 = new DictType(extendedTypeName2Id(extendedTypeStr(InventQuarantineId))).label() + ' ' + inventQuarantineOrder.QuarantineId;
+        displayLine2 = inventTable.productName(new xInfo().language()) + ' (' + inventQuarantineOrder.ItemId + ')';
+        displayLine3 = new MobExpressionsInventDimStr().processExpressionCommon(inventDim);
+		barcode = InventQuarantineOrder.InventDim().LicensePlateId;
+        fieldsToAdd.insert(MobConstants::Quantity(), MobHelper::formatItemQty(inventQuarantineOrder.RemainQty, InventTable::find(inventQuarantineOrder.ItemId).inventUnitId()));
+        fieldsToAdd.insert(extendedTypeStr(InventQuarantineId), inventQuarantineOrder.QuarantineId);
+        fieldsToAdd.insert(MobConstants::ScrapQuantity(), '0');
+        fieldsToAdd.insert(tableStr(UnitOfMeasure), inventTable.inventUnitId());
+        fieldsToAdd.insert(MobConstants::ToLocation(), inventQuarantineOrder.inventDim().wMSLocationId);
+        fieldsToAdd.insert(MobConstants::Barcode(), InventItemBarcode::findByProductDimensions(inventQuarantineOrder.ItemId, inventQuarantineOrder.inventDim(), false, true).itemBarCode);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

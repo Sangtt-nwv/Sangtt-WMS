@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockMoveInvent</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic Block containing logic necessary to make a movement within the warehouse
+/// </summary>
+class MwmsLogicBlockMoveInvent extends MwmsLogicBlock implements TFMLogicBlockDataCollectionInterface, TFMLogicBlockPrePostDataModifyInterface
+{
+
+    InventJournalTable  inventJournalTable;
+    InventJournalTrans  inventJournalTrans;
+    InventDim           inventDimIssue;
+    InventDim           inventDimReceipt;
+        
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getinventJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(inventJournalTable))]
+    public inventJournalTable getinventJournalTable()
+    {
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventJournalTrans</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventJournalTrans))]
+    public InventJournalTrans getInventJournalTrans()
+    {
+        return inventJournalTrans;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventDimIssue</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventDim))]
+    public InventDim getInventDimIssue()
+    {
+        return inventDimIssue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventDimReceipt</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventDim))]
+    public InventDim getInventDimReceipt()
+    {
+        return inventDimReceipt;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        components.addComponent(new TFMLogicComponentDimensions());
+        components.addComponent(new TFMLogicComponentQuantity());
+        
+        components.addComponent(new MwmsLogicComponentInventoryMovement());
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        TFMRegistrationCollectorList    fromWarehouse = TFMGetReferenceData::createDefaultWarehouseReferenceData(1, strLwr(extendedTypeStr(InventLocationId)), "@SYS25253", methodStr(TFMGetReferenceData,WarehouseList));
+        // Warehouse to move from
+        fromWarehouse.parmLinkedElement(2);
+        fromWarehouse.parmLinkColumn(extendedTypeStr(InventLocationId));
+        refConf.addCollector(fromWarehouse);
+        // Warehouse to move to
+        refConf.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(2,'To'+ strLwr(extendedTypeStr(InventLocationId)), "@SYS8519", methodStr(TFMGetReferenceData,WarehouseList)));
+        // Item number text box
+        refConf.addCollector(TFMGetReferenceData::defaultItemIdCollector(3));
+        
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        return components.getCollectors();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        TFMRegistrationCollectors               regCols = TFMRegistrationCollectors::Construct();
+
+
+        return regCols;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preparePost</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to set up tables to be used in the posting. Ensures that addons can be made, that can modify the data of the block before posting, when needed.
+    /// </summary>
+    public void preparePost()
+    {
+        Qty                                 qty;
+        TFMRequestItemAndDimensionElement   unplannedMoveRequest = request.convertToOtherRequestType(classStr(TFMRequestItemAndDimensionElement));
+        ItemId                              itemId = unplannedMoveRequest.parmItemId();
+        TFMLogicComponentDimensions         dimensionComponent = components.getComponent(classStr(TFMLogicComponentDimensions));
+
+        inventDimIssue = dimensionComponent.getInventDim(request); // Component delivers data
+        
+        inventDimIssue.data(unplannedMoveRequest.parmInventDim());
+        inventDimReceipt.data(unplannedMoveRequest.parmInventDim());
+
+        inventDimIssue = InventDim::findOrCreate(unplannedMoveRequest.createFromInventDim(inventDimIssue));
+        inventDimReceipt = InventDim::findOrCreate(unplannedMoveRequest.createToInventDim(inventDimReceipt));
+        qty = unplannedMoveRequest.parmQuantity();
+
+        inventJournalTable = MobPostHelper::inventJournalTransferHeaderCreate();
+        inventJournalTrans = MobPostHelper::inventJournalTransferLineCreate(inventJournalTable, qty, itemId, inventDimIssue, inventDimReceipt);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData                 postElement = TFMPostResponseData::Construct();
+        if (!inventJournalTable)
+        {
+            postElement.parmResponseText("@TaskletMobileWMS:Nomovementmade");
+        }
+        else
+        {
+            MobPostHelper::postInventJournalTransfer(inventJournalTable);
+            inventJournalTable.reread();
+            postElement.parmResponseText(strFmt("@TaskletMobileWMS:Moved1of2from3to4", inventJournalTrans.Qty, inventJournalTrans.ItemId, inventDimIssue.wMSLocationId, inventDimReceipt.wMSLocationId));
+        }
+        return postElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMPlannedMoveIcon);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageDatasources</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMPageDatasources extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>FindOrCreate</Name>
+				<Source><![CDATA[
+    public static TFMPageDatasources FindOrCreate(TFMPageID _pageId, TableName _tableName, TFMOrderTypes _orderType, boolean _selectforUpdate = false)
+    {
+        TFMPageDatasources	dataSource;
+        TFMPage				page;
+        dataSource.selectForUpdate(_selectforUpdate);
+
+        select firstonly dataSource where (!_pageId || dataSource.PageID == _pageId) && dataSource.TableName == _tableName && dataSource.OrderType == _orderType;
+
+		if (!dataSource && _pageId)
+        {
+            page = TFMPagesProvider::getAllPages().getPage(_pageId);
+			
+            dataSource.PageID		= _pageId;
+            dataSource.TableName	= _tableName;
+            dataSource.OrderType	= _orderType;
+            dataSource.showImages = NoYes::Yes;
+            dataSource.insert();
+            if (page && page.getDataSourceBlocks().elements())
+            {
+                TFMPageDatasources::writeDatasourceBlocksValues(page.getDataSourceBlocks(),dataSource);
+            }
+        }
+        return dataSource;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeDatasourceBlocksValues</Name>
+				<Source><![CDATA[
+    static protected void writeDatasourceBlocksValues(Set _dsBlocks, TFMPageDatasources	_dataSource)
+    {
+        SetEnumerator		sEnum = _dsBlocks.getEnumerator(), methodsEnum;
+        TFMDataSourceBlock	dsBlock;
+        MethodName			mName;
+
+		while (sEnum.moveNext())
+        {
+            dsBlock = sEnum.current();
+            methodsEnum = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(dsBlock)).getEnumerator();
+			while(methodsEnum.moveNext())
+            {
+                mName = methodsEnum.current();
+                TFMGenericParms::CreateOrUpdateParameter(classId2Name(classIdGet(dsBlock)),mName,_dataSource.tableName + '/' + _dataSource.ordertype, new SysDictClass(classIdGet(dsBlock)).callObject(mName,dsBlock));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetDataSourceBlocks</Name>
+				<Source><![CDATA[
+	public Set GetDataSourceBlocks(Common _common)
+    {
+        TFMPage					page				= TFMPagesProvider::getAllPages().getPage(this.PageID);        
+        SysDictClass			dc					= new SysDictClass(classIdGet(page));
+        TFMPageTypeAttribute	pageAttr			= dc.getAttribute(classStr(TFMPageTypeAttribute));
+        TFMDataSourceBlock		dsBlock;
+        Set						dsBlocks			= new Set(Types::Class);
+        ListEnumerator			extendingClasses	= SysExtensionAppClassFactory::getClassInstanceListFromSysAttribute(classstr(TFMDataSourceBlock),pageAttr).getEnumerator();
+
+        while (extendingClasses.moveNext())
+        {
+            dsBlock = extendingClasses.current();
+            dsBlock.setDataSource(this);
+            SetEnumerator sEnum = TFMDataSourceBlockValuesOverride::FindOverridesForDataSourceBlock(dsBlock).getEnumerator();
+            while (sEnum.moveNext())
+            {
+                TFMDataSourceBlockValuesOverride override = sEnum.current();
+                override.modifyValuesBeforeDelta(dsBlock, _common);
+            }
+            TFMGenericParms::updateParmsFromOverride(classId2Name(classidget(dsBlock)),this.TableName + '/' + this.OrderType,dsBlock);
+            dsBlocks.add(dsBlock);
+        }
+        return dsBlocks;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initValue</Name>
+				<Source><![CDATA[
+    public void initValue()
+    {
+        this.showImages = NoYes::Yes;
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sortingKey</Name>
+				<Source><![CDATA[
+	public str sortingKey(Common _common)
+    {
+        TableName		tName;
+        FieldName		fName;
+        MethodName		mName;
+        int				pointPos = strScan(this.sortingField,'.',1,1000);
+        str				retVal;
+        if (!pointPos)
+        {
+            return '';
+        }
+
+        tName = subStr(this.SortingField,1,pointPos-1);
+        fName = subStr(this.sortingField,pointPos+1,1000);
+        mName = strScan(fName,'()',strLen(fName) - 4,5) ? subStr(fName,1,strLen(fName) -2 ) : '';
+            
+        retVal = TFMGenericDataHelper::findValue(_common,tName,mName ? '' : fName,mName,this.SortExpression);
+
+        return retVal;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@TFM:DataSources</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>PageID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TableName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>TableName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OrderType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>showImages</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>PageID</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMPageID</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>TableName</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TableName</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OrderType</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMOrderTypes</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>showImages</Name>
+			<HelpText>Determines if images should be requested by the device for this data source. If No then the line will not show the image.</HelpText>
+			<Label>@SYS31336</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SortingField</Name>
+			<ExtendedDataType>TFMTableNameAndField</ExtendedDataType>
+			<Label>@SYS26477</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SortExpression</Name>
+			<ExtendedDataType>TFMExpression</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldContainer">
+			<Name>PackedQuery</Name>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldContainer">
+			<Name>packedValueMap</Name>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>GroupingField</Name>
+			<ExtendedDataType>TFMTableNameAndField</ExtendedDataType>
+			<Label>@TFM:GroupField</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>PageTable</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>PageID</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>TableName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>OrderType</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

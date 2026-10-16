@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_ReceiveLandedCost</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for landed cost voyages orders.
+/// </summary>
+[TFMTableNameAttribute(tableStr(ITMTable))]
+class MobXMLFormatOrders_ReceiveLandedCost extends MobXMLFormatOrders_Receive
+{
+    ITMTable  itmTable;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        super();
+    
+        itmTable                = common;
+    
+        backendId               = MobOrder::constructFromTableName(tableStr(ITMTable),'LandedCostReceive').getBackendID(itmTable);
+    
+        displayLine1            = strFmt('%1: %2', new DictField(tablenum(ITMTable), fieldnum(ITMTable, ShipId)).Label(),itmTable.ShipId);
+        displayLine2            = strfmt('%1: %2',new DictField(tablenum(ITMTable), fieldnum(ITMTable, ShipDescription)).Label(), itmTable.ShipDescription);
+        displayLine3            = strfmt('%1: %2',new DictField(tablenum(ITMTable), fieldnum(ITMTable, ShipDate)).Label(), itmTable.ShipDate);
+        displayLine4            = strfmt('%1: %2',new DictField(tablenum(ITMTable), fieldnum(ITMTable, ShipVesselId)).Label(), itmTable.ShipVesselId);
+        headerLabel1            = new DictField(tablenum(ITMTable), fieldnum(ITMTable, ShipId)).Label();
+        headerLabel2            = new DictField(tablenum(ITMTable), fieldnum(ITMTable, ShipDescription)).label();
+        headerValue1            = itmTable.ShipId;
+        headerValue2            = itmTable.ShipDescription;
+        sorting                 = strKeep(date2Str(itmTable.ShipDate,321,2,0,2,0,2),'1234567890');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

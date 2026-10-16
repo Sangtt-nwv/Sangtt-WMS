@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobHtmlHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobHtmlHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>map2Html</Name>
+				<Source><![CDATA[
+	public static str map2Html(Map _map)
+    {
+        MapEnumerator   mEnum = _map.getEnumerator();
+        Set             headLines = new Set(Types::String);
+        Set             values = new Set(Types::String);
+        str             head;
+        str             value;
+        str             html = '<table style=\"border-collapse: collapse; width: 100%; text-align: center;\">';
+        int             i =1;
+        while (mEnum.moveNext())
+        {
+            head += '<th><b>'+mEnum.currentKey()+'</b></th>';
+            value+= '<td>'+mEnum.currentValue()+'</td>';
+            if (i div 6)
+            {
+                html += '<tr>' + head + '</tr><tr>' + value + '</tr>';
+                head = '';
+                value = '';
+                i=0;
+            }
+            i++;
+        }
+
+        if (head)
+        {
+            html += '<tr>' + head + '</tr><tr>' + value + '</tr>';
+        }
+
+        return html + '</table>';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

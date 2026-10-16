@@ -1,0 +1,653 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMGetReferenceData</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class to generate all Reference data to the mobile device.
+/// </summary>
+public class TFMGetReferenceData extends TFMDocumentHandler
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>createDocumentConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This is a helper function that formats all the header configurations
+    /// It adds the following XML to the reference data
+    /// <Configuration>
+    ///   <Key>key</Key>
+    ///   <Value>
+    ///     <![CDATA[
+    ///     <headerConfiguration>
+    ///       <lines>
+    ///         ** Call a function to create the <add> elements for a specific configuration key **
+    ///       </lines>
+    ///     </headerConfiguration>
+    ///     ]]]]><![CDATA[>
+    ///   </Value>
+    /// </Configuration>
+    /// </summary>
+    /// <param name = "_referenceDataElement">The XMLelement to add the reference data to.</param>
+    /// <param name = "_key">The key to use when adding.</param>
+    /// <param name = "_headerElement">The header xml to add to the reference data.</param>    
+    public static void createDocumentConfiguration(XmlElement _referenceDataElement, str _key, Xml _headerElement)
+    {
+        
+        XmlElement      valueElement;
+        XmlElement      keyElement;
+        XmlCDataSection cData;        
+        XmlElement      configurationElement;        
+        str             tagName = TFMConstants::Configuration();
+    
+        // Create the <Configuration> element
+        configurationElement = _referenceDataElement.ownerDocument().createElement(tagName);
+    
+        // Create the key column / element in the configuration table
+        keyElement = _referenceDataElement.ownerDocument().createElement(TFMConstants::Key());
+        keyElement.text(_key);
+        configurationElement.appendChild(keyElement);
+    
+        // Create the value column / element in the configuration table
+        valueElement = _referenceDataElement.ownerDocument().createElement(TFMConstants::Value());
+    
+        // The content of the value element is XML data and it must be wrapped in a CDATA element to be parsed correctly on the mobile device
+        if (subStr(_headerElement,1,1) == '<')
+        {
+            cData           = _referenceDataElement.ownerDocument().createCDataSection('');
+        
+            // The content of the lines element is different for each configuration type
+            // Forward the lines element to the appropriate function based on the key
+        
+    
+            // Add the CDATA to the <Value> element
+            cData.appendData(_headerElement);
+            valueElement.appendChild(cData);
+        }
+        else
+        {
+            valueElement.text(_headerElement);
+        }
+        // Add the <Value> element to the <Configuration> element
+        configurationElement.appendChild(valueElement);
+    
+        // Add the <Configuration> element to the reference data
+        _referenceDataElement.appendChild(configurationElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConfigurationsFromQueries</Name>
+				<Source><![CDATA[
+    protected void getConfigurationsFromQueries(XmlElement _referenceDataElement)
+    {
+        TFMDeltaPages pages;
+
+        while select pages
+        {
+            this.CreateQueryFiltersLine(pages.QueryName).appendToXML(_referenceDataElement);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>VersionNumber</Name>
+				<Source><![CDATA[
+    public XML VersionNumber()
+    {
+
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CreateQueryFiltersLine</Name>
+				<Source><![CDATA[
+    private TFMReferenceDataConfiguration CreateQueryFiltersLine(QueryName _queryName)
+    {
+        TFMRegistrationCollector        collector;
+        TFMReferenceDataConfiguration   conf = new TFMReferenceDataConfiguration();
+        MapEnumerator                   fieldMap = TFMLookupQueries::fields(_queryName).getEnumerator();
+        SysDictField                    dictField;
+        int i;
+        conf.parmKey(_queryName);
+        while (fieldMap.moveNext())
+        {
+            dictField = fieldMap.currentValue();
+            collector = TFMRegistrationCollector::collectorFromField(dictField.tableid() ,dictField.id() );
+            collector.isHeader(true);
+            collector.parmId(i);
+            collector.parmName(fieldMap.currentKey());
+            conf.addCollector(collector);
+            i++;
+        }
+        return conf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConfigurationsFromDocuments</Name>
+				<Source><![CDATA[
+    protected void getConfigurationsFromDocuments(XmlElement _referenceDataElement)
+    {
+        DictClass                           dc = new DictClass(className2Id(classStr(TFMDocumentHandler)));
+        DictClass                           subClass;
+        TFMReferenceDataMethodAttribute     refDataAttribute = new TFMReferenceDataMethodAttribute();
+        List                                extendingClasses = dc.extendedBy(true);
+        ListEnumerator                      lEnum = extendingClasses.getEnumerator();
+        TFMDocumentHandler                  docHand;
+        TFMReferenceData                    refData;
+        TFMReferenceDataConfiguration       refDataConf;
+        TFMReferenceDataFilterList          filterList;
+        str                                 methodName;
+        str                                 cDataXML;
+        container                           retValueFromDoc;
+        TFMDocumentNodes                    docNodes;
+        Set                                 methodSet;
+        SetEnumerator                       sEnum;        
+        anytype                             retVal = '';
+        Set					                otherSet;
+        MapEnumerator		                mEnum;
+        Map                                 processHeaders;
+            
+        request.makeLogEntry('Getting Process Headers');
+        processHeaders = TFMProcessProvider::GetAllProcessesImpl().getAllActiveHeaders();
+        request.makeLogEntry('Iterating Document handler classes');
+        while (lEnum.moveNext())
+        {
+            subClass = new DictClass(lEnum.current());
+            if (subClass == null || subClass.isAbstract())
+            {
+                continue;
+            }
+            docHand = subClass.makeObject() as TFMDocumentHandler;
+            methodSet = docHand.getReferenceDataMethods();
+
+            if (methodSet == null)
+            {
+                methodSet = new Set(Types::String);
+            }
+            otherSet = new Set(Types::String);
+            mEnum = TFMAttributeHandler::getMethodNamesFromSysAttribute(subClass.id(),refDataAttribute,true).getEnumerator();
+            while (mEnum.moveNext())
+            {
+                otherSet.add(mEnum.currentKey());
+            }
+            methodSet = Set::union(methodSet,otherSet);
+
+            sEnum  = methodSet.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                try 
+                {
+                    methodName = sEnum.current();
+                    if (SysTest::hasMethod(docHand, methodName))
+                    {
+                        retValueFromDoc = conNull();
+                        retVal = subClass.callObject(methodName,docHand);
+                        if (typeOf(retVal) == Types::String)
+                        {
+                            cDataXML = retVal;
+                            if (strScan(cDataXML, TFMConstants::headerConfiguration(),1,1000))
+                            {
+                                //Ignore, will be in config file instead
+                                continue;
+                            }
+                            TFMGetReferenceData::createDocumentConfiguration(_referenceDataElement,MethodName,cDataXML);
+                        }
+                        else if (typeOf(retVal) == Types::Class && classIdGet(retVal) == classNum(TFMDocumentNodes))
+                        {
+                            docNodes = retVal;
+                            docNodes.appendToXML(_referenceDataElement);
+                        }
+                        else if (typeOf(retVal) == Types::Class && new SysDictClass(classIdGet(retVal)).extend() == classNum(TFMReferenceData))
+                        {
+                            refData = retVal;
+                            refData.parmKey(refData.parmKey() ? refData.parmKey() : MethodName);
+                            if (classIdGet(retVal)== classNum(TFMReferenceDataConfiguration))
+                            {
+                                refDataConf = retVal;
+
+                                mEnum = refDataConf.embeddedDataListEnumerator();
+                                while (mEnum.moveNext())
+                                {
+                                    filterList = mEnum.currentValue();
+                                    filterList.parmKey(filterList.parmKey() ? filterList.parmKey() : mEnum.currentKey());
+                                    filterList.appendToXML(_referenceDataElement);
+                                }
+                                if (processHeaders.exists(refData.parmKey()))
+                                {
+                                    refDataConf = processHeaders.lookup(refData.parmKey());                                    
+                                    mEnum = refDataConf.embeddedDataListEnumerator();
+                                    while (mEnum.moveNext())
+                                    {
+                                        filterList = mEnum.currentValue();
+                                        filterList.parmKey(filterList.parmKey() ? filterList.parmKey() : mEnum.currentKey());
+                                        filterList.appendToXML(_referenceDataElement);
+                                    }
+                                    refDataConf = retVal;
+                                }
+
+                                if (refDataConf.parmIsHeader())
+                                {
+                                    continue;
+                                }
+                            }
+
+                            if (processHeaders.exists(refData.parmKey()))
+                            {
+                                refData = processHeaders.lookup(refData.parmKey());
+                            }
+                            refData.appendToXML(_referenceDataElement);
+
+                            
+                        }
+                        
+                    }
+                }
+                catch (Exception::Error)
+                {
+                    continue;
+                }
+            }
+        }
+        request.makeLogEntry('Done iterating Document handler classes');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createHeaderAndLine</Name>
+				<Source><![CDATA[
+    public static XmlElement createHeaderAndLine(boolean _registrationCollector = false, XmlDocument _ownerDoc = null)
+    {
+        XmlDocument outXML = _ownerDoc == null ? new XmlDocument() : _ownerDoc;
+        XmlElement  headerElement   = outXML.createElement(_registrationCollector ? TFMConstants::registrationCollectorConfiguration() : TFMConstants::headerConfiguration());
+        XmlElement  linesElement    = outXML.createElement(_registrationCollector ? TFMConstants::steps() : TFMConstants::lines());
+        headerElement.appendChild(linesElement);
+        return linesElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getReferenceDataMethods</Name>
+				<Source><![CDATA[
+    public Set getReferenceDataMethods()
+    {
+        Set ret = new Set(Types::String);
+        
+        // send out the MobileWMS Menu configuration if the application configuration is set to no.
+        if(new TFMDocApplicationConfiguration().parmEnableRequestApplicationConfiguration() == NoYes::No)
+        {
+            ret.add(methodStr(TFMGetReferenceData,MenuConfiguration));
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>defaultLineNumberCollector</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to add default Line Number element.
+    /// </summary>    
+    /// <param name = "_id">ID of the node to be added.</param>
+    /// <param name = "_locked">Locked attribute. Optional</param>
+    /// <returns>registration Collector for Line Number</returns>
+    public static TFMRegistrationCollectorText defaultLineNumberCollector(int _id,boolean _locked = false)
+    {
+        TFMRegistrationCollectorText text = new TFMRegistrationCollectorText(_id, TFMConstants::lineNumber(), "@SYS27207","@SYS27207","@SYS27207");        
+        text.parmLocked(_locked);
+        
+        return text;       
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>defaultItemIdCollector</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectorText defaultItemIdCollector(int _id = 1, boolean _clearOnClear = true, boolean _locked = false, str _fieldName=extendedTypeStr(ItemId))
+    {
+        TFMRegistrationCollectorText	itemId		= TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(ItemId));
+        //str								GS1valueId	= '02,01,91'; //GS1-128 barcode id
+        itemId.parmId(_id);
+        itemId.parmLocked(_locked);
+        itemId.parmSearchType((_locked ? '' : TFMConstants::Search_Item()));
+        //itemId.parmEanAI(GS1valueId);
+        itemId.parmId(_id);
+        itemId.parmLocked(_locked);
+        itemId.parmSearchType((_locked ? '' : TFMConstants::Search_Item()));
+        itemId.parmOptional(false);
+        itemId.parmClearOnClear(_clearOnClear);
+        itemId.parmName(_fieldName);
+        itemId.isHeader(true);
+ 
+        if (!prmIsDefault(_fieldName))
+        {
+            itemId.addAlias(extendedTypeStr(ItemId));
+        }
+        else
+        {
+            itemId.addAlias(TFMConstants::ItemNumber());
+        }
+        return itemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createDefaultWarehouseReferenceData</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectorList createDefaultWarehouseReferenceData(int _id, str _name = TFMConstants::Warehouse(), str _label = "@SYS6437", str _referenceDataTable= methodStr(TFMGetReferenceData,WarehouseFilterList))
+    {
+        TFMRegistrationCollectorList    regCollectorList = new TFMRegistrationCollectorList(_id,_name,_label,_label,_label);
+        
+        regCollectorList.parmDataTable(_referenceDataTable);
+        regCollectorList.setEDT(extendedTypeStr(InventLocationId));
+        regCollectorList.parmDataKeyColumn(extendedtypestr(InventLocationId));
+        regCollectorList.parmDataDisplayColumn(extendedtypestr(Name));
+        regCollectorList.parmAcceptBarcode(false);
+        
+        return regCollectorList;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>WarehouseFilterList</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod]
+    /// <summary>
+    /// Method to add warehouse reference data.
+    /// </summary>
+    /// <returns>A filter list instance with the data for the reference data.</returns>
+    protected TFMReferenceDataFilterList WarehouseFilterList()
+    {
+        TFMReferenceDataFilterList filterList = this.WarehouseList();
+        filterlist.addValue(TFMConstants::all(),"@SYS11696");
+        return filterlist;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>WarehouseList</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod]
+    /// <summary>
+    /// Method to add warehouse reference data.
+    /// </summary>
+    /// <returns>A filter list instance with the data for the reference data.</returns>
+    public TFMReferenceDataFilterList WarehouseList()
+    {
+        InventLocation inventLocation;
+        TFMReferenceDataFilterList filterlist = new TFMReferenceDataFilterList();
+        InventLocationId			deviceLocation = request ? TFMDeviceTable::FindOrCreateDevice(request.parmdeviceID()).InventLocationId : '';
+        filterlist.parmFilterIdName(extendedTypeStr(InventLocationId));
+        filterlist.parmFilterValueName(extendedTypeStr(Name));
+    
+        while select inventLocation order by RecId
+        {
+            filterlist.addValue(inventLocation.InventLocationId,inventLocation.Name);
+            if (filterlist.getMap().elements() == 1)
+            {
+                filterlist.parmPrimaryId(inventLocation.InventLocationId);
+            }
+        }
+  
+        if (deviceLocation)
+        {
+            filterlist.parmPrimaryId(deviceLocation);
+            if (!filterlist.getMap().exists(deviceLocation))
+            {
+                filterlist.addValue(deviceLocation,InventLocation::find(deviceLocation).Name);
+            }
+        }
+        
+        return filterlist;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>defaultDescriptionCollector</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to add default description element.
+    /// </summary>
+    /// <param name = "_id">ID of the node to be added.</param>
+    /// <param name = "_mandatory">Should the field be mandatory?</param>
+    /// <returns>A TFMRegistrationCollectorText object</returns>
+    public static TFMRegistrationCollectorText defaultDescriptionCollector(int _id = 1, boolean _mandatory = false)
+    {
+        TFMRegistrationCollectorText descr = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(Description));
+        descr.parmOptional(!_mandatory);
+        return descr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>defaultReferenceIdentity</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectorText defaultReferenceIdentity(int _id = 1)
+    {
+        TFMRegistrationCollectorText refId = new TFMRegistrationCollectorText(_id, tableStr(ReferenceIdentity), "@SYS15217", "@SYS15217", "@SYS15217");
+        refId.parmLocked(true);
+        refId.parmVisible(false);
+        return refId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerMenu</Name>
+				<Source><![CDATA[
+    public container registerMenu()
+    {
+        container ret;
+
+        ret = [/*['Logout', "@TFM:TFM165", true, resourceStr(TFMMissingImage)],*/['ScanInfo', "@TFM:TFM175", false, resourceStr(TFMScanInfoIcon)]];
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MenuConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Adds all menu items, that the current user has access to, to the mobile decice.
+    /// </summary>    
+    /// <returns>The menu configuration as an XML formatted string.</returns>
+    public XML MenuConfiguration()
+    {
+        XmlElement          add;
+        XmlElement          useStatusUpdate;
+        XmlElement          menuConfiguration;
+        XmlElement          items;
+        UserGroupList       userGroupList;
+        TFMMenuPermissions  permission;
+        XmlDocument         doc;
+        container           tmp;
+        int                 i = 1;
+        MapEnumerator		mEnum;
+        
+    
+        doc                 = new XmlDocument();
+        menuConfiguration   = doc.createElement('menuConfiguration');
+        useStatusUpdate     = doc.createElement('useStatusUpdate');
+        useStatusUpdate.text(TFMConstants::true());
+        menuConfiguration.appendChild(useStatusUpdate);
+        items               = doc.createElement('items');
+        menuConfiguration.appendChild(items);
+
+        select count(RecId) from permission;
+
+        TFMMenuPermissions::MigrateIfNeeded();
+        //this section will find all the menu items the current user may access in MenuSorting order filter for dublicates.
+        while select permission
+            order by MenuLineNumber, MenuSorting
+            join userGroupList
+                where userGroupList.userId   == curUserId()
+                   && permission.UserGroupId == UserGroupList.groupId
+        {
+            if (conFind(tmp, permission.Menu + permission.MenuGroup) == 0)              //if the menu item haven't been added
+            {
+                add = doc.createElement( TFMConstants::add() );
+                add.setAttribute(TFMConstants::AttributeName(), permission.Menu + (permission.MenuGroup == 'MainMenu' ? '' : permission.MenuGroup) + (TFMMenuGroups::Exist(permission.Menu) ? 'Folder' : ''));
+                add.setAttribute('enabled',TFMConstants::True());
+                items.appendChild(add);
+    
+                tmp = conIns(tmp, i, permission.Menu + permission.MenuGroup);          //add menu item to list
+                i++;
+            }
+        }
+    
+        return menuConfiguration.xml();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canBeEnqueued</Name>
+				<Source><![CDATA[
+    public boolean canBeEnqueued()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createSimpleConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// A method to create a simple configuration.
+    /// </summary>
+    /// <param name = "_referenceDataElement">The XML element to append the new configuration under.</param>
+    /// <param name = "_key">Configuration key.</param>
+    /// <param name = "_value">Configuration value.</param>
+    protected void createSimpleConfiguration(XmlElement _referenceDataElement, str _key, str _value)
+    {
+        // This is a helper function that formats all the header configurations
+        // It adds the following XML to the reference data
+        // <Configuration>
+        //   <Key>key</Key>
+        //   <Value>
+        //      Enter value here
+        //   </Value>
+        // </Configuration>
+        //
+        XmlElement      valueElement;
+        XmlElement      keyElement;
+        XmlElement      configurationElement;
+    
+        // Create the <Configuration> element
+        configurationElement = resultXml.createElement(TFMConstants::Configuration());
+    
+        // Create the key column / element in the configuration table
+        keyElement = resultXml.createElement(TFMConstants::Key());
+        keyElement.text(_key);
+        configurationElement.appendChild(keyElement);
+    
+        // Create the value column / element in the configuration table
+        valueElement = resultXml.createElement(TFMConstants::Value());
+    
+        // Set the value
+        valueElement.text(_value);
+    
+        // Add the <Value> element to the <Configuration> element
+        configurationElement.appendChild(valueElement);
+    
+        // Add the <Configuration> element to the reference data
+        _referenceDataElement.appendChild(configurationElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return subStr(classStr(TFMGetReferenceData),4,100);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    public Set getDocumentTypes()
+    {
+        Set retMap = new Set(Types::String);
+        retMap.add(subStr(classStr(TFMGetReferenceData),4,100));
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResult</Name>
+				<Source><![CDATA[
+    public XML getResult()
+    {
+        XML ret;
+        XmlElement  ordersElement;
+    
+        //ret = super();
+        ordersElement = resultXml.firstChild();
+    
+        ret  = ordersElement.xml();
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public void process()
+    {
+        XmlElement              referenceDataElement;
+        TFMRequestCapabilities  capabilities;
+    
+        resultXml   = new XmlDocument();
+        referenceDataElement = resultXml.createElement(TFMConstants::ReferenceData());
+        referenceDataElement.setAttribute(TFMConstants::OrderElementAttributeName(),'');
+        resultXml.appendChild(referenceDataElement);
+        request.makeLogEntry('Adding User Language');
+        // Determine the language of the user
+        this.createSimpleConfiguration(referenceDataElement, TFMConstants::UserLanguage(), TFMDocLocalization::getUserLanguage());
+
+        request.makeLogEntry('Adding data from Document handler classes');
+        // Add configuration data
+        this.getConfigurationsFromDocuments(referenceDataElement);        
+        this.getConfigurationsFromQueries(referenceDataElement);
+
+        //Update device capabilities
+        capabilities = request.getSubNodes(TFMConstants::capabilities());
+        if(capabilities)
+        {
+            capabilities.updateDeviceCapabilities();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

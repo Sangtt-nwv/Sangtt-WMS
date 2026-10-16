@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageTypeAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMPageTypeAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    TFMPageType		pageType;
+    str				label;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(TFMPageType _pageType, str _label)
+    {
+        super();
+ 
+        pageType = _pageType;
+        label = _label;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPageType</Name>
+				<Source><![CDATA[
+    public TFMPageType parmPageType(TFMPageType _pageType = pageType)
+    {
+        pageType = _pageType;
+ 
+        return pageType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLabel</Name>
+				<Source><![CDATA[
+    public str parmLabel(str _label = label)
+    {
+        label = _label;
+ 
+        return label;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMPageTypeAttribute)+';'+pageType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

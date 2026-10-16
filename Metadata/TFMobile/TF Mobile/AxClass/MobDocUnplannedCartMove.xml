@@ -1,0 +1,1036 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocUnplannedCartMove</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[
+	TFMDocumentType(classStr(TFMLookup), 'CartOverview'),
+    TFMOrderListGetOrdersDocumentType('CartContent', methodStr(MobDocUnplannedCartMove,CartContent)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), 'AddItemToCart'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'AddItemToCart'),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), 'AddNewCart'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'AddNewCart'),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), 'CartUnload'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'CartUnload'),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), 'CartChangeNote'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'CartChangeNote'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'CartSwitchMode'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'attachListToCart'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'detachListFromCart'),
+    TFMPageLineAdhocRequest(methodStr(MobDocUnplannedCartMove,postAttachListToCart ), '@{attachListToCart}', methodstr(MobimageHandlerCombinedImages,attachListToCart ), true),
+    TFMPageLineAdhocRequest(methodStr(MobDocUnplannedCartMove,postDetachListFromCart ), '@{detachListFromCart}', methodstr(MobimageHandlerCombinedImages,detachListFromCart ), true),
+    TFMMenu('CartOverview', 'CartOverview', "@MobileWMS:UnplannedCartMove", resourceStr(MobCartForWarehouseUnplanned), true, true, ['MainMenu', 'Production','Inbound', 'Warehouse', 'Outbound'],true),
+    TFMMenu('AddNewCart', 'CartAdd', "@MobileWMS:NewCart", resourceStr(MobCartForWarehouseAdd), false, true),
+    TFMMenu('AddItemToCart', 'AddItemToCart', "@MobileWMS:Movetoorfromcart", resourceStr(MobCartForWarehouseAdd), false, true),
+    TFMMenu('CartSwitchMode', 'Switch', "@SYS40412",resourceStr(MobCartForWarehouseEmpty), false, true),
+    TFMMenu('CartChangeNote', 'CartChangeNote', "@SYS71808",resourceStr(MobDocument), false, true),
+    TFMMenu('CartUnload', 'CartUnload', "@MobileWMS:UnloadCart",resourceStr(MobCartForWarehouse_unload), false, true)
+]
+class MobDocUnplannedCartMove extends MobBasket
+{
+    MobCartReservationLevelEnum			reservationLevel;
+    inventJournalTable                  inventJournalTable;
+    NoYes								lockCarts;
+    NoYes								allowOverDelivery;
+    NoYes								allowUnderDelivery;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getinventJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(inventJournalTable))]
+    public inventJournalTable getinventJournalTable()
+    {
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret = new Map(Types::String, Types::String);
+
+        ret.insert('CartOverview', "@MobileWMS:UnplannedCartMove");
+        ret.insert('CartContent', "@MobileWMS:CartContents");
+        ret.insert('AddItemToCart', "@MobileWMS:Movetoorfromcart");
+        ret.insert('CartAdd', "@MobileWMS:NewCart");
+        ret.insert('CartUnload', "@MobileWMS:UnloadCart");
+        ret.insert('CartChangeNote', "@SYS71808");
+        ret.insert('AttachToCart', "@MobileWMS:AttachToCart");
+        ret.insert('attachListToCart',"@MobileWMS:AttachToCart");
+        ret.insert('detachListFromCart', "@SYS73324");
+        ret.insert('Switch', "@SYS40412");
+		
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CartOverviewFilter</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethodAttribute('CartOverview;AddNewCart')]
+    public TFMReferenceDataConfiguration CartOverviewFilter()
+    {
+        TFMReferenceDataConfiguration   refData = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorList    regCollectorList = new TFMRegistrationCollectorList(5,MobConstants::Warehouse(),"@SYS6437","@SYS6437","@SYS6437");
+        
+        regCollectorList.parmDataTable(methodStr(TFMGetReferenceData,WarehouseFilterList));
+        regCollectorList.parmDataKeyColumn(extendedtypestr(InventLocationId));
+        regCollectorList.parmDataDisplayColumn(extendedtypestr(Name));
+
+        refData.addCollector(regCollectorList);
+
+        return refData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CartContentFilter</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethodAttribute('CartChangeNote;CartSwitchMode;CartUnload')]
+    public TFMReferenceDataConfiguration CartContentFilter()
+    {
+        TFMReferenceDataConfiguration   refData = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollector		cartField = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(MobCartID));
+        
+        cartField.parmLocked(true);
+        cartField.parmClearOnClear(false);
+        refData.addCollector(cartField);
+
+        return refData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddItemToCartHeader</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethodAttribute('AddItemToCart')]
+    public TFMReferenceDataConfiguration AddItemToCartHeader()
+    {
+        TFMReferenceDataConfiguration   refData = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorText    regCollectorText = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(ItemId));
+        TFMRegistrationCollector		cartField = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(MobCartID));
+        
+        
+        cartField.parmName(extendedTypeStr(MobCartID));
+        refData.addCollector(cartField);
+        regCollectorText.parmLength(100);
+        refData.addCollector(regCollectorText);
+        return refData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerImage</Name>
+				<Source><![CDATA[
+    public Map registerImage()
+    {
+        Map ret = super();
+
+        ret.insert('CartIcon',resourceStr(MobCartForWarehouse));
+        ret.insert('CartAdd',resourceStr(MobCartForWarehouseAdd));
+        ret.insert('CartUnplanned',resourceStr(MobCartForWarehouseUnplanned));
+        ret.insert('CartEmpty',resourceStr(MobCartForWarehouseEmpty));
+        ret.insert('CartUnload',resourceStr(MobCartForWarehouse_unload));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    public Set getDocumentTypes()
+    {
+        Set ret = new Set(Types::String);
+
+        ret.add(methodStr(MobDocUnplannedCartMove,CartContent));
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages							            ret		= MobPageHelper::getPagesFromClass(this);
+        TFMPage								            cartOverViewPage	= ret.getPage(MobConstants::CartOverview());
+        TFMPageLookupConfiguration			            lookupListConfig = cartOverViewPage.getConfiguration();
+        TFMPageOrderListConfiguration		            Listconfig;
+        TFMPageOrderList					            listPage = new TFMPageOrderList();
+        TFMPageLookupConfiguration			            lookupConf;
+        TFMPageUnplannedItemRegistration	            page;
+        TFMPageUnplannedItemRegistrationConfiguration   UnplPageConfig;
+        TFMDataSourceBlockLockOrderList		dsbOrderList = new TFMDataSourceBlockLockOrderList();//Containing IC4        
+        TFMMenuItemStateConfiguration       menuItem = TFMMenuItemStateConfiguration::Construct('CartSwitchMode',1);
+        cartOverViewPage.addAction('AddNewCart',1,5).getPageActionSetup().parmVisibleWhenNoData(true);
+        
+        cartOverViewPage.addAction('CartUnload',2);
+        cartOverViewPage.addAction('CartChangeNote',3);        
+        cartOverViewPage.addAdhocAction(methodStr(MobDocUnplannedCartMove,postAttachListToCart ),4,5,'CartContent');
+        cartOverViewPage.addAdhocAction(methodStr(MobDocUnplannedCartMove,postDetachListFromCart ),5,5);        
+        cartOverViewPage.setListId(classStr(TFMListLookupJournalHeader));
+        cartOverViewPage.parmDescription("@MobileWMS:TheCartOverviewgivesyouanovervie");
+        lookupListConfig = cartOverViewPage.getConfiguration();
+        
+        lookupListConfig.parmNavigateTo(methodStr(MobDocUnplannedCartMove,CartContent)); 
+        
+        listPage.parmId('CartContent');
+        listPage.parmAvailableForMenuPages(false);
+        listPage.parmFilter(methodStr(MobDocUnplannedCartMove,CartContentFilter));
+        listPage.parmIcon('CartIcon');
+        listPage.parmTitle('@{CartContent}');
+        
+        dsbOrderList.parmUseOrderLocking(false);
+        listPage.addDataSourceBlock(dsbOrderList);
+		
+        listConfig = listPage.getConfiguration();
+        listConfig.parmNavigateTo('AddItemToCart');
+        Listconfig.parmListId(classStr(MobListLookupCartContent));
+        
+        menuItem.parmTitle('{PickMode}');
+        listPage.addActionClass(menuItem,2);
+        listPage.addAction('CartUnload',2);
+        ret.addPage(listPage);
+
+        page = ret.getPage('AddNewCart');
+        page.parmAvailableForMenuPages(false);
+        page = ret.getPage('AddItemToCart');
+        page.parmAvailableForMenuPages(false);
+        UnplPageConfig = page.getConfiguration();
+        UnplPageConfig.parmClose(true);
+        page = ret.getPage('CartChangeNote');
+        page.parmAvailableForMenuPages(false);
+        page = ret.getPage('CartSwitchMode');
+        page.parmAvailableForMenuPages(false);
+        UnplPageConfig = page.getConfiguration();
+        UnplPageConfig.parmClose(true);
+        page = ret.getPage('CartUnload');
+        page.parmAvailableForMenuPages(false);
+
+        ret.removePage('attachListToCart');
+        ret.removePage('detachListFromCart');
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CartContent</Name>
+				<Source><![CDATA[
+    public void CartContent()
+    {
+        MobBackendId                backendId;
+        TFMXMLFormat				xmlFormat;
+        
+       
+        
+        InventSum                   inventSum;
+        InventDim                   inventDimForInventSum;
+        InventLocationId            inventLocationId;
+        WmsLocationId               wmsLocationId;
+        WMSLocation                 WMSLocation;        
+        MapEnumerator				mEnum;
+        
+        Query                       q = new Query();
+        QueryRun                    qr;
+        QueryBuildDataSource        queryBuildDataSource;
+        int							i = 1;
+        XmlElement					ordersElement;
+        InventTable					inventTable;
+        TFMRequestGetOrdersElement	cartRequest = request as TFMRequestGetOrdersElement;
+        MobCartID					cartID = cartRequest.parmFilters().getFieldValue(extendedTypeStr(MobCartID));
+        
+        ItemId						foundItem;
+        WHSLicensePlateId			lpId;
+        InventDim					iDim;
+        Set							LPsShown = new Set(Types::String);
+		MobCarts					cart	=	MobCarts::Find(cartID);
+        Map							cartContent;
+        MobCartType					cartType;
+        
+        inventLocationId	= cart.InventLocationId;
+        wmsLocationId		= cart.WMSLocationId;
+
+        
+        if (lockCarts && MobReservedCarts::IsCartReserved(cart.CartID, reservationLevel != MobCartReservationLevel::User ? request.parmdeviceID() : '', reservationLevel != MobCartReservationLevel::Device ? curUserId() : ''))
+        {
+            throw error(MobReservedCarts::reserveInfo(cart.CartID));
+        }
+        cartType = MobCartType::FindCartTypeSubClass(cartRequest.parmFilters().parmScannedValue() ? cartRequest.parmFilters().parmScannedValue() : cart.ReferenceId);
+		//Test if scan is a picklist
+        
+        if (cartType != null && cartRequest.parmFilters().parmScannedValue() && !MobCarts::FindByReference(cartRequest.parmFilters().parmScannedValue()))
+        {
+            ttsbegin;
+            cart.selectForUpdate(true);
+            cart.ReferenceId = cartRequest.parmFilters().parmScannedValue();
+            cart.ReferenceCategory = cartType.typeOfCart();
+            cart.update();
+            ttscommit;
+        }
+		if (cartType == null)
+        {
+            cartType = MobCartType::FindCartTypeSubClass(cart.ReferenceId);
+        }
+
+        resultXml   = new XmlDocument();
+        ordersElement = resultXml.appendChild(resultXml.createElement(MobConstants::Orders()));
+
+        if (cartRequest.parmFilters().parmScannedValue() && cart.PickMode)
+        {
+            foundItem = MobHelper::string2ItemID(cartRequest.parmFilters().parmScannedValue(),iDim);
+            inventTable = InventTable::Find(foundItem);
+            if (inventTable || WHSLicensePlate::exist(cartRequest.parmFilters().parmScannedValue()))
+            {
+                if (cartType != null)
+                {
+					if (cartType.scannedItemBackendOverride(foundItem,cartID,resultXml))
+                    {
+                        return;
+                    }
+                }
+				//Put it in
+                backendId = tableStr(inventSum) + '/' + fieldStr(inventSum,RecId) + '/0/';
+            
+                // Add the necessary steps for the quarantine order
+                xmlFormat = TFMXMLFormat::constructFromBackendID(backendId);
+                    
+                inventSum.InventLocationId = inventLocationId;
+
+                xmlFormat.initFromCommon(resultXml,inventSum,i);
+                xmlFormat.parmPageID('CartContent');
+                
+                xmlFormat.addField(MobConstants::ScannedValue(),cartRequest.parmFilters().parmScannedValue());
+                xmlFormat.addField(extendedTypeStr(ItemId),cartRequest.parmFilters().parmScannedValue());
+                xmlFormat.run();
+                return;
+            }
+        }
+		
+        queryBuildDataSource = q.addDataSource(tableNum(WMSLocation));
+        queryBuildDataSource.addRange(fieldnum(WMSLocation,WMSLocationId)).value(wmsLocationId);
+        queryBuildDataSource.addRange(fieldnum(WMSLocation,InventLocationId)).value(inventLocationId);
+		qr = new QueryRun(q);
+
+        while (qr.next())
+        {
+            WMSLocation = qr.get(tableNum(WMSLocation));
+            // Find the information
+            
+            cartContent = MobDocUnplannedCartMove::locationContent(WMSLocation);
+            mEnum = cartContent.getEnumerator();
+
+            if (cartRequest.parmFilters().parmScannedValue() && !cart.PickMode)
+            {
+                foundItem = MobHelper::string2ItemID(cartRequest.parmFilters().parmScannedValue(),iDim);
+                if (!InventTable::exist(foundItem) && WHSLicensePlate::exist(cartRequest.parmFilters().parmScannedValue()))
+                {
+                    lpId = cartRequest.parmFilters().parmScannedValue();
+                }
+            }
+
+			while (mEnum.moveNext())
+            {
+                
+                inventSum = mEnum.currentValue();
+
+				if (foundItem && foundItem != inventSum.ItemId)
+                {
+                    continue;
+                }
+				else if (foundItem)
+                {
+                    inventDimForInventSum = inventSum.inventDim();
+                    if ((iDim.InventColorId != inventDimForInventSum.InventColorId ||
+                        iDim.InventSizeId != inventDimForInventSum.InventSizeId ||
+                        iDim.InventStyleId != inventDimForInventSum.InventStyleId) && iDim)
+                    {
+                        continue;
+                    }
+                }
+
+                if(!inventDimForInventSum)
+                {
+                    inventDimForInventSum = inventSum.inventDim();
+                }
+
+                if (inventDimForInventSum.LicensePlateId && inventDimForInventSum.LicensePlateId != cart.WHSLicensePlateId)
+                {
+                    if (((!LPsShown.in(inventDimForInventSum.LicensePlateId)) && !lpId) || ((lpId && !LPsShown.in(inventDimForInventSum.LicensePlateId)) && inventDimForInventSum.LicensePlateId == lpID))
+                    {
+                        xmlFormat = TFMXMLFormat::constructFromBackendID(tableStr(WHSLicensePlate) + '/' + fieldStr(WHSLicensePlate,LicensePlateId) + '/' +inventDimForInventSum.LicensePlateId + '/CartContent');
+                        xmlFormat.initFromCommon(resultXml,WHSLicensePlate::find(inventDimForInventSum.LicensePlateId),i);
+                        xmlFormat.parmPageID('CartContent');
+                        xmlFormat.run();
+                        i++;
+                        LPsShown.add(inventDimForInventSum.LicensePlateId);
+                    }
+                    
+                    continue;
+                }
+
+				if (lpId)
+                {
+                    continue;
+                }
+				if (!cart.ReferenceId)
+                {
+					xmlFormat = TFMXMLFormat::constructFromBackendID(mEnum.currentKey());
+					inventSum.inventLocationId = WMSLocation.inventLocationId;
+					xmlFormat.initFromCommon(resultXml,inventSum,i);
+                    xmlFormat.parmPageID('CartContent');
+					xmlFormat.run();
+                    i++;
+                }
+				
+				
+            }
+			if (cart.ReferenceId && cartType != null)
+            {
+                cartType.postProcess(cartContent,cartID,resultXml);
+            }
+			if (i==1)
+            {
+                MobReservedCarts::unreserveCart(cartID);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>locationContent</Name>
+				<Source><![CDATA[
+    public static Map locationContent(WMSLocation _wmsLocation, ItemId _itemId = '')
+    {
+        InventDim                   inventDimCriteria;
+        InventDimParm               inventDimParm;
+        InventSum                   inventSum;
+        InventDim                   inventDim;
+        MobBackendId                backendId;
+        Map							returnMap = new Map(Types::String, Types::Record);
+		inventDimCriteria.clear();
+        inventDimCriteria.InventLocationId = _wmsLocation.inventLocationId;
+        inventDimCriteria.InventSiteId     = InventLocation::find(_wmsLocation.inventLocationId).InventSiteId;
+        inventDimCriteria.wMSLocationId    = _wmsLocation.wmsLocationId;
+        inventDimParm.InventLocationIdFlag = NoYes::Yes;
+        inventDimParm.InventSiteIdFlag     = NoYes::Yes;
+        inventDimParm.WMSLocationIdFlag    = NoYes::Yes;
+    
+        // Sum items pr (warehouse) location
+        while #InventDimSelect(inventDim, inventDimCriteria ,inventDimParm, forcePlaceholders TableId from,SerialIdIdx,inventDim.WMSLocationId)
+            join #InventSumQtyFields from inventSum
+            index hint DimIdIdx
+            // Summarized (Batchnumber and Serialnumber)
+            group by inventSum.ItemId,
+                     inventDim.InventSiteId, inventDim.InventLocationId,
+                     inventDim.WMSLocationId,
+                     inventDim.configId, inventDim.InventColorId, inventDim.InventSizeId, inventDim.InventStyleId
+                     , inventDim.inventBatchId, inventDim.inventSerialId, InventSum.RecId, InventSum.InventDimId
+                    #if.isAx6
+        ,inventDim.wMSPalletId
+                     #endif
+        where InventDim.InventDimId == inventSum.InventDimId && (inventSum.ItemId == _itemId || !_itemId)
+        {
+            if (inventSum.PhysicalInvent != 0)
+            {
+                backendId = tableStr(inventSum) + '/' + fieldStr(inventSum,RecId) + '/' + int642Str(inventSum.recID);//#PickProdOrderPrefix + prodJournalTable.JournalId;
+
+                returnMap.insert(backendid, InventSum);
+            }
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventSum</Name>
+				<Source><![CDATA[
+    private InventSum getInventSum(MobBackendId _backendId)
+    {
+        InventSum iSum;
+        RefRecId  RecId = str2Int64(subStr(_backEndId,17,100));
+
+        select firstonly iSum where iSum.recId == RecId;
+
+        return iSum;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddOrMoveItem</Name>
+				<Source><![CDATA[
+    [TFMCollectorMap(classStr(TFMGetRegistrationConfiguration), 'AddItemToCart')]
+	public Map AddOrMoveItem()
+    {
+        Map									returnMap;
+        Map									qtyStepMap;
+        int									decimalPrecision;
+        Map									replaceLabels = new Map(Types::String, Types::String);
+        SysDictType							dictType;
+        int									add = 10;
+        InventDimParm						parm,inventDimParm;
+        TFMRequestElement					context = request.parmContextValues();
+        MobBackendId						backend = context.getFieldValue(MobConstants::BackendId());
+        MobCarts							cart = MobCarts::Find(context.getFieldValue(extendedTypeStr(MobCartID)));
+        MobCartType							cartType = MobCartType::FindCartTypeSubClass(cart.ReferenceId);
+        boolean								isAddItem = strScan(backend, tableStr(inventSum) + '/' + fieldStr(inventSum,RecId) + '/0',1,100);
+        InventSum							iSum = this.getInventSum(backend);
+        TFMRequestItemAndDimensionElement	cartRequest = request as TFMRequestItemAndDimensionElement;
+        ItemId								itemId = isAddItem ? cartRequest.parmItemId() : iSum.ItemId;
+        InventDim							iDim = isAddItem ? cartRequest.parmInventDim() : iSum.inventDim();
+        NoYes								isLPItem;
+        TFMRegistrationCollectorInformation infoCol;
+        TFMRegistrationCollector			regCol;
+
+		if (strScan(backend,tableStr(WHSLicensePlate) + '/' + fieldStr(WHSLicensePlate,licensePlateId),1,100))
+        {
+            returnMap = new Map(Types::String, Types::Class);
+            regCol = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(WMSLocationId));
+            regCol.parmHeader(regCol.parmHeader() + '(' + "@SYS8828" + ')');
+            regCol.parmOptional(false);
+            returnMap.insert(regCol.parmName(),regCol.getMap());
+            return returnMap;
+        }
+
+		if (cartType!= null)
+        {
+            returnMap = cartType.AddorRemoveItemPromptOverride(cartRequest);
+			if (returnMap != null)
+            {
+                return returnMap;
+            }
+        }
+
+        if (WHSLicensePlate::exist(cartRequest.parmRawItemId()))
+        {
+            returnMap = new Map(Types::String, Types::Class);
+            infoCol = new TFMRegistrationCollectorInformation(1,'info',strFmt("@SYS76498", "@WAX67", cartRequest.parmRawItemId()),strFmt("@SYS76498", "@WAX67", cartRequest.parmRawItemId()),MobInventDimHelper::LpContentHtml(cartRequest.parmRawItemId()));//'You are about to add License Plate ' + cartRequest.parmRawItemId());
+            returnMap.insert(infoCol.parmName(),infoCol.getMap());
+            return returnMap;
+		}
+        parm =  InventDimParm::activeDimFlag(InventDimGroupSetup::newInventTable(InventTable::find(itemId)));
+        isLPItem = parm.LicensePlateFlag;
+        inventDimParm.initFromInventDim(iDim);
+        parm = InventDimParm::xorParms(inventDimParm,parm);
+        parm.InventSiteIdFlag = NoYes::No;
+        parm.InventLocationIdFlag = !isAddItem;
+        parm.WMSLocationIdFlag = NoYes::Yes;  
+        if (!isAddItem)
+        {
+			parm.LicensePlateFlag = isLPItem;
+        }
+        //To or from basket?
+        replaceLabels.insert(extendedTypeStr(WMSLocationId),isAddItem ? "@MobileWMS:MEL37" : "@MobileWMS:MEL44");
+        TFMInventDimSetup inventDimSetup = TFMInventDimSetup::Construct(InventTable::find(itemId));
+        returnMap = MobInventDimHelper::GetInventDimCollectors(add,inventDimSetup,parm,replaceLabels);
+        add = returnMap.elements() *10 + 100;
+        dictType = new SysDictType(extendedTypeNum(Qty));
+        decimalPrecision = unitOfMeasure::findBySymbol(inventTable::find(itemId).inventUnitId()).DecimalPrecision;
+        if (!decimalPrecision && !parm.InventSerialIdFlag && !inventDimParm.InventSerialIdFlag)
+        {
+            qtyStepMap = TFMRegistrationCollectorInteger::IntegerStepMap(add,'QuantityRemaining',"@SYS130676",dictType.label(),'',false,'',0,iSum ? real2int(iSum.PhysicalInvent) : 10000000,14);
+        }
+        else if (!parm.InventSerialIdFlag && !inventDimParm.InventSerialIdFlag)
+        {
+            qtyStepMap = TFMRegistrationCollectorDecimal::DecimalStepMap(add,'QuantityRemaining',"@SYS130676",dictType.label(),'',false,'',0,iSum ? real2int(iSum.PhysicalInvent) : 10000000,14);
+        }
+		if (qtyStepMap)
+        {
+			returnMap.insert(MobConstants::Quantity(),qtyStepMap);
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddNewCartPrompt</Name>
+				<Source><![CDATA[
+    [TFMCollectorMap(classStr(TFMGetRegistrationConfiguration), 'AddNewCart')]
+    public Map AddNewCartPrompt()
+    {
+        Map returnMap = new Map(Types::string, Types::class);
+        TFMRegistrationCollectorText locationId = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(wmsLocationId));
+        TFMRegistrationCollectorText CartId = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(MobCartId));
+        NumberSeq		num = NumberSeq::newGetNum(WHSParameters::numRefWHSLicensePlateId());
+
+        locationId.parmId(3);      
+        CartId.parmDefaultValue(num.num());
+        cartid.parmLabel("@MobileWMS:CartID");
+        num.used(); // mark the number as used
+        returnMap.insert(locationId.parmName(),locationId.getMap());
+        returnMap.insert(CartId.parmName(),CartId.getMap());
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UnloadCartPrompt</Name>
+				<Source><![CDATA[
+    [TFMCollectorMap(classStr(TFMGetRegistrationConfiguration), 'CartUnload')]
+    public Map UnloadCartPrompt()
+    {
+        Map								returnMap = new Map(Types::string, Types::class);
+        MobCartID						cartId = request.getFieldValue(extendedTypeStr(MobCartID));
+        TFMRegistrationCollectorText	locationId = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(wmsLocationId));
+        TFMRegistrationCollectorList	regCollectorList = new TFMRegistrationCollectorList(5,MobConstants::Warehouse(),"@SYS6437","@SYS6437","@SYS6437"); 
+        TFMRegistrationCollectorText	licensePlateId = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(WHSLicensePlateId));
+        MobCarts						cart = MobCarts::Find(cartId);
+        MobCartType						cartType = MobCartType::FindCartTypeSubClass(cart.ReferenceId);
+        InventSum						iSum;
+        InventDim						iDim;
+
+        if (cartType!= null)
+        {
+            returnMap = cartType.UnloadCartPromptOverride(request);
+            if (returnMap != null)
+            {
+                return returnMap;
+            }
+            returnMap = new Map(Types::string, Types::class);
+        }
+
+		
+        regCollectorList.parmDataTable(methodStr(TFMGetReferenceData,WarehouseFilterList));
+        regCollectorList.parmDataKeyColumn(extendedtypestr(InventLocationId));
+        regCollectorList.parmDataDisplayColumn(extendedtypestr(Name));
+        
+
+        locationId.parmName(locationId.parmName()+'To');
+        locationId.parmLabel("@SYS50351");
+        locationId.parmHeader("@SYS50351");
+        locationId.parmId(10);
+
+        returnMap.insert(locationId.parmName(),locationId.getMap());
+
+        returnMap.insert(regCollectorList.parmName(),regCollectorList.getMap());
+
+        select firstonly iSum where iSum.PhysicalInvent
+            join iDim where iDim.inventDimId == iSum.InventDimId && iDim.LicensePlateId == cart.WHSLicensePlateId;
+		
+        if (iSum && cart.WHSLicensePlateId)
+        {
+			//Items on the carts licenseplate. Ask for destination LP
+            licensePlateId.parmId(15);
+            licensePlateId.parmOptional(false);
+            returnMap.insert(licensePlateId.parmName(),licensePlateId.getMap());
+        }
+
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postCartModeSwitch</Name>
+				<Source><![CDATA[
+    [TFMDocumentType(classStr(TFMPostAdhocRegistration), 'CartSwitchMode')]
+    public void postCartModeSwitch()
+    {
+        MobCartId	CartId = request.getFieldValue(extendedTypeStr(MobCartID));        
+        MobCarts	cart;
+        MobCartType			cartType = MobCartType::FindCartTypeSubClass(MobCarts::Find(CartId).ReferenceId);
+
+        if (cartType!= null && cartType.cartModePostOverride(request))
+        {
+            return;
+        }
+
+        ttsbegin;
+        cart = MobCarts::Find(CartId,true);
+        cart.PickMode = !cart.PickMode;
+        cart.update();
+        ttscommit;
+        resultStr = "@MobileWMS:CartModeSwitched";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postCartUnload</Name>
+				<Source><![CDATA[
+    [TFMDocumentType(classStr(TFMPostAdhocRegistration), 'CartUnload')]
+    public void postCartUnload()
+    {
+        
+        wmsLocationId		Location = request.getFieldValue(extendedTypeStr(wmsLocationId) + 'To');
+        InventLocationId	warehouseTo = request.getFieldValue(MobConstants::Warehouse());
+        MobCartId			CartId = request.getFieldValue(extendedTypeStr(MobCartID));
+        MobCarts			cart = MobCarts::Find(CartId);
+        MobCartType			cartType = MobCartType::FindCartTypeSubClass(cart.ReferenceId);
+        InventSum			iSum;
+        InventDim			iDim;
+        InventDim			iDimTo;
+        WMSLocation			wmsLoc;
+        Set					recordsToSkip = new Set(Types::Int64);
+
+        if (cartType!= null && cartType.postCartUnloadOverride(request))            
+        {
+            return;
+        }
+
+        select firstonly iSum where iSum.PhysicalInvent
+            join iDim where iDim.inventDimId == iSum.InventDimId && iDim.LicensePlateId == cart.WHSLicensePlateId;
+  
+        if (iSum && cart.WHSLicensePlateId)
+        {
+            wmsLoc = MobInventDimHelper::WmsLocationIdFromLicensePlate(request.getFieldValue(extendedTypeStr(WHSLicensePlateId)));
+            //Items on the carts licenseplate. Ask for destination LP
+            iDimTo.data(iDim);
+            iDimTo.InventLocationId = wmsLoc.inventLocationId;
+            iDimTo.wMSLocationId = wmsLoc.wMSLocationId;
+            iDimTo.LicensePlateId = request.getFieldValue(extendedTypeStr(WHSLicensePlateId));
+            MobPostHelper::inventJournalTransfer(iSum.PhysicalInvent,iSum.itemId,iDim, iDimTo);
+            recordsToSkip.add(iSum.RecId);
+        }
+
+        MobPostHelper::MoveLocation(cart.InventLocationId,cart.WMSLocationId,location,warehouseTo, recordsToSkip);
+
+        MobReservedCarts::unreserveCart(CartId);
+
+        if (cartType!= null && cartType.postCartUnloadpostProcess(request))
+        {
+            return;
+        }
+
+        resultStr = "@MobileWMS:ContentMoved";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CartChangeNotePrompt</Name>
+				<Source><![CDATA[
+    [TFMCollectorMap(classStr(TFMGetRegistrationConfiguration), 'CartChangeNote')]
+    public Map CartChangeNotePrompt()
+    {
+        Map returnMap = new Map(Types::string, Types::class);        
+        MobCartId CartId = request.getFieldValue(extendedTypeStr(MobCartID));
+        TFMRegistrationCollectorText NoteCol = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(Notes));
+        MobCarts	carts = MobCarts::Find(CartId);
+        NoteCol.parmDefaultValue(carts.Note);
+        NoteCol.parmLength(1000);
+        NoteCol.parmprimaryInputMethod(TFMPrimaryInputMethod::Control);
+        returnMap.insert(NoteCol.parmName(),NoteCol.getMap());
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postChangeCartNote</Name>
+				<Source><![CDATA[
+    [TFMDocumentType(classStr(TFMPostAdhocRegistration), 'CartChangeNote')]
+    public void postChangeCartNote()
+    {
+        MobCartId CartId = request.getFieldValue(extendedTypeStr(MobCartID));
+        Notes note = request.getFieldValue(extendedTypeStr(Notes));
+        MobCarts	carts;
+        ttsbegin;
+        carts = MobCarts::Find(CartId,true);
+        carts.Note = note;
+        carts.update();
+        ttscommit;
+        resultStr = "@MobileWMS:Cartupdated";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postAddNewCart</Name>
+				<Source><![CDATA[
+    [TFMDocumentType(classStr(TFMPostAdhocRegistration), 'AddNewCart')]
+	public void postAddNewCart()
+    {
+        InventLocationId invLoc = request.getFieldValue(MobConstants::Warehouse());
+        wmsLocationId Location = request.getFieldValue(extendedTypeStr(wmsLocationId));
+        MobCartId CartId = request.getFieldValue(extendedTypeStr(MobCartID));
+
+        if (!WMSLocation::exist(Location,invLoc))
+        {
+            throw error (strFmt ("@MobileWMS:doesnotexiston", Location,invLoc));
+        }
+        MobCarts::FindOrCreate(CartId,invLoc,Location);
+        resultStr = "@MobileWMS:Cartcreated";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCartReservationLevel</Name>
+				<Source><![CDATA[
+    [TFMParameter(0)]
+    public MobCartReservationLevelEnum parmCartReservationLevel(MobCartReservationLevelEnum _reservationLevel = reservationLevel)
+    {
+        reservationLevel = _reservationLevel;
+        return reservationLevel;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLockCarts</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@MobileWMS:LockCarts")]
+    public MobPromptForUnit parmLockCarts(MobPromptForUnit _lockCarts = lockCarts)
+    {
+        lockCarts = _lockCarts;
+        return lockCarts;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAllowOverDelivery</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::Yes,"@SYS3680","@SYS7916")]
+    public MobPromptForUnit parmAllowOverDelivery(MobPromptForUnit _allowOverDelivery = allowOverDelivery)
+    {
+        allowOverDelivery = _allowOverDelivery;
+        return allowOverDelivery;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAllowUnderDelivery</Name>
+				<Source><![CDATA[
+    [TFMParameter(NoYes::No,"@SYS16149","@SYS50416")]
+    public MobPromptForUnit parmAllowUnderDelivery(MobPromptForUnit _allowUnderDelivery = allowUnderDelivery)
+    {
+        allowUnderDelivery = _allowUnderDelivery;
+        return allowUnderDelivery;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postAddOrMoveItemToOrFromCart</Name>
+				<Source><![CDATA[
+    [TFMPostMethod(tableStr(inventJournalTable)), TFMDocumentType(classStr(TFMPostAdhocRegistration), 'AddItemToCart')]
+	public void postAddOrMoveItemToOrFromCart()
+    {
+        TFMRequestElement					context = request.getSubNodes('ContextValues');
+        MobBackendId						backend = context.getFieldValue(MobConstants::BackendId());
+        boolean								isAddItem = context.getFieldValue('AddToCart') == 'true';
+        InventSum							iSum = this.getInventSum(backend);
+        TFMRequestItemAndDimensionElement	cartRequest = request as TFMRequestItemAndDimensionElement;
+        ItemId								itemId = isAddItem ? cartRequest.parmItemId() : iSum.ItemId;
+        InventDim							iDim = cartRequest.parmInventDim();
+
+        InventDim							inventDimIssue;
+        InventDim							inventDimReceipt;
+        MobCarts							cart = MobCarts::Find(cartRequest.getFieldValue(extendedTypeStr(MobCartID)));
+        MobCartType							cartType = MobCartType::FindCartTypeSubClass(cart.ReferenceId);
+        Qty									qty;
+        Map									recordsMap;
+        WHSLicensePlateId					lpID;
+        iDim = cartRequest.createInventDim(iDim);
+        if (strScan(backend,tableStr(WHSLicensePlate) + '/' + fieldStr(WHSLicensePlate,licensePlateId),1,100))
+        {
+            lpID = subStr(backend,strLen(tableStr(WHSLicensePlate) + '/' + fieldStr(WHSLicensePlate,licensePlateId)) + 2,1000);
+            MobPostHelper::MoveLicensePlate(lpID,cart.InventLocationId,request.getFieldValue(extendedTypeStr(WMSLocationId)));
+            return;
+        }
+
+        if (isAddItem && WHSLicensePlate::exist(cartRequest.parmRawItemId()))
+        {
+            MobPostHelper::MoveLicensePlate(cartRequest.parmRawItemId(),cart.InventLocationId,cart.WMSLocationId);
+            return;
+        }
+
+        if (cartType != null)
+        {
+			if (cartType.postAddOrMoveItemToOrFromCartPreProcess(cartRequest))
+            {
+                return;
+            }
+        }
+        
+        iDim.inventSiteId = cart.InventSiteId;
+
+        if (isAddItem)
+        {
+            //Add Carts dim to IDim
+            
+            iDim.InventLocationId = cart.InventLocationId;
+        
+            inventDimIssue.data(iDim); 
+            inventDimReceipt.data(iDim);
+            inventDimReceipt.wMSLocationId = cart.WMSLocationId;
+            if (inventDimReceipt.LicensePlateId)
+            {
+                if (!cart.WHSLicensePlateId)
+                {
+                    cart = MobCarts::addLicensePlate(cart.CartID);
+                }
+                inventDimReceipt.LicensePlateId = cart.WHSLicensePlateId;
+            }
+        }
+		else
+        {
+            inventDimIssue = iSum.inventDim();
+            inventDimReceipt.data(inventDimIssue);
+            inventDimReceipt.InventLocationId = cartRequest.parmInventLocationId();
+            inventDimReceipt.wMSLocationId = cartRequest.parmWMSLocationId();
+            if (inventDimReceipt.LicensePlateId)
+            {
+                
+                inventDimReceipt.LicensePlateId = cartRequest.parmLicensePlateId();
+                inventDimReceipt.wMSLocationId = MobInventDimHelper::WmsLocationIdFromLicensePlate(inventDimReceipt.LicensePlateId).wMSLocationId;
+                inventDimReceipt.InventLocationId = MobInventDimHelper::WmsLocationIdFromLicensePlate(inventDimReceipt.LicensePlateId).inventLocationId;
+            }
+            
+        }
+        qty = cartRequest.parmQuantity();
+        ttsbegin;
+        inventJournalTable = MobPostHelper::inventJournalTransfer(qty,itemId,inventDimIssue, inventDimReceipt);
+        resultStr = SysLabel::labelId2String2("@MobileWMS:MEL47");
+        ttscommit;
+
+        if (cartType != null)
+        {
+            if (cartType.postAddOrMoveItemToOrFromCartPostProcess(cartRequest,inventJournalTable))
+            {
+                return;
+            }
+        }
+
+        recordsMap = MobDocUnplannedCartMove::locationContent(WMSLocation::find(cart.WMSLocationId,cart.InventLocationId));
+		
+        if (!recordsMap.elements())
+        {
+            MobReservedCarts::unreserveCart(cart.CartID);
+        }
+		else
+        {
+            MobReservedCarts::reserveCart(cart.CartID, reservationLevel != MobCartReservationLevel::User ? request.parmdeviceID() : '', reservationLevel != MobCartReservationLevel::Device ? curUserId() : '');
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postAttachListToCart</Name>
+				<Source><![CDATA[
+    [TFMDocumentType(classStr(TFMPostAdhocRegistration), 'attachListToCart')]
+    public void postAttachListToCart()
+    {
+        TFMRequestElement					context = request.getSubNodes('ContextValues');
+        MobCarts							cart;
+        MobCartType							cartType;
+        
+        MobBackendId						backEnd = conPeek(strSplit(context.getFieldValue(MobConstants::BackendId()),'/').pack(),6);
+        ttsbegin;
+        cart = MobCarts::Find(request.getFieldValue(extendedTypeStr(MobCartID)),true);
+        cartType = MobCartType::FindCartTypeSubClass(backEnd);
+        //Test if scan is a picklist
+        
+        if (cartType != null && backEnd && !MobCarts::FindByReference(backEnd))
+        {
+            ttsbegin;
+            cart.selectForUpdate(true);
+            cart.ReferenceId = backEnd;
+            cart.ReferenceCategory = cartType.typeOfCart();
+            cart.update();
+            ttscommit;
+        }
+        else if (cartType == null && MobCartTypePicklist::isRouteOnPackingStation(backEnd))
+        {
+            throw Error("@MobileWMS:Routeonpackingstationcartmovementnotallowed");
+        }
+
+        
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postDetachListFromCart</Name>
+				<Source><![CDATA[
+    [TFMDocumentType(classStr(TFMPostAdhocRegistration), 'detachListFromCart')]
+    public void postDetachListFromCart()
+    {
+        MobCarts							cart;
+        
+        ttsbegin;
+        cart = MobCarts::Find(request.getFieldValue(extendedTypeStr(MobCartID)),true);
+        if (MobDocUnplannedCartMove::locationContent(WMSLocation::find(cart.WMSLocationId, cart.InventLocationId)).elements() > 0)
+        {
+            throw Error ("@MobileWMS:CantremoveCartreferenceitemsoncart");
+        }
+        cart.ReferenceId = '';
+        cart.update();
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerMenu</Name>
+				<Source><![CDATA[
+    public container registerMenu()
+    {    
+        return [['CartOverview', "@MobileWMS:UnplannedCartMove", true, resourceStr(MobCartForWarehouseUnplanned)]];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {    
+        return "@MobileWMS:UnplannedCartMove";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCartOverview</Name>
+				<Source><![CDATA[
+    [TFMLookupResponse(classStr(TFMLookup), 'CartOverview')]
+    public TFMLookupResponseElement getCartOverview()
+    {
+        TFMLookupResponseElement	response = TFMLookupResponseElement::Construct(classStr(TFMLookup), 'CartOverview');
+        InventLocationId			location = request.getFieldValue(MobConstants::Warehouse()) == MobConstants::All() ? '*' : request.getFieldValue(MobConstants::Warehouse());
+        MobCarts					carts;
+        TFMRequestBasicElement		context = request.getSubNodes('ContextValues');
+        str							backEnd;
+		if (context!=null)
+        {
+            backEnd = conPeek(strSplit(context.getFieldValue(MobConstants::BackendId()),'/').pack(),6);
+        }
+
+        while select carts where carts.InventLocationId like location
+        {
+            carts.ReferenceId = carts.ReferenceId ? carts.ReferenceId : (MobConstants::BackendId() + backEnd);
+            response.addResponse(carts,tableStr(MobCarts) + '/' + fieldStr(MobCarts,CartID ) + '/' + carts.cartId);
+        }
+        return response;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

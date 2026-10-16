@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestSearchElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType(staticMethodStr(TFMConstants, Search))]
+class TFMRequestSearchElement extends TFMRequestElement
+{
+    TFMRequestParametersElement     parms;
+    TFMOrderTypes                   type;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmType</Name>
+				<Source><![CDATA[
+    public TFMOrderTypes parmType(TFMOrderTypes _type = Type)
+    {
+        type = _type;
+        return type;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmParameters</Name>
+				<Source><![CDATA[
+    public TFMRequestParametersElement parmParameters(TFMRequestParametersElement _parms = parms)
+    {
+        parms = _parms;
+        if (!parms)
+        {
+            parms = new TFMRequestParametersElement();
+        }
+        return parms;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

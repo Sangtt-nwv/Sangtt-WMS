@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Runtime Frameworks"
+  short_description: "Use Feature Management, SysExtension, telemetry, and GAB"
+  default_prompt: "Use $runtime-frameworks to wire a feature flag, strategy, or telemetry hook for this D365FO change."

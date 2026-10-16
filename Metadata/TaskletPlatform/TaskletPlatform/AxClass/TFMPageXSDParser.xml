@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageXSDParser</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPageXSDParser
+{
+    XmlDocument xsdDoc;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>drillDownForAttributes</Name>
+				<Source><![CDATA[
+    public Map drillDownForAttributes(str _xPath)
+    {
+        return this.drillDown(_xPath, true, false);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drillDownForDocumentation</Name>
+				<Source><![CDATA[
+    public Map drillDownForDocumentation(str _xPath)
+    {
+        return this.drillDown(_xPath, false, true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drillDown</Name>
+				<Source><![CDATA[
+    public Map drillDown(str _xPath, boolean _getAttributes = false, boolean _getNodeDocumentation = false)
+    {
+        List hierarchy = strSplit(_xPath,'/');
+        ListEnumerator lEnum = hierarchy.getEnumerator();
+        Map             allowedChildren = new Map (Types::String, Types::String);
+        XmlNode         node;
+        XmlNamedNodeMap attrs;
+        str             typeName;
+        int             levels = hierarchy.elements();
+        while (lEnum.moveNext())
+        {
+            //info ('new drill');
+            levels--;
+                
+            if (allowedChildren.exists(lEnum.current()))
+            {
+                node = allowedChildren.lookup(lEnum.current());
+                attrs = Node.attributes();
+
+                if (_getNodeDocumentation && !levels)
+                {
+                    return allowedChildren;
+                }
+            }
+            else
+            {
+                node = null;
+                attrs = null;
+            }
+
+            if (attrs && attrs.getNamedItem('type'))
+            {
+                typeName = attrs.getNamedItem('type').innerText();
+            }
+            else
+            {
+                typeName = lEnum.current();
+            }
+
+            if ((!_getAttributes || (_getAttributes && levels)) && attrs && !attrs.getNamedItem('type') && node.firstChild())
+            {
+                //info ('Inlined options');
+                allowedChildren = this.getPossibleChildren(typeName,'name',node);
+            }
+            else if (!_getAttributes || (_getAttributes && levels))
+            {
+                allowedChildren = this.getPossibleChildren(typeName);//allowedChildren.exists(lEnum.current()) ? allowedChildren.lookup(lEnum.current()) : lEnum.current());
+            }
+
+            if (_getAttributes &&  !levels  && attrs && attrs.getNamedItem('name') && attrs.getNamedItem('name').innerText() == typeName && node.firstChild())
+            {
+                //info ('Inlined options');
+                allowedChildren = this.getAttributes(typeName,'name',node);
+            }
+            else if (_getAttributes && !levels)
+            {
+                allowedChildren = this.getAttributes(typeName);
+            }
+        
+        }
+        return allowedChildren;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAttributes</Name>
+				<Source><![CDATA[
+    private Map getAttributes(str _typeName, str _attrName = 'name', XMLNode _nodeToUse = null)
+    {
+        map possibleAttributes = new Map(Types::String, Types::Class);
+        Map AttributeProperties;
+        XMLNode baseNodes = _nodeToUse ? _nodeToUse : this.getNodes();
+        XmlNodeType nodeType;
+        XmlNode node = baseNodes;
+        XMLNode child, attriChild, typeNode;
+        //XmlNamedNodeMap  childAttrs;
+        Map				enumValues;
+        MapEnumerator	mEnum;
+        str     annotationStr;
+        str		baseElementName;
+        str     enumValuesStr;
+
+        while (node)
+        {
+            nodeType = node.nodeType();
+        
+            if ((nodeType == XmlNodeType::Element) && Node.attributes() && Node.attributes().getNamedItem(_attrName) && Node.attributes().getNamedItem(_attrName).innerText() == _typeName)
+            {
+                child = node.firstChild();
+
+                if (child && child.name() && strScan(child.name(),'annotation',1,1000)) // if the first child is a annotation we skip it
+                {
+                    if(node.childNodes().length() > 1)
+                    {
+                        child = node.childNodes().item(1);
+                    }
+                }
+
+                //annotationStr = child.name();
+                if (child.firstChild() && strScan(child.firstChild().name(),'extension',1,1000))
+                {
+                    baseElementName = (child.firstChild().attributes() && child.firstChild().attributes().getNamedItem('base')) ? child.firstChild().attributes().getNamedItem('base').innerText() : '';
+                    child = child.firstChild().firstChild();
+                }
+
+                if (strScan(child.name(),'complexType',1,1000))
+                {
+                    child = child.firstChild();
+                }
+                
+                while (child)
+                {
+                    if(strScan(child.name(),'attribute',1,10000))
+                    {
+                        annotationStr = '';
+                        attriChild = child.firstChild();
+                        while(attriChild && !annotationStr)
+                        {
+                            if(strScan(attriChild.name(),'annotation',1,10000))
+                            {
+                                annotationStr = attriChild.innerText();
+                            }
+                            attriChild = attriChild.firstChild();
+                        }
+                        AttributeProperties = new Map(Types::String, Types::String);
+                        
+                        XmlNamedNodeMap childAttributes = child.attributes();
+                        AttributeProperties.insert('type', childAttributes.getNamedItem('type') ? childAttributes.getNamedItem('type').innerText() : 'enum');
+                        AttributeProperties.insert('use', childAttributes.getNamedItem('use') ? childAttributes.getNamedItem('use').innerText() : 'optional');
+                        AttributeProperties.insert('default', childAttributes.getNamedItem('default') ? childAttributes.getNamedItem('default').innerText() : '');
+                        enumValuesStr = '';
+                        if (AttributeProperties.lookup('default'))
+                        {
+                            annotationStr += "@TFM:lineBreak" +"@SYS26467"+': ' + AttributeProperties.lookup('default');
+                        }
+                        if (!childAttributes.getNamedItem('type'))
+                        {
+                            enumValues = this.getEnumerationValues(child.firstChild(),new Map(Types::String, Types::String));
+                            mEnum = enumValues.getEnumerator();
+
+                            while (mEnum.moveNext())
+                            {
+                                annotationStr += "@TFM:lineBreak" + ' ' + mEnum.currentKey() + ' : ' + mEnum.currentValue();
+                                enumValuesStr += (enumValuesStr ? '|' : '') + mEnum.currentKey() + '¤' + mEnum.currentValue();
+                            }
+                        }
+                        else
+                        {
+                            // if the type is a enumeration then use the enumeration values.
+                            str typeNameStr = childAttributes.getNamedItem('type').innerText();
+                            if(typeNameStr && !strScan(typeNameStr, ':', 0, 10000))
+                            {
+                                typeNode = xsdDoc.documentElement().selectSingleNode("*[@name='" + typeNameStr + "']");
+                                enumValues = this.getEnumerationValues(typeNode.firstChild(),new Map(Types::String, Types::String));
+                                mEnum = enumValues.getEnumerator();
+
+                                while (mEnum.moveNext())
+                                {
+                                    annotationStr += "@TFM:lineBreak" + ' ' + mEnum.currentKey() + ' : ' + mEnum.currentValue();
+                                    enumValuesStr += (enumValuesStr ? '|' : '') + mEnum.currentKey() + '¤' + mEnum.currentValue();
+                                }
+                            }
+                        }
+                        AttributeProperties.insert('annotation', annotationStr);
+                        if (enumValuesStr)
+                        {
+                            AttributeProperties.insert('enumValues', enumValuesStr);
+                        }
+                        possibleAttributes.insert(child.attributes().getNamedItem('name').innerText(),AttributeProperties);
+                    }
+                    child = child.nextSibling();
+                }
+            }
+            node = node.nextSibling();
+        }
+        //Read Extension
+        if (baseElementName)
+        {
+            TFMPageXSDParser::mergeMaps(possibleAttributes, this.getAttributes(baseElementName));
+        }
+
+        return possibleAttributes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEnumerationValues</Name>
+				<Source><![CDATA[
+    private Map getEnumerationValues(XMLNode _attributeNode, Map _foundValues = new Map(Types::String, Types::String))
+    {
+        XmlNode currentNode =_attributeNode;
+        XmlNode myChild;
+        while (currentNode)
+        {
+            myChild = currentNode.firstChild();
+            this.getEnumerationValues(myChild,_foundValues);
+            if(strScan(currentNode.name(),'enumeration',1,10000) && currentNode.attributes().getNamedItem('value'))
+            {
+                _foundValues.insert(currentNode.attributes().getNamedItem('value').innerText(),currentNode.innerText());
+            }
+
+            currentNode = currentNode.nextSibling();
+        }
+        return _foundValues;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPossibleChildren</Name>
+				<Source><![CDATA[
+    private Map getPossibleChildren(str _typeName, str _attrName = 'name', XMLNode _nodeToUse = null)
+    {
+        map possibleChildren = new Map(Types::String, Types::Class);
+        XMLNode baseNodes = _nodeToUse ? _nodeToUse : this.getNodes();
+        XmlNodeType nodeType;
+        XmlNode node = baseNodes;
+        XMLNode child;
+        XmlNamedNodeMap attrs, childAttrs;
+        //SecurityRights::construct().isSystemAdministrator()
+        while (node)
+        {
+            nodeType = node.nodeType();
+            if (nodeType == XmlNodeType::Element && Node.attributes() && Node.attributes().getNamedItem(_attrName) && Node.attributes().getNamedItem(_attrName).innerText() == _typeName)
+            {
+                attrs = Node.attributes();
+                child = node.firstChild();
+
+                if (child && child.name() && strScan(child.name(),'annotation',1,1000))
+                {
+                    if(node.childNodes().length() > 1)
+                    {
+                        child = node.childNodes().item(1);
+                    }
+                }
+
+                while (child)
+                {
+                    childAttrs =child.attributes();
+                    if (childAttrs && childAttrs.getNamedItem('name') && childAttrs.getNamedItem('type'))
+                    {
+                        possibleChildren.insert(childAttrs.getNamedItem('name').innerText(), child);//childAttrs.getNamedItem('type').innerText());
+                        //info (_typeName + '/' + childAttrs.getNamedItem('name').innerText() + '(name + type 1)');
+                        child = child.nextSibling();
+                    }
+                    else if (childAttrs && childAttrs.getNamedItem('ref'))
+                    {
+                        possibleChildren = TFMPageXSDParser::mergeMaps(possibleChildren, this.getPossibleChildren(childAttrs.getNamedItem('ref').innerText(), 'substitutionGroup'));
+                        child = child.nextSibling();
+                    }
+                    else if (childAttrs && childAttrs.getNamedItem('name') && !childAttrs.getNamedItem('type') && child.firstChild())
+                    {
+                        possibleChildren.insert(childAttrs.getNamedItem('name').innerText(), child);//childAttrs.getNamedItem('name').innerText());
+                        //info (_typeName + '/' +childAttrs.getNamedItem('name').innerText() + '(name + type)');
+                        child = child.nextSibling();
+                    }
+                    else
+                    {
+                        child = child.firstChild();
+                    }
+                }
+                if (!node.firstChild() && attrs.getNamedItem('type') && !attrs.getNamedItem('substitutionGroup'))// && child.nodeType() == XmlNodeType::Element)
+                {
+                    possibleChildren = this.getPossibleChildren(attrs.getNamedItem('type').innerText());
+                }
+                if (!node.firstChild() && attrs.getNamedItem('type') && !attrs.getNamedItem('substitutionGroup'))// && child.nodeType() == XmlNodeType::Element)
+                {
+                    possibleChildren = this.getPossibleChildren(attrs.getNamedItem('type').innerText());
+                    //info (attrs.getNamedItem('name').innerText() + '(!ref)');
+                }
+                if (!node.firstChild() && attrs.getNamedItem('type') && attrs.getNamedItem('substitutionGroup'))// && child.nodeType() == XmlNodeType::Element)
+                {
+                    possibleChildren.insert(attrs.getNamedItem('name').innerText(), node);//attrs.getNamedItem('type').innerText());
+                    //info (attrs.getNamedItem('name').innerText() + '(ref)');
+                }
+                //info(node.name());
+                if (attrs.getNamedItem('type'))
+                {
+                    //info(attrs.getNamedItem('name').innerText() + '=' +attrs.getNamedItem('type').innerText());
+                }
+            }
+            node = node.nextSibling();
+        }
+
+
+        return possibleChildren;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getNodes</Name>
+				<Source><![CDATA[
+    private XMLNode getNodes()
+    {
+        return xsdDoc.firstChild().nextSibling().firstChild();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mergeMaps</Name>
+				<Source><![CDATA[
+    public static Map mergeMaps(Map _map1, Map _map2)
+    {
+        Map retMap;
+        MapEnumerator mapEnum;
+        if( !_map1)
+        {
+            throw error(Error::wrongUseOfFunction(funcName()));
+        }
+        // Check compatibility
+        if(_map1 && _map2)
+        {
+            if(_map1.keyType() != _map2.keyType() || _map1.valueType() != _map2.valueType())
+            {
+                throw error(Error::wrongUseOfFunction(funcName()));
+            }
+        }
+        retMap = _map1;
+        mapEnum = _map2.getEnumerator();
+        while(mapEnum.moveNext())
+        {
+            if( !retMap.exists(mapEnum.currentKey()))
+            {
+                retMap.insert(mapEnum.currentKey(), mapEnum.currentValue());
+            }
+        }
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        this.loadApplicationXSD();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>loadApplicationXSD</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Verify that the ApplicationXSD can be loaded else an exception should be thrown.
+    /// </summary>
+    /// <param name = "_xsdContent"></param>
+    /// <returns></returns>
+    protected void loadApplicationXSD()
+    {
+        System.Net.WebClient	webClient = new System.Net.WebClient();
+        str						XSD;
+
+        try
+        {
+            XSD = webClient.DownloadString(TFMConstants::applicationSchemaPath());
+            xsdDoc = this.readApplicationXSD(XSD);
+        }
+        catch (Exception::CLRError)
+        {
+            // if the application.xsd cannot be used then we will default to the file provided in our solution.
+            XSD = TFMHelper::resource2str(resourceStr(TFMApplicationSchema));
+            XSD = strReplace(XSD,'ï»¿', '');
+            xsdDoc = XmlDocument::newXml(xsd);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>readApplicationXSD</Name>
+				<Source><![CDATA[
+    protected XmlDocument readApplicationXSD(str _xsdContent)
+    {
+        XmlElement      schemaElement;
+        XmlDocument     xsdDocument = XmlDocument::newXml(_xsdContent);
+        schemaElement = xsdDocument.getNamedElement('xs:schema');
+        if(!schemaElement)
+        {
+            throw new System.ArgumentNullException('schema was not found default back to default application.xsd');
+        }
+        return xsdDocument;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        this.init();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

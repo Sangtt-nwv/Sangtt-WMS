@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Labels"
+  short_description: "Search, reuse, create, and translate D365FO labels"
+  default_prompt: "Use $label-translation to manage labels for this D365FO change."

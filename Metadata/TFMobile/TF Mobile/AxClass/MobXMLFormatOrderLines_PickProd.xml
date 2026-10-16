@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_PickProd</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for picking production order lines.
+/// </summary>
+[TFMTableNameAttribute(tableStr(ProdJournalBom))]
+class MobXMLFormatOrderLines_PickProd extends MobXMLFormatOrderLines_Pick
+{
+    ProdJournalBom          prodJournalBom;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        
+        super();
+    
+        prodJournalBom  = common;
+        inventDim       = prodJournalBom.inventDim();
+    
+        this.setInventDim(prodJournalBom.ItemId);
+    
+        orderBackendId          = MobOrder::constructFromTableName(tableStr(ProdJournalTable)).getBackendID(ProdJournalTable::find(prodJournalBom.JournalId));//#PickProdOrderPrefix + prodJournalBom.JournalId;
+        lineNumber              = int642Str(prodJournalBom.recId);
+        itemNumber              = prodJournalBom.ItemId;
+        description             = InventTable::find(prodJournalBom.itemId).productName(new xInfo().language());        
+        quantity                = MobHelper::formatItemQty(prodJournalBom.BOMConsump ,prodJournalBom.BOMUnitId);
+        registeredQuantity      = MobConstants::NotUsed0();
+        unitOfMeasure           = prodJournalBom.BOMUnitId;
+        
+        status                  = MobConstants::NotUsed0();
+        displayLine1            = prodJournalBom.ItemId;
+        displayLine2            = InventTable::find(prodJournalBom.itemId).productName(new xInfo().language());
+        displayLine3            = inventDim.wMSLocationId;
+        underDeliveryValidation = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation), MobParameters::find().UnderDeliveryValidation);
+        overDeliveryValidation  = MobHelper::enumName(enumnum(TFMOverDeliveryValidation), MobParameters::find().OverDeliveryValidation);
+        fieldsToAdd.insert(extendedTypeStr(JournalId), prodJournalBom.JournalId);
+        
+        this.addMenuItemsConfigurationIfExists(MobConstants::AddPickLine(),-1,true);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

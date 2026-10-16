@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDataSourceBlockLockOrderList</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('OrderList', "Locking Mechanism")]
+class TFMDataSourceBlockLockOrderList extends TFMDataSourceBlock
+{
+    NoYes           useOrderLocking;
+    TFMBackendId	backendId;
+    TFMLockingLevel lockingLevel;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        useOrderLocking = true;
+        lockingLevel = TFMLockingLevel::Both;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLockingLevel</Name>
+				<Source><![CDATA[
+    [TFMParameter(TFMLockingLevel::Both,"@TFM:UseOrderLocking")]
+    public TFMLockingLevelEDT parmLockingLevel(TFMLockingLevelEDT _lockingLevel = lockingLevel)
+    {
+        lockingLevel = _lockingLevel;
+        return lockingLevel;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUseOrderLocking</Name>
+				<Source><![CDATA[
+    public TFMPromptForUnit parmUseOrderLocking(TFMPromptForUnit _useOrderLocking = useOrderLocking)
+    {
+        useOrderLocking = _useOrderLocking;
+        return useOrderLocking;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddFields</Name>
+				<Source><![CDATA[
+    public Map AddFields(Common _common)
+    {
+        Map				ret			= super(_common);
+        if (!backendId)
+        {
+            backendId= TFMHelper::generateBackendId(_common,ds.OrderType);
+        }
+        useOrderLocking = lockingLevel != TFMLockingLevel::Never;
+        ret.insert(TFMConstants::Status(), useOrderLocking && TFMLockedOrders::isOrderLocked(backendid,deviceId, lockingLevel) ? TFMConstants::locked() : TFMConstants::Unlocked());
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobBatchOrderType</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class MobBatchOrderType extends MobOrder implements TFMOrderTypeInterface
+{
+    InventDim       itemInventDim;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>OrderType</Name>
+				<Source><![CDATA[
+    public MobOrderTypes OrderType()
+    {
+
+        return 'batchOrder';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processScannedValue</Name>
+				<Source><![CDATA[
+    public ItemId processScannedValue(str _scannedValue)
+    {
+        // The scanned value is assumed to be an item number / barcode
+        // Change this code if you want to allow the user scan another value to filter the list of orders
+        ItemId              itemId;
+        InventItemGTIN      inventItemGTIN;
+        InventItemBarcode   inventItemBarcode = InventItemBarcode::findInputBarcode(_scannedValue);
+        if (inventItemBarcode && inventItemBarcode.itemId)
+        {
+            itemId = inventItemBarcode.itemId;
+            itemInventDim = inventItemBarcode.inventDim();
+        }
+        else
+        {
+            inventItemGTIN = InventItemGTIN::findGTIN(_scannedValue);
+            if (inventItemGTIN && inventItemGTIN.itemId)
+            {
+                itemId = inventItemGTIN.itemId;
+                itemInventDim = InventDim::find(inventItemGTIN.inventDimId);
+            }
+            else if (InventTable::exist(_scannedValue))
+            {
+                itemId = InventTable::find(_scannedValue).ItemId;
+            }
+        }
+        if (!itemId && _scannedValue)
+        {
+            throw error(strfmt(InventTable::txtNotExist(),_scannedValue));
+        }
+        return itemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateXML</Name>
+				<Source><![CDATA[
+    public static int generateXML(XmlDocument _xmlResult, TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+        ListEnumerator      lEnum           = new DictClass(className2Id(classStr(MobBatchOrderType))).extendedBy(true).getEnumerator();
+        MobBatchOrderType   typeCls;
+        MapEnumerator       mEnum;
+        TFMXMLFormat        xmlFormat;
+        DictClass           dc;
+        container           backendIDcon;
+        Map                 returnMap = new Map(Types::string, Types::Record);
+        int                 i = 1;
+        while (lEnum.moveNext())
+        {
+            dc = new DictClass(lEnum.current());
+            if (dc == null)
+            {
+                continue;
+            }
+            typeCls = dc.makeObject() as MobBatchOrderType;
+            returnMap = MobHelper::mergeMaps(typeCls.getHeaderRecords(_filters, _scannedValue), returnMap);
+        }
+        mEnum = returnMap.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            xmlFormat = TFMXMLFormat::constructFromBackendID(mEnum.currentKey(),classStr(TFMXMLFormatOrders));
+            backendIDcon = MobHelper::strSplit(mEnum.currentKey(),'/').pack();
+            xmlFormat.initFromCommon(_xmlResult,mEnum.currentValue(),i,conLen(backendIDcon) == 7 ? conPeek(backendIDcon,7) : '','BatchOrder');
+            xmlFormat.run();
+            i++;
+        }
+        return i -1;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

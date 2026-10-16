@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectorDateTime</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegistrationCollectorDateTime extends TFMRegistrationCollector
+{
+    utcDateTime minimumDate = DateTimeUtil::minValue();
+    utcDateTime maximumDate = DateTimeUtil::maxValue();
+    str defaultDate = strFmt('%1',DateTimeUtil::Utcnow());
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmMinDate</Name>
+				<Source><![CDATA[
+    public utcDateTime parmMinDate(utcDateTime _minimumDate = minimumDate)
+    {
+        minimumDate = _minimumDate;
+        return minimumDate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMaxDate</Name>
+				<Source><![CDATA[
+    public utcDateTime parmMaxDate(utcDateTime _maximumDate = maximumDate)
+    {
+        maximumDate = _maximumDate;
+        return maximumDate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDefaultValue</Name>
+				<Source><![CDATA[
+    public str parmDefaultValue(str _defaultDate = defaultDate)
+    {
+        defaultDate = _defaultDate;
+        return defaultDate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dataTypeIcon</Name>
+				<Source><![CDATA[
+    public ResourceName dataTypeIcon()
+    {
+        return resourceStr(TFMDatatypeDateTime);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DateTimeStep</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Builds a registration collector for date steps
+    /// </summary>
+    /// <param name="setEmpty"></param>
+    /// <param name="id"></param>
+    /// <param name="name"></param>
+    /// <param name="header"></param>
+    /// <param name="label"></param>
+    /// <param name="helpLabel"></param>
+    /// <param name="minimumDate"></param>
+    /// <param name="maximumDate"></param>
+    /// <param name="GS1valueId_date"></param>
+    /// identifiers for GS1-barcode prefixes
+    /// </param>
+    /// <param name="defaultValue"></param>
+    server static TFMRegistrationCollectorDateTime DateTimeStep(                                boolean _setEmpty,
+                                                               int _id,
+                                                               str _name,
+                                                               str _header,
+                                                               str _label,
+                                                               str _helpLabel = '',
+        utcDateTime _minimumDate = DateTimeUtil::minValue(),
+        utcDateTime _maximumDate = DateTimeUtil::maxValue(),
+                                                               str _GS1valueId_date = '',
+        utcDateTime _defaultValue = DateTimeUtil::Utcnow())
+    {
+        TFMRegistrationCollectorDateTime    dateCollector = new TFMRegistrationCollectorDateTime(_id,_name,_header,_label,_helpLabel);
+        dateCollector.parmEanAi(_GS1valueId_date);
+        dateCollector.parmminDate(_minimumDate);
+        dateCollector.parmmaxDate(_maximumDate);
+        dateCollector.parmdefaultValue(strFmt('%1',_defaultValue));
+        
+        return dateCollector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DateTimeStepMap</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Builds a registration collector for date steps
+    /// </summary>
+    /// <param name="setEmpty"></param>
+    /// <param name="id"></param>
+    /// <param name="name"></param>
+    /// <param name="header"></param>
+    /// <param name="label"></param>
+    /// <param name="helpLabel"></param>
+    /// <param name="minimumDate"></param>
+    /// <param name="maximumDate"></param>
+    /// <param name="GS1valueId_date"></param>
+    /// identifiers for GS1-barcode prefixes
+    /// </param>
+    /// <param name="defaultValue"></param>
+    server static Map DateTimeStepMap(                             boolean _setEmpty,
+                                                               int _id,
+                                                               str _name,
+                                                               str _header,
+                                                               str _label,
+                                                               str _helpLabel = '',
+                                                               utcDateTime _minimumDate = DateTimeUtil::minValue(),
+                                                               utcDateTime _maximumDate = DateTimeUtil::maxValue(),
+                                                               str _GS1valueId_date = '',
+                                                               utcDateTime _defaultValue = DateTimeUtil::Utcnow())
+    {
+        return TFMRegistrationCollectorDateTime::DateTimeStep(_setEmpty,_id,_name,_header,_label,_helpLabel,_minimumDate,_maximumDate,_GS1valueId_date,_defaultValue).getMap();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_Cart</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableName(tableStr(InventSum))]
+class MobXMLFormatOrders_Cart extends TFMXMLFormatOrders 
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        Map				prodDims;
+        Map				tracDims;
+        InventSum		inventSum;
+        MapEnumerator	mEnum;
+        MobCarts		cart;
+
+        super();
+    
+        inventSum       = common;
+        cart			= MobCarts::FindByLocation(inventSum.inventDim().InventLocationId, inventSum.inventDim().wMSLocationId);
+
+        if (inventSum == null)
+        {
+            //fieldsToAdd.insert(MobConstants::ScannedValue(),orderType);
+            //fieldsToAdd.insert(extendedTypeStr(ItemId),orderType);
+            backendId          = tableStr(InventSum) + '/' + fieldStr(InventSum, RecId) + '/0';
+            fieldsToAdd.insert('AddToCart','true');
+        }
+		else
+        {
+            backendId          = tableStr(InventSum) + '/' + fieldStr(InventSum, RecId) + '/' + int642Str(inventSum.RecId);
+            fieldsToAdd.insert(extendedTypeStr(ItemId),inventSum.ItemId);
+            fieldsToAdd.insert('AddToCart','false');
+        }
+        imageId = MobHelper::imageIDFromDocuref(MobHelper::FindItemDocuref(inventSum.itemId,inventSum.InventDimId));
+        prodDims = MobInventDimHelper::getProductDimensions(inventSum.itemId,inventSum.InventDim());
+        tracDims = MobInventDimHelper::getTrackingDimensions(inventSum.itemId,inventSum.InventDim());
+        displayLine1 = inventSum.ItemId + ' ' + inventSum.inventTable().productName(new xInfo().language());
+        mEnum = tracDims.getEnumerator();
+        displayLine2 = "@SYS6303";
+        displayLine3 = inventSum.inventTable().defaultProductDescription();
+		while (mEnum.moveNext())
+        {
+            if (!mEnum.currentValue())
+            {
+                continue;
+            }
+            //displayLine2 = 'Batch';
+            //displayLine3 = inventSum.inventDim().inventBatchId;
+            displayLine4 += (displayLine4 ? "@MobileWMS:lineBreak" : '') + mEnum.currentKey() + ':';
+            displayLine5 += (displayLine5 ? "@MobileWMS:lineBreak" : '') + mEnum.currentValue();
+        }
+        mEnum = prodDims.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            if (!mEnum.currentValue())
+            {
+                continue;
+            }
+            //displayLine4 = 'Size';
+            //displayLine5 = inventSum.inventDim().InventSizeId;
+            displayLine4 += (displayLine4 ? "@MobileWMS:lineBreak" : '') + mEnum.currentKey() + ':';
+            displayLine5 += (displayLine5 ? "@MobileWMS:lineBreak" : '') + mEnum.currentValue();
+        }
+        fieldsToAdd.insert(fieldStr(InventDim,InventLocationId),inventSum.inventLocationId);
+        fieldsToAdd.insert(MobConstants::Warehouse(),inventSum.inventLocationId);
+        fieldsToAdd.insert(MobConstants::Quantity(), MobHelper::formatItemQty(inventSum.PhysicalInvent,inventSum.inventTable().inventUnitId()));
+        fieldsToAdd.insert('QuantityRemaining','0');//fieldsToAdd.lookup(MobConstants::Quantity()));
+        fieldsToAdd.insert(MobConstants::UnitOfMeasure(), inventSum.inventTable().inventUnitId());
+        fieldsToAdd.insert(fieldStr(MobCarts,PickMode),cart.PickMode ? "@MobileWMS:PickMode" : "@MobileWMS:UnloadMode");
+        if (cart.CartID)
+        {
+            fieldsToAdd.insert(MobConstants::Warehouse(),cart.InventLocationId);
+            fieldsToAdd.insert(extendedTypeStr(MobCartID),cart.CartID);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

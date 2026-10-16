@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>MobDocumentContentSubject</Name>
+	<DisplayLength>20</DisplayLength>
+	<Extends>TFMDocumentContentSubject</Extends>
+	<HelpText>@MobileWMS:MobileWMS112</HelpText>
+	<Label>@MobileWMS:MobileWMS105</Label>
+	<ArrayElements />
+	<Relations />
+	<TableReferences />
+</AxEdt>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListConverter</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Builds a List Layout based on the List.
+/// </summary>
+class TFMListConverter
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>buildListConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the the root element (the Rows for the list).
+    /// </summary>
+    /// <param name = "_listId"></param>
+    /// <returns></returns>
+    public static TFMListConfiguration buildListConfiguration(TFMList _list, TFMListsVersion _listVersion)
+    {
+        SetEnumerator        sEnum;
+        TFMListConfiguration listConfig;
+
+        if(_listVersion && _listVersion.Version && _listVersion.Version > 0)
+        {
+            listConfig = TFMListConfiguration::Construct(_list.parmListName());
+            listConfig.parmDisplayStatus(_listVersion.DisplayStatus);
+            listConfig.parmUseSingleSelection(_listVersion.useSingleSelection);
+            new TFMListConverter().buildLayoutFromData(listConfig, _list.parmListName(), _listVersion.Version);
+            return listConfig;
+        }
+        else
+        {
+            // the list is only in code therefore the getList method is called.
+            listConfig = _list.getList();
+            return listConfig;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildLayoutFromData</Name>
+				<Source><![CDATA[
+    public void buildLayoutFromData(TFMListBase _parentElement, TFMListId _listId, Version _version = 0, RefRecId _parent = 0)
+    {
+        
+        TFMListNode				nodes;
+        Map						attrs;
+        TFMListBase             baseElement;
+        MapEnumerator			mEnumParameters;
+        TFMParameterAttribute	parmAttr;
+        DictMethod				DM;
+        str                     parameterName;
+        
+        TFMListElementAttribute listElementAttr;
+
+        SysDictClass			sdc;
+        TFMListELementAttribute	attr;
+  
+        while select nodes order by LineNum where nodes.ParentNode == _parent && nodes.ListId == _listId && nodes.Version == _version && nodes.NodeName
+        {
+            attrs = nodes.Attributes();
+            listElementAttr = new TFMListElementAttribute(nodes.NodeName);
+            baseElement = TFMGetRegistrationConfiguration::getClassFromSysAttribute(classStr(TFMListBase), listElementAttr);
+            
+            // get the default value from the TFMParameter attribute.
+            mEnumParameters = TFMFormHelper::getParameterParmMethods(baseElement).getEnumerator();
+            while(mEnumParameters.moveNext())
+            {
+                DM = mEnumParameters.currentKey();
+                parmAttr = mEnumParameters.currentValue();
+                parameterName = TFMHelper::removeParmFromStr(DM.name());
+                if(!attrs.exists(parameterName) && parmAttr.parmDefaultValue())
+                {
+                    attrs.add(parameterName, strFmt('%1', parmAttr.parmDefaultValue()));
+                }
+            }
+
+            // apply the values in the attributes (fetched from db and default value)
+            TFMHelper::addValueMapToParmMethod(attrs,baseElement);
+            _parentElement.addChild(baseElement);
+
+            if(nodes && nodes.RecId)
+            {
+                this.buildLayoutFromData(baseElement, _listId,_version,nodes.RecId);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

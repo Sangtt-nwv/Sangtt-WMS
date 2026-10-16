@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocumentNode</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The MobDocumentNode is a class matching a XML tag in an xml document.
+/// </summary>
+class MobDocumentNode extends TFMDocumentNode
+{
+  
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(int64 _nodeID, MobDocumentNode _parent, MobDocumentNodes _nodes)
+    {
+        parentID        = _parent == null ? 0 : _parent.getnodeID();        
+        children        = new Map(Types::String,Types::int64);
+        attributes      = new Map(Types::String,Types::String);
+        childNameCount  = new Map(Types::String,types::Integer);
+        nodeID          = _nodeID;
+        owner           = _nodes;
+        cData           = null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MobDocumentNode Construct(int64 _nodeID, MobDocumentNode _parent, MobDocumentNodes _nodes)
+    {
+        return new MobDocumentNode(_nodeID,  _parent, _nodes);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageConfiguration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMPageConfiguration
+{
+    str					         type;
+    boolean                      useType;
+    boolean                      offlineEnabled;
+    str                          warnOnNavigationBackMessage;
+    str                          warnOnNavigationBackTitle;
+    TFMOverDeliveryValidation    warnOnNavigationBackWarningType;
+    str                          warnOnNavigationBackNotifyBackendDocument;
+    str					         filterName;
+    str					         pageName;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        this.initParmsMethodsWithAttributeDefaultValues();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmType</Name>
+				<Source><![CDATA[
+    public str parmType(str _type = type)
+    {
+        type = _type;
+
+        return type;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmWarnOnNavigationBackTitle</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Warning title on the warn on navigation back configuration.
+    /// </summary>
+    [TFMPageConfigurationAttributeAttribute('','warnOnNavigatingBack', 'title', false, true, false, false, true)]
+    public TFMLocalizedStringEDT parmWarnOnNavigationBackTitle(TFMLocalizedStringEDT _warnOnNavigationBackTitle = warnOnNavigationBackTitle)
+    {
+        warnOnNavigationBackTitle = _warnOnNavigationBackTitle;
+        return warnOnNavigationBackTitle;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmWarnOnNavigationBackMessage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Warning message on the warn on navigation back configuration.
+    /// </summary>
+    [TFMPageConfigurationAttributeAttribute('','warnOnNavigatingBack', 'message', false, true, false, false, true)]
+    public TFMLocalizedStringEDT parmWarnOnNavigationBackMessage(TFMLocalizedStringEDT _warnOnNavigationBackMessage = warnOnNavigationBackMessage)
+    {
+        warnOnNavigationBackMessage = _warnOnNavigationBackMessage;
+        return warnOnNavigationBackMessage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmWarnOnNavigationBackNotifyBackendDocument</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Warning message on the warn on navigation back configuration.
+    /// </summary>
+    /// 
+    [TFMPageConfigurationAttributeAttribute('','warnOnNavigatingBack', 'notifyBackendDocumentName', false, true, false, false, true)]
+    public TFMDocumentTypeId parmWarnOnNavigationBackNotifyBackendDocument(TFMDocumentTypeId _warnOnNavigationBackNotifyBackendDocument = warnOnNavigationBackNotifyBackendDocument)
+    {
+        warnOnNavigationBackNotifyBackendDocument = _warnOnNavigationBackNotifyBackendDocument;
+        return warnOnNavigationBackNotifyBackendDocument;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmWarnOnNavigationBackWarningType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Warning type on the warn on navigation back configuration. 
+    /// </summary>
+    [TFMPageConfigurationAttributeAttribute(TFMOverDeliveryValidation::None,'warnOnNavigatingBack', 'warningType', false, true, false, false, true)]
+    public TFMValidationWarningTypes parmWarnOnNavigationBackWarningType(TFMValidationWarningTypes _warnOnNavigationBackWarningType = warnOnNavigationBackWarningType)
+    {
+        warnOnNavigationBackWarningType = _warnOnNavigationBackWarningType;
+        return warnOnNavigationBackWarningType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isOfflineEnabled</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// true if the page is configured to offline enabled. E.g. unplanned item registration pages and Order list pages.
+    /// </summary>
+    /// <returns></returns>
+    public boolean isOfflineEnabled()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmsMethodsWithAttributeDefaultValues</Name>
+				<Source><![CDATA[
+	/// <summary>
+    /// Initialize parms with the default value from the TFMPageConfigurationAttributeAttribute
+    /// </summary>
+    public void initParmsMethodsWithAttributeDefaultValues()
+    {
+        TFMPageConfigurationAttributeAttribute	configAttr;
+        SysDictMethod							DM;
+        anytype                                 value;
+        ClassId                                 thisClassId = classIdGet(this);
+        SetEnumerator							methodSet = TFMFormLookupHelper::parmMethodsOnClass(thisClassId).getEnumerator();
+        SysDictClass							DC = new SysDictClass(thisClassId);
+
+        while (methodSet.moveNext())
+        {
+            DM = new SysDictMethod(UtilElementType::ClassInstanceMethod, thisClassId, methodSet.current());
+            if (!DM)
+            {
+                continue;
+            }
+            configAttr = DM.getAttribute(classStr(TFMPageConfigurationAttributeAttribute));
+            if (!configAttr)
+            {
+                continue;
+            }
+
+            if(methodSet.current() == 'parmType') // if there is a configuration attribute set up on the method parmType method. A way to detect if there is a parmType method on the class.
+            {
+                useType = true;
+            }
+
+            value = configAttr.parmDefaultValue();
+            if(value)
+            {
+                DC.callObject(methodSet.current(),this, value);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateDelta</Name>
+				<Source><![CDATA[
+	public void updateDelta()
+    {
+        TFMPageConfigParms::updateDeltaOnConfig(this, pageName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmName</Name>
+				<Source><![CDATA[
+    public str parmName(str _name = pageName)
+    {
+        pageName = _name;
+        return pageName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFilter</Name>
+				<Source><![CDATA[
+    public str parmFilter(str _filterName = filterName)
+    {
+        filterName = _filterName;
+        return filterName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConfigurationPageName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Example of a configurationPageName: 'TFMPageOrderLinesConfiguration'
+    /// </summary>
+    public str getConfigurationPageName()
+    {
+        return TFMRegistrationCollector::smallBeginnings(subStr(classId2Name(classIdGet(this)),strLen(classStr(TFMPage))+1,strLen(classId2Name(classIdGet(this)))));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public Map appendToXML(XmlElement _parent, TFMPage _page)
+    {
+        
+        str                 configurationPageName = this.GetConfigurationPageName();
+        XmlElement	        configNode = _parent.ownerDocument().createElement(configurationPageName);
+        
+        Map			        groups = this.populateXML(configNode, _parent);
+        XmlElement          header = groups.exists('header') ? groups.lookup('header') : (groups.exists('filter') ? groups.lookup('filter') : null);
+
+        if(type && useType) // e.g. order list page configurations does not have a type. //PB: check the type in a better way.
+        {
+            configNode.setAttribute('type',type);
+        }
+
+        if (header && filterName)
+        {
+            header.setAttribute('configurationKey',filterName);
+        }
+
+        this.populateXmlWithAdditionalProperties(configNode, _page);
+
+        _parent.appendChild(configNode);
+        
+        return groups;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>hasOfflineOptions</Name>
+				<Source><![CDATA[
+    public boolean hasOfflineOptions()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupDocumentTypes</Name>
+				<Source><![CDATA[
+    [TFMLookupMethodForEDT(ExtendedTypeStr(TFMDocumentTypeId))]
+    public void lookupDocumentTypes(FormStringControl _fsc)
+    {
+        TFMFormLookupHelper::lookupDocumentTypes(_fsc);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateXML</Name>
+				<Source><![CDATA[
+    protected Map populateXML(XmlElement _configNode, XmlElement _pageNode)
+    {
+        ClassId                                 thisClassId = classIdGet(this);
+        SetEnumerator							methodSet = TFMFormLookupHelper::parmMethodsOnClass(thisClassId).getEnumerator();
+        XmlElement								groupNode;
+        Map										groups = new Map(Types::String, Types::Class);
+        SysDictMethod							DM;
+        SysDictClass							DC = new SysDictClass(thisClassId);
+        TFMPageConfigurationAttributeAttribute	configAttr;
+        str										GroupKey;
+        str										value;
+        TFMPageMenuItems	                    menuItemsTable;
+        List                                    groupsList;
+        ListEnumerator                          groupsListEnumerator;
+        XmlElement                              groupElement;
+        XmlElement                              elm;
+        boolean                                 setupAsMenuItem;
+        str                                     splitGroupKey;
+        
+        while (methodSet.moveNext())
+        {
+            DM = new SysDictMethod(UtilElementType::ClassInstanceMethod,thisClassId,methodSet.current());
+            configAttr = DM.getAttribute(classStr(TFMPageConfigurationAttributeAttribute));
+            
+            if (!configAttr || configAttr.parmExcludeFromXmlOutput())
+            {
+                continue;
+            }
+            
+            if (dm.returnType() != Types::Enum && !(DM.returnId() && new SysDictType(DM.returnId()).enumId()))
+            {
+                value = strFmt('%1',DC.callObject(methodSet.current(),this));
+            }
+            else
+            {
+                value = TFMRegistrationCollector::formatString(DC.callObject(dm.name(),this),(dm.returnType() != Types::UserType ? dm.returnType() : new SysDictType(dm.returnId()).baseType()), dm.returnTypeName());
+            }
+            
+            if (extendedTypeId2Name(DM.returnId()) == extendedTypeId2name(ExtendedtypeNum(TFMLocalizedStringEDT)) && !strScan(value,'@{',1,strLen(value)))
+            {
+                value = TFMTranslationProvider::getTranslationIdFormmattedForDevice(value);
+            }
+
+            setupAsMenuItem = false;
+            if(configAttr.parmXPath())
+            {
+                select firstonly menuItemsTable where menuItemsTable.MenuPageId == configAttr.parmXPath() && menuItemsTable.PageId == this.parmName();
+                setupAsMenuItem = menuItemsTable.recId;
+            }
+
+            GroupKey = configAttr && configAttr.parmXPath() ? configAttr.parmXPath() : '';
+
+            groupsList = strSplit(TFMHelper::stripLastCharIfSlash(GroupKey), "/");
+            groupsListEnumerator = groupsList.getEnumerator();
+            groupElement = configAttr.parmXmlOutputOnPage() ? _pageNode : _configNode;
+            
+            while(groupsListEnumerator.moveNext())
+            {
+                splitGroupKey = groupsListEnumerator.current();
+                if (splitGroupKey && !groups.exists(splitGroupKey))
+                {
+                    groupNode = groupElement.ownerDocument().createElement(splitGroupKey);
+                    groupElement.appendChild(groupNode);
+                    groups.insert(splitGroupKey,groupNode);
+                }
+                groupNode = splitGroupKey ? groups.lookup(splitGroupKey) : groupElement;
+                    
+                groupElement = groupNode;
+            }
+
+            // if the xpath contains a / at the configuration will be added as a an element instead e.g. for submit on unplanned item registrations.
+            if(strEndsWith(GroupKey, "/"))
+            {
+                if(value)
+                {
+                    elm = groupElement.ownerDocument().createElement(TFMRegistrationCollector::smallBeginnings(configAttr.parmnodeName() ? configAttr.parmnodeName() : subStr(methodSet.current(),5,10000)));
+                    elm.innerText(value);
+                    groupElement.appendChild(elm);
+                }
+            }
+            else
+            {
+                // if the mob menu page items contains the group then add them to the groupNode (eg. on the typeBarcode add title etc.) -> it can be done here or found later on.
+                if(value)
+                {
+                    groupNode.setAttribute(TFMRegistrationCollector::smallBeginnings(configAttr.parmnodeName() ? configAttr.parmnodeName() : subStr(methodSet.current(),5,10000)),value);
+                }
+            }
+        }
+        return groups;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateXmlWithAdditionalProperties</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Populate the xml output with additional properties - that is non-parmMethods.
+    /// </summary>
+    protected void populateXmlWithAdditionalProperties(XmlElement _configNode, TFMPage _page)
+    {
+        List                additionalProperties;
+        str                 additionalPropertyGroupKey;
+        List                additionalPropertiesGroupKeySplits;
+        ListEnumerator      additionalPropertiesGroupKeySplitsEnum;
+        str                 additionalPropertyKey;
+        str                 additionalPropertyValue;
+        str                 groupSplitKey;
+        ListEnumerator      listEnum;
+        TFMPageConfigParms  mobPageConfigParms;
+        XmlElement	        additionalPropertyElement;
+        XmlElement	        elementInXpathPointer;
+
+        while select mobPageConfigParms where mobPageConfigParms.Name == _page.parmId()
+        {
+            // Add additional values to output
+            additionalProperties = strSplit(mobPageConfigParms.MethodName, '_');
+
+            if(additionalProperties.elements() == 2)
+            {
+                listEnum = additionalProperties.getEnumerator();
+
+                // find the place to add the attribute.
+                listEnum.moveNext();
+                additionalPropertyGroupKey = listEnum.current();
+                listEnum.moveNext();
+                additionalPropertyKey = listEnum.current();
+
+                if(additionalPropertyGroupKey == 'General')
+                {
+                    additionalPropertyElement = _configNode;
+                }
+                else
+                {
+                    // find or create until we are at the last part of the path e.g. offlineRegistraitonService/viewRegistration.
+                    additionalPropertiesGroupKeySplits = strSplit(additionalPropertyGroupKey, '/');
+                    additionalPropertiesGroupKeySplitsEnum = additionalPropertiesGroupKeySplits.getEnumerator();
+                    elementInXpathPointer = _configNode;
+                    if(additionalPropertiesGroupKeySplitsEnum)
+                    {
+                        while(additionalPropertiesGroupKeySplitsEnum.moveNext())
+                        {
+                            groupSplitKey = additionalPropertiesGroupKeySplitsEnum.current();
+                            additionalPropertyElement = elementInXpathPointer.getNamedElement(groupSplitKey);
+                            if(!additionalPropertyElement)
+                            {
+                                additionalPropertyElement = elementInXpathPointer.ownerDocument().createElement(groupSplitKey);
+                                elementInXpathPointer.appendChild(additionalPropertyElement);
+                            }
+                            elementInXpathPointer = additionalPropertyElement;
+                        }
+                    }
+
+                }
+                if(additionalPropertyElement.getAttribute(additionalPropertyKey))
+                {
+                    // the attribute is already there so continue to next additionalProperty.
+                    continue;
+                }
+
+                // append the attribute if not already there.
+                additionalPropertyValue = mobPageConfigParms.ValueString;
+
+                //set attribute
+                additionalPropertyElement.setAttribute(additionalPropertyKey, additionalPropertyValue);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

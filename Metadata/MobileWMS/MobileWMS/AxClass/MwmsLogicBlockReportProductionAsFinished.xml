@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockReportProductionAsFinished</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MwmsLogicBlockReportProductionAsFinished extends TFMLogicBlock implements TFMLogicBlockDataCollectionInterface, TFMLogicBlockPrePostDataCollectionInterface
+{
+    ProdJournalTable    prodJournalTable;
+    ProdTable           prodTable;
+    ProdRoute           prodRoute;
+    InventDim           inventDim;
+    ProdJournalProd     prodJournalProd;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getProdRoute</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(ProdRoute))]
+    public ProdRoute getProdRoute()
+    {
+        return prodRoute;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResultingProdJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(ProdJournalTable))]
+    public ProdJournalTable getResultingProdJournalTable()
+    {
+        return prodJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProdTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(ProdTable))]
+    public ProdTable getProdTable()
+    {
+        return prodTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProdJournalProd</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(ProdJournalProd))]
+    public ProdJournalProd getProdJournalProd()
+    {
+        return prodJournalProd;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventDim</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventDim))]
+    public InventDim getInventDim()
+    {
+        return inventDim;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>autoCreatedProcesses</Name>
+				<Source><![CDATA[
+    public Set autoCreatedProcesses()
+    {
+        Set ret = super();
+        TFMProcess process = TFMProcess::Construct('ReportAsFinished');
+        process.addBlock(this);
+        ret.add(process);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        str ret;
+
+        ret = resourceStr(TFMProduction);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        return "Report Production As Finished";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        TFMLogicComponentQuantity qtyComp = new TFMLogicComponentQuantity();
+        super();
+        qtyComp.parmAddScrapQty(true);
+        qtyComp.parmItemIdStringForConditions('ProdTable.ItemId');
+        components.addComponent(qtyComp);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method provides the header fields, that are needed to find out which data should be collected.
+    /// </summary>
+    /// <returns>A TFMReferenceDataConfiguration object, containing registration collectors for the header.</returns>
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        TFMRegistrationCollectorText textCol = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(ProdId));
+        refConf.addCollector(textCol);
+
+        return refConf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method gives you the registration collectors for this data collection block.
+    /// </summary>
+    /// <returns>A collection of registration collectors.</returns>
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        TFMRegistrationCollectors       cols = TFMInventDimHelper::enabledInventDimCollectors('',true, false, false, null, null, null, false,'ProdTable.ItemId');
+        TFMRegistrationCollectorDate    expDate = TFMRegistrationCollector::collectorFromField(tableNum(InventBatch), fieldNum(InventBatch,expDate));
+        TFMConditions                   conditions = TFMConditions::Construct();
+
+        cols.addCollector(expDate);
+
+        conditions.addCondition(TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldStr(InventDim, InventBatchid), 'ProdTable.ItemId'],'ExpDateActive'),methodStr(TFMRegistrationCollector,parmActive));
+        expDate.parmConditions(conditions);
+        cols.mergeCollectors(components.getCollectors());
+        
+        cols.removeCollector(fieldStr(InventDim, InventLocationId));
+        //Batch with condition: if ((!iTbl.BatchNumGroupId || (iTbl.BatchNumGroupId && InventNumGroup::find(iTbl.BatchNumGroupId).ManualAllocation)) && dimSetup.registerBatchID())
+        this.setConditionToManualAllocation(cols.getCollector(fieldStr(InventDim, InventSerialId)), fieldStr(InventDim, InventSerialId));
+        this.setConditionToManualAllocation(cols.getCollector(fieldStr(InventDim, InventBatchId)), fieldStr(InventDim, InventBatchId));
+        
+        //Serial with condition: if ((!iTbl.SerialNumGroupId || (iTbl.SerialNumGroupId && InventNumGroup::find(iTbl.SerialNumGroupId).ManualAllocation)) && dimSetup.registerSerialNumber())
+        
+        // Add the step to register if the job should be ended (reported as finished for the last time)
+        
+        cols.addCollector(TFMRegistrationCollectorList::ListStep(false,3,extendedTypeStr(ProdReportFinishProd),"@MCR39986", "@MCR39986",'',MobHelper::getEnumValues(enumNum(NoYes))));
+        
+        
+        return cols;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setConditionToManualAllocation</Name>
+				<Source><![CDATA[
+    protected void setConditionToManualAllocation(TFMRegistrationCollector _collector, str _fieldName)
+    {
+        TFMConditions conditions = TFMConditions::Construct();
+        TFMCondition conditionParent = TFMCondition::ConstructOperator(classStr(TFMLogicContextAndGate));
+        conditions.addCondition(conditionParent,methodStr(TFMRegistrationCollector,parmActive));
+        TFMCondition conditionChild = TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[_fieldName, 'ProdTable.ItemId'],'active');
+        conditions.addCondition(conditionChild,methodStr(TFMRegistrationCollector,parmActive));
+        conditions.addLink(conditionChild,conditionParent, methodStr(TFMRegistrationCollector,parmActive));
+        conditionChild = TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[_fieldName, 'ProdTable.ItemId'],'ManualAllocation');
+        conditions.addCondition(conditionChild,methodStr(TFMRegistrationCollector,parmActive));
+        conditions.addLink(conditionChild,conditionParent, methodStr(TFMRegistrationCollector,parmActive));
+        _collector.parmConditions(conditions);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method is called before the post method, and gives the option to add extra registration collectors for the user to be prompted for before the post method is executed.
+    /// </summary>
+    /// <returns>Returns a TFMRegistrationCollectors object if the user must be further prompted, otherwise it returns null</returns>
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        //Online Steps
+        TFMRegistrationCollectorList errorCause = TFMRegistrationCollectorList::ListStep(false,34,MobConstants::ErrorCause(),"@SYS13992","@SYS14862",'',MobHelper::getEnumValues(enumNum(ProdErrorCause)),true);
+        TFMRegistrationCollectors cols = TFMRegistrationCollectors::Construct();
+
+        TFMConditions conditions = TFMConditions::Construct();
+        TFMCondition conditionParent = TFMCondition::ConstructOperator(classStr(TFMLogicContextComparator));
+        conditions.addCondition(conditionParent,methodStr(TFMRegistrationCollector,parmActive));
+        TFMCondition conditionChild = TFMCondition::Construct(classStr(TFMLogicContextFieldValue),['{'+TFMConstants::ScrapQuantity()+'}'],'');
+        conditions.addCondition(conditionChild,methodStr(TFMRegistrationCollector,parmActive));
+        conditions.addLink(conditionChild,conditionParent, methodStr(TFMRegistrationCollector,parmActive));
+        conditionChild = TFMCondition::Construct(classStr(TFMLogicContextFieldValue),['0'],'');
+        conditions.addCondition(conditionChild,methodStr(TFMRegistrationCollector,parmActive));
+        conditions.addLink(conditionChild,conditionParent, methodStr(TFMRegistrationCollector,parmActive));
+        
+        TFMCondition conditionInvert = TFMCondition::ConstructOperator(classStr(TFMLogicContextInverterOperator));
+        conditions.addCondition(conditionInvert,methodStr(TFMRegistrationCollector,parmActive));
+        conditions.addLink(conditionParent, conditionInvert, methodStr(TFMRegistrationCollector,parmActive));
+        errorCause.parmConditions(conditions);
+
+
+        cols.addCollector(errorCause);
+
+        return cols;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method executed when all data has been collected, and contains the posting logic.
+    /// </summary>
+    /// <returns>A TFMPostResponseData object.</returns>
+    public TFMPostResponseData post()
+    {
+        ProdId                      prodId;
+        
+        str                         endJob;
+        ProdJournalTableData        prodTableData;
+        ProdJournalName             prodJournalName;
+        ProdJournalCheckPost        journalCheckPost;
+        str                         errorQty;
+        str                         errorCause;
+        int                         startLine;
+        int                         i;
+        str                         errorMessage;        
+        ProdErrorCause              prodErrorCause;
+        NoYes                       noYes;
+        ListEnumerator              lEnum;
+        boolean                     serialNumberActive;
+        str                         tmpSerial;
+        InventTable                 iTbl;
+        TFMInventDimSetup           dimSetup;
+        
+        // Get the production/job id from the XML
+        prodId      = request.getFieldValue(extendedTypeStr(ProdId));
+    
+        prodTable = ProdTable::find(prodId);
+        iTbl = InventTable::find(prodTable.ItemId);
+        dimSetup = TFMInventDimSetup::Construct(iTbl);
+        if (!prodTable && prodId)
+        {
+            prodRoute = ProdRoute::findJobId(prodId);
+            if (prodRoute)
+            {
+                prodId = prodRoute.ProdId;
+                prodTable = ProdTable::find(prodId);
+            }
+        }
+    
+        if (prodRoute)
+        {
+            // Fill job
+            return this.postReportAsFinished_Route(prodRoute);
+        }
+        endJob      = request.getFieldValue(extendedTypeStr(ProdReportFinishProd)) ? request.getFieldValue(extendedTypeStr(ProdReportFinishProd)) : 'No';
+        
+
+        // Get the journal name from the Mobile WMS parameters
+        prodJournalName = ProdJournalName::find(MobParameters::find().ProdJournalNameFinish);
+    
+        prodJournalTable.initValue();
+        prodJournalTable.JournalType        = prodJournalType::ReportFinished;
+    
+        prodTableData = JournalTableData::newTable(ProdJournalTable);
+        prodTableData.initFromJournalName(prodJournalName);
+    
+        prodJournalTable.NumOfLines         = 1;
+        prodJournalTable.Description        = "@MobileWMS:MEL36";
+    
+        prodJournalTable.ProdId             = prodId;
+        prodJournaltable.insert();
+        if ((!iTbl.SerialNumGroupId || (iTbl.SerialNumGroupId && InventNumGroup::find(iTbl.SerialNumGroupId).ManualAllocation)) && dimSetup.registerSerialNumber())
+        {
+            //1 - Multiple serials collected
+            lEnum  = strSplit(request.getFieldValue(fieldStr(InventDim,InventSerialId)),';').getEnumerator();
+            serialNumberActive = true;
+        }
+        else
+        {
+            lEnum = strSplit('dsfsfsd',';').getEnumerator(); // Ensure only one entry
+        }
+        i = 0;
+        while (lEnum.moveNext())
+        {
+            if ((!iTbl.SerialNumGroupId || (iTbl.SerialNumGroupId && InventNumGroup::find(iTbl.SerialNumGroupId).ManualAllocation)) && dimSetup.registerSerialNumber())
+            {
+                tmpSerial = lEnum.current();
+                request.getFieldMap().insert(fieldStr(InventDim,InventSerialId), subStr(tmpSerial,1,strLen(tmpSerial)-2));
+                request.getFieldMap().insert(MobConstants::Quantity(),'1');
+            }
+            prodJournalProd = this.makeJournalLine(prodJournalTable);
+            prodJournalProd.LineNum = i;
+            prodJournalProd.validateWrite();
+            prodJournalProd.insert();
+        }
+        prodJournalProd.selectForUpdate(true);
+        prodJournalProd.ProdFinished = str2enum(noYes,endJob);
+
+        errorQty = request.getFieldValue(TFMConstants::ScrapQuantity());
+        if (errorQty != '0')
+        {
+            prodJournalProd.QtyError = MobHelper::convertStr2Num(errorQty);
+            errorCause  = request.getFieldValue(MobConstants::ErrorCause());
+            prodJournalProd.ErrorCause = str2enum(prodErrorCause,errorCause);
+        }
+        
+        prodJournalProd.write();
+        
+        startLine        = Global::infologLine();
+        journalCheckPost = ProdJournalCheckPostProd::newJournalCheckPost(true,true,JournalCheckPostType::Post,prodJournalTable.TableId,prodJournalTable.JournalId);
+        
+        JournalCheckPost.runOperation();
+        
+        
+        if (ProdJournalTable::exist (prodJournalTable.JournalId) && ! ProdJournalTable::find(prodJournalTable.JournalId).Posted)
+        {
+            if(Global::infologLine() > startLine)
+            {
+                for (i = startLine+1; i<=infolog.num();i++)
+                {
+                    
+                    errorMessage += infolog.text(i);
+                }
+            }
+    
+            throw error(strfmt("@SYS74581","@SYS26712"));
+        }
+    
+        //return "@MobileWMS:MEL81";
+        return TFMPostResponseData::Construct();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeJournalLine</Name>
+				<Source><![CDATA[
+    protected ProdJournalProd makeJournalLine(ProdJournalTable _prodJournalTable)
+    {
+        InventBatch                 batchTbl;
+        ExpirationDate              expDate = dateNull();
+        str                         goodQty;
+        
+        // Get the registration values from the XML
+        goodQty     = request.getFieldValue(MobConstants::Quantity());
+        
+        
+        prodJournalProd.clear();
+        prodJournalProd.initValue();
+        prodJournalProd.initFromProdJournalTable(_prodJournalTable);
+        prodJournalProd.initFromProdTable(prodTable);
+        prodJournalProd.QtyGood = MobHelper::convertStr2Num(goodQty);
+        
+        inventDim = prodJournalProd.inventDim();
+        if (request.getFieldValue(fieldStr(InventDim,LicenseplateId)))
+        {
+            inventDim.LicensePlateId = request.getFieldValue(fieldStr(InventDim,LicenseplateId));
+            WHSLicensePlate::createLicensePlate(inventDim.LicensePlateId);
+        }
+        
+        if (request.getFieldValue(fieldStr(InventDim,InventBatchId)))
+        {
+            inventDim.InventBatchId = request.getFieldValue(fieldStr(InventDim,InventBatchId));
+            batchTbl = InventBatch::findOrCreate(inventDim.InventBatchId,prodJournalProd.ItemId, expDate,true);
+        }
+
+        if (batchTbl && request.getFieldValue(extendedTypeStr(InventBatchExpDate)))
+        {
+            expDate = TFMDocCustomFunctionFlow::ConvertToType(request.getFieldValue(extendedTypeStr(InventBatchExpDate)),Types::Date, extendedTypeStr(InventBatchExpDate));
+            
+            batchTbl.expDate = expDate == dateNull() ? batchTbl.expDate : expDate;
+            batchTbl.update(); // This makes scenarios where batch id is systemgenerated work with expiration date too
+        }
+        if (request.getFieldValue(fieldStr(InventDim,InventSerialId)))
+        {
+            inventDim.InventSerialId = request.getFieldValue(fieldStr(InventDim,InventSerialId));
+            InventSerial::findOrCreate(inventDim.InventSerialId,prodJournalProd.ItemId);
+        }
+        if (request.getFieldValue(fieldStr(inventDim, wMSLocationId)))
+        {
+            inventDim.wMSLocationId = request.getFieldValue(fieldStr(inventDim, wMSLocationId));
+        }
+        inventDim = InventDim::findOrCreate(inventDim);
+        prodJournalProd.InventDimId = inventDim.inventDimId;
+    
+        return prodJournalProd;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postReportAsFinished_Route</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to post Report as finished route cards.
+    /// </summary>
+    /// <param name = "_requestDataNode">The XML node containing the request XML.</param>
+    /// <param name = "_prodRoute">The ProdTable buffer to use when posting.</param>
+    /// <returns>Message whether the operation ended in success or error.</returns>
+    protected TFMPostResponseData postReportAsFinished_Route(ProdRoute _prodRoute)
+    {
+        str                 sGoodQty;
+        str                 sErrorQty;
+        str                 sErrorCause;
+        str                 sEndJob;
+        str                 sCreated;
+        ProdReportedError   qtyError;
+        ProdReportedGood    qtyGood;
+        NoYes               endJob;
+        ProdErrorCause      errorCause;
+        ProdJournalName     prodJournalName;
+        ProdJournalRoute    prodJournalRoute;
+        ProdJournalCheckPostRoute     prodJournalCheckPostRoute;
+        utcDateTime         created;
+    
+        // Get the registration values from the XML
+        sGoodQty        = request.getFieldValue(MobConstants::Quantity());
+        sErrorQty       = request.getFieldValue(TFMConstants::ScrapQuantity());
+        sErrorCause     = request.getFieldValue(MobConstants::ErrorCause());
+        sEndJob         = request.getFieldValue(MobConstants::EndJob());
+        sCreated        = request.getFieldValue(MobConstants::AttributeCreated());
+    
+        qtyError        = MobHelper::convertStr2Num(sErrorQty);
+        qtyGood         = MobHelper::convertStr2Num(sGoodQty);
+        errorCause      = str2enum(errorCause,sErrorCause);
+        endJob          = str2enum(endJob,sEndJob);
+        created         = MobHelper::convertStr2utcDateTime(sCreated);
+    
+        prodJournalTable.clear();
+        prodJournalTable.initValue();
+        prodJournalTable.JournalType        = ProdJournalType::RouteCard;
+        prodJournalTable.ProdId             = _prodRoute.ProdId;
+        prodJournalTable.JournalNameId      = ProdParametersDim::findDefault().RouteJournalNameId;
+        prodJournalName = ProdJournalName::find(prodJournalTable.JournalNameId);
+        prodJournalTable.Description        = prodJournalName.Description;
+        prodJournalTable.VoucherSeqRecId    = prodJournalName.VoucherSeqRecId;
+        prodJournalTable.VoucherDraw        = JournalVoucherDraw::Post;
+        prodJournalTable.NumOfLines         = 1;
+        prodJournalTable.insert();
+    
+        //Route card entry
+        prodJournalRoute.clear();
+        prodJournalRoute.JournalId          = prodJournalTable.journalId;
+        prodJournalRoute.ProdId             = _prodRoute.ProdId;
+        prodJournalRoute.initValue();
+        prodJournalRoute.TransDate          = DateTimeUtil::date( created );
+        prodJournalRoute.OprNum             = _prodRoute.OprNum;
+        prodJournalRoute.OprId              = _prodRoute.OprId;
+        prodJournalRoute.JobType            = RouteJobType::Process;
+
+        prodJournalRoute.JobFinished        = endJob;
+        prodJournalRoute.CategoryHoursId    = _prodRoute.ProcessCategoryId;
+        prodJournalRoute.CategoryQtyId      = _prodRoute.QtyCategoryId;
+        prodJournalRoute.DefaultDimension   = _prodRoute.DefaultDimension;
+        prodJournalRoute.Worker             = HcmWorker::userId2Worker(curUserId());
+        prodJournalRoute.WrkCtrId           = _prodRoute.WrkCtrIdCost;  //!!
+        if (!prodJournalRoute.WrkCtrId)
+        {
+            prodJournalRoute.WrkCtrId = _prodRoute.activityRequirementSet().firstApplicableResource().WrkCtrId;
+        }
+        prodJournalRoute.QtyGood            = qtyGood;
+        if (qtyError)
+        {
+            prodJournalRoute.QtyError       = qtyError;
+            prodJournalRoute.ErrorCause     = errorCause;
+        }
+        /**
+        // By default : hours used is not a part of Mobile WMS
+        prodJournalRoute.Hours              = 1;
+        **/
+        prodJournalRoute.insert();
+    
+        ProdJournalCheckPostRoute = ProdJournalCheckPostRoute::newPostJournal(prodJournalRoute.journalId,false);
+        
+        ProdJournalCheckPostRoute.runOperation();
+        
+    
+        return TFMPostResponseData::Construct();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

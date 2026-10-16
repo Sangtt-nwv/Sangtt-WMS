@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_PlannedMove</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableNameAttribute(tableStr(InventJournalTrans), 'Transfer')]
+class MobXMLFormatOrderLines_PlannedMove extends MobXMLFormatOrderLines_Pick
+{
+    InventJournalTrans      inventJournalTrans;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        super();
+    
+        inventJournalTrans  = common;
+        inventDim			= inventJournalTrans.inventDim();
+    
+        this.setInventDim(inventJournalTrans.ItemId);
+  
+        
+        orderBackendId          = MobOrder::constructFromTableName(tableStr(InventJournalTable),orderType).getBackendID(InventJournalTable::find(InventJournalTrans.JournalId));//#PickWMSPickRouteOrderPrefix + orderTrans.routeId;
+        lineNumber              = int642str(inventJournalTrans.RecId);
+        itemNumber              = inventJournalTrans.ItemId;
+        description             = InventTable::find(inventJournalTrans.itemId).productName(new xInfo().language());
+        unitOfMeasure           = InventTableModule::find(inventJournalTrans.itemId,ModuleInventPurchSales::Invent).UnitId;
+        
+        quantity                = MobHelper::formatItemQty(inventJournalTrans.qty,unitOfMeasure);
+        registeredQuantity      = MobConstants::NotUsed0();
+        status                  = MobConstants::NotUsed0();
+        displayLine1            = inventJournalTrans.ItemId;
+        displayLine2            = InventTable::find(inventJournalTrans.itemId).productName(new xInfo().language());
+        //displayLine3            = "@SYS4083" +': ' + InventDim.InventLocationId + ', ' + inventDim.wMSLocationId;
+        //displayLine4            = "@SYS53942" +': ' + inventJournalTrans.toInventDim().InventLocationId + ', ' +  inventJournalTrans.toInventDim().wMSLocationId;
+        fieldsToAdd.insert('dimensionValuesStorage',  InventDim.InventLocationId  + MobConstants::lineBreak() + inventDim.wMSLocationId + MobConstants::lineBreak() + inventJournalTrans.toInventDim().InventLocationId + MobConstants::lineBreak() + inventJournalTrans.toInventDim().wMSLocationId);
+        fieldsToAdd.insert('dimensionLabelsStorage',  "@SYS313458" + MobConstants::lineBreak() + "@SYS313459" + MobConstants::lineBreak() +"@SYS313460" + MobConstants::lineBreak() + "@SYS313461");
+        underDeliveryValidation = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),TFMUnderDeliveryValidation::None);// : TFMUnderDeliveryValidation::Block ) : TFMUnderDeliveryValidation::Block); //Must be able to handle partial receipt
+        overDeliveryValidation  = MobHelper::enumName(enumnum(TFMOverDeliveryValidation),TFMOverDeliveryValidation::Warn);//MobHelper::enumName(enumnum(TFMOverDeliveryValidation),SalesParameters::find().OverDelivery ? (SalesLine::findInventTransId(orderTrans.inventTransId).overDeliveryPct > 0 ?  TFMOverDeliveryValidation::None : TFMOverDeliveryValidation::Block ) : TFMOverDeliveryValidation::Block); //Must be able to handle partial receipt
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

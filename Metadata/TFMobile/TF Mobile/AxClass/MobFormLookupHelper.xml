@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobFormLookupHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class containg Lookup helper methods.
+/// </summary>
+class MobFormLookupHelper
+{
+    #mob
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>lookupClassesExtendingCertainClass</Name>
+				<Source><![CDATA[
+    public static void lookupClassesExtendingCertainClass(FormControl _callingControl, ClassName _className, str _descriptionColumnHeaderText = '')
+    {
+        TFMFormLookupHelper::lookupClassesExtendingCertainClass(_callingControl, _className, _descriptionColumnHeaderText);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupClasses</Name>
+				<Source><![CDATA[
+    public static void lookupClasses(FormControl _callingControl)
+    {
+        TFMFormLookupHelper::lookupClasses(_callingControl);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupXMLFormatClassOrderTypes</Name>
+				<Source><![CDATA[
+    public static void lookupXMLFormatClassOrderTypes(FormControl _callingControl, int _overrideCls)
+    {
+        TFMFormLookupHelper::lookupXMLFormatClassOrderTypes(_callingControl, _overrideCls);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupEDTNames</Name>
+				<Source><![CDATA[
+    public static void lookupEDTNames(FormControl _callingControl, FormRun _element)
+    {
+        TFMFormLookupHelper::lookupEDTNames(_callingControl, _element);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCertainPageTypes</Name>
+				<Source><![CDATA[
+    public static Map getCertainPageTypes(ClassName _pageTypeDelimitation, MobWorkflowName _workflowDelimitation = '')
+    {
+        return TFMFormLookupHelper::getCertainPageTypes(_pageTypeDelimitation, _workflowDelimitation);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupPageNames</Name>
+				<Source><![CDATA[
+    public static void lookupPageNames(FormControl _callingControl, FormRun _element, className _pageTypeDelimitation = '', MobWorkflowName _workflowDelimitation = '')
+    {
+        TFMFormLookupHelper::lookupPageNames(_callingControl, _element, _pageTypeDelimitation);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupOfflinePageNames</Name>
+				<Source><![CDATA[
+    public static void lookupOfflinePageNames(FormControl _callingControl, FormRun _element, TFMPages _pages)
+    {
+        TFMFormLookupHelper::lookupOfflinePageNames(_callingControl, _element, _pages);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupCertainDocumentTypes</Name>
+				<Source><![CDATA[
+    public static void lookupCertainDocumentTypes(FormControl _callingControl, FormRun _element, className _typeDelimitation = '')
+    {
+        TFMFormLookupHelper::lookupCertainDocumentTypes(_callingControl, _element, _typeDelimitation);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupSubClasses</Name>
+				<Source><![CDATA[
+    public static void lookupSubClasses(FormControl _callingControl,classId _classId)
+    {
+        TFMFormLookupHelper::lookupSubClasses(_callingControl, _classId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupPageTypes</Name>
+				<Source><![CDATA[
+    public static void lookupPageTypes(FormControl _callingControl)
+    {
+        TFMFormLookupHelper::lookupPageTypes(_callingControl);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConfigurableFilters</Name>
+				<Source><![CDATA[
+    public static Map getConfigurableFilters(str _filterDelimitation = '')
+    {
+        return TFMFormLookupHelper::getConfigurableFilters(_filterDelimitation);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConfigurableFilterFields</Name>
+				<Source><![CDATA[
+    public static Map getConfigurableFilterFields(str _methodName)
+    {
+        return TFMFormLookupHelper::getConfigurableFilterFields(_methodName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupFilters</Name>
+				<Source><![CDATA[
+    public static void lookupFilters(FormControl _callingControl)
+    {
+        TFMFormLookupHelper::lookupFilters(_callingControl);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupDatasetFields</Name>
+				<Source><![CDATA[
+    public static void lookupDatasetFields(FormControl _callingControl, MobListId _listId, boolean _addBrackets, TFMPageDatasources _datasources)
+    {
+        TFMFormLookupHelper::lookupDatasetFields(_callingControl, _listId, _addBrackets, _datasources);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupOrderClasses</Name>
+				<Source><![CDATA[
+    public static void lookupOrderClasses(FormControl _callingControl)
+    {
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TFMDocumentTmpHandlerLookup), _callingControl);
+        classId                         classId;
+        SysDictClass                    DC;
+        TFMPostMethodAttribute          attr;
+        TFMDocumentTypeAttribute        docTypeAttr;
+        Array                           array, arr2;
+        int                             i, j, k;
+        DictMethod                      DM;
+        List                            attributeClasses = new SysDictClass(classnum(MobOrder)).extendedBy();
+        ListEnumerator                  lEnum = attributeClasses.getEnumerator();
+        TFMDocumentTmpHandlerLookup     tmpLookup;
+        Set                             addedClasses = new Set(Types::String);
+        str                             clsPlusMethod;
+              
+        sysTableLookup.addLookupfield(fieldNum(TFMDocumentTmpHandlerLookup,className),true);
+        sysTableLookup.addLookupfield(fieldNum(TFMDocumentTmpHandlerLookup,Description));
+
+        tmpLookup.setTmp();
+
+        while (lEnum.moveNext())
+        {
+            classId = lEnum.current();
+            
+            tmpLookup.Description = TFMDisplayLineOverride::classId2Attribute(classId);
+            if (!tmpLookup.Description)
+            {
+                continue;
+            }
+            tmpLookup.ClassName = classId2Name(classId);
+            tmpLookup.insert();
+        }
+
+        classId = classnum(TFMDocumentHandler);
+        lEnum = new SysDictClass(classId).extendedBy().getEnumerator();
+        
+        while (lEnum.moveNext())
+        {
+            classId = lEnum.current();
+            DC = new SysDictClass(classId);
+            for (i = 1; i <= DC.objectMethodCnt(); i++)
+            {
+                DM = DC.objectMethodObject(i);
+                array = DM.getAttributes(classStr(TFMPostMethodAttribute));
+                if (array != null)
+                {
+                    for (j = 1; j <= array.lastIndex(); j++)
+                    {
+                        clsPlusMethod = DC.name() + '.' + DM.name();
+                        if (addedClasses.in(DC.name() + '.' + DM.name()))
+                        {
+                            continue;
+                        }
+                        attr = array.value(j);
+                        arr2 = DM.getAttributes(classStr(TFMDocumentTypeAttribute));
+                        for (k = 1; k <= arr2.lastIndex(); k++)
+                        {
+                            docTypeAttr = arr2.value(k);
+                            
+                            if (TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classId,new TFMCollectorMapAttribute(subStr(classStr(TFMLookup),4,100),docTypeAttr.parmContentType())) ||
+                                TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classId,new TFMCollectorMapAttribute(subStr(classStr(TFMGetRegistrationConfiguration),4,100),docTypeAttr.parmContentType())) ||
+                                TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classId,new TFMCollectorMapAttribute(docTypeAttr.parmDocumentType(),docTypeAttr.parmContentType())))
+                            {
+                                tmpLookup.Description = 'PostMethod Class';
+                                tmpLookup.ClassName  = DC.name() + '.' + DM.name();
+                                tmpLookup.insert();
+                                addedClasses.add(DC.name() + '.' + DM.name());
+                            }
+                        }
+                        arr2 = DC.getAttributes(classStr(TFMDocumentTypeAttribute));
+                        for (k = 1; k <= arr2.lastIndex(); k++)
+                        {
+                            docTypeAttr = arr2.value(k);
+                            
+                            if (strScan(classStr(TFMPostAdhocRegistration),docTypeAttr.parmDocumentType(),1,150) && docTypeAttr.getMethodName() == DM.name())
+                            {
+                                tmpLookup.Description = 'PostMethod Class';
+                                tmpLookup.ClassName  = DC.name() + '.' + DM.name();
+                                tmpLookup.insert();
+                                addedClasses.add(DC.name() + '.' + DM.name());
+                            }
+                        }
+                    }
+                }
+                
+                
+            }
+
+
+            
+        }
+
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupEDTfields</Name>
+				<Source><![CDATA[
+    public static void lookupEDTfields(FormControl _callingControl)
+    {
+        TFMFormLookupHelper::lookupEDTfields(_callingControl);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupDataSetMethods</Name>
+				<Source><![CDATA[
+    public static void lookupDataSetMethods(ClassId _classOverrideID, FormControl _callingControl)
+    {
+        MobFormLookupHelper::lookupAttributeMethods(_classOverrideID,_callingControl,classStr(TFMOrderPostDataSetAttribute));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupDataSetsForPostMethod</Name>
+				<Source><![CDATA[
+    public static void lookupDataSetsForPostMethod(ClassId _classOverrideID, MethodName _methodName, FormControl _callingControl)
+    {
+        TFMFormLookupHelper::lookupDataSetsForPostMethod(_classOverrideID, _methodName, _callingControl);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupPostMethods</Name>
+				<Source><![CDATA[
+    public static void lookupPostMethods(ClassId _classOverrideID, FormControl _callingControl)
+    {
+        MobFormLookupHelper::lookupAttributeMethods(_classOverrideID,_callingControl,classStr(TFMPostMethodAttribute));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupAttributeMethods</Name>
+				<Source><![CDATA[
+    public static void lookupAttributeMethods(ClassId _classOverrideID, FormControl _callingControl, className _attributeClassName)
+    {
+        TFMFormLookupHelper::lookupAttributeMethods(_classOverrideID, _callingControl, _attributeClassName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMethodsFromAttribute</Name>
+				<Source><![CDATA[
+    public static Map getMethodsFromAttribute(ClassId _classOverrideID, ClassName _attributeClassName, boolean _returnDictMethod = false)
+    {
+        return TFMFormLookupHelper::getMethodsFromAttribute(_classOverrideID, _attributeClassName, _returnDictMethod);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTableFieldNames</Name>
+				<Source><![CDATA[
+    public static void lookupTableFieldNames(TableName _tableName, FormControl _callingControl, boolean _appendToTableName = false, boolean _addDisplayMethods = false)
+    {
+        TFMFormLookupHelper::lookupTableFieldNames(_tableName, _callingControl, _appendToTableName, _addDisplayMethods);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTableFieldNamesWithEDT</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Looks up table field names that has an EDT attach to it.
+    /// </summary>
+    /// <param name = "_tableName"></param>
+    /// <param name = "_callingControl"></param>
+    public static void lookupTableFieldNamesWithEDT(TableName _tableName, FormControl _callingControl)
+    {
+        TFMFormLookupHelper::lookupTableFieldNamesWithEDT(_tableName, _callingControl);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTableMethodNames</Name>
+				<Source><![CDATA[
+    public static void lookupTableMethodNames(TableName _tableName, FormControl _callingControl)
+    {
+        TFMFormLookupHelper::lookupTableMethodNames(_tableName, _callingControl);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>displayMethodsOnTable</Name>
+				<Source><![CDATA[
+    public static Set displayMethodsOnTable(TableName _tableName)
+    {
+        return TFMFormLookupHelper::displayMethodsOnTable(_tableName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMethodsOnClass</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns a set with the parm methods on a given class. It can return a set of either method names as a string (which is the standard), or a set with SysDictMethod instances of each method.
+    /// </summary>
+    /// <param name = "_className">Name of the class to find parm methods for.</param>
+    /// <param name = "_onlyStrings">Set to true, if it should only return parm methods that returns string types.</param>
+    /// <param name = "_returnType">Set to either Types::String (default) or types::Class to get method names as a string (which is the standard), or a set with SysDictMethod instances of each method in the returnd set</param>
+    /// <returns>A set of parm methods on the class.</returns>
+    public static Set parmMethodsOnClass(ClassId _classId, boolean _onlyStrings = false, Types _returnType = Types::String)
+    {
+        return TFMFormLookupHelper::parmMethodsOnClass(_classId, _onlyStrings, _returnType);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IsDefinedAsPageActionAttribute</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns the MobPageActionAttribute
+    /// </summary>
+    /// <param name = "methodName"></param>
+    /// <param name = "configuration"></param>
+    /// <returns></returns>
+    public static TFMPageActionAttribute IsDefinedAsPageActionAttribute(str _xPath, TFMPageConfiguration _configuration)
+    {
+        return TFMFormLookupHelper::IsDefinedAsPageActionAttribute(_xPath, _configuration);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupParmMethods</Name>
+				<Source><![CDATA[
+    public static void lookupParmMethods(ClassId _classId, FormControl _callingControl, boolean _removeParmFromName = false)
+    {
+        TFMFormLookupHelper::lookupParmMethods(_classId, _callingControl, _removeParmFromName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeParmFromName</Name>
+				<Source><![CDATA[
+    public static str removeParmFromName(str _name)
+    {
+        return TFMFormLookupHelper::removeParmFromName(_name);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupPageFields</Name>
+				<Source><![CDATA[
+    public static void lookupPageFields(MobPageId _pageId, FormControl _callingControl)
+    {
+        TFMFormLookupHelper::lookupPageFields(_pageId, _callingControl);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupTableNames</Name>
+				<Source><![CDATA[
+    public static void lookupTableNames(FormControl _callingControl, TableName _suggestedTableName = '')
+    {
+        TFMFormLookupHelper::lookupTableNames(_callingControl, _suggestedTableName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupAllClassNames</Name>
+				<Source><![CDATA[
+    public static void lookupAllClassNames(FormControl _callingControl)
+    {
+        TFMFormLookupHelper::lookupAllClassNames(_callingControl);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupClassStaticMethodNames</Name>
+				<Source><![CDATA[
+    public static void lookupClassStaticMethodNames(ClassName _className, FormControl _callingControl)
+    {
+        TFMFormLookupHelper::lookupClassStaticMethodNames(_className, _callingControl);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupAssignedWarehouses</Name>
+				<Source><![CDATA[
+    public static void lookupAssignedWarehouses(FormControl _callingControl, UserGroupId _userGroupId)
+    {
+        SysTableLookup      sysTableLookup  = SysTableLookup::newParameters(tablenum(MobInventLocationsGroupRights), _callingControl);
+        Query query = new Query();
+        QueryBuildDataSource qbds;
+        qbds= query.addDataSource(tableNum(MobInventLocationsGroupRights));
+        qbds.addRange(fieldNum(MobInventLocationsGroupRights,UserGroupId)).value(_userGroupId);
+        sysTableLookup.parmQuery(query);
+
+        sysTableLookup.addLookupfield(fieldNum(MobInventLocationsGroupRights,InventLocationID),true);
+        sysTableLookup.performFormLookup();
+    }
+
+
+    //public static void lookupERPLabelIDs(FormControl _callingControl)
+    //{
+    //    TFMFormLookupHelper::
+    //}
+
+    //public static void lookupTranslations(FormControl _callingControl)
+    //{
+    //    TFMFormLookupHelper::
+    //}
+
+    ///// <summary>
+    ///// Checks if the labelFileId is an old style. Meaning it begins with @. The new format does not start with @ but only has text e.g 'TheLabel' but then the LabelFile is added to it. e.g. @MobileWMS:TheLabel.
+    ///// </summary>
+    ///// <param name = "_labelFileId"></param>
+    ///// <returns>True, if using the old style</returns>
+    //public static boolean isAOldStyleLabelFile(str _labelFileId)
+    //{
+    //    TFMFormLookupHelper::
+    //}
+
+    ///// <summary>
+    ///// Gets the device labels/translations from the Mobile WMS String Resources
+    ///// </summary>
+    ///// <param name = "_callingControl"></param>
+    //public static void lookupLabelIDs(FormControl _callingControl, boolean _showTranslatedLabel = SystemParameters::getSystemLanguageId() != new xInfo().language())
+    //{
+
+    //}
+
+    //public static container createLabelFileLabelIdTranslationTableAsync(container _callerParms)
+    //{
+    //}
+
+    ///// <summary>
+    ///// Creates the label file values for the lookup in the database.
+    ///// </summary>
+    ///// <returns>The MobTranslationLabbelIDLookupTable</returns>
+    //public static void createLabelFileLabelIdTranslationTable(str _labelFiles, boolean runAsync = true, boolean waitForCompletion =  false)
+    //{
+    //}
+
+    //protected static void createLabelIDTranslationLookupForLabelFileAsync(container _conLabelFileName)
+    //{
+    //}
+
+    //public static Map AllMenus()
+    //{
+
+    //}
+
+    //public static void lookupMenuIDs(FormControl _callingControl)
+    //{
+    //    TFMFormLookupHelper::lookupMenuIDs(_callingControl);
+    //}
+
+    //public static void lookupListIDs(FormControl _callingControl)
+    //{
+    //}
+
+    //public static void lookupServiceIDs(FormControl _callingControl)
+    //{
+
+    //}
+
+    //public static void lookupDeviceIconIDs(FormControl _callingControl)
+    //{
+    //}
+
+    //public static Set getDeviceIcons(str _configFile)
+    //{
+    //}
+
+    //public static void lookupDocumentTypes(FormControl _callingControl)
+    //{
+    //}
+
+    //public static void lookupAssignedWarehouses(FormControl _callingControl, UserGroupId _userGroupId)
+    //{
+    //}
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

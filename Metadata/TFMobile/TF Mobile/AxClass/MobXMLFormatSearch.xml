@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatSearch</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobXMLFormatSearch extends TFMXmlFormat
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _parentNode)
+    {
+        recordLineTag = MobConstants::SearchResult();
+        super(_parentNode);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmImageId</Name>
+				<Source><![CDATA[
+    public str parmImageId ( str _imageId = imageID)
+    {
+        imageID = _imageId;        
+        return imageID;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setXML</Name>
+				<Source><![CDATA[
+    protected void setXML()
+    {
+        XmlElement      destination = resultXml.getElementsByTagName('responseData').item(0);
+        
+        this.appendToXML(destination);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertFieldsToMap</Name>
+				<Source><![CDATA[
+    public void convertFieldsToMap()
+    {
+        
+        fieldsToAdd.insert('imageId', fieldsToAdd.exists('imageId') ? fieldsToAdd.lookup('imageId') : imageId);
+        
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromCommon</Name>
+				<Source><![CDATA[
+    public void initFromCommon(XmlDocument _resultXml, Common _common, int _sorting, MobOrderTypes _orderType = '', MobPageID _pageId = '')
+    {
+        Container            fields = TFMXMLFormat::fieldsFromCommon(_common).pack();
+        super(_resultXml, _common, _sorting, _orderType, _pageId);
+        displayLine1    = (conLen(fields) > 3 ? conPeek(fields,4) : '') + ' : ' + (conLen(fields) > 4 ? conPeek(fields,5) : '');
+        displayLine2    = (conLen(fields) > 5 ? conPeek(fields,6) : '') + ' : ' + (conLen(fields) > 6 ? conPeek(fields,7) : '');
+        displayLine3    = (conLen(fields) > 7 ? conPeek(fields,8) : '') + ' : ' + (conLen(fields) > 8 ? conPeek(fields,9) : '');
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

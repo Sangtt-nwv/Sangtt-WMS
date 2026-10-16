@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMUnitOfMeasureContextContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContract]
+class TFMUnitOfMeasureContextContract
+{
+    str         listOfUnitOfMeasure;
+    UnitIDBase  unitId;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmListOfUnitOfMeasure</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('ListOfUnitsOfMeasure')]
+    public str parmListOfUnitOfMeasure(str _listOfUnitOfMeasure = listOfUnitOfMeasure)
+    {
+        listOfUnitOfMeasure = _listOfUnitOfMeasure;
+        return listOfUnitOfMeasure;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDefaultUnitId</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('DefaultUnitID')]
+    public str parmDefaultUnitId(str _unitId = unitId)
+    {
+        unitId = _unitId;
+        return unitId;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

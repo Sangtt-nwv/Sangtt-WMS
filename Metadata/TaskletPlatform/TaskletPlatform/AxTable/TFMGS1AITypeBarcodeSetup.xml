@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMGS1AITypeBarcodeSetup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMGS1AITypeBarcodeSetup extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>enabled</Name>
+				<Source><![CDATA[
+    public static boolean enabled(TFMPageID _page, Name _AIName, int _AI)
+    {
+        TFMGS1AITypeBarcodeSetup    typeBarcodeValue;
+        TFMGS1AISetup               setup;
+
+        select firstonly RecId from setup where setup.Name == _AIName && setup.GS1AI == _AI;
+        if (!setup.RecId)
+        {
+            return false;
+        }
+        select firstonly typeBarcodeValue where typeBarcodeValue.PageID == _page && typeBarcodeValue.TFMGS1AITableRef == setup.RecId;
+        return typeBarcodeValue.Enabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setEnabled</Name>
+				<Source><![CDATA[
+    public static void setEnabled(TFMPageID _page, Name _AIName, int _AI, NoYes _value)
+    {
+        TFMGS1AITypeBarcodeSetup    typeBarcodeValue;
+        TFMGS1AISetup               setup;
+
+        select firstonly RecId from setup where setup.Name == _AIName && setup.GS1AI == _AI;
+        if (!setup.RecId)
+        {
+            return;
+        }
+        ttsbegin;   
+        select firstonly forupdate typeBarcodeValue where typeBarcodeValue.PageID == _page && typeBarcodeValue.TFMGS1AITableRef == setup.RecId;
+
+        typeBarcodeValue.PageID = _page;
+        typeBarcodeValue.TFMGS1AITableRef = setup.RecId;
+        typeBarcodeValue.Enabled = _value;
+        typeBarcodeValue.write();
+
+        ttscommit;
+        
+        TFMPagesProvider::updateVersion();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyOutput</Name>
+				<Source><![CDATA[
+    public static void modifyOutput(XmlElement _typeBarcodeElement, TFMPageID _pageId)
+    {
+        XmlElement  qualifiers = _typeBarcodeElement.ownerDocument().createElement('qualifiers');
+        XmlElement  qualifier;
+        TFMGS1AITypeBarcodeSetup pageAISetup;
+        TFMGS1AISetup           AISetup;
+
+        while select pageAISetup where pageAISetup.PageID == _pageId
+            join AISetup where AISetup.RecId == pageAISetup.TFMGS1AITableRef
+        {
+            qualifier = _typeBarcodeElement.ownerDocument().createElement('qualifier');
+            qualifier.setAttribute('ai',strRFix(int2Str(AISetup.GS1AI), 2, '0'));
+            qualifier.setAttribute('displayValue', AISetup.Name + ' ('+strRFix(int2Str(AISetup.GS1AI), 2, '0')+')');
+            qualifiers.appendChild(qualifier);
+        }
+        if (qualifier != null)
+        {
+            //qualifier added, add qualifiers node
+            _typeBarcodeElement.appendChild(qualifiers);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@TFM:GS1AITypeBarcodeSetup</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<AllowRowVersionChangeTracking>No</AllowRowVersionChangeTracking>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>TFMGS1AITableRef</Name>
+			<ExtendedDataType>RefRecID</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Enabled</Name>
+			<Label>@SYS60755</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>PageID</Name>
+			<ExtendedDataType>TFMPageID</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@TFM:PageID</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

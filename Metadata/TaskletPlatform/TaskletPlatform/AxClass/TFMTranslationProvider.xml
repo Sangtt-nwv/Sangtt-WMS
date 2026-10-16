@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMTranslationProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMTranslationProvider extends TFMCachedProvider
+{
+    protected static Map idToTFDeviceLabelID;
+
+    private Map languageTranslations; // language key, Map of key values for the language.
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>instance</Name>
+				<Source><![CDATA[
+    public static TFMTranslationProvider instance()
+    {
+        TFMTranslationProvider provider;
+        provider = TFMCachedProvider::getProviderInstance(classStr(TFMTranslationProvider));
+        return provider;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resetProvider</Name>
+				<Source><![CDATA[
+    public static void resetProvider()
+    {
+        TFMPagesProvider::updateVersion();
+        TFMTranslationProvider::instance().invalidateProvider();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEntity</Name>
+				<Source><![CDATA[
+    public anytype getEntity()
+    {
+        return languageTranslations;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setEntity</Name>
+				<Source><![CDATA[
+    public void setEntity(anytype _entity)
+    {
+        this.languageTranslations = _entity;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructEntityImpl</Name>
+				<Source><![CDATA[
+    public anytype constructEntityImpl()
+    {
+        languageTranslations = new Map(Types::String, Types::Class);
+        return languageTranslations;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>version</Name>
+				<Source><![CDATA[
+    public str version()
+    {
+        TFMTranslations            translationsForVersion;
+        TFMTranslationLines        translationLinesForVersion;
+        TFMTranslationProvider     provider = TFMTranslationProvider::instance();
+
+        select firstonly translationsForVersion order by ModifiedDateTime desc;
+        select firstonly translationLinesForVersion order by ModifiedDateTime desc;
+        return strFmt('T%1.TL%2', this.formatDateForVersion(translationsForVersion.ModifiedDateTime), this.formatDateForVersion(translationLinesForVersion.ModifiedDateTime));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTranslation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_labelId"></param>
+    /// <param name = "outputTranslatedValue"></param>
+    /// <returns></returns>
+    public static str getTranslation(LabelId _labelId)
+    {
+        return TFMTranslationProvider::getTranslationIdFormmattedForDevice(_labelId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>translateStrings</Name>
+				<Source><![CDATA[
+    public static str translateStrings(str _labelId, LanguageId _languageId  = currentUserLanguage())
+    {
+        return TFMTranslations::GetTranslatedValue(_labelId, _languageId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTranslatedTranslation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the translated translation in the provided language.
+    /// </summary>
+    /// <param name = "_labelId">The TFMTranslations id</param>
+    /// <param name = "_languageId">The language to use. Defaults to the currentUserLanguage.</param>
+    /// <returns></returns>
+    public static str getTranslatedTranslation(str _labelId, LanguageId _languageId = currentUserLanguage())
+    {
+        return TFMTranslations::GetTranslatedValue(_labelId, _languageId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTranslationIdFormmattedForDevice</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// If the _labelId is in the list translated list then it
+    /// returns the translated label id in a format so that the device will look in the translation table on the device.
+    ///
+    /// That is: @{THE_ID_OF_THE_LABEL}
+    /// </summary>
+    /// <param name = "_labelId">The id of the translation</param>
+    /// <returns>The formatted string if it is found else it returns the _labelId</returns>
+    public static str getTranslationIdFormmattedForDevice(str _labelId)
+    {
+        Map translations = TFMTranslationProvider::getAllTranslationsForCurrentUserLanguage();
+        if(_labelId && translations.exists(_labelId))
+        {
+            return TFMTranslationProvider::decorateTranslationId(_labelId);
+        }
+        return _labelId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>replaceAllTranslations</Name>
+				<Source><![CDATA[
+    public static str replaceAllTranslations(str _inputString)
+    {
+        System.Text.RegularExpressions.Match myMatch;
+        System.String sysStrLabelId;
+        System.String sysStrLabelIdContent;
+        System.String sysInputString =_inputString;
+        str strOut;
+        str regex;
+        regex = '@{([^}]+)}';
+
+        Map translations = TFMTranslationProvider::getAllTranslationsForCurrentUserLanguage();
+    
+        myMatch = System.Text.RegularExpressions.Regex::Match(_inputString, regex);
+   
+        while (myMatch.get_Success())
+        {
+            sysStrLabelId = myMatch.get_Value();
+            sysStrLabelIdContent = myMatch.get_Groups().get_Item(1).get_Value();
+
+            if(translations.exists(sysStrLabelIdContent))
+            {
+                sysInputString = sysInputString.Replace(sysStrLabelId, translations.lookup(sysStrLabelIdContent));
+            }
+            else
+            {
+                //The TFDevice labels are special translations since they are on the device. To show them in the client we substitute them here.
+                str labelValue = TFMTranslationProvider::getTFDeviceLabelValue(sysStrLabelId, null);
+                sysInputString = sysInputString.Replace(sysStrLabelId, labelValue ? labelValue : sysStrLabelIdContent);
+            }
+            myMatch = myMatch.NextMatch();
+        }
+
+        regex = '(@\\w+:\\w+)';
+        myMatch = System.Text.RegularExpressions.Regex::Match(sysInputString, regex);
+
+        while (myMatch.get_Success())
+        {
+            sysStrLabelId = myMatch.get_Value();
+            sysInputString = sysInputString.Replace(sysStrLabelId, translations.exists(sysStrLabelIdContent) ? translations.lookup(sysStrLabelIdContent) : '');
+            myMatch = myMatch.NextMatch();
+        }
+        return sysInputString;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>decorateTranslationId</Name>
+				<Source><![CDATA[
+    public static str decorateTranslationId(str _input)
+    {
+        return strFmt('@{%1}', _input);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllTranslationsForCurrentUserLanguage</Name>
+				<Source><![CDATA[
+    public static Map getAllTranslationsForCurrentUserLanguage()
+    {
+        TFMTranslations     translations;
+        Map                 translationMap;
+        Map                 docTranslationMap;
+        MapEnumerator       mEnum;
+        TFMMenuGroups		groups;
+
+        Map languageTranslations = TFMTranslationProvider::instance().getEntityImpl();
+        str lang = TFMDocLocalization::getUserLanguage();
+        
+        if(languageTranslations.exists(lang))
+        {
+            return languageTranslations.lookup(lang);
+        }
+
+        translationMap      = new Map( Types::String, Types::String);
+        docTranslationMap   = TFMTranslationProvider::getTranslationsFromDeclarants();
+    
+        translationMap.insert('ScanBatchNumber',"@TFM:ScanBatchNumber");
+        translationMap.insert('ScanBatchNumberHelp',"@TFM:ScanBatchNumberHelp");
+        translationMap.insert('DefaultBinType',"@SYS3794");
+        translationMap.insert('DefaultLotType',"@SYS53635");
+        translationMap.insert('DefaultPalletType',"@WAX67");
+        translationMap.insert('AddLine',"@SYS103443");
+        translationMap.insert('DeleteAllRegistrations',"@SYS35817");
+        translationMap.insert('DeleteRegistration',"@SYS304126");
+        translationMap.insert('CancelPickLine',"@SYS54106");
+        translationMap.insert('createQuarantineOrder',"@TFM:createQuarantineOrder");
+        translationMap.insert('Release', "@SYS16190");
+        translationMap.insert('MainMenu', "@TFM:MainMenu");
+        translationMap.insert('ProductionFolder', "@TFM:ProductionFunctions");
+        translationMap.insert('WarehouseFolder', "@TFM:WarehouseFunctions");
+        translationMap.insert('InboundFolder', "@TFM:InboundFunctions");
+        translationMap.insert('OutboundFolder', "@TFM:OutboundFunctions");
+        translationMap.insert('MiscellaneousFolder', "@TFM:MiscellaneousFunctions");
+        translationMap.insert('Production', "@TFM:ProductionFunctions");
+        translationMap.insert('Warehouse', "@TFM:WarehouseFunctions");
+        translationMap.insert('Inbound', "@TFM:InboundFunctions");
+        translationMap.insert('Outbound', "@TFM:OutboundFunctions");
+        translationMap.insert('Miscellaneous', "@TFM:MiscellaneousFunctions");
+        translationMap.insert('ManufacturingExecution', "@SYS118282");
+        
+        // kept only for
+        translationMap.insert('MiscellaneousFolder', "@TFM:MiscellaneousFunctions");
+        translationMap.insert('ProductionSubFolder', '../'+"@TFM:ProductionFunctions");
+        translationMap.insert('WarehouseSubFolder', '../'+"@TFM:WarehouseFunctions");
+        translationMap.insert('InboundSubFolder', '../'+"@TFM:InboundFunctions");
+        translationMap.insert('OutboundSubFolder', '../' + "@TFM:OutboundFunctions");
+        translationMap.insert('MiscellaneousSubFolder', '../' + "@TFM:MiscellaneousFunctions");
+
+        while select groups
+        {
+            if(!translationMap.exists(groups.MenuGroupId))
+            {
+                translationMap.insert(groups.MenuGroupId, groups.Description);
+            }
+        }
+
+        mEnum = docTranslationMap.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            translationMap.insert(mEnum.currentKey(), mEnum.currentValue());
+        }
+
+        while select translations
+        {
+            translationMap.insert(translations.LabelId, TFMTranslationProvider::getTranslatedTranslation(translations.LabelId));
+        }
+
+        languageTranslations.add(lang, translationMap);
+
+        return translationMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTranslationsFromDeclarants</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the translations to add so it will be downloaded to the device.
+    /// </summary>
+    /// <returns></returns>
+    public static Map getTranslationsFromDeclarants()
+    {
+        SysDictClass              dc = new SysDictClass(classnum(TFMTranslationDeclarantInterface));
+        SysDictClass              subClass;
+        List                      extendingClasses = dc.implementedBy(true);
+        ListEnumerator            lEnum = extendingClasses.getEnumerator();
+        object  docHand;
+        Map                       retMap = new Map(Types::String, Types::String);
+        Map                       docMap;
+
+        while (lEnum.moveNext())
+        {
+            subClass = new SysDictClass(lEnum.current());
+            if (subClass == null || subClass.isAbstract() || subClass.isInterface())
+            {
+                continue;
+            }
+            docHand = subClass.makeObject();
+            docMap = docHand.addTranslations();
+            retMap = TFMHelper::mergeMaps(retMap, docMap);
+        }
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAITranslation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Ask the AI to get the translation. It will return '' and show an error if the _originalSentence could not be translated.
+    /// </summary>
+    public static str getAITranslation(str _originalSentence, LanguageId _languageFrom, LanguageId _languageTo, str _contextDescription = '')
+    {
+        str								url					= TFMConstants::accountAddress();
+        System.Net.WebRequest			request				= System.Net.WebRequest::Create(url);
+        System.Net.WebHeaderCollection	headers				= request.Headers;
+        System.String					headerKey			= 'api-key';
+        System.IO.Stream				outStream, retStream;
+        System.IO.StreamWriter			streamWriter;
+        System.Net.HttpWebResponse	    webResponse;
+        TFMAIResultContract             AIResult;
+        TFMAIResultChoicesContract      choice;
+        ListEnumerator                  lEnum;
+
+        str                             messageForAI        = 'Please translate \\"' + _originalSentence + '\\" from ' + _languageFrom + ' to ' +_languageTo + '.';
+
+        messageForAI += ' The context for the translation must be warehousing, so warehousing terms are applicable for the answer. Only answer with the translated text without it being placed in quotation marks';
+        if (_contextDescription)
+        {
+            messageForAI += ' Further context for the translation is: ' + _contextDescription + '.';
+        }
+        messageForAI += 'If that is not possible, given the description, only answer with \\"NoCanDo\\"';
+
+        headers.Add(headerKey, TFMConstants::accountKey());
+        request.Method		= 'POST';
+        request.ContentType = 'application/json';
+        outStream			= request.GetRequestStream();
+        streamWriter		= new System.IO.StreamWriter(outStream);
+        streamWriter.Write('{'+"\r"+'"messages": [ { "role": "user", "content": "'+messageForAI+'"' +
+            '}],' +
+                '"temperature": 0.7,' +
+                '"top_p": 0.95,' +
+                '"frequency_penalty": 0,' +
+                '"presence_penalty": 0,' +
+                '"max_tokens": 800,' +
+                '"stop": null}');
+        streamWriter.Flush();
+        streamWriter.Close();
+        streamWriter.Dispose();
+        webResponse			= request.GetResponse();
+        if(webResponse.StatusCode == System.Net.HttpStatusCode::OK)
+        {
+            retStream			= webResponse.GetResponseStream();
+ 
+            System.IO.StreamReader streamReader = new System.IO.StreamReader(retStream, System.Text.Encoding::UTF8);
+            System.String retStr = streamReader.ReadToEnd();
+
+            AIResult = FormJsonSerializer::deserializeObjectStrict(classNum(TFMAIResultContract), retstr);
+            lEnum = AIResult.parmChoices().getEnumerator();
+
+            while (lEnum.moveNext())
+            {
+                choice = lEnum.current();
+                retStr = choice.parmMessage().parmContent();
+                
+                return TFMTranslationProvider::checkReturnMessage(retStr);
+            }
+
+            return TFMTranslationProvider::checkReturnMessage(retStr);
+        }
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTFDeviceLabelValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Getting values for titles in the Client to display the same as the device.
+    /// </summary>
+    /// <param name = "_labelId"></param>
+    /// <param name = "_label"></param>
+    /// <returns></returns>
+    public static str getTFDeviceLabelValue(str _labelId, Label _label)
+    {
+        if(!idToTFDeviceLabelID)
+        {
+            idToTFDeviceLabelID = new Map(Types::String, Types::String);
+            idToTFDeviceLabelID.add('list/refresh', 'ListUpdateMenuItem');
+            idToTFDeviceLabelID.add('list/open', 'ListOpenMenuItem');
+            idToTFDeviceLabelID.add('postAllRegistrations', 'AdhocPostAllRegistrationsMenuItemTitle');
+            idToTFDeviceLabelID.add('offlineRegistrationService/viewRegistrations', 'AdhocViewRegistrations');
+            idToTFDeviceLabelID.add('deleteOrderRegistrations', 'OrderLinesDeleteAllOrderRegistrationsMenuItem');
+            idToTFDeviceLabelID.add('cancelRemainingLineQuantity', 'OrderLineCancelRemainingQuantityMenuItem');
+        }
+
+        str labelExtract;
+        Label label = _label;
+        str bareLabelId =  strReplace(strReplace(_labelId,'@{',''),'}','');
+        if(!_label)
+        {
+            label = new Label(currentUserLanguage());
+        }
+
+        if(idToTFDeviceLabelID.exists(bareLabelId))
+        {
+            bareLabelId = idToTFDeviceLabelID.lookup(bareLabelId);
+        }
+
+        labelExtract = label.extractString('@TFDevice:' + bareLabelId);
+        if(strScan(labelExtract, '@', 0, 2) > 0)
+        {
+            // test if the TFM has the translation.
+            labelExtract = label.extractString('@TFDevice:' + bareLabelId + 'MenuItemTitle');
+            if(strScan(labelExtract, '@', 0, 2) > 0)
+            {
+                labelExtract = label.extractString('@TFDevice:' + bareLabelId + 'MenuItem');
+                if(strScan(labelExtract, '@', 0, 2) > 0)
+                {
+                    labelExtract = label.extractString('@TFDevice:' + bareLabelId + 'MenuItem');
+                    if(strScan(labelExtract, '@', 0, 2) > 0)
+                    {
+
+                        labelExtract = label.extractString('@TFM:' + bareLabelId);
+                        if(strScan(labelExtract, '@', 0, 2) > 0)
+                        {
+                            return '';
+                        }
+                    }
+                }
+            }
+        }
+        
+        return labelExtract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkReturnMessage</Name>
+				<Source><![CDATA[
+    protected static str checkReturnMessage(str _retStr)
+    {
+        if(strScan(_retStr, 'NoCanDo', 0, 100000) > 0)
+        {
+            info("@TFM:Unabletotranslate");
+            return '';
+        }
+        else
+        {
+            return _retStr;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formatDateForVersion</Name>
+				<Source><![CDATA[
+    private str formatDateForVersion(ModifiedDateTime dateTime)
+    {
+        return strKeep(System.String::Format('{0:s}', dateTime), '1234567890');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

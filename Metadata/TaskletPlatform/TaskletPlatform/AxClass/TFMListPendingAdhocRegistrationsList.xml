@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListPendingAdhocRegistrationsList</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListIdAttribute('PendingAdhocRegistrations')]
+class TFMListPendingAdhocRegistrationsList extends TFMList
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+    public TFMListConfiguration getList()
+    {
+        TFMListConfiguration							listConfig	= TFMListConfiguration::Construct(listName);
+        TFMListRow										row			= listConfig.addRow();
+        TFMListColumn									column		= row.makeColumn(15);
+        TFMListImageElement								imgElement	= TFMListImageElement::ConstructImageElement('','RequestType',10,0,SysChartHorizontalAlignment::Left);
+        MapEnumerator									mEnum = TFMPagesProvider::getAllPages().getPages().getEnumerator();
+        TFMPage											page;
+        TFMPageUnplannedItemRegistration				pageUnplanned;
+        TFMPageUnplannedItemRegistrationConfiguration	pageconf;
+		while (mEnum.moveNext())
+        {
+            page = mEnum.currentValue();
+			if (page is TFMPageUnplannedItemRegistration)
+            {
+                pageUnplanned = page;
+                pageconf = pageUnplanned.getConfiguration();
+				//if (pageconf.parmOfflineServicesEnabled())
+                {
+                    imgElement.addValueElement(pageUnplanned.parmId(),pageUnplanned.parmIcon());
+                }
+            }
+        }
+        column.addElement(imgElement);
+        column.addElement(TFMListTextElement::ConstructTextElement("@SYS105177"+': {Quantity}',TFMFonts::FindOrCreateFromProperties('MediumContentFont',TFMFontSizes::medium,false,false,'').id));
+        row.makeColumn(5).addElement(TFMListTextElement::ConstructTextElement('',TFMFonts::FindOrCreateFromProperties('MediumContentFont',TFMFontSizes::medium,false,false,'').id));
+        column = row.makeColumn(80);
+        column.addElement(TFMListTextElement::ConstructTextElement('{Created}',TFMFonts::FindOrCreateFromProperties('MediumContentFont',TFMFontSizes::medium,false,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement('{RequestType}',TFMFonts::FindOrCreateFromProperties('MediumContentFont',TFMFontSizes::medium,false,false,'').id));
+        column.addElement(TFMListTextElement::ConstructTextElement('{DocumentName}',TFMFonts::FindOrCreateFromProperties('MediumContentFont',TFMFontSizes::medium,false,false,'').id));
+        return listConfig;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

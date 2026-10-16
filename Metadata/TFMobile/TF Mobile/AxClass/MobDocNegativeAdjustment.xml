@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocNegativeAdjustment</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+#mob
+[
+    TFMTableName(tableStr(InventJournalTable)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticMethodStr(MobConstants,NegativeAdjustment), methodStr(MobDocNegativeAdjustment, createNegativeAdjustmentConfiguration)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(MobConstants,NegativeAdjustment), methodStr(MobDocNegativeAdjustment,postNegativeAdjustment)),
+    TFMMenu(staticMethodStr(MobConstants,NegativeAdjustment), "@SYS24261", "@SYS24261", resourceStr(MobNegativeAdjustmentIcon), true, true, ['Warehouse'])
+]
+class MobDocNegativeAdjustment extends TFMDocumentHandler
+{
+    InventDim                           inventDim;
+    InventTable                         inventTable;
+    InventJournalTable                  inventJournalTable;
+    inventJournalTrans                  inventJournalTrans;
+    TFMInventDimSetup                   mobInventDimSetup;
+    TFMRequestItemAndDimensionElement   negAdjRequest;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public TFMDocumentHandlerDescription description()
+    {        
+        return "@SYS24261";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getinventJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(inventJournalTable))]
+    public inventJournalTable getinventJournalTable()
+    {
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getinventJournalTrans</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(inventJournalTrans))]
+    public inventJournalTrans getinventJournalTrans()
+    {
+        return inventJournalTrans;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createNegativeAdjustmentConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create a Negative Adjustment configuration.
+    /// </summary>
+    protected Map createNegativeAdjustmentConfiguration()
+    {
+        Map returnMap;
+        Map								colMap;
+        TFMRequestBasicElement			contextValues = negAdjRequest.parmContextValues();
+        TFMRegistrationCollectorList	causeList = new TFMRegistrationCollectorList(200,extendedTypeStr(Description),"@MobileWMS:AdjustmentCause","@MobileWMS:AdjustmentCause","@MobileWMS:AdjustmentCause");
+        int add = 10;
+        InventDimParm parm =  InventDimParm::activeDimFlag(InventDimGroupSetup::newInventTable(negAdjRequest.parmInventTable()));
+        parm.InventSiteIdFlag = NoYes::No;
+        parm.InventLocationIdFlag = NoYes::No;
+        
+        #if.isAX6
+        parm.WMSPalletIdFlag = mobInventDimSetup.registerWMSPallet();
+        parm.WMSLocationIdFlag = !mobInventDimSetup.registerWMSPallet();
+        #endif
+        parm.InventSerialIdFlag = NoYes::Yes;
+        returnMap = MobInventDimHelper::GetInventDimCollectors(add,mobInventDimSetup,parm);
+
+
+        causeList.map2ListValues(MobInventAdjustmentCauses::getAllCauses());
+
+		if (causeList.parmListValues())
+        {
+            returnMap.insert(causeList.parmName(),causeList.getMap());
+        }
+
+        if (contextValues && contextValues.getFieldValue(extendedTypeStr(WMSLocationId)))
+        {
+            colMap = returnMap.lookup(extendedTypeStr(WMSLocationId));
+            colMap.insert('visible','false');
+            colMap.insert('defaultValue', contextValues.getFieldValue(extendedTypeStr(WMSLocationId)));
+            returnMap.insert(strlwr(extendedTypeStr(WMSLocationId)), colMap);
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postNegativeAdjustment</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to post negative adjustment journals.
+    /// </summary>
+    /// <returns>Message whether the operation ended in success or error.</returns>
+    [TFMPostMethod(tableStr(inventJournalTable)), TFMPostMethod(tableStr(inventJournalTrans))]
+    protected str postNegativeAdjustment()
+    {
+        InventJournalName           inventJournalName;
+        NumberSeq                   seq;
+        JournalCheckPost            journalCheckPost;   
+        journalTableData            journalTableData;
+        Description					description = request.getFieldValue(extendedTypeStr(Description));
+        Map							adjCauses = MobInventAdjustmentCauses::getAllCauses();
+        //ItemId                      itemid;
+        //XmlNode                     requestDataNode = requestXml.root().getNamedElement(#requestData);
+        
+        // Get the name of the profit/loss journal to use for the posting
+        // This is a setup parameter for the Mobile WMS solution
+        inventJournalName = InventJournalName::find((adjCauses.exists(description) && adjCauses.lookup(description)) ? adjCauses.lookup(description) : MobParameters::find().InventJournalNameLossProfit);
+
+        inventJournalTable.initValue();
+        inventJournalTable.initFromInventJournalName(inventJournalName);
+        inventJournalTable.JournalType      = inventJournalType::LossProfit;
+    
+        journalTableData                    = journalTableData::newTable(inventJournalTable);
+    
+        inventJournalTable.NumOfLines       = 1;
+        inventJournalTable.Description      = description ? description : "@MobileWMS:MEL36";
+    
+        seq = numberSeq::newGetNum(journalTableData.journalStatic().numRefJournalId());
+        inventJournalTable.JournalId    = seq.num();
+        inventJournaltable.insert();
+        seq.used();
+    
+        inventJournalTrans.clear();
+        inventJournalTrans.initFromInventJournalTable(inventJournalTable);
+        inventJournalTrans.selectForUpdate(true);
+        inventJournalTrans.initValue();
+        inventJournalTrans.initFromInventJournalTable( inventJournalTable );
+    
+        inventJournalTrans.initFromInventTable(negAdjRequest.parmInventTable());
+        inventJournalTrans.Qty          = -negAdjRequest.parmQuantity();//-MobHelper::convertStr2Num(requestDataNode.getNamedElement(#Quantity).text());
+        inventJournalTrans.setCostPrice(inventJournalTrans.InventDimId, inventJournalTrans.inventDim(), inventJournalTrans.inventTableModuleInvent());
+        inventDim = negAdjRequest.parmInventDim();
+        MobHelper::EnsureInventDim(inventDim);
+        inventJournalTrans.setInventDimId(InventDim::findOrCreate(inventDim).inventDimId);
+    
+        inventJournalTrans.Worker           = HcmWorker::userId2Worker(curUserId());
+        //From TFSD-24716 refer to this if changed
+        this.beforeInventJournalTransInserted(inventJournalTrans);
+        inventJournalTrans.insert(false);
+        //From TFSD-24716 refer to this if changed
+        this.afterInventJournalTransInserted(inventJournalTrans);
+
+        journalCheckPost =  inventJournalCheckPost::newPostJournal( inventJournalTable );
+        #ifnot.isAX6
+        JournalCheckPost.runOperation();
+        #endif
+        #if.isAX6
+        JournalCheckPost.run();
+        #endif
+        
+        return "@MobileWMS:MEL78";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>NegativeAdjustmentHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Negative Adjustment page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration NegativeAdjustmentHeader()
+    {
+        TFMReferenceDataConfiguration refCon = new TFMReferenceDataConfiguration();
+        // List with warehouses
+        refCon.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(1,MobConstants::Warehouse(), "@SYS6437",methodStr(TFMGetReferenceData,WarehouseList)));    
+        // Item number text box
+        refCon.addCollector(TFMGetReferenceData::defaultItemIdCollector(2));        
+        return refCon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preProcess</Name>
+				<Source><![CDATA[
+    public boolean preProcess()
+    {
+        negAdjRequest = request;
+        mobInventDimSetup   = TFMInventDimSetup::Construct(negAdjRequest.parminventTable());
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>beforeInventJournalTransInserted</Name>
+				<Source><![CDATA[
+	//From TFSD-24716 refer to this if changed
+	protected void beforeInventJournalTransInserted(InventJournalTrans _inventJournalTrans)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>afterInventJournalTransInserted</Name>
+				<Source><![CDATA[
+    //From TFSD-24716 refer to this if changed
+    protected void afterInventJournalTransInserted(InventJournalTrans _inventJournalTrans)
+    {
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

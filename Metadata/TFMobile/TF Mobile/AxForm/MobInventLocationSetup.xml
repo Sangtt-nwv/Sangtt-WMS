@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>MobInventLocationSetup</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class MobInventLocationSetup extends FormRun
+{
+    SysListPanelRelationTableCallback sysListPanel;
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>close</Name>
+				<Source><![CDATA[
+    public void close()
+    {
+        sysListPanel.finalize();
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    [SuppressBPWarning('BPCheckInvalidInitFormMethodWarning', 'For the SysListPanelRelationTableCallback to work the newForm has to be called before the super() method is called.')]
+    void init()
+    {
+        #ResAppl
+        sysListPanel = SysListPanelRelationTableCallback::newForm(element, element.controlId(formControlStr(MobInventLocationSetup, Groups)), "@SYS5965"+' '+"@SYS7122", "@SYS78228"+' '+"@SYS7122",#ImageWarehouse,
+                        tablenum(MobInventLocationsGroupRights),
+                        fieldnum(MobInventLocationsGroupRights, InventLocationId),
+                        fieldnum(MobInventLocationsGroupRights, UserGroupId),
+                        tablenum(InventLocation),
+                        fieldnum(InventLocation, InventLocationid),
+                        [fieldnum(InventLocation, InventLocationid), fieldnum(InventLocation, Name)],
+                        0, '',
+                        identifierstr(Validate),'', '');
+        super();
+        sysListPanel.init();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tabChanged</Name>
+				<Source><![CDATA[
+    void tabChanged(int fromTab, int toTab)
+    {
+        #avifiles
+        #define.TabInventLocations(1)
+        #define.TabUserGroups(2)
+    
+        switch (toTab)
+        {
+            case #TabInventLocations:
+                break;
+    
+            case #TabUserGroups:
+                sysListPanel.parmRelationRangeValue(UserGroupInfo_1.id);
+                sysListPanel.parmRelationRangeRecId(UserGroupInfo_1.RecId);
+                sysListPanel.fill();
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validate</Name>
+				<Source><![CDATA[
+    #admin
+    boolean validate(userId _userId, AddRemove _addRemove, SysListPanelRelationTable _listViewHandler)
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>UserGroupInfo_1</Name>
+				<Methods>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        int active()
+        {
+            int ret;
+        
+            ret = super();
+            element.tabChanged(0, tab.tab());
+        
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>init</Name>
+						<Source><![CDATA[
+        public void init()
+        {
+            super();
+        
+            UserGroupInfo_1_ds.query().dataSourceTable(tablenum(UserGroupInfo)).addSortField(fieldnum(UserGroupInfo,id));
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>setDefaultLocation</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public edit InventLocationId setDefaultLocation(boolean _set, UserGroupInfo _buffer, InventLocationId _value)
+        {
+            MobInventLocationsGroupRights rights;
+
+            select firstonly rights where rights.UserGroupId == _buffer.id && rights.DefaultLocation;
+            if (_set)
+            {
+                ttsbegin;
+                update_recordset rights
+                    setting DefaultLocation = 0
+                    where rights.UserGroupId == _buffer.id;
+                select firstonly forupdate rights where rights.UserGroupId == _buffer.id && rights.InventLocationId == _value;
+                rights.DefaultLocation = NoYes::Yes;
+                if (rights)
+                {
+                    rights.update();
+                }
+                ttscommit;
+            }
+
+            return rights.InventLocationId;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>Tab</Name>
+				<Type>Tab</Type>
+				<Methods>
+					<Method>
+						<Name>tabChanged</Name>
+						<Source><![CDATA[
+        void tabChanged(int fromTab, int toTab)
+        {
+            element.tabChanged(fromTab, toTab);
+            super(fromTab, toTab);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>defaultWareHouse</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void lookup()
+        {
+            MobFormLookupHelper::lookupAssignedWarehouses(this,UserGroupInfo_1.id);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>UserGroupInfo_1</Name>
+			<Table>UserGroupInfo</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>id</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>name</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@MobileWms:MEL85</Caption>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FormGroupControl1</Name>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>FormGroupControlHelp</Name>
+						<Type>Group</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>fstcHelpText</Name>
+								<HelpText>Set up the Warehouse for each user group.  Start by selecting the User Group then go to the Warehouses tab and set up the locations.</HelpText>
+								<Type>StaticText</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@TFM:SetuptheWarehouselocationsforeac</Text>
+							</AxFormControl>
+							<AxFormControl>
+								<Name>HtmlViewerControlHelp</Name>
+								<HeightMode>Auto</HeightMode>
+								<FormControlExtension>
+									<Name>TFMHtmlViewerCtrl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties>
+										<AxFormControlExtensionProperty>
+											<Name>htmlField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>addCopyLinkField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>formatAsXmlField</Name>
+											<Type>String</Type>
+										</AxFormControlExtensionProperty>
+									</ExtensionProperties>
+								</FormControlExtension>
+							</AxFormControl>
+						</Controls>
+						<Columns>2</Columns>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabControl">
+						<Name>Tab</Name>
+						<AlignControl>No</AlignControl>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>1073741823</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<Type>Tab</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabPageControl">
+								<Name>UserGroupInfo_Tab</Name>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>TabPage</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>UserGroupInfo_grid</Name>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Grid</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>UserGroupInfo_Group</Name>
+												<AllowEdit>No</AllowEdit>
+												<ElementPosition>1431655764</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>UserGroupInfo_id</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<ElementPosition>1073741822</ElementPosition>
+														<FilterExpression>%1</FilterExpression>
+														<HeightMode>Auto</HeightMode>
+														<Type>String</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<WidthMode>Auto</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>id</DataField>
+														<DataSource>UserGroupInfo_1</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>UserGroupInfo_Name</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<ElementPosition>1610612733</ElementPosition>
+														<FilterExpression>%1</FilterExpression>
+														<HeightMode>Auto</HeightMode>
+														<Type>String</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<WidthMode>Auto</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>name</DataField>
+														<DataSource>UserGroupInfo_1</DataSource>
+													</AxFormControl>
+												</Controls>
+												<BackgroundColor>WindowBackground</BackgroundColor>
+												<DataSource>UserGroupInfo_1</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>defaultWareHouse</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataMethod>setDefaultLocation</DataMethod>
+												<DataSource>UserGroupInfo_1</DataSource>
+												<Label>@SYS107384</Label>
+												<LookupButton>Always</LookupButton>
+											</AxFormControl>
+										</Controls>
+										<DataSource>UserGroupInfo_1</DataSource>
+										<MultiSelect>No</MultiSelect>
+									</AxFormControl>
+								</Controls>
+								<Caption>@SYS21952</Caption>
+								<DataSource>UserGroupInfo_1</DataSource>
+								<Scrollbars>Auto</Scrollbars>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabPageControl">
+								<Name>Groups</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>TabPage</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls />
+								<Caption>@SYS7122</Caption>
+								<Scrollbars>Auto</Scrollbars>
+								<Style>DetailsFormLinesPanel</Style>
+							</AxFormControl>
+						</Controls>
+						<AlignChild>No</AlignChild>
+						<ArrangeMethod>Vertical</ArrangeMethod>
+						<Style>Auto</Style>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

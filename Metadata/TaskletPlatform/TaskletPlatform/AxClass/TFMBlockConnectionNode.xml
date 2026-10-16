@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMBlockConnectionNode</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMBlockConnectionNode
+{
+    List             tolinks, fromLinks;
+    Map             connectionNames;
+    Map             connectName2Block;
+    str             data;
+    TFMLogicBlock   block;
+    int             firstBlockID;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmData</Name>
+				<Source><![CDATA[
+    public str parmData(str _data = data)
+    {
+        data = _data;
+        return data;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBlock</Name>
+				<Source><![CDATA[
+    public TFMLogicBlock parmBlock(TFMLogicBlock _block = block)
+    {
+        block = _block;
+        return block;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getToLinks</Name>
+				<Source><![CDATA[
+    public List getToLinks()
+    {
+        if (tolinks == null)
+        {
+            tolinks = new List(Types::Class);
+        }
+        return tolinks;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addToConnectionName</Name>
+				<Source><![CDATA[
+    public void addToConnectionName(TFMBlockConnectionNode _node, Name _fromConnectionName, Name _toConnectionName)
+    {
+        if (connectionNames == null)
+        {
+            connectionNames = new Map(Types::String, Types::String);
+        }
+        if (connectName2Block == null)
+        {
+            connectName2Block = new Map(Types::String, Types::Integer);
+        }
+
+        if (!this.parmBlock() || !_node.parmBlock())
+        {
+            return;
+        }
+
+        connectionNames.insert(int2Str(this.parmBlock().GetHashCode())+'-'+int2Str(_node.parmBlock().GetHashCode()), _fromConnectionName);
+        connectName2Block.insert(_fromConnectionName, _node.parmBlock().GetHashCode());
+        if (!firstBlockID)
+        {
+            firstBlockID = _node.parmBlock().GetHashCode();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConnectionName</Name>
+				<Source><![CDATA[
+    public Name getConnectionName(TFMLogicBlock _block)
+    {
+        if (connectionNames == null)
+        {
+            connectionNames = new Map(Types::String, Types::String);
+        }
+
+        if (!block || !_block || !connectionNames.exists(int2Str(block.GetHashCode())+'-'+int2Str(_block.GetHashCode())))
+        {
+            return '';
+        }
+
+        return connectionNames.lookup(int2Str(block.GetHashCode())+'-'+int2Str(_block.GetHashCode()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBlockIdFromConnectionName</Name>
+				<Source><![CDATA[
+    public int getBlockIdFromConnectionName(Name _connectionName)
+    {
+        if (connectName2Block == null)
+        {
+            connectName2Block = new Map(Types::String, Types::String);
+        }
+        if (!_connectionName)// Data Collector Block
+        {
+            return firstBlockID;
+        }
+        if (!block || !connectName2Block.exists(_connectionName))
+        {
+            return 0;
+        }
+        return connectName2Block.lookup(_connectionName);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addToLink</Name>
+				<Source><![CDATA[
+    public void addToLink(TFMBlockConnectionNode _node, Name _fromConnectionName, Name _toConnectionName)
+    {
+        if (tolinks == null)
+        {
+            tolinks = new List(Types::Class);
+        }
+        this.addToConnectionName(_node, _fromConnectionName, _toConnectionName);
+        tolinks.addEnd(_node);
+        _node.addFromLink(this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromLinks</Name>
+				<Source><![CDATA[
+    public List getFromLinks()
+    {
+        if (fromLinks == null)
+        {
+            fromLinks = new List(Types::Class);
+        }
+        return fromLinks;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addFromLink</Name>
+				<Source><![CDATA[
+    protected void addFromLink(TFMBlockConnectionNode _node)
+    {
+        if (fromLinks == null)
+        {
+            fromLinks = new List(Types::Class);
+        }
+        fromLinks.addEnd(_node);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findStartingNodes</Name>
+				<Source><![CDATA[
+    public void findStartingNodes(List _startingNodes)
+    {
+        ListEnumerator           lEnum;
+        TFMBlockConnectionNode  node;
+        if (!fromLinks || !fromLinks.elements())
+        {
+            _startingNodes.addEnd(this);
+        }
+        else
+        {
+            lEnum = fromLinks.getEnumerator();
+            while (lEnum.moveNext())
+            {
+                node = lEnum.Current();
+                node.findStartingNodes(_startingNodes);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>hasCycle</Name>
+				<Source><![CDATA[
+    public boolean hasCycle()
+    {
+        Set setVisited = new Set(Types::Class);
+        Set setStack = new Set(Types::Class);
+        return this.dfs(setVisited, setStack);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dfs</Name>
+				<Source><![CDATA[
+    private boolean dfs(Set _setVisited, Set _setStack)
+    {
+        ListEnumerator           lEnum = tolinks.getEnumerator();
+        TFMBlockConnectionNode  node;
+        _setVisited.add(this);
+        _setStack.add(this);
+
+        while (lEnum.moveNext())
+        {
+            node = lEnum.Current();
+            if (!_setVisited.in(node))
+            {
+                if (node.dfs(_setVisited, _setStack))
+                    return true;
+            }
+            else if (_setStack.in(node))
+            {
+                return true;
+            }
+        }
+
+        _setStack.remove(this);
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

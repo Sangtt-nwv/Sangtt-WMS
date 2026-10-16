@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenu xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>TFM</Name>
+	<Label>@TFM:TaskletMobile</Label>
+	<SetCompany>Yes</SetCompany>
+	<Elements>
+		<AxMenuElement xmlns=""
+			i:type="AxMenuElementSubMenu">
+			<Name>TFMPeriodic</Name>
+			<Label>@SYS8782</Label>
+			<Elements>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>TFMDocumentQueueProcessor</Name>
+					<MenuItemName>TFMDocumentQueueProcessor</MenuItemName>
+					<MenuItemType>Action</MenuItemType>
+				</AxMenuElement>
+			</Elements>
+		</AxMenuElement>
+		<AxMenuElement xmlns=""
+			i:type="AxMenuElementSubMenu">
+			<Name>TFMInquiries</Name>
+			<Label>@SYS3850</Label>
+			<Elements>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>TFMDocumentQueue</Name>
+					<MenuItemName>TFMDocumentQueue</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>TFMDeviceTable</Name>
+					<MenuItemName>TFMDeviceTable</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>TFMMediaQueue</Name>
+					<MenuItemName>TFMMediaQueue</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>TFMDocumentOverview</Name>
+					<Visible>No</Visible>
+					<MenuItemName>TFMDocumentOverview</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>TFMWorkLog</Name>
+					<MenuItemName>TFMWorkLog</MenuItemName>
+				</AxMenuElement>
+			</Elements>
+		</AxMenuElement>
+		<AxMenuElement xmlns=""
+			i:type="AxMenuElementSubMenu">
+			<Name>TFMSetup</Name>
+			<Label>@SYS2186</Label>
+			<Elements>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>TFMParameters</Name>
+					<MenuItemName>TFMParameters</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>TFMDeviceConnectionGuide</Name>
+					<MenuItemName>TFMDeviceConnectionGuide</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementSubMenu">
+					<Name>BaseData</Name>
+					<Label>@SYS333962</Label>
+					<Elements>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMGS1AISetup</Name>
+							<MenuItemName>TFMGS1AISetup</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMWorkflows</Name>
+							<MenuItemName>TFMWorkflows</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMClassificationHierarchy</Name>
+							<MenuItemName>TFMClassificationHierarchy</MenuItemName>
+						</AxMenuElement>
+					</Elements>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementSubMenu">
+					<Name>Customizations</Name>
+					<Label>@SYS20531</Label>
+					<Elements>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMMenuConfig</Name>
+							<MenuItemName>TFMMenuConfig</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMPageOverview</Name>
+							<MenuItemName>TFMPageOverview</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMPagesMap</Name>
+							<MenuItemName>TFMPagesMap</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMDataSources</Name>
+							<MenuItemName>TFMDataSources</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMListOverview</Name>
+							<MenuItemName>TFMListOverview</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMImages</Name>
+							<MenuItemName>TFMImages</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMImageAggregate</Name>
+							<MenuItemName>TFMImageAggregate</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMTranslations</Name>
+							<MenuItemName>TFMTranslations</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMPageConfigurator</Name>
+							<Visible>No</Visible>
+							<MenuItemName>TFMPageConfigurator</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMOutputCacheSetup</Name>
+							<MenuItemName>TFMOutputCacheSetup</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMSearchSetup</Name>
+							<MenuItemName>TFMSearchSetup</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMProcessOverview</Name>
+							<MenuItemName>TFMProcessOverview</MenuItemName>
+						</AxMenuElement>
+					</Elements>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementSubMenu">
+					<Name>ImportExport</Name>
+					<Label>@SYS72784</Label>
+					<Elements>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMImportSetup</Name>
+							<MenuItemName>TFMImportSetup</MenuItemName>
+							<MenuItemType>Action</MenuItemType>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMExportSetup</Name>
+							<MenuItemName>TFMExportSetup</MenuItemName>
+							<MenuItemType>Action</MenuItemType>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMApplicationImport</Name>
+							<MenuItemName>TFMApplicationConfigImport</MenuItemName>
+						</AxMenuElement>
+					</Elements>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementSubMenu">
+					<Name>Troubleshooting</Name>
+					<Label>@SYS319640</Label>
+					<Elements>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMTraceLog</Name>
+							<MenuItemName>TFMTraceLog</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>TFMTestEndpoint</Name>
+							<MenuItemName>TFMTestEndpoint</MenuItemName>
+							<MenuItemType>Action</MenuItemType>
+						</AxMenuElement>
+					</Elements>
+				</AxMenuElement>
+			</Elements>
+		</AxMenuElement>
+	</Elements>
+</AxMenu>

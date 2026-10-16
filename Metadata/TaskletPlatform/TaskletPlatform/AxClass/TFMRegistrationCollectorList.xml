@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectorList</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegistrationCollectorList extends TFMListValuesAndDataTable
+{
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>ListStep</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates a collector step for selecting values from a list
+    /// </summary>
+    /// <param name="_setEmpty"></param>
+    /// <param name="_id"></param>
+    /// <param name="_name"></param>
+    /// <param name="_header"></param>
+    /// <param name="_label"></param>
+    /// <param name="_helpLabel"></param>
+    /// <param name="_listValues"></param>
+    /// <param name="_optional"></param>
+    /// <param name="_defaultValue"></param>
+    /// <param name="_GS1valueId_List">
+    /// identifiers for GS1-barcode prefixes
+    /// </param>    
+    public server static TFMRegistrationCollectorList ListStep(
+                                                            boolean      _setEmpty,
+                                                            int          _id,
+                                                            str          _name,
+                                                            str          _header,
+                                                            str          _label,
+                                                            str          _helpLabel,
+                                                            str          _listValues,
+                                                            boolean      _optional=false,
+                                                            str          _defaultValue='',
+                                                            str          _listSeparator = ';',
+                                                            str          _GS1valueId_List = '')
+    {
+        TFMRegistrationCollectorList listCollector = new TFMRegistrationCollectorList(_id,_name,_header,_label,_helpLabel);
+        listCollector.parmListValues(_listValues);
+        listCollector.parmListSeparator( _listSeparator);
+        listCollector.parmEanAi( _GS1valueId_List);
+        listCollector.parmOptional(_optional);
+        listCollector.parmDefaultValue(_defaultValue);
+        
+        return listCollector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ListStepMap</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates a collector step for selecting values from a list
+    /// </summary>
+    /// <param name="_setEmpty"></param>
+    /// <param name="_id"></param>
+    /// <param name="_name"></param>
+    /// <param name="_header"></param>
+    /// <param name="_label"></param>
+    /// <param name="_helpLabel"></param>
+    /// <param name="_listValues"></param>
+    /// <param name="_optional"></param>
+    /// <param name="_defaultValue"></param>
+    /// <param name="_GS1valueId_List">
+    /// identifiers for GS1-barcode prefixes
+    /// </param>
+    
+    public server static Map ListStepMap(
+                                                            boolean      _setEmpty,
+                                                            int          _id,
+                                                            str          _name,
+                                                            str          _header,
+                                                            str          _label,
+                                                            str          _helpLabel,
+                                                            str          _listValues,
+                                                            boolean      _optional=false,
+                                                            str          _defaultValue='',
+                                                            str          _listSeparator = ';',
+                                                            str          _GS1valueId_List = '')
+    {
+        TFMRegistrationCollectorList listCollector = TFMRegistrationCollectorList::ListStep(_setEmpty,_id,_name,_header,_label,_helpLabel,_listValues,_optional,_defaultValue,_listSeparator,_GS1valueId_List);
+        
+        return listCollector.getMap();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dataTypeIcon</Name>
+				<Source><![CDATA[
+    public ResourceName dataTypeIcon()
+    {
+        return resourceStr(TFMDatatypeList);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

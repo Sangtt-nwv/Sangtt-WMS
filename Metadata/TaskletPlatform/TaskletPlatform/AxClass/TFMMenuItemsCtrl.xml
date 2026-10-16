@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMMenuItemsCtrl</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[FormControlAttribute('TFMMenuItemsCtrl','/Resources/html/TFMMenuItemsCtrl',classstr(TFMMenuItemsCtrlBuild))]
+public class TFMMenuItemsCtrl extends FormTemplateContainerControl
+{
+    TFMMenuItemsContainerInterface formClass;
+    FormProperty        SendAvailableMenuItemsToJavascriptProperty;
+    FormProperty        SendSelectedMenuItemsToJavascriptProperty;
+    FormProperty        SendSaveRequestToControlToJavascriptProperty;
+    FormProperty        SetActiveMenuItemsToJavascriptProperty;
+    FormProperty        SendUpdatingToJavascriptProperty;
+    Map                 createdMenuItems;
+    int                 counter = 0;
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(FormBuildControl _build, FormRun _formRun)
+    {
+        super(_build, _formRun);
+        this.setTemplateId('TFMMenuItemsCtrl');
+        this.setResourceBundleName('/Resources/html/TFMMenuItemsCtrl');
+
+        SendAvailableMenuItemsToJavascriptProperty = this.addProperty(methodstr(TFMMenuItemsCtrl, SendAvailableMenuItemsToJavascript), Types::String);
+        SendSelectedMenuItemsToJavascriptProperty = this.addProperty(methodstr(TFMMenuItemsCtrl, SendSelectedMenuItemsToJavascript), Types::String);
+        SendSaveRequestToControlToJavascriptProperty = this.addProperty(methodstr(TFMMenuItemsCtrl, SendSaveRequestToControlToJavascript), Types::String);
+        SetActiveMenuItemsToJavascriptProperty = this.addProperty(methodstr(TFMMenuItemsCtrl, SetActiveMenuItemsToJavascript), Types::String);
+        SendUpdatingToJavascriptProperty = this.addProperty(methodstr(TFMMenuItemsCtrl, SendUpdatingToJavascript), Types::String);
+
+        this.createdMenuItems = new Map(Types::String, Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setFormClass</Name>
+				<Source><![CDATA[
+    public void setFormClass(TFMMenuItemsContainerInterface _formClass)
+    {
+        formClass = _formClass;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendUpdatingToControl</Name>
+				<Source><![CDATA[
+    public void sendUpdatingToControl()
+    {
+        counter++;
+        this.SendUpdatingToJavascript(int2Str(counter));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendMenuItemsToControl</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sends the menu items to the control.
+    /// </summary>
+    /// <param name = "promotedMenuItems"></param>
+    /// <param name = "contextMenuItems"></param>
+    public void sendMenuItemsToControl(FormDataSource _mobPageMenuItems_ds, TFMMenuItemsContainerInterface _formClass)
+    {
+        TFMMenuConfigContract contract;
+        List contextMenuItems = new List(Types::Class);
+        List promotedMenuItems = new List(Types::Class);
+        TFMPageMenuItems pageItem = _mobPageMenuItems_ds.getFirst() as TFMPageMenuItems;
+        TFMPages pages = TFMPagesProvider::getAllPages();
+        this.setFormClass(_formClass);
+
+        boolean pageIsInOffline = formClass.currentPage().getConfiguration() && formClass.currentPage().getConfiguration().isOfflineEnabled();
+
+        while(pageItem)
+        {
+            contract = this.convertToContract(pageItem, pages, pageIsInOffline);
+            if(pageItem.PromotedItem)
+            {
+                promotedMenuItems.addEnd(contract);
+            }
+            else
+            {
+                contextMenuItems.addEnd(contract);
+            }
+            pageItem = _mobPageMenuItems_ds.getNext() as TFMPageMenuItems;
+        }
+
+        this.SendSelectedMenuItemsToJavascript(FormJsonSerializer::serializeClass(promotedMenuItems));
+        this.SendAvailableMenuItemsToJavascript(FormJsonSerializer::serializeClass(contextMenuItems));
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendSaveRequestToControl</Name>
+				<Source><![CDATA[
+    public void sendSaveRequestToControl()
+    {
+        this.SendSaveRequestToControlToJavascript(int2Str(timeNow()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SendUpdatingToJavascript</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'SendUpdatingToJavascript')]
+    private str SendUpdatingToJavascript(str _value = SendUpdatingToJavascriptProperty.parmValue())
+    {
+        SendUpdatingToJavascriptProperty.setValueOrBinding(_value);
+        return SendUpdatingToJavascriptProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SendSaveRequestToControlToJavascript</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'SendSaveRequestToControlToJavaScript')]
+    private str SendSaveRequestToControlToJavascript(str _value = SendSaveRequestToControlToJavascriptProperty.parmValue())
+    {
+        SendSaveRequestToControlToJavascriptProperty.setValueOrBinding(_value);
+        return SendSaveRequestToControlToJavascriptProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SendAvailableMenuItemsToJavascript</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'SendAvailableMenuItemsToJavascript')]
+    private str SendAvailableMenuItemsToJavascript(str _value = SendAvailableMenuItemsToJavascriptProperty.parmValue())
+    {
+        // making sure to update even if the list is empty. To hide the loader.
+        str valueOverride = _value;
+        if(_value == '[]')
+        {
+            valueOverride = '[' + int2str(timeNow()) + ']';
+        }
+        SendAvailableMenuItemsToJavascriptProperty.setValueOrBinding(valueOverride);
+        return SendAvailableMenuItemsToJavascriptProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SendSelectedMenuItemsToJavascript</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'SendSelectedMenuItemsToJavascript')]
+    private str SendSelectedMenuItemsToJavascript(str _value = SendSelectedMenuItemsToJavascriptProperty.parmValue())
+    {
+        SendSelectedMenuItemsToJavascriptProperty.setValueOrBinding(_value);
+        return SendSelectedMenuItemsToJavascriptProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setMenuItemsSortingSetup</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Saves the menu items sorting setup.
+    /// </summary>
+    /// <param name = "_jsonStr"></param>
+    [FormCommandAttribute('setMenuItemsSortingSetup')]
+    public void setMenuItemsSortingSetup(str _jsonStr)
+    {
+        List newMenuSetup = FormJsonSerializer::deserializeCollection(classNum(List), _jsonStr, Types::Class, identifierStr('TFMMenuConfigContract'));
+        formClass.saveMenuItemsSetup(newMenuSetup);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setActiveMenuItemsToJavascript</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the active menu item on the javascript control.
+    /// </summary>
+    /// <param name = "_value"></param>
+    [FormPropertyAttribute(FormPropertyKind::Value, 'setActiveMenuItemsToJavascript')]
+    public str setActiveMenuItemsToJavascript(str _value = SetActiveMenuItemsToJavascriptProperty.parmValue())
+    {
+        SetActiveMenuItemsToJavascriptProperty.setValueOrBinding(_value);
+        return SetActiveMenuItemsToJavascriptProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLocalization</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The javascript control requests the translation based on the _localizationKey and then it is returned to the javascript.
+    /// </summary>
+    /// <param name = "_localizationKey"></param>
+    /// <returns></returns>
+    [FormCommandAttribute('getTranslation')]
+    public str getLocalization(str _localizationKey)
+    {
+        str sReturn;
+        TFMLocalizationContract contract = new TFMLocalizationContract();
+
+        str labelStr = SysLabel::labelId2String('@TFM:' + _localizationKey);
+        contract.parmKey(_localizationKey);
+        contract.parmTranslation(labelStr);
+        sReturn = FormJsonSerializer::serializeClass(contract);
+        return sReturn;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setSelectedMenuItem</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the selected menu item id so that the FO can update the datasource.
+    /// </summary>
+    /// <param name = "_selectedMenuItemId"></param>
+    /// <returns></returns>
+    [FormCommandAttribute('setSelectedMenuItem')]
+    public str setSelectedMenuItem(str _selectedMenuItemId)
+    {
+        str sReturn = '';
+        formClass.setActiveMenuItem(_selectedMenuItemId);
+        return sReturn;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addMenuItem</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Calls FO to show the add menu item form lookup page to be able to add a menu item.
+    /// </summary>
+    /// <returns></returns>
+    [FormCommandAttribute('addMenuItem')]
+    public str addMenuItem(str _value)
+    {
+        str sReturn = '';
+        formClass.showAddMenuItemsFormLookup();
+        return sReturn;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertToContract</Name>
+				<Source><![CDATA[
+    private TFMMenuConfigContract convertToContract(TFMPageMenuItems _pageItem, TFMPages _pages, boolean _pageIsInOfflineMode)
+    {
+        TFMMenuConfigContract contract;
+        if(createdMenuItems.exists(_pageItem.MenuPageID))
+        {
+            contract = createdMenuItems.lookup(_pageItem.MenuPageID);
+        }
+        else
+        {
+            contract = new TFMMenuConfigContract();
+            contract.parmPageId(_pageItem.MenuPageID);
+            contract.parmTitle(TFMListVisualization::getMenuTitle(TFMPageMenuItemsFormHelper::getMenuItemTitleStr(_pageItem, _pages)));
+            //contract.parmIconName('https://cdn-icons-png.flaticon.com/128/9393/9393642.png'); //Used for testing
+            str iconStr = TFMPageMenuItemsFormHelper::getMenuItemIconStr(_pageItem, _pages);
+            contract.parmIconName(TFMDocGetMedia::getURLFromIconName(iconStr));
+            contract.parmIsMandatory(_pageItem.Mandatory);
+            contract.parmIsOffline(_pageItem.MenuItemType == TFMPageMenuItemTypes::OfflinePageMenuItem);
+            contract.parmIsHide(_pageItem.Hide);
+            contract.parmPageIsSetupForOffline(_pageIsInOfflineMode);
+            contract.parmUpdated(timeNow());
+        }
+
+        return contract;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

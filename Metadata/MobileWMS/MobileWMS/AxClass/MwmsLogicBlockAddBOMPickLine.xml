@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockAddBOMPickLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic block created to handle the creation of new BOM Pick Lines
+/// </summary>
+class MwmsLogicBlockAddBOMPickLine extends MwmsLogicBlock implements TFMLogicBlockDataCollectionInterface, TFMLogicBlockPrePostDataModifyInterface
+{
+    InventDim               inventDim;
+    InventTable             inventTable;
+    ProdJournalTable        prodJournalTable;
+    ProdJournalBOM          prodJournalBOM;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getProdJournalBOM</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(ProdJournalBOM))]
+    public ProdJournalBOM getProdJournalBOM()
+    {
+        return prodJournalBOM;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getprodJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(prodJournalTable))]
+    public ProdJournalTable getprodJournalTable()
+    {
+        return prodJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventTable))]
+    public InventTable getInventTable()
+    {
+        return inventTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventDim</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventDim))]
+    public InventDim getInventDim()
+    {
+        return inventDim;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>autoCreatedProcesses</Name>
+				<Source><![CDATA[
+    public Set autoCreatedProcesses()
+    {
+        Set ret = super();
+        TFMProcess process = TFMProcess::Construct(MobConstants::AddPickLine());
+
+        process.addBlock(this);
+        process.blockCollection().addBlockAddon(this,new TFMLogicBlockAddonDisableValueTransfers());
+        ret.add(process);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        components.addComponent(MwmsLogicComponentInventoryJournalLines::Construct());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method provides the header fields, that are needed to find out which data should be collected.
+    /// </summary>
+    /// <returns>A TFMReferenceDataConfiguration object, containing registration collectors for the header.</returns>
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        return components.getHeaders();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method gives you the registration collectors for this data collection block.
+    /// </summary>
+    /// <returns>A collection of registration collectors.</returns>
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        return components.getCollectors();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method is called before the post method, and gives the option to add extra registration collectors for the user to be prompted for before the post method is executed.
+    /// </summary>
+    /// <returns>Returns a TFMRegistrationCollectors object if the user must be further prompted, otherwise it returns null</returns>
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>preparePost</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to set up tables to be used in the posting. Ensures that addons can be made, that can modify the data of the block before posting, when needed.
+    /// </summary>
+    public void preparePost()
+    {
+        str                                 journalId;
+        InventDimId                         inventDimId;
+        TFMRequestItemAndDimensionElement   addLineRequest  = request as TFMRequestItemAndDimensionElement;
+        Qty                                 qty             = str2int(addLineRequest.getFieldValue(extendedTypeStr(Qty)));
+        
+        // This function will simple add a line to the journal
+        // The counted quantity is not set. This must be done using the normal registration
+        // Find the journal and validate that lines can be added
+        
+        journalId           = addLineRequest.parmJournalId();
+        inventDim           = addLineRequest.parmInventDim();
+
+        // First try to find the journal with the exact value from the mobile device
+        // (this will fail if the journal id is prefixed)
+        if ( !ProdJournalTable::exist(journalId))
+        {
+            // That did not work -> remove the first character and try again
+            journalId = strDel(journalId,1,1);
+    
+            ProdJournalTable::checkExist(journalId);
+        }
+    
+        prodJournalTable  = ProdJournalTable::find(journalId, true);
+    
+        // If the journal cannot be found now the journal does not exist
+        if (!prodJournalTable)
+        {
+            throw error(ProdJournalTable::txtNotExist());
+        }
+    
+        // Now validate that the journal has not been posted
+        if (prodJournalTable.Posted)
+        {
+            throw error(strFmt("@SYS18421",prodJournalTable.JournalId));
+        }
+
+        inventTable = InventTable::find(addLineRequest.parmItemId());
+        prodJournalBOM.initFromInventTable(inventTable);
+    
+        // Don't set the invent dim id on the line before we have validated if a line with the same values exists
+        inventDimId                     = InventDim::findOrCreate(addLineRequest.createInventDim(inventDim)).inventDimId;
+        
+        
+        prodJournalBOM = this.initProdJournalBOMCreate(inventTable);
+    
+    
+        // Now set the invent dim id
+        prodJournalBOM.InventDimId  = inventDimId;
+    
+        prodJournalBOM.JournalId   = prodJournalTable.JournalID;
+        prodJournalBOM.ProdId       = prodJournalTable.ProdId;
+        prodJournalBOM.BOMConsump   = qty ? qty : 1;
+        prodJournalBOM.BOMProposal  = qty ? qty : 1;
+        prodJournalBOM.InventConsump = qty ? qty : 1;
+        prodJournalBOM.InventProposal = qty ? qty : 1;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method executed when all data has been collected, and contains the posting logic.
+    /// </summary>
+    /// <returns>A TFMPostResponseData object.</returns>
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData                 result          = TFMPostResponseData::Construct();
+        
+        
+        prodJournalBOM.insert();
+
+        prodJournalTable.NumOfLines = ProdJournalBOM::journalLineCount(prodJournalTable.JournalId);
+        prodJournalTable.update();
+    
+        result.parmResponseText("@SYS80122");
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initProdJournalBOMCreate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initializes the prodJournalBOM buffer.
+    /// </summary>
+    /// <param name = "_inventTable">An inventTable buffer.</param>
+    /// <returns>An prodJournalBOM buffer</returns>
+    protected prodJournalBOM initProdJournalBOMCreate(InventTable _inventTable)
+    {
+        date                    pickDate            = MobHelper::today();
+        JournalTableData        journalTableData    = JournalTableData::newTable(prodJournalTable);
+        ProdJournalStatic       journalStatic       = journalTableData.journalStatic();
+        ProdJournalBOM          prodJournalBOMret;
+        
+        ProdJournalTransData  journalTransData      = journalStatic.newJournalTransData(prodJournalBOM,journalTableData);
+        
+        prodJournalBOMret.clear();
+        journalTransData.initFromJournalTable();
+        prodJournalBOMret.TransDate        = pickDate;
+        prodJournalBOMret.initFromInventTable(_inventTable);
+
+        return prodJournalBOMret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        return "@TaskletMobileWMS:AddBOMLine";
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

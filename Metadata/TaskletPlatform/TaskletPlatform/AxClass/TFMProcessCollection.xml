@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMProcessCollection</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Collection class for processes defined in either Code or delta
+/// </summary>
+class TFMProcessCollection
+{
+    Map versionedProcess; //containes the process with a version
+    Map processes; // all processes without including versions.
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    private void new()
+    {
+        processes = new Map(Types::String, Types::Class);
+        versionedProcess = new Map(Types::String, Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMProcessCollection Construct()
+    {
+        return new TFMProcessCollection();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllActiveHeaders</Name>
+				<Source><![CDATA[
+    public Map getAllActiveHeaders()
+    {
+        MapEnumerator                   processEnum = processes.getEnumerator();
+        TFMProcess                      process;
+        TFMReferenceDataConfiguration   refDataConf;
+        Map                             activeHeaders = new Map(Types::String, Types::Class);
+        while (processEnum.moveNext())
+        {
+            process = processEnum.currentValue();
+            if (process.parmRevertToClassic()) 
+            {
+                continue;
+            }
+            if (!process.isInitialized())
+            {
+                if (process.parmVersion() == -1)
+                {
+                    process.parmVersion(TFMProcessVersion::newestVersion(process.parmProcessName(), true));
+                }
+                process.doInit();
+            }
+            refDataConf = process.getHeaders();
+            activeHeaders.insert(refDataConf.parmKey(), refDataConf);
+        }
+        return activeHeaders;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addProcess</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Add the process either to list of processes or if there is a version then to the versined process.
+    /// </summary>
+    /// <param name = "_process">The process - either the Process Template or a versioned Process.</param>
+    public void addProcess(TFMProcess _process)
+    {
+        Version version = _process.parmVersion();
+        if(version < 0)
+        {
+            processes.insert(_process.parmProcessName(), _process);
+        } 
+        else
+        {
+            versionedProcess.insert(this.getKeyVersionId(_process.parmProcessName(), version), _process);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processExists</Name>
+				<Source><![CDATA[
+    public boolean processExists(Name _processName)
+    {
+        TFMProcess process;
+        if (processes.exists(_processName))
+        {
+            process = processes.lookup(_processName);
+            return !process.parmRevertToClassic();
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProcessInfo</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the information that only resides on the TFMProcess (not in the TFMProcessVersion)
+    /// To get a full version of the 
+    /// </summary>
+    /// <param name = "_processName">The name of the process</param>
+    /// <returns></returns>
+    public TFMProcess getProcessInfo(str _processName)
+    {
+        if(processes.exists(_processName))
+        {
+            return processes.lookup(_processName);
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getKeyVersionId</Name>
+				<Source><![CDATA[
+    private str getKeyVersionId(str _key, Version _version)
+    {
+        return _key + "_" + int2Str(_version);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getNewestLockedProcess</Name>
+				<Source><![CDATA[
+    public TFMProcess getNewestLockedProcess(str _key, boolean _skipInit = false)
+    {
+        return this.getprocess(_key, TFMProcessVersion::newestVersion(_key,true), _skipInit);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProcess</Name>
+				<Source><![CDATA[
+    public TFMProcess getProcess(str _key, Version _version, boolean _skipInit = false)
+    {
+        TFMProcess process;
+
+        if(!processes.exists(_key))
+        {
+            //Error(strFmt("No process named: %1 is found.", _key));
+            return null;
+        }
+
+        if(_version > -1)
+        {
+            str keyVersion = this.getKeyVersionId(_key, _version);
+            if(!versionedProcess.exists(keyVersion) )
+            {
+                process = processes.lookup(_key); //get the process template/info.
+                process = TFMProcess::ConstructFromProcess(process, _version);
+                this.addProcess(process);
+            }
+            process = versionedProcess.lookup(keyVersion);
+        } 
+        else
+        {
+            process = processes.exists(_key) ? processes.lookup(_key) : null;
+        }
+
+        if (process && (!process.isInitialized() && !_skipInit))
+        {
+            process.doInit();
+        }
+
+        return process;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTempProcessTable</Name>
+				<Source><![CDATA[
+    public TFMProcessTable getTempProcessTable()
+    {
+        TFMProcess      process;
+        MapEnumerator   processesEnum = processes.getEnumerator();
+        TFMProcessTable tmpProcess;
+
+        tmpProcess.setTmp();
+        while (processesEnum.moveNext())
+        {
+            process = processesEnum.currentValue();
+            tmpProcess.ProcessID        = process.parmProcessName();
+            tmpProcess.Description      = process.parmDescription();
+            tmpProcess.RevertToClassic  = process.parmRevertToClassic();
+            tmpProcess.OriginClass      = classIdGet(process) != classNum(TFMProcess) ? classId2Name(classIdGet(process)) : '';
+            tmpProcess.doInsert();
+        }
+        return tmpProcess;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

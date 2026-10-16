@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageConfigurationList</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPageConfigurationList extends TFMPageConfigurationNode
+{
+}
+
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+</AxClass>

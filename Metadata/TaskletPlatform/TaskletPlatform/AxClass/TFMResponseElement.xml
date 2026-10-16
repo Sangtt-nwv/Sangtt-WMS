@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMResponseElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMResponseElement
+{
+    str                         responseText;
+    str                         innerXML;
+    TFMRequestElement           originalRequest;
+    TFMDocumentDeviceId         deviceId;
+    TFMPageID                   pageId;
+    TFMCommandResponses         commands;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmResponseText</Name>
+				<Source><![CDATA[
+    public str parmResponseText(str _responseText = responseText)
+    {
+        responseText = _responseText;
+        return responseText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPageId</Name>
+				<Source><![CDATA[
+    public TFMPageID parmPageId(TFMPageID _pageId = pageId) { pageId = _pageId; return pageId; }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInnerXML</Name>
+				<Source><![CDATA[
+    public str parmInnerXML(str _innerXML = innerXML)
+    {
+        innerXML = _innerXML;
+        return innerXML;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _element)
+    {
+        _element.innerXml(innerXML);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addCommandResponse</Name>
+				<Source><![CDATA[
+    public void addCommandResponse(TFMCommandResponse _command)
+    {
+        if (!commands)
+        {
+            commands = TFMCommandResponses::Construct();
+        }
+        commands.addCommandResponse(_command);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOriginalRequest</Name>
+				<Source><![CDATA[
+    public TFMRequestElement parmOriginalRequest(TFMRequestElement _originalRequest = originalRequest)
+    {
+        originalRequest = _originalRequest;
+        return originalRequest;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getXML</Name>
+				<Source><![CDATA[
+    public XmlDocument getXML()
+    {
+        XmlDocument         returnXML = new XmlDocument();
+        XmlElement          tmpRootElement          = returnXML.createElement('responseData');
+        this.appendToXML(tmpRootElement);
+        if (commands)
+        {
+            commands.appendToXML(tmpRootElement);
+        }
+        returnXML.appendChild(tmpRootElement);
+        return returnXML;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDeviceId</Name>
+				<Source><![CDATA[
+    public TFMDocumentDeviceId parmDeviceId(TFMDocumentDeviceId _deviceId = deviceId)
+    {
+        deviceId = _deviceId;
+        return deviceId;        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

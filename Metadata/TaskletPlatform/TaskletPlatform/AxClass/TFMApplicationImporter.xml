@@ -1,0 +1,999 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMApplicationImporter</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMApplicationImporter
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getChangesFromApplicationConfigurationFile</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Compares the changes in the file xml with the configurations in the system.
+    /// </summary>
+    /// <param name = "_filexml">The content of the application.cfg file to inspect for changes to the current system</param>
+    /// <param name = "_pagesSelectedForImport">A set of page names to import into the TFMDeltaPages table (delta layer)</param>
+    /// <returns></returns>
+    public static container getChangesFromApplicationConfigurationFile(XmlDocument _fileXmlDocument)
+    {
+        XmlElement pageElement;
+        XmlElement pagesElement = _fileXmlDocument.root().getNamedElement('pages');
+        container               newPages;
+        container               menuItemsAndConfigurationChanges;
+        container               newPagesAndChangedParms;
+        container               menuItemChanges;
+       
+        if(pagesElement)
+        {
+            // create pages not alreay present in the PagesProvider
+            pageElement = pagesElement.firstChild();
+            ttsbegin;
+
+            newPages = TFMApplicationImporter::getUnknownPages(pageElement);
+            menuItemsAndConfigurationChanges = TFMApplicationImporter::getMenuAndConfigurationChangesForPages(pagesElement);
+            newPagesAndChangedParms = [newPages, conPeek(menuItemsAndConfigurationChanges, 1), conPeek(menuItemsAndConfigurationChanges, 2)];
+            ttscommit;
+        }
+        return newPagesAndChangedParms;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createSelectedMenuItems</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates the selected menu items in the TFMPageMenuItems.
+    /// </summary>
+    /// <return>true, if pages was created</return>
+    /// <param name = "_pagesSelectedForImport"></param>
+    public static boolean createSelectedMenuItems(Set _selectMenuItems)
+    {
+        TFMPageMenuItems mobPageMenuItems;
+        boolean       newPagesInserted;
+        SetEnumerator selectedMenuItemsEnumerator;
+        Map menuItemsForPage = new Map(Types::String, Types::Class);
+        int i;
+        TFMPages pages = TFMPagesProvider::getAllPages();
+        container currentMenuItem;
+        str pageId;
+        str name;
+        str menuId;
+        str title;
+        str icon;
+        container extraParameters;
+        TFMMenuItemStateConfiguration menuItem;
+        container extraParm;
+
+        if(!_selectMenuItems)
+        {
+            return false;
+        }
+        
+        selectedMenuItemsEnumerator = _selectMenuItems.getEnumerator();
+
+        while(selectedMenuItemsEnumerator.moveNext())
+        {
+            currentMenuItem = selectedMenuItemsEnumerator.current();
+
+            //container looks like: [_page.parmId(), name, id, title, icon, extraMenuItemsParms];
+            pageId = conPeek(currentMenuItem, 1);
+            name = conPeek(currentMenuItem, 2);
+            menuId = conPeek(currentMenuItem, 3);
+            title = conPeek(currentMenuItem, 4);
+            icon = conPeek(currentMenuItem, 5);
+            extraParameters = conPeek(currentMenuItem, 6);
+
+            menuItem = TFMMenuItemStateConfiguration::Construct(menuId, -1);
+            if(title)
+            {
+                menuItem.parmTitle(title);
+            }
+
+            if(extraParameters && conLen(extraParameters) > 0)
+            {
+                if(!menuItem.parmAdditionalProperties())
+                {
+                    menuItem.parmAdditionalProperties(new TFMPageMenuItemsAdditionalProperties());
+                }
+                
+                for (i = 1 ; i <= conLen(extraParameters) ; i++)
+                {
+                    extraParm = conPeek(extraParameters, i);
+                    menuItem.parmAdditionalProperties().addParameter(conPeek(extraParm, 1), conPeek(extraParm, 2)); // add the key value for extra parameters.
+                }
+            }
+            menuItemsForPage.add(menuId, menuItem);
+            
+            newPagesInserted = true;
+            TFMPageMenuItems::createMenuItems(menuItemsForPage, pages.getPage(pageId));
+        }
+
+        return newPagesInserted;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createSelectedPages</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates the selected pages in the TFMDeltaPages.
+    /// </summary>
+    /// <return>true, if pages was created</return>
+    /// <param name = "_pagesSelectedForImport"></param>
+    public static boolean createSelectedPages(Set _pagesSelectedForImport)
+    {
+        TFMDeltaPages mobQueryPages;
+        boolean       newPagesInserted;
+        str name;
+        str type;
+        str icon;
+        str title;
+        SetEnumerator selectedPagesEnumerator;
+        container currentSelectedPage;
+        str filterKey;
+        
+        if(!_pagesSelectedForImport)
+        {
+            return false;
+        }
+        
+        selectedPagesEnumerator = _pagesSelectedForImport.getEnumerator();
+
+        while(selectedPagesEnumerator.moveNext())
+        {
+            currentSelectedPage = selectedPagesEnumerator.current();
+            name = conPeek(currentSelectedPage, 1);
+            type = conPeek(currentSelectedPage, 2);
+            icon = conPeek(currentSelectedPage, 3);
+            title = conPeek(currentSelectedPage, 4);
+            //filterKey = conPeek(currentSelectedPage, 5);
+
+            TFMApplicationImporter::createOrUpdateTFMQueryPage(name, type, icon, title, null);
+            newPagesInserted = true;
+        }
+
+        if(newPagesInserted)
+        {
+            TFMPagesProvider::instance().invalidateProvider();
+        }
+
+        return newPagesInserted;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createOrUpdateTFMQueryPage</Name>
+				<Source><![CDATA[
+    private static void createOrUpdateTFMQueryPage(str _name, str _type, str _icon, str _title, str _filterKey)
+    {
+        TFMDeltaPages mobQueryPages;
+        ttsbegin;
+        select forupdate firstonly mobQueryPages where mobQueryPages.Name == _name;
+        mobQueryPages.Name = _name;
+        if(_type)
+        {
+            mobQueryPages.Type = _type;
+        }
+        if(_icon)
+        {
+            mobQueryPages.Icon = _icon;
+        }
+        if(_title)
+        {
+            mobQueryPages.Title = _title;
+        }
+        if(_filterKey)
+        {
+            mobQueryPages.FilterName = _filterKey;
+        }
+        mobQueryPages.write();
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getUnknownPages</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get all unknown pages in the provided config file.
+    /// </summary>
+    /// <param name = "_pageElement">The page xml element of the first child (page).</param>
+    private static container getUnknownPages(XmlElement _pageElement)
+    {
+        TFMDeltaPages mobQueryPages;
+        TFMPages pages = TFMPagesProvider::getAllPages();
+        container newPages;
+        ListIterator selectedPageNamesIterator;
+        TFMPage page;
+        str name;
+        str type;
+        str icon;
+        str title;
+
+        while(_pageElement)
+        {
+            name = _pageElement.getAttribute('id');
+            type = _pageElement.getAttribute('type');
+            icon = _pageElement.getAttribute('icon');
+            title = _pageElement.getNamedElement('title').getAttribute('defaultValue');
+            page = pages.getPage(name);
+
+            if(page || !TFMApplicationImporter::IsInAcceptedTypeList(type))
+            {
+                _pageElement = TFMApplicationImporter::getNextPageElement(_pageElement);
+                continue;
+            }
+
+            select firstonly mobQueryPages where mobQueryPages.Name == name;
+            if(!mobQueryPages)
+            {
+                newPages = conIns(newPages, 1, [name, type, icon, title, null]);
+            }
+            
+            _pageElement = TFMApplicationImporter::getNextPageElement(_pageElement);
+        }
+        return newPages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMenuAndConfigurationChangesForPages</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Go through all pages and find diff from application.cfg file
+    /// </summary>
+    /// <param name = "_pages"></param>
+    /// <param name = "_pagesElement"></param>
+    private static container getMenuAndConfigurationChangesForPages(XmlElement _pagesElement)
+    {
+        TFMDeltaPages                           mobQueryPages;
+        TFMPage                                 page;
+        MapEnumerator                           pageEnum;
+        XmlElement                              pageElement;
+        XmlElement                              configurationElement;
+        TFMPageConfiguration                    configuration;
+        TFMPages                                pages = TFMPagesProvider::getAllPages();
+        container                               changedParameters;
+        container                               changedParm;
+        container                               menuChanges;
+        str                                     pageid;
+        str                                     name;
+        str                                     type;
+        str                                     icon;
+        str                                     title;
+        str                                     filterKey;
+        XmlElement                              filterElement;
+
+        pageEnum = pages.getPages().getEnumerator();
+        
+        while(pageEnum.moveNext())
+        {
+            page = pageEnum.currentValue();
+            pageid = page.parmId();
+           
+            pageElement = _pagesElement.selectSingleNode("//*[local-name()='page'][@id='"+ pageid +"']");
+            
+            if(pageElement)
+            {
+                // page diffs
+                name = pageElement.getAttribute('id');
+                type = pageElement.getAttribute('type');
+                icon = pageElement.getAttribute('icon');
+                title = pageElement.getNamedElement('title').getAttribute('defaultValue');
+
+                
+
+                if(page.parmTitle() != title)
+                {
+                    changedParm = [pageid, 'page', type, 'parmTitle', page.parmTitle(), title]; //page name, configuration class name, methodname, org value, new value (from config)
+                    changedParameters = conIns(changedParameters, 1, changedParm);
+                }
+
+                if(page.parmIcon() != icon)
+                {
+                    changedParm = [pageid, 'page', type, 'parmIcon', page.parmIcon(), icon]; //page name, configuration class name, methodname, org value, new value (from config)
+                    changedParameters = conIns(changedParameters, 1, changedParm);
+                }
+
+                // handle configuration element
+                configuration = page.getConfiguration();
+                if(!configuration)
+                {
+
+                    continue;
+                }
+
+                configurationElement = pageElement.getNamedElement(configuration.GetConfigurationPageName());
+
+                if(configurationElement)
+                {
+                    filterElement = configurationElement.getNamedElement('filter');
+                    if(!filterElement)
+                    {
+                        filterElement = configurationElement.getNamedElement('header');
+                    }
+                    if(filterElement)
+                    {
+                        filterKey = filterElement.getAttribute('configurationKey');
+                    }
+                }
+
+                if(page.parmFilter() != filterKey)
+                {
+                    // if the filterKey was changed then we add the change here.
+                    changedParm = [pageid, 'page', type, 'parmFilter', page.parmFilter(), filterKey]; //page name, configuration class name, methodname, org value, new value (from config)
+                    changedParameters = conIns(changedParameters, 1, changedParm);
+                }
+
+                changedParameters = TFMApplicationImporter::getChangesForConfigurationElement(pageid, configurationElement, configuration, changedParameters);
+                menuChanges = TFMApplicationImporter::getMenuItemChanges(pageElement, page, menuChanges, pages);
+            }
+
+        }
+
+
+        return [changedParameters, menuChanges];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMenuItemChanges</Name>
+				<Source><![CDATA[
+    public static container getMenuItemChanges(XmlElement _pageElement, TFMPage _page, container _menuItemsChanges, TFMPages _pages)
+    {
+        SetEnumerator                           methodSetEnum;
+        TFMPageConfigurationAttributeAttribute	configAttr;
+        TFMPageActionAttribute                  actionAttr;
+        SysDictMethod			                DM;
+        container                               changedMenuItem;
+        XmlElement                              actionsElement;
+        TFMPageMenuItems				        menuItemsTable;
+        XmlNodeList                             nodes;
+        XmlElement                              xmlAction;
+        str                                     name;
+        str                                     id;
+        str                                     dataMember;
+        str                                     title;
+        str                                     icon;
+        str                                     registrationType;
+        str                                     imageProperty;
+        container                               extraMenuItemsParms;
+        container                               extraMenuItemsParm;
+        
+        // go through all the actions to see if they should be added.
+        actionsElement = _pageElement.getNamedElement('actions');
+        if(actionsElement)
+        {
+            nodes = actionsElement.childNodes();
+            xmlAction = TFMApplicationImporter::getNextActionElement(nodes);
+            while(xmlAction)
+            { 
+                name             = xmlAction.name();
+                id               = xmlAction.getAttribute('id');
+                dataMember       = xmlAction.getAttribute('dataMember');
+                title            = xmlAction.getAttribute('title    ');
+                icon             = xmlAction.getAttribute('icon');
+                if(name)
+                {
+                    // if the actions is a an adhoc
+                    // or there is no data member on the action
+
+                    if(TFMPageMenuItems::find(_page.parmId(), id))
+                    {
+                        xmlAction = TFMApplicationImporter::getNextActionElement(nodes);
+                        continue;    
+                    }
+
+                    if(name == 'open' && !dataMember)
+                    {
+
+                        changedMenuItem = [_page.parmId(), name, id, title];
+                        _menuItemsChanges = conIns(_menuItemsChanges, 1, changedMenuItem);
+                    } 
+                    else if(name == 'adhocRegistration')
+                    {
+                        registrationType = xmlAction.getAttribute('registrationType');
+                        extraMenuItemsParms = conNull();
+                        extraMenuItemsParm = ['registrationType', registrationType];
+                        extraMenuItemsParms = conIns(extraMenuItemsParms, 1, extraMenuItemsParm);
+                        changedMenuItem = [_page.parmId(), name, id, title, icon, extraMenuItemsParms];
+                        _menuItemsChanges = conIns(_menuItemsChanges, 1, changedMenuItem);
+                    }
+                    else if(name == 'showImage')
+                    {
+                        imageProperty = xmlAction.getAttribute('imageProperty');
+                        extraMenuItemsParms = conNull();
+                        extraMenuItemsParm = ['imageProperty', imageProperty];
+                        extraMenuItemsParms = conIns(extraMenuItemsParms, 1, extraMenuItemsParm);
+                        changedMenuItem = [_page.parmId(), name, id, title, icon, extraMenuItemsParms];
+                        _menuItemsChanges = conIns(_menuItemsChanges, 1, changedMenuItem);
+                    }
+                }
+                xmlAction = TFMApplicationImporter::getNextActionElement(nodes);
+            }
+        }
+
+        return _menuItemsChanges;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getNextActionElement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns the next xml element
+    /// </summary>
+    /// <returns></returns>
+    protected static XmlElement getNextActionElement(XmlNodeList _actionsElementChildren)
+    {
+        XmlNode node = _actionsElementChildren.nextNode();
+        if(!node)
+        {
+            return null;
+        }
+
+        if(node as XmlElement)
+        {
+            return node;
+        }
+
+        return TFMApplicationImporter::getNextActionElement(_actionsElementChildren);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getChangesForConfigurationElement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the changes that is introduced with the xml page configuration element.
+    /// </summary>
+    /// <param name = "_pageId">The id of the page</param>
+    /// <param name = "_configurationElement">The Xml for the page configuration</param>
+    /// <param name = "_configuration">The configuration object</param>
+    /// <param name = "_changedParameters">A container that holds the changed parameters.</param>
+    /// <returns>Returns the changed parameters concatinated with the already added parameters.</returns>
+    public static container getChangesForConfigurationElement(str _pageId, XmlElement _configurationElement, TFMPageConfiguration _configuration, container _changedParameters)
+    {
+        TFMPageConfigParms                      mobPageConfigParms;
+        container                               changedParm;
+        SetEnumerator                           methodSetEnum;
+        TFMPageConfigurationAttributeAttribute	configAttr;
+        TFMPageActionAttribute                  actionAttr;
+        SysDictMethod			                DM;
+        str                                     nodeName;
+        Set                                     handledParmNames = new Set(Types::String);
+        Map                                     services;
+        str                                     configFileAttributeValue;
+        anytype                                 dbValue;
+        str                                     valueToCompare;
+        TFMService                              service;
+        XmlElement                              servicesElement;
+        XmlElement                              pageElement;
+        XmlElement                              pageServiceElement;
+        XmlElement                              serviceElement;
+        str                                     serviceId;
+        List                                    xpathSplits;
+        XmlNamedNodeMap                         configurationElementAttributes;
+        XmlNode                                 attr;
+        TFMPageXSDParser                        xsdParser;
+        Map                                     attributes;
+        Map                                     concreateAttribute;
+        int                                     counter;
+
+        if(!_configurationElement)
+        {
+            // there can be no changes to a non existing configuraton element
+            return _changedParameters;
+        }
+
+        methodSetEnum = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(_configuration)).getEnumerator();
+        while (methodSetEnum.moveNext())
+        {
+            configFileAttributeValue = null;
+            if(TFMApplicationImporter::inIgnoreList(methodSetEnum.current()))
+            {
+                continue;
+            }
+
+            DM = new SysDictMethod(UtilElementType::ClassInstanceMethod,classIdGet(_configuration), methodSetEnum.current());
+            configAttr = DM.getAttribute(classStr(TFMPageConfigurationAttributeAttribute));
+
+            if(configAttr )
+            {
+                actionAttr = DM.getAttribute(classStr(TFMPageActionAttribute));
+                if(actionAttr)
+                {
+                    // add the action (menu item)
+                    // TODO: should we ignore settings for menu items? If not then add actions also.
+
+                    continue;
+                }
+
+                nodeName = TFMFormLookupHelper::removeParmFromName(methodSetEnum.current());
+                handledParmNames.add(nodeName);
+
+                xpathSplits = strSplit(configAttr.parmXPath(), '/');
+
+                // find service attribute and search for attributes there first
+
+                pageElement = _configurationElement.parentNode();
+                // look in the services element
+                pageServiceElement = _configurationElement.getNamedElement('service');
+                
+                if(pageServiceElement && !handledParmNames.in('service'))
+                {
+                    
+                    serviceId = pageServiceElement.getAttribute('id');
+
+                    services = TFMServiceProvider::getServices();
+                
+                    // check services
+                    if(services.exists(_configuration.parmName()))
+                    {
+                        service = services.lookup(_configuration.parmName());
+                        servicesElement = pageElement.parentNode().parentNode().getNamedElement('services');
+                        if(servicesElement)
+                        {
+                            serviceElement = servicesElement.selectSingleNode("//*[local-name()='service'][@id='" + serviceId + "']");
+                            if(serviceElement)
+                            {
+                                configFileAttributeValue = TFMApplicationImporter::iterateXPathSplitToFindAttributeOrElementValue(xpathSplits, serviceElement, nodeName);
+                            }
+                        }
+                        
+                    }
+                    handledParmNames.add('service');
+                }
+                
+                if(!configFileAttributeValue)
+                {
+                    configFileAttributeValue = TFMApplicationImporter::iterateXPathSplitToFindAttributeOrElementValue(xpathSplits, _configurationElement, nodeName);
+                }
+
+                if(!configFileAttributeValue)
+                {
+                    continue;
+                }
+
+                dbValue = TFMPageConfigParms::getValue(_configuration.parmName(), classId2Name(classIdGet(_configuration)), DM.name(), '');
+
+                // the value in the database takes presendence over the default value.
+                valueToCompare = dbValue ? TFMApplicationImporter::getDbValueString(dbValue, DM) : configAttr.parmDefaultValue().ToString();
+
+                if(!valueToCompare && (nodeName == 'navigateTo' || nodeName == 'type')) // work around be cause the navigate to is set on the page.
+                {
+                    continue;
+                }
+                        
+                if(configFileAttributeValue || valueToCompare)
+                {
+                    if(!TFMApplicationImporter::checkIfValueComparesToExistingValue(DM.name(), configFileAttributeValue, valueToCompare))
+                    {
+                        // the value has changed so add to the changed list
+                        changedParm = [_pageId, classId2Name(classIdGet(_configuration)), _configuration.getConfigurationPageName(), DM.name(), valueToCompare, configFileAttributeValue]; //page name, configuration class name, methodname, org value, new value (from config)
+                        _changedParameters = conIns(_changedParameters, 1, changedParm);
+                    }
+                }
+            }
+        }
+
+        // look at the non-parms attributes
+        configurationElementAttributes = _configurationElement.attributes();
+        counter = configurationElementAttributes.length() - 1;
+        while(counter > 0)
+        {
+            attr = configurationElementAttributes.item(counter);
+
+            if(TFMApplicationImporter::inIgnoreList(attr.name()))
+            {
+                counter--;
+                continue;
+            }
+
+            dbValue = TFMPageConfigParms::getValue(_configuration.parmName(), classId2Name(classIdGet(_configuration)), 'General_' + attr.name(), '');
+
+            // the value in the database takes presendence .
+            valueToCompare = dbValue ? TFMApplicationImporter::getDbValueString(dbValue, null) : '';
+            if(!dbValue)
+            {
+                // no db value then we use the default value from the application.xsd file.
+                xsdParser = TFMPageXsdParserProvider::instance().getEntityImpl();
+                attributes = xsdParser.drillDownForAttributes('application/pages/page/' + TFMRegistrationCollector::smallBeginnings(subStr(classId2Name(classIdGet(_configuration)),strLen(classStr(TFMPage))+1,strLen(classId2Name(classIdGet(_configuration))))));
+                if(attributes.exists(attr.name()))
+                {
+                    concreateAttribute = attributes.lookup(attr.name());
+                    if(concreateAttribute)
+                    {
+                        valueToCompare = concreateAttribute.lookup('default');
+                    }
+                }
+            }
+
+            configFileAttributeValue = attr.value();
+            if(configFileAttributeValue && !handledParmNames.in(attr.name()))
+            {
+                if(!TFMApplicationImporter::checkIfValueComparesToExistingValue('General_'+ attr.name(), configFileAttributeValue, valueToCompare))
+                {
+                    // the value has changed so add to the changed list
+                    changedParm = [_pageId, classId2Name(classIdGet(_configuration)), _configuration.getConfigurationPageName(), 'General_' + attr.name(), valueToCompare, configFileAttributeValue]; //page name, configuration class name, methodname, org value, new value (from config)
+                    _changedParameters = conIns(_changedParameters, 1, changedParm);
+                }
+            }
+
+            counter--;
+        }
+
+        return _changedParameters;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDbValueString</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the db value as a string.
+    /// </summary>
+    /// <param name = "_dbValue"></param>
+    /// <param name     = "_DM"></param>
+    /// <returns></returns>
+    private static str getDbValueString(anytype _dbValue, SysDictMethod _DM)
+    {
+        str enumSymbolValue;
+        SysDictType dictType;
+        if(_DM)
+        {
+            dictType    = new SysDictType(_DM.returnId());
+            if(dictType && dictType.baseType() == Types::Enum)
+            {
+                enumSymbolValue = TFMHelper::enumName(dictType.enumId(), TFMDocCustomFunctionFlow::enumLabel2Id(_dbValue, _DM.returnTypeName()));
+                if(enumSymbolValue)
+                {
+                    return enumSymbolValue;
+                }
+            }
+        }
+        return _dbValue.ToString();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>iterateXPathSplitToFindAttributeOrElementValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds the attributes that matches the xpath.
+    /// </summary>
+    /// <param name = "_xpathSplits"></param>
+    /// <param name = "_startElement"></param>
+    /// <param name = "_nodeName"></param>
+    /// <returns></returns>
+    private static str iterateXPathSplitToFindAttributeOrElementValue(List _xpathSplits, XmlElement _startElement, str _nodeName)
+    {
+        XmlElement xpathSelectedElementSplit;
+        ListEnumerator xpathSplitsEnum = _xpathSplits.getEnumerator();
+        XmlElement xpathSelectedElement = _startElement;
+        str configFileAttributeValue;
+        while(xpathSplitsEnum.moveNext())
+        {
+            if(xpathSelectedElement && xpathSplitsEnum && xpathSplitsEnum.current())
+            {
+                xpathSelectedElementSplit = xpathSelectedElement.getNamedElement(xpathSplitsEnum.current());
+                if(xpathSelectedElementSplit)
+                {
+                    xpathSelectedElement = xpathSelectedElementSplit;
+                }
+            }
+        }
+        
+        if(xpathSelectedElement && xpathSelectedElement.hasAttribute(_nodeName))
+        {
+            configFileAttributeValue = xpathSelectedElement.getAttribute(_nodeName);
+            return configFileAttributeValue;
+        } 
+        else if(xpathSelectedElement && xpathSelectedElement.getNamedElement(_nodeName))
+        {
+            configFileAttributeValue = xpathSelectedElement.getNamedElement(_nodeName).innerText();
+            return configFileAttributeValue;
+        }
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createConfigurationChanges</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Create the selected configuration changes in the delta layer.
+    /// </summary>
+    /// <param name = "_selectedChanges">The selected configurations</param>
+    /// <returns></returns>
+    public static boolean createConfigurationChanges(Set _selectedChanges, XmlDocument _fileXmlDoc)
+    {
+        TFMPageConfigParms  mobPage;
+        TFMPageConfigParms  mobPageConfigParms;
+        boolean             configurationChanged;
+        SetEnumerator       selectedChangesEnumerator;
+        XmlElement          listsElement;
+        boolean skipParmUpdate;
+        container currentSelectedChange;
+        str pageid;
+        str configurationName;
+        str type;
+        str parmMethodName;
+        str orgValue;;
+        str valueToApply;
+        TFMList list;
+        XmlElement listElement;
+        
+        selectedChangesEnumerator = _selectedChanges.getEnumerator();
+
+        while(selectedChangesEnumerator.moveNext())
+        {
+            skipParmUpdate = false;
+            currentSelectedChange = selectedChangesEnumerator.current();
+            pageid = conPeek(currentSelectedChange, 1);
+            configurationName = conPeek(currentSelectedChange, 2);
+            type = conPeek(currentSelectedChange, 3);
+            parmMethodName = conPeek(currentSelectedChange, 4);
+            orgValue = conPeek(currentSelectedChange, 5);
+            valueToApply = conPeek(currentSelectedChange, 6);
+
+            if(configurationName == 'page') // special handling for pages.
+            {
+                if(parmMethodName == 'parmIcon')
+                {
+                    TFMApplicationImporter::createOrUpdateTFMQueryPage(pageid, type, valueToApply, null, null);
+                }
+
+                if(parmMethodName == 'parmTitle')
+                {
+                    TFMApplicationImporter::createOrUpdateTFMQueryPage(pageid, type, null, valueToApply, null);
+                }
+
+                if(parmMethodName == 'parmFilter')
+                {
+                    TFMApplicationImporter::createOrUpdateTFMQueryPage(pageid, type, null, null, valueToApply);
+                }
+            }
+            else
+            {
+                if(parmMethodName == 'parmListId')
+                {
+                    // make special handling for list configurations
+                    // if the list is already in the system we use that but then there is no change
+                    // if the list is in the configuration file then use that
+                    list = TFMListsProvider::getAllLists().getList(valueToApply);
+                    if(!list)
+                    {
+                        if(!listsElement)
+                        {
+                            XmlElement resourcesElement = _fileXmlDoc.root().getNamedElement('resources');
+                            if(resourcesElement)
+                            {
+                                listsElement = resourcesElement.getNamedElement('lists');
+                            }
+                        }
+
+                        if(listsElement)
+                        {
+                            // Find the list in the xml input
+                            listElement = listsElement.selectSingleNode("//*[local-name()='listConfiguration'][@id='"+ valueToApply +"']");
+                            if(listElement)
+                            {
+                                TFMImportLists::importList(listElement); //TODO: make test for invalid list
+                            }
+                            else
+                            {
+                                // no reason to add the PageConfigParms
+                                skipParmUpdate = true;
+                            }
+                        }
+                    }
+                    // else default to the one in the parm method.
+                }
+
+                if(!skipParmUpdate)
+                {
+                    select forupdate mobPageConfigParms where mobPageConfigParms.Name == pageid && mobPageConfigParms.ClassName == configurationName && mobPageConfigParms.MethodName == parmMethodName;
+                    TFMPageConfigParms::CreateOrUpdateParameter(pageid, configurationName, parmMethodName, valueToApply);
+                }
+            }
+
+            configurationChanged = true;
+        }
+
+        if(configurationChanged)
+        {
+            TFMPagesProvider::instance().invalidateProvider();
+        }
+        
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>clearAndRestoreMenuItems</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Clears the menu items for the selected pages. The PagesProvider is then invalidated that will cause the system to load the default and mandatory menu items again for the page.
+    /// </summary>
+    /// <param name = "_selectedPages"></param>
+    public static void clearAndRestoreMenuItems(Set _selectedPages)
+    {
+        boolean       altered;
+        Map           sortedMenuItems;
+        str           pageid;
+        TFMPage       page;
+        SetEnumerator selectedPagesEnumerator = _selectedPages.getEnumerator();
+        TFMPagesProvider pagesProvider        = TFMPagesProvider::instance();
+        TFMPages      pages                   = TFMPagesProvider::getAllPages();
+
+        while(selectedPagesEnumerator.moveNext())
+        {
+            pageid = selectedPagesEnumerator.current();
+            TFMpageMenuItems::deleteMenuItemsForPage(pageid);
+            altered = true;
+            
+            page = pages.getPage(pageid);
+            sortedMenuItems = pagesProvider.getSortedMenuItemsForPage(page);
+            TFMPageMenuItems::createMenuItems(sortedMenuItems, page);
+        }
+
+        if(altered)
+        {
+            TFMPagesProvider::instance().invalidateProvider();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>inIgnoreList</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks if the _methodName is in the list of ignored MethodNames
+    /// </summary>
+    /// <param name = "_methodName">The name of the method to check</param>
+    /// <returns>True, if the _methodName is in the list of ignored method names.</returns>
+    public static boolean inIgnoreList(str _methodName)
+    {
+        container methodNames = [TFMConstants::RegistrationCollector(), 'parmId'];
+        return TFMApplicationImporter::IsInList(methodNames, _methodName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IsInAcceptedTypeList</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks if the _type is in the list of accepted types.
+    /// </summary>
+    /// <param name = "_type"></param>
+    /// <returns>True, if the _type is in the list of accepted types</returns>
+    public static boolean IsInAcceptedTypeList(str _type)
+    {
+        container includedTypes = [TFMConstants::LookupType(), TFMConstants::UnplannedItemRegistration(), TFMConstants::OrderLines(), TFMConstants::Order(), TFMConstants::OrderLines(), 'Registrations', 'OfflineManagement', 'AdhocRegistration', TFMConstants::Lookup()];
+        return TFMApplicationImporter::isInList(includedTypes, _type);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isInList</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Check if the _value is in part of the _listOfAcceptedValues.
+    /// </summary>
+    /// <param name = "_listOfAcceptedValues">container that holds the accepted values</param>
+    /// <param name = "_value">The value that should be a part of the _listOfAcceptedValues</param>
+    /// <returns>True, if the _value is a part of the _ListOfAcceptedValues</returns>
+    public static boolean isInList(container _listOfAcceptedValues, str _value)
+    {
+        int counter      = 1;
+        str currentValue = conPeek(_listOfAcceptedValues, counter);
+
+        while(currentValue)
+        {
+            if(strScan(strLwr(_value), strLwr(currentValue), 0, 100000) > 0)
+            {
+                return true;
+            }
+            counter++;
+            currentValue = conPeek(_listOfAcceptedValues, counter);
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getNextPageElement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds the next page element.
+    /// </summary>
+    /// <param name = "_pageElement"></param>
+    /// <returns></returns>
+    private static XmlElement getNextPageElement(XmlNode _pageElement)
+    {
+        XmlNode node;
+        if(!_pageElement)
+        {
+            return null;
+        }
+        node = _pageElement.nextSibling();
+        if(node as XmlElement)
+        {
+            return node;
+        }
+        else
+        {
+            return TFMApplicationImporter::getNextPageElement(node);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkIfValueComparesToExistingValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Compares if the _configFileAttributeValue is the same as the value to compare it to.
+    /// </summary>
+    /// <param name = "_methodName"></param>
+    /// <param name = "_configFileAttributeValue"></param>
+    /// <param name = "_valueToCompare"></param>
+    /// <returns>True, if the values compares.</returns>
+    public static boolean checkIfValueComparesToExistingValue(str _methodName, str _configFileAttributeValue, str _valueToCompare)
+    {
+        TFMListIDAttribute listIdToFind;
+        TFMList listIdFound;
+
+        if(strLwr(_configFileAttributeValue) == strLwr(_valueToCompare))
+        {
+            return true;
+        }
+
+        //allow comparison of false / true to 0 / 1 values.
+        if( (strLwr(_configFileAttributeValue) == 'false' &&  _valueToCompare == '0') || (strLwr(_configFileAttributeValue) == 'true' &&  _valueToCompare == '1'))
+        {
+            return true;
+        }
+
+        if(_methodName == 'parmListId')
+        {
+            // special handling of listId
+            listIdToFind = new TFMListIDAttribute(_configFileAttributeValue);
+
+            listIdFound = TFMGetRegistrationConfiguration::getClassFromSysAttribute(classStr(TFMList), listIdToFind);
+            
+            // Create containers per page type or ask the configurations page about it.
+            if(listIdFound && listIdFound.parmListName())
+            {
+                return strLwr(_configFileAttributeValue) == strLwr(listIdFound.parmListName());
+            }
+        }
+        
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

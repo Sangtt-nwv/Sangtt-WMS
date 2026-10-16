@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMClassificationHierarchy</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMClassificationHierarchy extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>classifyInput</Name>
+				<Source><![CDATA[
+    public static TFMClassificationID classifyInput(str _input)
+    {
+        TFMClassificationHierarchy  hierarchy;
+        Common                      record;
+
+        while select hierarchy where _input != ''
+        {
+            record = TFMClassificationHierarchy::findRecord(hierarchy.TableName, hierarchy.FieldName, _input);
+            if(record != null)
+            {
+                return hierarchy.ClassificationID;
+            }
+        }
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findRecord</Name>
+				<Source><![CDATA[
+    public static Common findRecord(TableName _tableName, FieldName _fieldName, str _value)
+    {
+        Query                   q       = new Query();
+        QueryBuildDataSource    qbds    = q.addDataSource(tableName2Id(_tableName));
+        QueryBuildRange         qbr     = qbds.addRange(fieldName2Id(tableName2Id(_tableName), _fieldName));
+        QueryRun                qr;
+        qbr.value(_value);
+
+        qr = new QueryRun(q);
+        
+        //qr.run();
+        if (qr.next())
+        {
+            return qr.get(tableName2Id(_tableName));
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findAndReplaceInput</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds and replaces the input based on the FieldNameReturn and if the _returnNameClause has been set only if the _returnNameClause is the same. E.g. ItemId
+    /// </summary>
+    public static str findAndReplaceInput(str _input, str _returnNameClause = '')
+    {
+        TFMClassificationHierarchy  hierarchy;
+        Common                      record;
+        SysDictTable                sdt;
+
+        while select hierarchy where (hierarchy.FieldNameReturn == _returnNameClause || (hierarchy.FieldNameReturn && _returnNameClause)) && _input != ''
+        {
+            record = TFMClassificationHierarchy::findRecord(hierarchy.TableName, hierarchy.FieldName, _input);
+            if(record != null)
+            {
+                sdt = new SysDictTable(record.TableId);
+
+                return strFmt('%1',record.(sdt.fieldName2Id(hierarchy.FieldNameReturn)));
+            }
+        }
+        return _input;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exist</Name>
+				<Source><![CDATA[
+    public static boolean exist(TFMClassificationID _classificationID)
+    {
+        TFMClassificationHierarchy hierarchy;
+
+        select firstonly RecId from hierarchy where hierarchy.ClassificationID == _classificationID;
+
+        return hierarchy.RecId != 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initializeStandard</Name>
+				<Source><![CDATA[
+    public static void initializeStandard()
+    {
+        TFMClassificationHierarchy  classHierarchy;
+        TFMClassificationID         classificationID = 'Item Number';
+
+        if(!TFMClassificationHierarchy::exist(classificationID))
+        {
+            classHierarchy.ClassificationID = classificationID;
+            classHierarchy.TableName        = tableStr(InventTable);
+            classHierarchy.FieldName        = fieldStr(InventTable, ItemId);
+            classHierarchy.insert();
+        }
+        classificationID = 'License Plate';
+        if(!TFMClassificationHierarchy::exist(classificationID))
+        {
+            classHierarchy.ClassificationID = classificationID;
+            classHierarchy.TableName        = tableStr(WHSLicensePlate);
+            classHierarchy.FieldName        = fieldStr(WHSLicensePlate, LicensePlateId);
+            classHierarchy.insert();
+        }
+
+        classificationID = 'Serial Number';
+        if(!TFMClassificationHierarchy::exist(classificationID))
+        {
+            classHierarchy.ClassificationID = classificationID;
+            classHierarchy.TableName        = tableStr(InventSerial);
+            classHierarchy.FieldName        = fieldStr(InventSerial, InventSerialId);
+            classHierarchy.FieldNameReturn  = fieldStr(InventSerial, ItemId);
+            classHierarchy.insert();
+        }
+
+        classificationID = 'Barcode';
+        if(!TFMClassificationHierarchy::exist(classificationID))
+        {
+            classHierarchy.ClassificationID = classificationID;
+            classHierarchy.TableName        = tableStr(InventItemBarcode);
+            classHierarchy.FieldName        = fieldStr(InventItemBarcode, itemBarCode);
+            classHierarchy.FieldNameReturn  = fieldStr(InventItemBarcode, ItemId);
+            classHierarchy.insert();
+        }
+
+        classificationID = 'GTIN';
+        if(!TFMClassificationHierarchy::exist(classificationID))
+        {
+            classHierarchy.ClassificationID = classificationID;
+            classHierarchy.TableName        = tableStr(InventItemGTIN);
+            classHierarchy.FieldName        = fieldStr(InventItemGTIN, GlobalTradeItemNumber);
+            classHierarchy.FieldNameReturn  = fieldStr(InventItemBarcode, ItemId);
+            classHierarchy.insert();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ClassificationID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TableName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FieldName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FieldNameReturn</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>SysRowVersionNumber</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>SysRowVersionNumber</ExtendedDataType>
+			<Null>Yes</Null>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ClassificationID</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TFMClassificationID</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FieldName</Name>
+			<ExtendedDataType>FieldName</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>TableName</Name>
+			<ExtendedDataType>TableName</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FieldNameReturn</Name>
+			<ExtendedDataType>FieldName</ExtendedDataType>
+			<Label>@TFM:Returnfield</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>uniqueIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ClassificationID</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>FieldName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>TableName</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDataCacheProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDataCacheProvider
+{
+    Map dataCache;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>instance</Name>
+				<Source><![CDATA[
+    public static TFMDataCacheProvider instance()
+    {
+        TFMDataCacheProvider   provider;
+        System.Runtime.Caching.ObjectCache memCache = System.Runtime.Caching.MemoryCache::Default;
+        str cacheId = classId2Name(classIdGet(provider));
+        provider = memCache.Get(cacheId);
+        System.Collections.Generic.List<str> cacheIdList = new System.Collections.Generic.List<str>();
+        cacheIdList.add(cacheId);
+        System.Collections.IEnumerable cacheIdListEnumuable = cacheIdList;
+        System.Runtime.Caching.CacheEntryChangeMonitor d = memCache.CreateCacheEntryChangeMonitor(cacheIdListEnumuable);
+		
+        if(!provider || d.IsDisposed)
+        {
+            provider = new TFMDataCacheProvider();
+            memCache.Add(cacheId, provider, new System.Runtime.Caching.CacheItemPolicy());
+        }
+
+        return provider;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        dataCache = new Map(Types::String, Types::Class);
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addRecord</Name>
+				<Source><![CDATA[
+	public void addRecord(str _domain, str _key, Common _record)
+    {
+        Map recordCache = dataCache.exists(_domain) ? dataCache.lookup(_domain) : new Map (Types::String,Types::Record);
+        recordCache.insert(_key, _record);
+        dataCache.insert(_domain,recordCache);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeRecord</Name>
+				<Source><![CDATA[
+    public void removeRecord(str _domain, str _key)
+    {
+        Map recordCache = dataCache.exists(_domain) ? dataCache.lookup(_domain) : null;
+		if (!recordCache)
+        {
+            return;
+        }
+        recordCache.remove(_key);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRecord</Name>
+				<Source><![CDATA[
+    public Common getRecord(str _domain, str _key)
+    {
+        Map recordCache = dataCache.exists(_domain) ? dataCache.lookup(_domain) : null;
+        if (!recordCache)
+        {
+            return null;
+        }
+        
+        return recordCache.exists(_key) ? recordCache.lookup(_key) : null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeDomain</Name>
+				<Source><![CDATA[
+	public void removeDomain(str _domain)
+    {
+        dataCache.remove(_domain);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

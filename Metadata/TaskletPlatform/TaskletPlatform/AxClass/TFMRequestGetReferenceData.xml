@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestGetReferenceData</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType(staticmethodStr(TFMConstants,GetReferenceData))]
+class TFMRequestGetReferenceData extends TFMRequestElement
+{
+    TFMRequestCapabilities  capabilities;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmCapabilities</Name>
+				<Source><![CDATA[
+    public TFMRequestCapabilities parmCapabilities(TFMRequestCapabilities _capabilities = capabilities)
+    {
+        capabilities = _capabilities;
+        return capabilities;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

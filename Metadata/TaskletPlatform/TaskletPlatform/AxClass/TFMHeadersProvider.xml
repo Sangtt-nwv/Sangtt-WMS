@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMHeadersProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMHeadersProvider extends TFMProvider
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>GetXML</Name>
+				<Source><![CDATA[
+    public static XML GetXML(Set _referencedFilters = null)
+    {
+        XmlDocument                     xmlDoc = XmlDocument::newBlank();
+        XmlElement                      hds = xmlDoc.createElement('headers');
+        DictClass                       dc = new DictClass(classNum(TFMDocumentHandler));
+        DictClass                       subClass;
+        TFMReferenceDataMethodAttribute refDataAttribute = new TFMReferenceDataMethodAttribute();
+        List                            extendingClasses = dc.extendedBy(true);
+        ListEnumerator                  lEnum = List::merge(extendingClasses, new DictClass(classNum(TFMSearchHandler)).extendedBy(true)).getEnumerator();
+        TFMDocumentHandler              docHand;
+        Object                          handler;
+        TFMReferenceDataConfiguration   refData;
+        str                             methodName;       
+        str                             cDataXML;
+        container                       retValueFromDoc;        
+        str                             oldStyleHeaders;
+        Set                             methodSet;
+        SetEnumerator                   sEnum;
+        anytype                         retVal = '';
+        Set					            otherSet;
+        MapEnumerator		            mEnum;
+        Map                             inlinedHeaders = new Map(Types::String, Types::Class);
+        Map                             processHeaders = TFMProcessProvider::GetAllProcessesImpl().getAllActiveHeaders();
+        Set                             addedHeaders = new Set(Types::String);
+        
+        while (lEnum.moveNext())
+        {
+            subClass = new DictClass(lEnum.current());
+            methodSet = null;
+            if (subClass == null || subClass.isAbstract())
+            {
+                continue;
+            }
+            handler = subClass.makeObject();
+            if (subClass.extend() == classNum(TFMDocumentHandler))
+            {
+                docHand = handler as TFMDocumentHandler;
+                methodSet = docHand.getReferenceDataMethods();
+            }
+            if (methodSet == null)
+            {
+                methodSet = new Set(Types::String);
+            }
+            otherSet = new Set(Types::String);
+            mEnum = TFMAttributeHandler::getMethodNamesFromSysAttribute(subClass.id(),refDataAttribute,true).getEnumerator();
+            while (mEnum.moveNext())
+            {
+                otherSet.add(mEnum.currentKey());
+            }
+            methodSet = Set::union(methodSet,otherSet);
+
+            sEnum  = methodSet.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                try
+                {
+                    methodName = sEnum.current();
+                    
+                    if (SysTest::hasMethod(handler, methodName))
+                    {
+                        retValueFromDoc = conNull();
+                        retVal = subClass.callObject(methodName,handler);
+                        if (typeOf(retVal) == Types::String)
+                        {
+                            cDataXML = retVal;
+                            if (!strScan(cDataXML, TFMConstants::headerConfiguration(),1,1000))
+                            {
+                                //Ignore, will be in refData file instead
+                                continue;
+                            }
+                            oldStyleHeaders += strReplace(cDataXML, '<' + TFMConstants::headerConfiguration() + '>' , '<' + TFMConstants::headerConfiguration() + ' ' + TFMConstants::AttributeId() + '="' +methodName + '">') + TFMConstants::lineBreak();
+                        } else if (typeOf(retVal) == Types::Class && classIdGet(retVal)== classNum(TFMReferenceDataConfiguration))
+                        {
+                            refData = retVal;
+                            refData.parmKey(refData.parmKey() ? refData.parmKey() : MethodName);
+
+                            if (refData.getInlinedHeaders() && refData.getInlinedHeaders().elements() && Set::intersection(refData.getInlinedHeaders().keySet(),_referencedFilters).elements())
+                            {
+                                inlinedHeaders = TFMHelper::mergeMaps(inlinedHeaders, refData.getInlinedHeaders());
+                            }
+                            
+                            if (processHeaders.exists(refData.parmKey()))
+                            {
+                                refData = processHeaders.lookup(refData.parmKey());
+                            }
+
+                            if (_referencedFilters && !_referencedFilters.in(methodName) && !refData.parmAlwaysIncludeInOutput() && subClass.extend() == classNum(TFMDocumentHandler)) //TODO: Change to TFMInputHandler with recursive extension check
+                            {
+                                continue;
+                            }
+                            if (subClass.extend() == classNum(TFMDocumentHandler))
+                            {
+                                inlinedHeaders = TFMHelper::mergeMaps(inlinedHeaders, TFMHeadersProvider::getInlinedHeaders(refData));
+                            }
+
+                            refData.appendToXMLConfig(hds);
+                            addedHeaders.add(refData.parmKey());
+                        }
+                        
+                    }
+                }
+                catch (Exception::Error)
+                {
+                    continue;
+                }
+            }
+        }
+
+        mEnum = inlinedHeaders.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            //Adding inlined (generic table search) headers to configuration
+            refData = mEnum.currentValue();
+            refData.appendToXMLConfig(hds);
+            addedHeaders.add(refData.parmKey());
+        }
+        mEnum = processHeaders.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            refData = mEnum.currentValue();
+            if (addedHeaders.in(refData.parmKey()))
+            {
+                continue;
+            }
+            //Header not overwriting classic header = New or custom process
+            refData.appendToXMLConfig(hds);
+        }
+        
+        return '<headers tweak="append">' + hds.innerXml() + oldStyleHeaders +'</headers>';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetPageHeaders</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to get the headers that are defined in the framework
+    /// </summary>
+    /// <returns>A Map with the header name as key, and the header object as value</returns>
+    public static Map GetPageHeaders()
+    {
+        DictClass                       dc = new DictClass(classNum(TFMDocumentHandler));
+        DictClass                       subClass;
+        TFMReferenceDataMethodAttribute refDataAttribute = new TFMReferenceDataMethodAttribute();
+        List                            extendingClasses = dc.extendedBy(true);
+        ListEnumerator                  lEnum = extendingClasses.getEnumerator();
+        Map                             retMap = new Map (Types::String, Types::Class);
+        TFMDocumentHandler              docHand;
+        Object                          handler;
+        TFMReferenceDataConfiguration   refData;
+        str                             methodName;        
+        container                       retValueFromDoc;
+        Set                             methodSet;
+        SetEnumerator                   sEnum;
+        anytype                         retVal = '';
+        Set					            otherSet;
+        MapEnumerator		            mEnum;
+        
+        
+        while (lEnum.moveNext())
+        {
+            subClass = new DictClass(lEnum.current());
+            methodSet = null;
+            if (subClass == null || subClass.isAbstract())
+            {
+                continue;
+            }
+            handler = subClass.makeObject();
+            if (subClass.extend() == classNum(TFMDocumentHandler))
+            {
+                docHand = handler as TFMDocumentHandler;
+                methodSet = docHand.getReferenceDataMethods();
+            }
+            if (methodSet == null)
+            {
+                methodSet = new Set(Types::String);
+            }
+            otherSet = new Set(Types::String);
+            mEnum = TFMAttributeHandler::getMethodNamesFromSysAttribute(subClass.id(),refDataAttribute,true).getEnumerator();
+            while (mEnum.moveNext())
+            {
+                otherSet.add(mEnum.currentKey());
+            }
+            methodSet = Set::union(methodSet,otherSet);
+
+            sEnum  = methodSet.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                try
+                {
+                    methodName = sEnum.current();
+                    
+                    if (SysTest::hasMethod(handler, methodName))
+                    {
+                        retValueFromDoc = conNull();
+                        retVal = subClass.callObject(methodName,handler);
+                        if (typeOf(retVal) == Types::Class && classIdGet(retVal)== classNum(TFMReferenceDataConfiguration))
+                        {
+                            refData = retVal;
+                            refData.parmKey(refData.parmKey() ? refData.parmKey() : MethodName);
+                            retMap.insert(refData.parmKey(),refData);
+                            MapEnumerator inlined = TFMHeadersProvider::getInlinedHeaders(refData).getEnumerator();
+                            while (inlined.moveNext())
+                            {
+                                refData = inlined.currentValue();
+                                retMap.insert(refData.parmKey(),refData);
+                            }
+                            refData = retVal;
+                            inlined = refData.getInlinedHeaders().getEnumerator();
+                            while (inlined.moveNext())
+                            {
+                                refData = inlined.currentValue();
+                                retMap.insert(refData.parmKey(),refData);
+                            }
+                        }
+                        
+                    }
+                }
+                catch (Exception::Error)
+                {
+                    continue;
+                }
+            }
+        }
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInlinedHeaders</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to find if any fields in the header are made from a data type that has table lookup, and if so, a header configuration is retrieved from it, used to search enable the particular field
+    /// </summary>
+    /// <param name = "_dataConf">The TFMReferenceDataConfiguration to check for collectors with lookup Table</param>
+    /// <returns></returns>
+    public static Map getInlinedHeaders(TFMReferenceDataConfiguration   _dataConf)
+    {
+        Map                             inlinedHeaders = new Map(Types::String, Types::Class);
+        SetEnumerator                   collectors = _dataConf.getCollectors().getEnumerator();
+        TFMRegistrationCollectorText    collText;
+        TFMReferenceDataConfiguration   inlinedHeader;
+        while (collectors.moveNext())
+        {
+            if (classIdGet(collectors.current()) != classNum(TFMRegistrationCollectorText))
+            {
+                continue;
+            }
+            //Search Type only available on text fields
+            collText = collectors.current();
+            inlinedHeader = collText.collectorSearchHeader();
+            if (inlinedHeader != null)
+            {
+                inlinedHeaders.insert(inlinedHeader.parmKey(), inlinedHeader);
+            }
+        }
+
+        return inlinedHeaders;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>invalidateProvider</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to invalidate provider, thereby forcing reinitialization
+    /// </summary>
+    public void invalidateProvider(boolean _requestedByOtherAOS = false)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>version</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get the version number for the provider. Used as part of the overall version number sent to the device
+    /// </summary>
+    /// <returns>Version number for the current set of Headers</returns>
+    public str version()
+    {        
+        TFMFilterAdditions fAdds;
+        TFMFilterAdditionsDataBinding fAddDaBi;
+        TFMFilterFieldValues fFiVa;
+        TFMSearchEDTsToTablesRelation search;
+
+        select firstonly ModifiedDateTime from fAdds order by fAdds.ModifiedDateTime desc;
+        select firstonly ModifiedDateTime from fAddDaBi order by fAddDaBi.ModifiedDateTime desc;
+        select firstonly ModifiedDateTime from fFiVa order by fFiVa.ModifiedDateTime desc;
+        select firstonly ModifiedDateTime from search order by search.ModifiedDateTime desc;
+
+        return 'F'+strKeep(strFmt('%1.%2%3.%4',fAdds.ModifiedDateTime,fAddDaBi.ModifiedDateTime,fFiVa.ModifiedDateTime, search.ModifiedDateTime),'1234567890.');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

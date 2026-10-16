@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowJsonCreator</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMDrawFlowJsonCreator
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>ConstructAndGetJson</Name>
+				<Source><![CDATA[
+    public static str ConstructAndGetJson(Object _class)
+    {
+        ListEnumerator lEnum = new SysDictClass(classNum(TFMDrawFlowJsonCreator)).extendedBy().getEnumerator();
+        TFMDrawFlowJsonCreator jsonCreator;
+        while (lEnum.moveNext())
+        {
+            jsonCreator = new sysDictClass(lEnum.current()).makeObject();
+
+            if (jsonCreator.classHandled() == classId2Name(classIdGet(_class)))
+            {
+                return jsonCreator.jSon(_class);
+            }
+
+        }
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMDrawFlowJsonCreator Construct(ClassName _className)
+    {
+        ListEnumerator lEnum = new SysDictClass(classNum(TFMDrawFlowJsonCreator)).extendedBy().getEnumerator();
+        TFMDrawFlowJsonCreator jsonCreator;
+        while (lEnum.moveNext())
+        {
+            jsonCreator = new sysDictClass(lEnum.current()).makeObject();
+
+            if (jsonCreator.classHandled() == _className)
+            {
+                return jsonCreator;
+            }
+
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>classHandled</Name>
+				<Source><![CDATA[
+    abstract public ClassName classHandled()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>jSon</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Make the Son of J, don't know who the other parent is.
+    /// </summary>
+    /// <param name = "_class">Instance to be converted to json.</param>
+    /// <returns>Class as a json string</returns>
+    abstract public str jSon(Object _class)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>instanceFromJson</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Convince Jays son to identify as an instance.
+    /// </summary>
+    /// <param name = "_json">Json string to convert.</param>
+    /// <returns>An instance representing the Json.</returns>
+    abstract public Object instanceFromJson(str _json)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveJson2Data</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to save instance to data.
+    /// </summary>
+    /// <param name = "_instance">Instance to be saved to data.</param>
+    abstract public void saveJson2Data(str _json, str _keyValue, object _keyObject)
+    {
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

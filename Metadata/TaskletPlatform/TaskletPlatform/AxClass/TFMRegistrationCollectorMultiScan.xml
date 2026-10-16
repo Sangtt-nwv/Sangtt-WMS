@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectorMultiScan</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegistrationCollectorMultiScan extends TFMRegistrationCollectorMultiLine
+{
+    
+    /// <summary>
+    /// Creates a collector step that allows for multible scans
+    /// </summary>
+    /// <param name="xmlDoc"></param>
+    /// <param name="stepsElement"></param>
+    /// <param name="id"></param>
+    /// <param name="name"></param>
+    /// <param name="header"></param>
+    /// <param name="label"></param>
+    /// <param name="helpLabel"></param>
+    /// <param name="listSeparator">
+    /// char that seperates scanned values, default is ";"
+    /// </param>
+    /// <param name="uniqueValues">
+    /// Allow or disallow multiple scans of the same barcode
+    /// </param>
+    
+    
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>MultiScanStepMap</Name>
+				<Source><![CDATA[
+    public server static Map MultiScanStepMap(
+                                                int _id,
+                                                str _name,
+                                                str _header,
+                                                str _label,
+                                                str _helpLabel,
+                                                str _listSeparator = ';',
+                                                str _uniqueValues = TFMConstants::true())
+    {
+        Map stepMap = new Map(Types::String, Types::String);
+        stepMap.insert(TFMConstants::AttributeId(),int2str(_id));
+        stepMap.insert(TFMConstants::AttributeName(),_name);
+        stepMap.insert(TFMConstants::AttributeInputType(),enum2Symbol(enumNum(TFMInputTypes),TFMInputTypes::MultiScan));
+        stepMap.insert(TFMConstants::AttributeHeader(),_header);
+        stepMap.insert(TFMConstants::AttributeLabel(),_label);
+        stepMap.insert(TFMConstants::AttributeHelpLabel(),_helpLabel);
+        stepMap.insert(TFMConstants::AttributeListSeparator(), _listSeparator);
+        stepMap.insert(TFMConstants::AttributeUniqueValues(), _uniqueValues);
+        return stepMap;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

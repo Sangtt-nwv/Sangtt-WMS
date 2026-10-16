@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMConditions</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Collection of conditions
+/// </summary>
+class TFMConditions
+{
+    Map             conditions;
+    TFMLogicContext tempContext;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMConditions Construct()
+    {
+        return new TFMConditions();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateFromConditionsTable</Name>
+				<Source><![CDATA[
+    public void updateFromConditionsTable(TFMConditionsTable _conditionsTable)
+    {
+        TFMCondition            condition;
+        TFMConditionsParameters condiParms;
+        TFMConditionsLink       links;
+        Map                     recId2Class = new Map(Types::Int64, Types::Class);
+        if (conditions.exists(_conditionsTable.Method))
+        {
+            conditions.remove(_conditionsTable.Method);
+        }
+        while select condiParms where condiParms.ConditionsKey == _conditionsTable.RecId
+        {
+            condition = TFMCondition::ConstructFromDelta(condiParms);
+            this.addCondition(condition,_conditionsTable.Method);
+            recId2Class.insert(condiParms.RecId, condition);
+        }
+
+        while select links 
+            join condiParms where condiParms.RecId == links.FromCondition && condiParms.ConditionsKey == _conditionsTable.RecId
+        {
+            this.addLink(recId2Class.lookup(links.FromCondition), recId2Class.lookup(links.ToCondition), _conditionsTable.Method);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmContext</Name>
+				<Source><![CDATA[
+    public TFMLogicContext parmContext(TFMLogicContext _context = tempContext)
+    {
+        tempContext = _context;
+        return tempContext;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Private Constructor
+    /// </summary>
+    private void new()
+    {
+        conditions = new Map(Types::String, Types::Class);    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addCondition</Name>
+				<Source><![CDATA[
+    public void addCondition(TFMCondition _condition, methodName _methodName, int _keyOverride = 0)
+    {        
+        TFMConnectedConditions conditionsForMethod = conditions.exists(_methodName) ? conditions.lookup(_methodName) : new TFMConnectedConditions();
+        conditionsForMethod.addCondition(_condition, _keyOverride);
+        conditions.insert(_methodName,conditionsForMethod);        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveConditionToData</Name>
+				<Source><![CDATA[
+    public void saveConditionToData(str _domainName, str _DomainKey, Version _version, Name _subId, MethodName _methodName)
+    {
+        TFMConnectedConditions conditionsForMethod = conditions.exists(_methodName) ? conditions.lookup(_methodName) : new TFMConnectedConditions();
+        conditionsForMethod.saveToDelta(_domainName, _DomainKey, _version, _subId, _methodName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateEndNodesNumber</Name>
+				<Source><![CDATA[
+    public container validateEndNodesNumber(MethodName _methodName)
+    {
+        TFMConnectedConditions  conditionsForMethod = conditions.exists(_methodName) ? conditions.lookup(_methodName) : new TFMConnectedConditions();
+        container                 ret = [true,''];
+        
+        if (conditionsForMethod.noOfEndNodes() > 1)
+        {
+            ret = [false, "@TFM:Orphannodesdetected"];
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateFunctionsInCondition</Name>
+				<Source><![CDATA[
+    public container validateFunctionsInCondition(MethodName _methodName)
+    {
+        TFMConnectedConditions  conditionsForMethod = conditions.exists(_methodName) ? conditions.lookup(_methodName) : new TFMConnectedConditions();
+        container                 ret = [true,''];
+        if (!conditionsForMethod.getEnumerator().moveNext())
+        {
+            return ret; //No conditions to check
+        }
+        if (!conditionsForMethod.functionConditionPresent())
+        {
+            ret = [false, "@TFM:Conditioncontainsnofunctions"];
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateForLoops</Name>
+				<Source><![CDATA[
+    public container validateForLoops(MethodName _methodName)
+    {
+        TFMConnectedConditions  conditionsForMethod = conditions.exists(_methodName) ? conditions.lookup(_methodName) : new TFMConnectedConditions();
+        container                 ret = [true,''];
+        
+        if (!conditionsForMethod.functionConditionPresent())
+        {
+            ret = [false, "@TFM:Conditioncontainsnofunctions"];
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateReturnType</Name>
+				<Source><![CDATA[
+    public container validateReturnType(MethodName _methodName, TFMLogicContextTypes _returnType)
+    {
+        TFMConnectedConditions  conditionsForMethod = conditions.exists(_methodName) ? conditions.lookup(_methodName) : new TFMConnectedConditions();
+        container                 ret = [true,''];
+        TFMLogicContextTypes    retType;
+
+        if (!conditionsForMethod.getEnumerator().moveNext())
+        {
+            return ret; //No conditions to check
+        }
+
+        retType = conditionsForMethod.getReturnType();
+        if (retType != _returnType)
+        {
+            ret = [false, strFmt("@TFM:Conditionsreturn1butpropertyrequ", retType, _returnType)];
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateForCompatibleConnectionTypes</Name>
+				<Source><![CDATA[
+    public container validateForCompatibleConnectionTypes(MethodName _methodName)
+    {
+        TFMConnectedConditions  conditionsForMethod = conditions.exists(_methodName) ? conditions.lookup(_methodName) : new TFMConnectedConditions();
+        container                 ret = conditionsForMethod.checkForTypeCompatibility();
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateCondition</Name>
+				<Source><![CDATA[
+    public boolean validateCondition(MethodName _methodName, TFMLogicContextTypes _returnType)
+    {
+        boolean                 ret = true;
+        str                     resultMessage;
+        
+        [ret, resultMessage]= this.validateConditionAndGetMessage(_methodName, _returnType);
+        if (!ret)
+        {            
+            warning(resultMessage);
+            return ret;
+        }
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateConditionAndGetMessage</Name>
+				<Source><![CDATA[
+    public container validateConditionAndGetMessage(MethodName _methodName, TFMLogicContextTypes _returnType)
+    {
+        boolean                 ret = true;
+        str                     resultMessage;
+        
+        [ret, resultMessage]= this.validateEndNodesNumber(_methodName);
+        if (!ret)
+        {            
+            return [ret, resultMessage];
+        }
+        [ret, resultMessage]= this.validateReturnType(_methodName, _returnType);
+        if (!ret)
+        {            
+            return [ret, resultMessage];
+        }
+
+        [ret, resultMessage]= this.validateFunctionsInCondition(_methodName);
+        if (!ret)
+        {
+            return [ret, resultMessage];
+        }
+
+        [ret, resultMessage]= this.validateForCompatibleConnectionTypes(_methodName);
+        if (!ret)
+        {            
+            return [ret, resultMessage];
+        }
+
+        return [ret, ''];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeCondition</Name>
+				<Source><![CDATA[
+    public void removeCondition(int _hash, methodName _methodName)
+    {
+        TFMConnectedConditions conditionsForMethod = conditions.exists(_methodName) ? conditions.lookup(_methodName) : new TFMConnectedConditions();
+        conditionsForMethod.removeCondition(_hash);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeAllForMethodName</Name>
+				<Source><![CDATA[
+    public void removeAllForMethodName(methodName _methodName)
+    {
+        conditions.remove(_methodName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deletedConnection</Name>
+				<Source><![CDATA[
+    public void deletedConnection(int _fromId, int _toId, methodName _methodName)
+    {
+        TFMConnectedConditions conditionsForMethod = conditions.exists(_methodName) ? conditions.lookup(_methodName) : new TFMConnectedConditions();
+        conditionsForMethod.removeLink(_fromId, _toId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>conditionFromHash</Name>
+				<Source><![CDATA[
+    public TFMCondition conditionFromHash(int _hash, MethodName _methodName)
+    {
+        TFMCondition            condition;
+        TFMConnectedConditions  conditionsForMethod = conditions.exists(_methodName) ? conditions.lookup(_methodName) : null;
+        if (conditionsForMethod == null)
+        {
+            return null;
+        }
+        
+        return conditionsForMethod.conditionFromHash(_hash);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConditionId</Name>
+				<Source><![CDATA[
+    public int getConditionId(int _hash, MethodName _methodName)
+    {
+        TFMConnectedConditions  conditionsForMethod = conditions.exists(_methodName) ? conditions.lookup(_methodName) : null;
+        if (conditionsForMethod == null)
+        {
+            return 0;
+        }
+        return conditionsForMethod.getHashFromKey(_hash);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addLink</Name>
+				<Source><![CDATA[
+    public void addLink(Object _from, Object _to, methodName _methodName)
+    {
+        TFMConnectedConditions conditionsForMethod = conditions.exists(_methodName) ? conditions.lookup(_methodName) : new TFMConnectedConditions();
+        conditionsForMethod.addLink(_from, _to);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>methodHasConditions</Name>
+				<Source><![CDATA[
+    public boolean methodHasConditions(MethodName _methodName)
+    {
+        return conditions.exists(_methodName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyObjectFromConditions</Name>
+				<Source><![CDATA[
+    public boolean modifyObjectFromConditions(Object _objectToModify, TFMLogicContext _context)
+    {
+        MapEnumerator           mEnum = conditions.getEnumerator();
+        MethodName              mName;
+        TFMConnectedConditions  conditionsForMethod;
+        
+        
+        while (mEnum.moveNext())
+        {
+            mName               = mEnum.currentKey();
+            conditionsForMethod = mEnum.currentValue();
+            
+            conditionsForMethod.evaluateConditionsForMethodOnObject(_objectToModify, _context,mName);
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>conditionStr</Name>
+				<Source><![CDATA[
+    public str conditionStr()
+    {
+        str                     result = '';
+        TFMCondition            condition;
+        TFMConditionOperator    logicalOperator;
+        MapEnumerator           mEnum = conditions.getEnumerator();
+        MapEnumerator           lEnum;
+        MethodName              mName;
+        
+        while (mEnum.moveNext())
+        {
+            result += '<i>' + mEnum.currentKey() + ':</i>';
+            result += this.methodConditionStr(mEnum.currentKey());
+        }
+        
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>conditionsForMethod</Name>
+				<Source><![CDATA[
+    public TFMConnectedConditions conditionsForMethod(MethodName _methodName)
+    {
+        return conditions.exists(_methodName) ? conditions.lookup(_methodName) : new TFMConnectedConditions();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>methodConditionStr</Name>
+				<Source><![CDATA[
+    public str methodConditionStr(MethodName _methodName)
+    {
+        str                     result = '';
+        TFMCondition            condition;
+        TFMConditionOperator    logicalOperator;
+        MapEnumerator           mEnum = conditions.getEnumerator();
+        
+        MethodName              mName;
+        TFMConnectedConditions  conditionsForMethod;        
+        
+        if (!conditions.exists(_methodName))
+        {
+            return '';
+        }
+        conditionsForMethod = this.conditionsForMethod(_methodName);
+        
+        /*mEnum = conditionsForMethod.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            condition = mEnum.currentValue();
+            result += condition.parmExpression();
+            
+        }*/
+
+        
+        return result;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

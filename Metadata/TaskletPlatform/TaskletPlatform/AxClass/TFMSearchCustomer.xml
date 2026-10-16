@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMSearchCustomer</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMSearchType(methodStr(TFMSearchCustomer, CustomerSearch)), TFMSearchType('CustTable_Search')]
+class TFMSearchCustomer extends TFMSearchHandler
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>CustomerSearch</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration CustomerSearch()
+    {
+        TFMReferenceDataConfiguration conf = new  TFMReferenceDataConfiguration();
+        conf.addCollector(this.addDefaultSearchField("@SYS11779", 1, extendedTypeStr(CustAccount)));
+        return conf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>performSearch</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to do a search for customer.
+    /// </summary>
+    public void performSearch()
+    {
+        CustTable custTable;
+        DirPartyTable partyTable;
+        int maxNum = 50;
+        Str x;
+        AccountNum accSrcWildcard, wildcardAccSrcWildcard;
+        NameAlias nSrcWildcard, wildcardNSrcWildcard;
+        str searchValue = request.parmParameters().getFieldValue(extendedTypeStr(CustAccount));
+        accSrcWildcard = searchValue+'*';
+        wildcardAccSrcWildcard = '*'+searchValue+'*';
+        nSrcWildcard = searchValue+'*';
+        wildcardNSrcWildcard = '*'+searchValue+'*';
+        
+        while select Party, AccountNum from custTable
+            where custTable.AccountNum like accSrcWildcard
+        {
+            x = custTable.name();
+            this.addResult(custTable.AccountNum, x, custTable,strFmt("@GLS113837", custTable.accountNum), x);
+    
+            maxNum--;
+            if (maxNum == 0)
+            {
+                break;
+            }
+        }
+    
+        while select Party, AccountNum from custTable
+            where custTable.AccountNum like wildcardAccSrcWildcard
+        {
+            x = custTable.name();
+            this.addResult(custTable.AccountNum, x, custTable,strFmt("@GLS113837", custTable.accountNum), x);
+    
+            maxNum--;
+            if (maxNum == 0)
+            {
+                break;
+            }
+        }
+    
+        while select RecId from partyTable
+            where partyTable.NameAlias like nSrcWildcard
+        {
+            custTable = CustTable::findByPartyRecId(partyTable.RecId);
+            if (custTable)
+            {
+                x = custTable.name();
+                this.addResult(custTable.AccountNum, x, custTable,strFmt("@GLS113837", custTable.accountNum), x);
+    
+                maxNum--;
+                if (maxNum == 0)
+                {
+                    break;
+                }
+            }
+        }
+    
+        while select RecId from partyTable
+            where partyTable.NameAlias like wildcardNSrcWildcard
+        {
+            custTable = CustTable::findByPartyRecId(partyTable.RecId);
+            if (custTable)
+            {
+                x = custTable.name();
+                this.addResult(custTable.AccountNum, x, custTable,strFmt("@GLS113837", custTable.accountNum), x);
+    
+                maxNum--;
+                if (maxNum == 0)
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

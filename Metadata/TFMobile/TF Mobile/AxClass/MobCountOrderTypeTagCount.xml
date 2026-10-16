@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobCountOrderTypeTagCount</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The MobCountOrderTypeTagCount class is the class handling the Tag count orders.
+/// </summary>
+[TFMTableNameAttribute(tableStr(InventJournalTable), 'TagCount')]
+class MobCountOrderTypeTagCount extends MobCountOrderType
+{
+    InventJournalTable          InventJournalTable;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getInventJournalTable</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventJournalTable))]
+    public InventJournalTable getInventJournalTable()
+    {
+        return InventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHeaderRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_filters">MobRequestFiltersElement element</param> 
+    /// <param name = "_scannedValue"></param>
+    /// <returns></returns>
+    public Map getHeaderRecords(TFMRequestFiltersElement _filters, str _scannedValue)
+    {
+        Map ret = new Map(Types::String, Types::Record);
+             
+        InventJournalTrans_Tag  inventJournalTrans_Tag;
+		if (true)
+        {
+            return ret;
+        }
+        while select inventJournalTable
+            where inventJournalTable.JournalType == InventJournalType::TagCounting &&
+                  inventJournalTable.Posted == NoYes::No &&
+                  inventJournalTable.MobReleasedToMobile
+            exists join inventJournalTrans_Tag
+                where inventJournalTrans_Tag.JournalId == inventJournalTable.JournalId &&
+                      !inventJournalTrans_Tag.MobRegisteredOnMobile
+        {
+            ret.insert(this.getBackendID(inventJournalTable),inventJournalTable);
+            //MobXMLFormat = TFMXMLFormat::constructFromCommon(resultXml, inventJournalTable, sorting);
+            //MobXMLFormat.run();
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLineRecords</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_request">MobRequestGetOrderLinesElement element</param>
+    /// <returns></returns>
+    public Map getLineRecords(TFMRequestGetOrderLinesElement _request)
+    {
+        Map ret = new Map(Types::String, Types::Record);        
+        inventJournalTrans_Tag  inventJournalTrans_Tag;
+        InventJournalId         journalId;
+        
+        journalId = this.getJournalId(_request.parmBackendID()); 
+
+        while select inventJournalTrans_Tag
+                    where inventJournalTrans_Tag.JournalId == journalId &&
+                          !inventJournalTrans_Tag.MobRegisteredOnMobile
+        {
+
+            ret.insert(int642str(inventJournalTrans_Tag.RecId),inventJournalTrans_Tag);
+
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lineTableId</Name>
+				<Source><![CDATA[
+    public TableId lineTableId()
+    {
+        return tableNum(inventJournalTrans_Tag);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getJournalId</Name>
+				<Source><![CDATA[
+    private InventJournalId getJournalId(str _backendID)
+    {
+        return conPeek(MobHelper::strSplit(_backendID,'/').pack(),6);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBackendID</Name>
+				<Source><![CDATA[
+    public str getBackendID(Common _common)
+    {
+        InventJournalTable = _common;
+        return tableStr(InventJournalTable) + '/' + fieldStr(InventJournalTable,JournalId) + '/' + InventJournalTable.JournalId + '/' + 'TagCount';
+    }
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_backendID"></param>
+    /// <param name = "_orderElement"></param>
+    /// <returns></returns>
+    /*public str post(str _backendID, XmlElement _orderElement)
+    {
+        str ret;
+        InventJournalId             journalId;
+        XMLNodeList                 lineNodeList;        
+        MobRegistrations            MobRegistrations;
+        CreatedTransactionId        transID;
+
+        messageId = TFMDocumentConnector::getMessageID(_orderElement.ownerDocument().xml());
+        
+        journalId = this.getJournalId(_backendid); // Remove the prefix
+    
+        if (!journalId || !InventJournalTable::exist(journalId))
+        {
+            throw error(strfmt(InventJournalTable::txtNotExist(),journalId));
+        }
+        InventJournalTable = InventJournalTable::find(journalId);
+        lineNodeList = _orderElement.ownerDocument().root().firstChild().firstChild().childNodes();
+        ttsbegin;
+        transID = TFMRegistrations::SaveRegistrations(lineNodeList, TFMInventRefType::InventJournal, journalId).CreatedTransactionId; // Moved iteration/registration of xml here
+    
+        while select forupdate MobRegistrations
+            index OrderLineNumIdx
+            where MobRegistrations.InventRefType == TFMInventRefType::InventJournal &&
+                    MobRegistrations.InventRefId  == journalId &&
+                    MobRegistrations.MessageId      == messageID &&
+                    MobRegistrations.CreatedTransactionId == transID &&
+                    MobRegistrations.handled == NoYes::No
+        {
+            MobRegistrations.counting();
+            MobRegistrations.handled = NoYes::Yes;
+            MobRegistrations.Update();
+        }
+        ttscommit;
+        ret = SysLabel::labelId2String2("@MobileWMS:MEL34");
+
+        return ret;
+    }*/
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

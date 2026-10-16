@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMSearchService</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Handle the search functions see app.config "ISearchService"
+/// </summary>
+[TFMDocumentType(staticMethodStr(TFMConstants, Search))]
+public class TFMSearchService extends TFMDocumentHandler
+{
+    Set             idUsed;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public void process()
+    {
+        TFMRequestSearchElement searchRequest = request;
+        TFMOrderTypes           type = searchRequest.parmType();
+        TFMSearchHandler        result = TFMSearchHandler::getSearchHandlerFromType(searchRequest);
+        if (result != null)
+        {            
+            result.performSearch();
+            responseElement = result.getResponse();
+        }
+        else
+        {
+            this.doSearch(type); // For Backwards Compatibility
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return "@TFM:SearchService";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LocalItemSearch</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration LocalItemSearch()
+    {
+        TFMRegistrationCollectorText itemNumber;
+        TFMRegistrationCollectorText itemBarcode;
+        TFMRegistrationCollectorText lotNumber;
+        TFMRegistrationCollectorText serial;
+        TFMRegistrationCollectorText description;
+        TFMReferenceDataConfiguration ret = new TFMReferenceDataConfiguration();
+
+        description = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(Description));
+        ret.addCollector(description);
+
+        itemNumber = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(ItemId));
+        itemNumber.parmName(TFMConstants::ItemNumber());
+        ret.addCollector(itemNumber);
+
+        itemBarcode = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(ItemBarcode));
+        ret.addCollector(itemBarcode);
+
+        lotNumber = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(InventBatchId));
+        lotNumber.parmName(TFMConstants::LotNumber());
+        ret.addCollector(lotNumber);
+
+        serial = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(InventSerialId));
+        serial.parmName(TFMConstants::SerialNumber());
+        ret.addCollector(serial);
+        ret.parmAlwaysIncludeInOutput(true);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentContentSubject</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to get the content subject
+    /// </summary>
+    /// <returns>Returns the content subject.</returns>
+    public TFMDocumentContentSubject getDocumentContentSubject()
+    {
+
+        TFMRequestSearchElement searchRequest = request;
+        TFMDocumentContentSubject type = searchRequest.parmType();
+        TFMDocumentContentSubject subject = type;
+    
+        return subject;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>doSearch</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// based on the _type an the parameters - perform your search here or in a method.
+    /// </summary>
+    /// <param name = "_type">A string denoting the type of search that should be performed</param>
+    protected void doSearch(Str _type)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

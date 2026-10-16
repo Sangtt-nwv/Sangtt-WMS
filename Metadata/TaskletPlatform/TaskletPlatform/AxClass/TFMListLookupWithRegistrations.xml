@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListLookupWithRegistrations</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListIdAttribute('Lookup'), TFMListIdAttribute('LookupWithRegistrations')]
+class TFMListLookupWithRegistrations extends TFMListOrderLines
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>quantityCellContent</Name>
+				<Source><![CDATA[
+    protected str quantityCellContent()
+    {
+        return '{Quantity}{slash}{InventQtyTotal} {UnitOfMeasure}';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+    public TFMListConfiguration getList()
+    {
+        TFMListConfiguration listConfig = super();
+        listConfig.parmDisplayStatus(false);
+        return listConfig;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

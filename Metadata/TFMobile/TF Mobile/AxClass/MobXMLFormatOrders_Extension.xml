@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classStr(TFMXMLFormatOrders))]
+final class MobXMLFormatOrders_Extension
+{
+}
+
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>convertFieldsToMap</Name>
+				<Source><![CDATA[
+    public void convertFieldsToMap()
+    {
+        MobOrder mobOrder;
+        if (!backendId)
+        {
+            mobOrder			= MobOrder::constructFromTableName(tableId2Name(common.tableId),orderType);
+            if (mobOrder)
+            {
+                backendId			= mobOrder.getBackendID(common);
+            }
+        }
+        next convertFieldsToMap();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

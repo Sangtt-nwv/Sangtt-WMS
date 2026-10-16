@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicStepOperatorClassifyAndReplaceInput</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicStepOperatorClassifyAndReplaceInput extends TFMLogicBlock implements TFMLogicStepOperatorInterface
+{
+    TFMFlowVariableName variableName;
+    TFMFlowContextField contextField;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        return "@TFM:ClassifyandreplaceInput";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMSubstituteItem);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmContextField</Name>
+				<Source><![CDATA[
+    [TFMParameter('', "@TFM:Whichfieldtoclassifyandreplace")]
+    public TFMFlowContextField parmContextField(TFMFlowContextField _contextField = contextField)
+    {
+        contextField = _contextField;
+        return contextField;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runLogic</Name>
+				<Source><![CDATA[
+    public str runLogic ( TFMRequestElement _request )
+    {
+        
+        str                 fieldValue = _request.getFieldValue(contextField);
+        str                 newValue = TFMClassificationHierarchy::findAndReplaceInput(fieldValue);
+        _request.addField(contextField, newValue,true);
+        
+        return '';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

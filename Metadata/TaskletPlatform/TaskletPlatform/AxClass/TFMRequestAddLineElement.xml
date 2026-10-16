@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestAddLineElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+#tfm
+class TFMRequestAddLineElement extends TFMRequestItemAndDimensionElement
+{
+    //JournalId journalId;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmJournalId</Name>
+				<Source><![CDATA[
+    public JournalId parmJournalId(JournalId _journalId = JournalId)
+    {
+        journalId = _journalId;
+        return journalId;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

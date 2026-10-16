@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_Totes</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableNameAttribute(tableStr(MobToteTable))]
+class MobXMLFormatOrders_Totes extends TFMXMLFormatOrders
+{
+    MobToteTable  table;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        MobToteContent  mobReg;
+        WMSOrderTrans	orderTrans;
+        Map				itemIDs = new Map(Types::String,Types::Real);
+        ItemId			itemId;
+        str             itemString = '';
+        str             itemImageStr = '';
+        MapEnumerator	mEnum;
+        super();
+    
+        table              = common;
+    
+        backendId          = tableStr(MobToteTable) + '/' + fieldStr(MobToteTable,ToteId) + '/' + table.toteId;// + '/' + int2Str(timeNow());
+    
+        displayLine1            = new DictField(tablenum(MobToteTable), fieldnum(MobToteTable, ToteId)).Label() + ': ' + table.toteId;
+        displayLine2            = "@SYS1201" + ': ' + table.PackingType;
+        displayLine3            = new DictField(tablenum(WmsShipment), fieldnum(WmsShipment, ShipmentId)).label() + ': ' + table.shipments();
+        headerLabel1            = new DictField(tablenum(InventJournalTable), fieldnum(MobToteTable, ToteId)).Label();
+        headerLabel2            = new DictField(tablenum(MobToteTable), fieldnum(MobToteTable, PackingType)).label();
+        headerValue1            = table.toteId;
+        headerValue2            = table.PackingType;
+        fieldsToAdd.insert(extendedtypestr(MobToteId),table.ToteId);
+        if (TFMMultiSelectionTable::Find(curUserId(),table.ToteId,'*'))
+        {
+            displayLine1 = '✅ ' + displayLine1;
+        }
+        while select mobReg
+            where mobReg.ToteID == table.ToteId
+        {
+            select firstonly orderTrans where orderTrans.RecId == mobReg.RefRecId;
+            itemIDs.insert(orderTrans.ItemId, (itemIDs.exists(orderTrans.ItemId) ? itemIDs.lookup(orderTrans.ItemId) : 0) + mobReg.qty);
+            itemId = orderTrans.ItemId;
+        }
+
+        mEnum = itemIDs.getEnumerator();
+        while(mEnum.moveNext())
+        {
+            itemString += (itemString ? "@MobileWMS:lineBreak" : '') + mEnum.currentKey() + ': ' + MobHelper::formatItemQty(mEnum.currentValue(), inventTable::find(mEnum.currentKey()).inventUnitId()) + ' ' +inventTable::find(mEnum.currentKey()).inventUnitId();
+            itemImageStr += (itemImageStr ? ',' : '') + mEnum.currentKey();
+        }
+        displayLine4 = "@SYS15649" + ': ' + itemString;
+        imageID = itemImageStr;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

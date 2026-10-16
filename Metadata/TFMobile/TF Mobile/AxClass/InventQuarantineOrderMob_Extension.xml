@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>InventQuarantineOrderMob_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(tableStr(InventQuarantineOrder))]
+final class InventQuarantineOrderMob_Extension
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    public void insert(
+        NoYes   _dropEstimated,
+        NoYes   _updateReservation)
+    {
+        InventDim iDimFrom = this.inventDim();
+        InventDim iDimQA = InventDim::find(this.inventDimIdQuarantine);
+        InventDim iDimQANew;
+
+		if (iDimFrom.LicensePlateId && !iDimQA.LicensePlateId && !iDimQA.wmsLocation().LocProfileId && !iDimFrom.wmsLocation().LocProfileId)
+        {
+            iDimQA.LicensePlateId = iDimFrom.LicensePlateId;
+            iDimQANew = InventDim::findOrCreate(iDimQA);
+            this.inventDimIdQuarantine = iDimQANew.inventDimId;
+        }
+
+        next insert(_dropEstimated,_updateReservation);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

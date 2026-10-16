@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_ReceiveArrival</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for item Arrival orders.
+/// </summary>
+[TFMTableNameAttribute(tableStr(WMSJournalTable))]
+class MobXMLFormatOrders_ReceiveArrival extends MobXMLFormatOrders_Receive
+{
+    WMSJournalTable       wMSJournalTable;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        WMSJournalTrans wmsJournalTrans;
+        
+        super();
+    
+        wMSJournalTable     = common;
+    
+    
+        displayLine1            = strfmt('%1',wMSJournalTable.inventTransRefId);
+        displayLine2            = new DictField(tablenum(wMSJournalTable), fieldnum(wMSJournalTable, journalId)).label() + ': ' + strfmt('%1',wMSJournalTable.journalId);
+        displayLine3            = new DictField(tablenum(InventLocation), fieldnum(InventLocation, InventLocationId)).label() + ': ' + strfmt('%1',wMSJournalTable.inventDim().InventLocationId);
+
+        select firstonly wmsJournalTrans order by TransDate asc where wmsJournalTrans.JournalId == wmsJournalTable.JournalId;
+
+        sorting                 = strKeep(date2Str(wmsJournalTrans.TransDate,321,2,0,2,0,2),'1234567890');
+    
+        // This function handles both item arrival journals and production input journals
+        // Set the header values based on the journal type
+        switch (wMSJournalTable.inventTransType)
+        {
+            case InventTransType::Purch:
+                headerLabel1 = new DictField(tablenum(PurchTable), fieldnum(PurchTable, PurchId)).Label();
+                headerLabel2 = new DictField(tablenum(wMSJournalTable), fieldnum(wMSJournalTable, journalId)).label();
+                headerValue1 = wMSJournalTable.inventTransRefId;
+                headerValue2 = wMSJournalTable.journalId;
+                displayLine1 = new DictField(tablenum(PurchTable), fieldnum(PurchTable, PurchId)).Label() + ': ' + strfmt('%1',wMSJournalTable.inventTransRefId);
+                break;
+    
+            case InventTransType::Production:
+                headerLabel1 = new DictField(tablenum(ProdTable), fieldnum(ProdTable, ProdId)).Label();
+                headerLabel2 = new DictField(tablenum(wMSJournalTable), fieldnum(wMSJournalTable, journalId)).label();
+                headerValue1 = wMSJournalTable.inventTransRefId;
+                headerValue2 = wMSJournalTable.journalId;
+                displayLine1 = new DictField(tablenum(ProdTable), fieldnum(ProdTable, ProdId)).Label() + ': ' + strfmt('%1',wMSJournalTable.inventTransRefId);
+                break;
+    
+            case InventTransType::Sales:
+                select firstOnly wmsJournalTrans
+                    where wmsJournalTrans.journalId == wmsJournalTable.journalId
+                       && wmsJournalTrans.inventTransType == wmsJournalTable.inventTransType;
+    
+                headerLabel1 = new DictField(tablenum(SalesTable), fieldnum(SalesTable, ReturnItemNum)).Label();
+                headerLabel2 = new DictField(tablenum(wMSJournalTable), fieldnum(wMSJournalTable, journalId)).label();
+                headerValue1 = wmsJournalTrans.ReturnItemNum;
+                headerValue2 = strFmt('%1 / %2', wMSJournalTable.journalId, wmsJournalTrans.inventTransRefId);
+                displayLine2 = "@SYS27874" + ': ' +  CustTable::find( wmsJournalTrans.vendAccount).name();
+                displayLine1 = new DictField(tablenum(SalesTable), fieldnum(SalesTable, ReturnItemNum)).Label() + ': ' + wmsJournalTrans.ReturnItemNum;
+                displayLine3 = new DictField(tablenum(wMSJournalTable), fieldnum(wMSJournalTable, journalId)).label() + ': ' + strFmt('%1 / %2', wmsJournalTrans.journalId, wmsJournalTrans.inventTransRefId);
+                break;
+    
+            default:
+                headerLabel1 = '';
+                headerLabel2 = '';
+                headerValue1 = '';
+                headerValue2 = '';
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

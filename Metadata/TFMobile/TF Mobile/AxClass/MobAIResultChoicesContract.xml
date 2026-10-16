@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobAIResultChoicesContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContract]
+class MobAIResultChoicesContract
+{
+    MobAIResultMessageContract message;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmMessage</Name>
+				<Source><![CDATA[
+    [DataMember('message')]
+    public MobAIResultMessageContract parmMessage(MobAIResultMessageContract _message = message)
+    {
+        message = _message;
+        return message;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListIDAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMListIDAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    TFMListId oldDefaultValue;
+   
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(TFMListId _oldDefaultValue)
+    {
+        super();
+        oldDefaultValue = _oldDefaultValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmListId</Name>
+				<Source><![CDATA[
+    public TFMListId parmListId(TFMListId _oldDefaultValue = oldDefaultValue)
+    {
+        oldDefaultValue = _oldDefaultValue;
+        return oldDefaultValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMListIDAttribute) + ';' + oldDefaultValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

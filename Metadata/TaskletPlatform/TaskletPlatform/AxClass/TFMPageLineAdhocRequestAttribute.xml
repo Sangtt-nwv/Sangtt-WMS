@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageLineAdhocRequestAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The attribute to add if the adhoc action should appear on the 'adhoc' menu items in the add menu item lookup page.
+/// </summary>
+class TFMPageLineAdhocRequestAttribute extends SysAttribute implements SysExtensionIAttribute
+{
+    MethodName			methodName;
+    Name				title;
+    ResourceName		icon;
+    boolean				refreshOnSuccess;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(MethodName _methodName, Name _title, ResourceName _icon, boolean _refreshOnSuccess)
+    {
+        methodName			= _methodName;
+        title				= _title;
+        icon				= _icon;
+        refreshOnSuccess	= _refreshOnSuccess;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMethodName</Name>
+				<Source><![CDATA[
+    public MethodName parmMethodName(MethodName	_methodName = methodName)
+    {
+        methodName = _methodName;
+        return methodName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTitle</Name>
+				<Source><![CDATA[
+    public Name parmTitle(Name	_title = title)
+    {
+        title = _title;
+        return title;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIcon</Name>
+				<Source><![CDATA[
+    public ResourceName parmIcon(ResourceName	_icon = icon)
+    {
+        icon = _icon;
+        return icon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRefreshOnSuccess</Name>
+				<Source><![CDATA[
+    public boolean parmRefreshOnSuccess(boolean	_refreshOnSuccess = refreshOnSuccess)
+    {
+        refreshOnSuccess = _refreshOnSuccess;
+        return refreshOnSuccess;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCacheKey</Name>
+				<Source><![CDATA[
+    public str parmCacheKey()
+    {
+        return classStr(TFMPageLineAdhocRequestAttribute)+';'+methodName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>useSingleton</Name>
+				<Source><![CDATA[
+    public boolean useSingleton()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListValuesAndDataTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMListValuesAndDataTable extends TFMRegistrationCollector implements TFMListValuesInterface, TFMDataTableInterface
+{
+    str ListValues;
+    str ListSeparator;
+    str dataTable;
+    str dataKeyColumn;
+    str dataDisplayColumn;
+    int dataLinkedElement;
+    str filterColumn;
+    int linkedElement;
+    str linkColumn;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmDataDisplayColumn</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS72248", "A human readable version of the key value")]
+    public str parmDataDisplayColumn(str _dataDisplayColumn = dataDisplayColumn)
+    {
+        dataDisplayColumn = _dataDisplayColumn;
+        return dataTable ? (dataDisplayColumn ? dataDisplayColumn : 'value') : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmListSeparator</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS101115", "The list seperator character if in the ListValues configuration.")]
+    public str parmListSeparator(str _ListSeparator = ListSeparator)
+    {
+        ListSeparator = _ListSeparator;
+        return ListSeparator;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmListValues</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS101115", "The values that the list contains seperated by what has been set up in the ListSeparator configuration")]
+    public str parmListValues(str _ListValues = ListValues)
+    {
+        ListValues = _ListValues;
+        return ListValues;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmVisible</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414")]
+    public boolean parmVisible(boolean _visible = visible)
+    {
+        boolean ret;
+
+        ret = super(_visible);
+
+        if (ret && !dataTable && ListValues && TFMHelper::strSplit(ListValues, ListSeparator).elements() == 1)
+        {
+            this.parmDefaultValue(ListValues);
+            return false;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDefaultValue</Name>
+				<Source><![CDATA[
+    public str parmDefaultValue(str _defaultDate = defaultValue)
+    {
+        str ret;
+
+        ret = super(_defaultDate);
+
+        if (!ret && !dataTable && ListValues && TFMHelper::strSplit(ListValues, ListSeparator).elements() == 1)
+        {
+            ret = ListValues;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>map2ListValues</Name>
+				<Source><![CDATA[
+    public void map2ListValues(Map _listvalues)
+    {
+        MapEnumerator	mEnum = _listvalues.getEnumerator();
+
+        ListValues = '';
+
+		while (mEnum.moveNext())
+        {
+            ListValues += (ListValues ? ListSeparator : '') + mEnum.currentKey();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDataTable</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS72248", "When using the 'dataTable' over 'listValues', make sure to also configure 'dataKeyColumn' and 'dataDisplayColumn'.")]
+    public str parmDataTable(str _dataTable = dataTable)
+    {
+        dataTable = _dataTable;
+        return dataTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFilterColumn</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS72248", "The column in the slave table to filter values by. The specific value is defined by the selection in the master field.")]
+    public str parmFilterColumn(str _filterColumn = filterColumn)
+    {
+        filterColumn = _filterColumn;
+        return filterColumn;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLinkColumn</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS72248", "A column from the master table, from which the slave field will get it's value once input changes on the master field.")]
+    public str parmLinkColumn(str _linkColumn = linkColumn)
+    {
+        linkColumn = _linkColumn;
+        return linkColumn;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDataKeyColumn</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS72248", "The name of the column that will be used when sending requests to the backend and linking fields.")]
+    public str parmDataKeyColumn(str _dataKeyColumn = dataKeyColumn)
+    {
+        dataKeyColumn = _dataKeyColumn;
+        return dataTable ? (dataKeyColumn ? dataKeyColumn : 'id') : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDataLinkedElement</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS72248")]
+    public int parmDataLinkedElement(int _dataLinkedElement = dataLinkedElement)
+    {
+        dataLinkedElement = _dataLinkedElement;
+        return dataLinkedElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLinkedElement</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS72248", "The Id of the slave field that is affected by input in this field.")]
+    public int parmLinkedElement(int _LinkedElement = linkedElement)
+    {
+        linkedElement = _linkedElement;
+        return linkedElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>linkedElement</Name>
+				<Source><![CDATA[
+    public int linkedElement()
+    {
+        return linkedElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dataLinkedElement</Name>
+				<Source><![CDATA[
+    public int dataLinkedElement()
+    {
+        return dataLinkedElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(int _id, str _name, str _header, str _label, str _helpLabel)
+    {
+        super(_id, _name, _header, _label, _helpLabel);
+        dataLinkedElement = -5;
+        ListSeparator = ';';
+        linkedElement = -5;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

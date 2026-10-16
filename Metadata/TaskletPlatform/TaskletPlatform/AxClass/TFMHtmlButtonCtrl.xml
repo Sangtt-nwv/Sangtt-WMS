@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMHtmlButtonCtrl</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[FormControlAttribute('TFMHtmlButtonCtrl','/resources/html/TFMHtmlButtonCtrl',classstr(TFMHtmlButtonCtrlBuild))]
+class TFMHtmlButtonCtrl extends FormTemplateControl
+{
+    FormProperty textProperty;
+    FormProperty faIconProperty;
+    FormProperty activeLayoutProperty;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>actionDelegate</Name>
+				<Source><![CDATA[
+    delegate void actionDelegate(str _id)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(FormBuildControl _build, FormRun _formRun)
+    {
+        super(_build, _formRun);
+        this.setTemplateId('TFMHtmlButtonCtrl');
+        this.setResourceBundleName('/Resources/html/TFMHtmlButtonCtrl');
+
+        textProperty = this.addProperty(methodStr(TFMHtmlButtonCtrl, parmText), Types::String);
+        faIconProperty = this.addProperty(methodStr(TFMHtmlButtonCtrl, parmFaIcon), Types::String);
+        activeLayoutProperty = this.addProperty(methodStr(TFMHtmlButtonCtrl, parmActiveLayout), Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>clicked</Name>
+				<Source><![CDATA[
+    [FormCommandAttribute("@TFM:Clicked")]
+    private void clicked(str _controlName)
+    {
+        this.actionDelegate(_controlName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmText</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'text', true)]
+    private str parmText(str _text = textProperty.parmValue())
+    {
+        if(!prmisdefault(_text))
+        {
+            textProperty.setValueOrBinding(_text);
+        }
+        return textProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFaIcon</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'faicon', true)]
+    private str parmFaIcon(str _text = faIconProperty.parmValue())
+    {
+        if(!prmisdefault(_text))
+        {
+            faIconProperty.setValueOrBinding(_text);
+        }
+        return faIconProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmActiveLayout</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'activelayout', true)]
+    private str parmActiveLayout(str _text = activeLayoutProperty.parmValue())
+    {
+        if(!prmisdefault(_text))
+        {
+            activeLayoutProperty.setValueOrBinding(_text);
+        }
+        return activeLayoutProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setText</Name>
+				<Source><![CDATA[
+    public void setText(str _value)
+    {
+        this.parmText(_value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setFaIcon</Name>
+				<Source><![CDATA[
+    public void setFaIcon(str _value)
+    {
+        this.parmFaIcon(_value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setActiveLayout</Name>
+				<Source><![CDATA[
+    public void setActiveLayout(boolean _value)
+    {
+        this.parmActiveLayout(_value ? 'true' : 'false');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

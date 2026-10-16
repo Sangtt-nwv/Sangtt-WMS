@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMProcessOverviewFormClass</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMProcessOverviewFormClass extends Object
+{
+    TFMProcess currentProcess;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>currentProcess</Name>
+				<Source><![CDATA[
+    public TFMProcess currentProcess()
+    {
+        return currentProcess;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setCurrentProcess</Name>
+				<Source><![CDATA[
+    public void setCurrentProcess(TFMProcess _process)
+    {
+        currentProcess = _process;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveProcess</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Saves a process in the processtable. If the process is a custom process then a version will be created.
+    /// </summary>
+    /// <param name = "_processID">The name/id of the process</param>
+    /// <param name = "_description">The description of the process</param>
+    /// <param name = "_revertToClassic">if revert to classic, use the documenthandler instead.</param>
+    public void saveProcess(TFMProcessID _processID, str _description, boolean _revertToClassic)
+    {
+        if(!_processID)
+        {
+            return;
+        }
+
+        TFMProcessTable processTable;
+
+        select firstonly forupdate processTable where processTable.ProcessID == _processID;
+        processTable.Description = _description;
+        processTable.RevertToClassic = _revertToClassic;
+
+        if(!processTable || !processTable.RecId)
+        {
+            processTable.ProcessID = _processID;
+
+            //if the process is not in the available in Processes
+            //Save new custom process and create a ProcessVersion with version 1
+            ttsbegin;
+            processTable.doInsert();
+            ttscommit;
+
+            if(!TFMProcessProvider::GetAllProcessesImpl().getProcessInfo(_processID))
+            {
+                TFMProcessVersion::Increment(_processID);
+                this.saveProcessVersion(_processID,1);
+            }
+        }
+        else
+        {
+            //else the process is availabe then update the process
+            //Update old process
+            ttsbegin;
+            processTable.update();
+            ttscommit;
+        }
+
+        TFMProcessProvider::instance().invalidateProvider();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveProcessVersion</Name>
+				<Source><![CDATA[
+    public void saveProcessVersion(TFMProcessID _processId, Version _version, TFMWorkflowCancelBehaviour _cancelBehaviour = TFMWorkflowCancelBehaviour::Close, NoYes _autoSave = NoYes::No)
+    {
+        ttsbegin;
+        TFMProcessVersion versionTable;
+        versionTable = TFMProcessVersion::FindOrMake(_processId, _version, true);
+        versionTable.AutoSave = _autoSave;
+        versionTable.CancelBehaviour = _cancelBehaviour;
+        versionTable.write();
+        ttscommit;
+
+        TFMProcessProvider::instance().invalidateProvider();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteProcessAndVersions</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Deletes the Process and Process Versions.
+    /// </summary>
+    public void deleteProcessAndVersions(TFMProcessID _processId)
+    {
+        TFMProcessTable processTable;
+        ttsbegin;
+        select forupdate processTable where processTable.ProcessID == _processId;
+        processTable.delete(); //will cascade delete the version.
+        TFMProcessVersion::DeleteAll(_processId); // Since a code version can exist we need to delete the versions for the process.
+        ttscommit;
+        TFMProcessProvider::instance().invalidateProvider();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

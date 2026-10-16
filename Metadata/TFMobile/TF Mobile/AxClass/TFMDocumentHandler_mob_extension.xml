@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentHandler_mob_extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classstr(TFMDocumentHandler))]
+final class TFMDocumentHandler_mob_extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    public void process()
+    {
+        next process();
+        if (this.isPostMethod(request.parmName()))
+        {
+            MobPostOrderPromptOverride::FindAndExecute(this,this.getRequestDataMap(),request.parmName());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCollectorMap</Name>
+				<Source><![CDATA[
+    public Map getCollectorMap(TFMDocumentTypeId _documentType, TFMDocumentContentSubject _contentType, Map _additionalValues)
+    {
+        Map collectors = next getCollectorMap(_documentType, _contentType, _additionalValues);
+        TFMDocumentTypeAttribute docTypeAttr = new TFMDocumentTypeAttribute(classStr(TFMPostAdhocRegistration), _contentType);
+        DictMethod Method = TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classIdGet(this),docTypeAttr);
+        if (Method != null)
+        {
+            MobPostOrderPromptOverride::addToCollectors(collectors,classIdget(this),Method.name(),true,_additionalValues);
+        }
+
+        return collectors;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addToCollectors</Name>
+				<Source><![CDATA[
+    public void addToCollectors(Map _collectors, ClassId _orderClass, MethodName _methodName)
+    {
+        next addToCollectors(_collectors, _orderClass, _methodName);
+        MobPostOrderPromptOverride::addToCollectors(_collectors, _orderClass, _methodName);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

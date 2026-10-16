@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListCustomComponent</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMListCustomComponent extends TFMListBase
+{
+   
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>possibleParents</Name>
+				<Source><![CDATA[
+	public Set possibleParents()
+    {
+        return new Set(Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>name</Name>
+				<Source><![CDATA[
+	public str name()
+    {
+        return 'Custom';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>attributeSummary</Name>
+				<Source><![CDATA[
+    public str attributeSummary()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resourceIcon</Name>
+				<Source><![CDATA[
+	public ResourceName resourceIcon()
+    {
+        return resourceStr(TFMClientDeleteIcon);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SubComponents</Name>
+				<Source><![CDATA[
+	public abstract Map SubComponents()
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>enrichDataset</Name>
+				<Source><![CDATA[
+	public Map enrichDataset(Common _common, Map _existingMap)
+    {
+        return _existingMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCustomComponents</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns the CustomComponents that has the _parentName in the possibleParents set.
+    /// </summary>
+    /// <param name = "_parentName">The name of the parent</param>
+    /// <returns></returns>
+	public static Set getCustomComponents(str _parentName)
+    {
+        Set				retSet = new Set(Types::Class);
+        SysDictClass	sdc;
+        SetEnumerator	sEnum;
+        ListEnumerator	customComponents = new SysDictClass(classNum(TFMListCustomComponent)).extendedBy(true).getEnumerator();
+        TFMListCustomComponent customComponent;
+		while (customComponents.moveNext())
+        {
+            sdc = new SysDictClass(customComponents.current());
+            customComponent = sdc.makeObject();
+            sEnum = customComponent.possibleParents().getEnumerator();
+			while (sEnum.moveNext())
+            {
+				if(sEnum.current()==_parentName)
+                {
+                    retSet.add(customComponent);
+                }
+            }
+		}
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCustomComponentSubTree</Name>
+				<Source><![CDATA[
+	public static Map getCustomComponentSubTree(ClassName _className, Map _attributes)
+    {
+        Map						retMap = new Map(Types::Int64, Types::Record);
+        TFMListCustomComponent	customComponent = TFMListCustomComponent::makeCustomComponent(_className,_attributes);
+        
+        retMap = customComponent.SubComponents();
+
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertCustomComponents</Name>
+				<Source><![CDATA[
+    public static void convertCustomComponents(TFMListId _listId, Version _version)
+    {
+        TFMListNode				nodes;
+        Map						customComponentSubComponents;
+        while select nodes order by LineNum where nodes.ListId == _listId && nodes.Version == _version
+        {
+            if (className2id(nodes.NodeName) && new SysDictClass(className2id(nodes.NodeName)).extend() == classNum(TFMListCustomComponent))
+            {
+                //custom component class
+                customComponentSubComponents = TFMListCustomComponent::getCustomComponentSubTree(nodes.NodeName, nodes.Attributes());
+                TFMListCustomComponent::ConvertToTableBuffer(customComponentSubComponents,nodes.RecId);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeCustomComponent</Name>
+				<Source><![CDATA[
+    public static TFMListCustomComponent makeCustomComponent(ClassName _className, Map _attributes)
+    {
+        TFMListCustomComponent	customComponent;
+        SysDictClass			sdc;
+
+        sdc = new SysDictClass(className2Id(_className));
+        customComponent = sdc.makeObject();
+        TFMHelper::addValueMapToParmMethod(_attributes,customComponent);
+        return customComponent;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ConvertToTableBuffer</Name>
+				<Source><![CDATA[
+	public static void ConvertToTableBuffer(Map _componentSubTree, RefRecId _recId)
+    {
+        TFMListNode			node;
+        MapEnumerator		mEnum = _componentSubTree.getEnumerator();
+        TFMListBase			currentElement;
+        RefRecId			parentId;
+
+        ttsbegin;
+        select firstonly node where node.RecId == _recId;
+        parentId = node.ParentNode;
+        select firstonly node where node.RecId == parentId;
+
+		while (mEnum.moveNext())
+        {
+            currentElement = mEnum.currentValue();
+            TFMListCustomComponent::buildBuffer(currentElement,node);
+        }
+		select firstonly forupdate node where node.RecId == _recId;
+		node.delete();
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildBuffer</Name>
+				<Source><![CDATA[
+	public static void buildBuffer(TFMListBase _list, TFMListNode _parentNode)
+    {
+        TFMListNode		node;
+        TFMListBase		listElement;
+        Map				children = _list.getChildren();
+        MapEnumerator	mEnum;
+        Map					parmMethods = TFMAttributeHandler::getMethodNamesFromSysAttribute(classIdGet(_list),new TFMParameterAttribute(''),true);
+        TFMListAttribute	attributeBuffer;
+        SysDictClass		sdc = new SysDictClass(classIdGet(_list));
+        RecordInsertList    recordInsertList;
+
+        recordInsertList = new RecordInsertList(tableNum(TFMListAttribute));
+
+		buf2Buf (_parentNode,node);
+        node.ParentNode = _parentNode.RecId;
+        node.NodeName = _list.ParmName();
+        node.LineNum = TFMListNode::nextLineNum(_parentNode.RecId);
+        node.insert();
+        mEnum = parmMethods.getEnumerator();
+		while (mEnum.moveNext())
+        {
+            attributeBuffer.AttributeName = strLwr(subStr(mEnum.currentKey(),5,1)) + subStr(mEnum.currentKey(),6,1000);
+            attributeBuffer.Value = sdc.callObject(mEnum.currentKey(),_list);
+            attributeBuffer.ParentNode = node.RecId;
+            recordInsertList.add(attributeBuffer);
+        }
+        recordInsertList.insertDatabase();
+
+        if (!children)
+        {
+            return;
+        }
+        mEnum = children.getEnumerator();
+		while (mEnum.moveNext())
+        {
+            listElement = mEnum.currentValue();
+            TFMListCustomComponent::buildBuffer(listElement,node);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _parent, boolean _expandCustomComponents)
+    {
+        TFMListBase customComponentSubElement;
+        MapEnumerator componentEnumerator;
+        if(_expandCustomComponents)
+        {
+            // if it should expand the return the subComponents
+            componentEnumerator = this.SubComponents().getEnumerator();
+            while(componentEnumerator.moveNext())
+            {
+                customComponentSubElement = componentEnumerator.currentValue();
+                customComponentSubElement.appendToXML(_parent, _expandCustomComponents);
+            }
+            return;
+        }
+
+        // add the custom component element it sel
+        XmlAttribute attribute;
+        Set     parmMethods = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(this));
+        SetEnumerator   sEnum = parmMethods.getEnumerator();
+        SysDictClass		sdc = new SysDictClass(classIdGet(this));
+        XmlElement customComponentElment =_parent.ownerDocument().createElement(sdc.name());
+        
+        while(sEnum.moveNext())
+        {
+            anytype value = sdc.callObject(sEnum.current(), this);
+            customComponentElment.setAttribute(TFMHelper::removeParmFromStr(sEnum.current()), value);
+        }
+
+        _parent.appendChild(customComponentElment);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>render</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Output for render format
+    /// </summary>
+    /// <param name = "_parent"></param>
+    public void render(TFMListVisualizationInterface _visualizer)
+    {
+        _visualizer.renderCustomComponent(this);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

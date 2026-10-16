@@ -1,0 +1,1926 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// General helper class, with common functions used in the Mobile WMS module.
+/// </summary>
+class TFMHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>attachBase64ToCommon</Name>
+				<Source><![CDATA[
+    public static str attachBase64ToCommon(Common _common, str _base64, str _fileExtension, str _note = "@TFM:CreatedfromMobileWMS")
+    {
+        str fileName = TFMHelper::descriptionFromCommon(_common) + '.';
+        DocuRef     resultDocuRef;
+        /*System.Drawing.Image img = System.Drawing.Image::FromStream( new System.IO.MemoryStream(System.Convert::FromBase64String(_base64)));
+        System.IO.MemoryStream ms = new System.IO.MemoryStream();
+        img.Save(ms,System.Drawing.Imaging.ImageFormat::Png);*/
+
+        if(strScan(_base64,'.jpg;',1,strLen(_base64)))
+        {
+            TFMMediaQueue::AddMap2Queue(_common, TFMMediaQueue::separateIDsAndComments(_base64), '*');
+            return "@TFM:fileAttached";
+        }
+
+        #ifnot.isAX6
+        resultDocuRef = DocumentManagement::attachFileToCommon(_common, TFMParameters::find().DocuTypeId,new System.IO.MemoryStream(System.Convert::FromBase64String(_base64)), filename + _fileExtension, _fileExtension, filename + _fileExtension,_note);
+        #endif
+        #if.isAX6
+        [docuRefRecId] = DocumentFileHelper::attachDocumentAsUser(['', _base64, filename + _fileExtension, '', DateTimeUtil::utcNow(), _common.TableId, _common.RecId, _common.dataAreaId, TFMParameters::find().DocuTypeId]);
+        ttsBegin;
+        select forUpdate resultDocuRef where resultDocuRef.RecId == DocuRefRecId;
+        resultDocuRef.Notes = _note;
+        resultDocuRef.update();
+        ttsCommit;
+        #endif
+
+        if(_common.tableId == tableNum(InventTable))
+        {
+            EcoResProductImage::create(resultDocuRef);
+        }
+
+        return "@TFM:fileAttached";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>matchRegex</Name>
+				<Source><![CDATA[
+    public static str matchRegex(str _text, str _pattern)
+    {
+        System.Text.RegularExpressions.Regex regex;
+        System.Text.RegularExpressions.MatchCollection matches;
+        System.Text.RegularExpressions.Match match;
+        int i;
+        str foundStr;
+
+        regex = new System.Text.RegularExpressions.Regex(_pattern);
+        matches = regex.Matches(_text);
+
+        for (i = 0; i < matches.get_Count(); i++)
+        {
+            match = matches.get_Item(i);
+            
+            foundStr = match.get_Groups().get_Item(1).get_Value();
+            if (!foundStr)
+            {
+                foundStr = match.Value;
+            }
+
+        }
+        return foundStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>matchRegexSet</Name>
+				<Source><![CDATA[
+    public static Set matchRegexSet(str _text, str _pattern)
+    {
+        System.Text.RegularExpressions.Regex regex;
+        System.Text.RegularExpressions.MatchCollection matches;
+        System.Text.RegularExpressions.Match match;
+        int i;
+        Set foundStr = new Set(Types::String);
+        str matchedStr;
+
+        regex = new System.Text.RegularExpressions.Regex(_pattern);
+        matches = regex.Matches(_text);
+
+        for (i = 0; i < matches.get_Count(); i++)
+        {
+            match = matches.get_Item(i);
+            
+            matchedStr = match.get_Groups().get_Item(1).get_Value();
+            if (!matchedStr)
+            {
+                foundStr.add(match.Value);
+            }
+            else
+            {
+                foundStr.add(matchedStr);
+            }
+
+        }
+        return foundStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getParametersFromClassAndMethod</Name>
+				<Source><![CDATA[
+    public static Map getParametersFromClassAndMethod(ClassName _clsName, MethodName _methodName)
+    {
+        SysDictClass    sdc = new SysDictClass(className2Id(_clsName));
+        SetEnumerator   methodsOnClass = sdc.methods(true,false,true).getEnumerator();
+        SysDictMethod   sdm;
+        int             idx;
+        Map             retMap = new Map(Types::String, Types::String);
+        while (methodsOnClass.moveNext())
+        {
+            sdm = methodsOnClass.current();
+            for (idx = 1; idx <= sdm.parameterCnt() && _methodName == sdm.name(); idx++)
+            {
+                retMap.insert(sdm.parameterName(idx),sdm.parameterTypeName(idx) ? sdm.parameterTypeName(idx) : strFmt('%1',sdm.parameterType(idx)));
+            }
+        }
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>backendId2Record</Name>
+				<Source><![CDATA[
+    public static Common backendId2Record(str _backendId)
+    {
+        container backendCon = strSplit(_backendId,'/').pack();
+        Common		record;
+        Query                   q = new Query();
+        QueryRun                qr;
+        QueryBuildDataSource    qbds = q.addDataSource(tablename2id(conPeek(backendCon,4)));
+        
+        
+        qbds.addRange(fieldName2Id(tablename2id(conPeek(backendCon,4)),conPeek(backendCon,5))).value(strFmt('%1',conPeek(backendCon,6)));
+
+        qr = new QueryRun(q);
+
+        while (qr.next())
+        {
+            record = qr.get(tableName2id(conPeek(backendCon,4)));
+                
+            break;
+        }
+
+        return record;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>splitTextToMultilines</Name>
+				<Source><![CDATA[
+    public static str splitTextToMultilines(str _line)
+    {
+        str line1 = _line;
+        str line2 = '';
+        int line1Length = strLen(line1);
+        int indexOfLastUppercase;
+            
+        if(line1Length > 17)
+        {
+            indexOfLastUppercase = TFMHelper::findIndexOfFirstCapitalLetterFromMiddle(line1);
+            if(indexOfLastUppercase > 0)
+            {
+                line2 = subStr(line1, indexOfLastUppercase, (line1Length + 1) - indexOfLastUppercase);
+                line1 = subStr(line1, 0, indexOfLastUppercase - 1) + '-';
+            }
+        }
+        return line1 + TFMConstants::lineBreak() + line2;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findIndexOfFirstCapitalLetterFromMiddle</Name>
+				<Source><![CDATA[
+    public static int findIndexOfFirstCapitalLetterFromMiddle(str _text)
+    {
+        int i;
+        int stringLength = strLen(_text);
+        str character;
+
+        for (i=stringLength/2; i<=stringLength; i+=1)
+        {
+            character = subStr(_text, i, 1);
+
+            //If the character is NOT EQUAL to it's lowercase counterpart, it must be uppercase:
+            if (char2num(_text, i) != char2num(strLwr(_text), i))
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateBackendId</Name>
+				<Source><![CDATA[
+    public static TFMBackendId generateBackendId(Common _common, TFMOrderTypes _orderType = '')
+    {
+        SysDictTable	sdc = new SysDictTable(_common.tableId);
+        TFMBackendId	backendId = tableId2Name(_common.TableId) + '/' + fieldId2Name(_common.tableId, sdc.primaryKeyField()) + '/' + strFmt('%1', _common.(sdc.primaryKeyField())) + (_orderType ? '/' + _orderType : '');
+        return backendId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>BackendId2Buffer</Name>
+				<Source><![CDATA[
+    public static Common BackendId2Buffer(TFMBackendId _backendId)
+    {
+        container		backendCon = TFMHelper::strSplit(_backendId,'/').pack();
+		SysDictTable	sdc		= new SysDictTable(tableName2Id(conPeek(backendCon,4)));
+        Common			common = sdc.makeRecord();
+        TableId			tableId= common.tableId;
+        FieldId			fieldId = fieldName2Id(tableId,conPeek(backendCon,5));
+        Query                   q = new Query();
+        QueryRun                qr;
+        QueryBuildDataSource    qbds = q.addDataSource(tableId);
+        qbds.addRange(fieldId).value(strFmt('%1',conPeek(backendCon,6)));
+        qr = new QueryRun(q);
+        qr.next();
+        common = qr.get(tableId);
+
+        return common;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>BackendId2UniqueID</Name>
+				<Source><![CDATA[
+    public static str BackendId2UniqueID(TFMBackendId _backendId)
+    {
+        container		backendCon = TFMHelper::strSplit(_backendId,'/').pack();
+        return conPeek(backendCon,6);        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addValueMapToParmMethod</Name>
+				<Source><![CDATA[
+    public static void addValueMapToParmMethod(Map _values, Object _class)
+    {
+        MapEnumerator		mEnum = _values.getEnumerator();
+        ClassId             classClassId = classIdGet(_class);
+        SysDictClass        dC = new SysDictClass(classClassId);
+        Set                 parmMethods = TFMFormLookupHelper::parmMethodsOnClass(classClassId);
+
+		while (mEnum.moveNext())
+        {
+            TFMHelper::addValueToParmMethod(mEnum.currentKey(),_class,mEnum.currentValue(),dC,parmMethods);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addValueToParmMethod</Name>
+				<Source><![CDATA[
+    public static anytype addValueToParmMethod(str _key, Object _class, str _value, SysDictClass _dC = null, Set _parmMethods = null ) 
+    {
+        anytype                 convertedValue;
+        SysDictMethod           sdm;
+        SysDictClass            dC = _dC != null ? _dC : new SysDictClass(classIdGet(_class));
+        SysDictEnum             sde;
+        Set                     parmMethods = _parmMethods != null ? _parmMethods : TFMFormLookupHelper::parmMethodsOnClass(dC.id());        
+        Types                   baseType;
+        TFMParameterAttribute   parmAttrib;
+
+        if (parmMethods.in('parm'+ _key))
+        {
+            sdm = new SysDictMethod(UtilElementType::ClassInstanceMethod,dC.id(),'parm'+ _key);
+                    
+            baseType = sdm.returnType();
+            if (baseType == Types::UserType && sdm.returnTypeName())
+            {
+                baseType = new DictType(extendedTypeName2Id(sdm.returnTypeName())).baseType();
+            }
+            if (baseType == Types::Class)
+            {
+                return null;
+            }
+            convertedValue = TFMDocCustomFunctionFlow::ConvertToType(_value, baseType,baseType != Types::Enum ? extendedTypeId2name(sdm.returnId()) : sdm.returnTypeName());
+
+            if(baseType == Types::Enum && convertedValue == 255)
+            {
+                parmAttrib = sdm.getAttribute(classStr(TFMParameterAttribute));
+                if(parmAttrib.parmDefaultValue() != null)
+                {
+                    convertedValue = parmAttrib.parmDefaultValue();
+                }
+                else
+                {
+                    sde = new SysDictEnum(new DictType(extendedTypeName2Id(sdm.ReturnTypeName())).enumId());
+                                      
+                    convertedValue = sde.firstValue();
+                }
+            }
+            
+            return dC.callObject('parm' + _key,_class,convertedValue);
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertCamelCaseToNiceText</Name>
+				<Source><![CDATA[
+    public static str convertCamelCaseToNiceText(str _missingSpaces)
+    {
+        int totalLength = strLen(_missingSpaces);
+        str result, curChar, prevChar, nextChar;
+        int i;
+        
+        if(totalLength)
+        {
+            curChar = subStr(_missingSpaces, 1, 1);
+            result = strUpr(curChar);
+        }
+
+        for (i = 2; i <=totalLength; i++)
+        {
+            prevChar = curChar;
+            curChar = nextChar ? nextChar : subStr(_missingSpaces,i,1);
+            nextChar = subStr(_missingSpaces, i+1, 1);
+
+            // Add space before character?
+            result += ( (   char2Num(curChar,1) > 64 &&     // current is UPPER case
+                            char2Num(curChar,1) < 91 ) &&   // and either
+                        ( ( char2Num(prevChar,1) > 96 &&    // previous is lower case
+                            char2Num(prevChar,1) < 123 ) || // or 
+                          ( char2Num(nextChar,1) > 96 &&    // next is lower case
+                            char2Num(nextChar,1) < 123 ) )  
+                        ? ' ' : '') + curChar;
+        }
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>capitalLetterSentence</Name>
+				<Source><![CDATA[
+    public static str capitalLetterSentence(str _sentence)
+    {
+        ListEnumerator lEnum = TFMHelper::strSplit(_sentence,' ').getEnumerator();
+        str             result;
+        while (lEnum.moveNext())
+        {
+            result += (result ? ' ' : '') + strUpr(subStr(lEnum.current(),1,1)) + strLwr(subStr(lEnum.current(),2,strLen(lEnum.current())));
+        }
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeParmFromStr</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Removes the parm form the string if it starts with parm. 
+    /// </summary>
+    /// <param name = "_input"></param>
+    /// <returns></returns>
+    public static str removeParmFromStr(str _input)
+    {
+        if(_input && strLen(_input) > 4)
+        {
+            if(subStr(_input,1,4) == 'parm')
+            {
+                return subStr(_input,5,strLen(_input));
+            }
+        }
+        return _input;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>attachNoteToCommon</Name>
+				<Source><![CDATA[
+    public static str attachNoteToCommon(Common _common, str _note)
+    {
+        str fileName = TFMHelper::descriptionFromCommon(_common) + '.';
+        //DocuRef     resultDocuRef;
+        
+        DocumentManagement::attachNoteToCommon(_common,DocuType::typeNote(),fileName + 'txt',_note);
+
+        return 'file Attached';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>descriptionFromCommon</Name>
+				<Source><![CDATA[
+    public static str descriptionFromCommon(Common _common)
+    {
+        Description255  ret = new DictTable(_common.TableID).label();
+        MapEnumerator   keyFields = TFMHelper::getPrimaryKeysFromTableName(tableId2Name(_common.TableID)).getEnumerator();
+        DictField       dictField;
+
+        while (keyFields.moveNext())
+        {
+            dictField = keyFields.currentValue();
+            ret += ', ' + dictField.label() + ' ' + strFmt('%1',_common.(dictField.id()));
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBuffer</Name>
+				<Source><![CDATA[
+    public static Common getBuffer(TableName _tableName, Object _class)
+    {
+        DictClass                       DC = new DictClass(classIdGet(_class));
+        TFMOrderPostDataSetAttribute    attr;
+        Array                           array;
+        int                             i, j;
+        DictMethod                      DM;
+        
+        for (i = 1; i <= DC.objectMethodCnt(); i++)
+        {
+            DM = DC.objectMethodObject(i);
+            array = DM.getAttributes(classStr(TFMOrderPostDataSetAttribute));
+            if (array != null)
+            {
+                for (j = 1; j <= array.lastIndex(); j++)
+                {
+                    attr = array.value(j);
+                    if (attr.name() == _tableName || !_tableName)
+                    {
+                        return DC.callObject(DM.name(),_class);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertStr2Num</Name>
+				<Source><![CDATA[
+    public static real convertStr2Num(str _textNumber)
+    {        
+        //return str2num(strreplace(_textNumber,",","."));
+        return TFMHelper::floatParse(_textNumber);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>today</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// wrapper for today function that has been deprecated in D365, made for backwards compatibility.
+    /// </summary>
+    /// <returns>Todays date.</returns>
+    public static date today()
+    {
+        #ifnot.isAX6
+        return DateTimeUtil::getToday(DateTimeUtil::getUserPreferredTimeZone());
+        #endif
+        #if.isAX6
+        return today();
+        #endif
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindItemDocuref</Name>
+				<Source><![CDATA[
+    public static DocuRef FindItemDocuref(ItemId _itemID, InventDimId _inventDimID)
+    {
+        InventDimCombination    iDimCom;
+        Docuref                 docuRef;
+        InventDimId             prodDimInventDimId = InventDim::findOrCreateProductInventDimId(_itemID,InventDim::find(_inventDimID));
+        
+        iDimCom = InventDimCombination::find(_itemID,prodDimInventDimId);
+        if (iDimCom)
+        {
+            docuRef = TFMHelper::findImageDocuRef(iDimCom);//,TFMParameters::find().DocuTypeId);
+            
+        }
+        if (!docuRef)
+        {
+            docuRef = TFMHelper::findDefaultImageDocuRef(InventTable::find(_itemID));
+        }
+
+        return docuRef;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>imageIDFromDocuRef</Name>
+				<Source><![CDATA[
+    public static str imageIDFromDocuRef(DocuRef _docuref)
+    {
+        
+        return int642Str(_docuref.RecId) + '_' + int642Str(_docuref.RecVersion);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>imageID</Name>
+				<Source><![CDATA[
+    public static str imageID(Common _common)
+    {
+        DocuRef docuRef = _common.tableID == tableNum(InventTable) ? TFMHelper::findDefaultImageDocuRef(InventTable::findRecId(_common.RecId)) : TFMHelper::findImageDocuRef(_common,TFMParameters::find().DocuTypeId);
+        str imageID;
+        if (docuRef)
+        {
+            imageId = TFMHelper::imageIDFromDocuRef(docuRef);
+        }
+        return imageID;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>xmlLines2Set</Name>
+				<Source><![CDATA[
+    public static Set xmlLines2Set(XmlElement _orderElement)
+    {
+        Set         lines = new Set(Types::Class);
+        Map         line = new Map(Types::String, Types::String);
+        XmlNodeList lineNodeList = _orderElement.getElementsByTagName( 'Line' );
+        XMLNode     lineNode, registrationNode, subNode;
+        XMLNodeList lineNodeRegistrationList;
+        int         i, n;
+        for (i = 0; i < lineNodeList.length(); i++) // Save the registration data into table
+        {
+            lineNode = lineNodeList.item(i);
+            lineNodeRegistrationList = lineNode.childNodes();
+            
+            for (n = 0;n < lineNodeRegistrationList.length(); n++)
+            {
+                line = new Map(Types::String, Types::String);
+                registrationNode = lineNodeRegistrationList.item(n);
+                subNode = registrationNode.firstChild();
+                while (subNode)
+                {
+                    line.insert(subNode.name(), subNode.innerText());
+                    subNode = subNode.nextSibling();
+                }
+                line.insert(TFMConstants::AttributeLineNumber(),lineNode.attributes().getNamedItem(TFMConstants::AttributeLineNumber()).text());
+                Lines.add(line);
+            }
+        }
+
+        return lines;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>floatParse</Name>
+				<Source><![CDATA[
+    public static real floatParse(str _numberString)
+    {
+        str textNumber = _numberString;
+        if (!_numberString)
+        {
+            return 0;
+        }
+        if (!strScan(_numberString,'.',1,1000) && !strScan(_numberString,',',1,1000))
+        {
+            textNumber += '.0';
+        }
+        else if(substr(_numberString,1,1) == '.' || subStr(_numberString,1,1) == ',')
+        {
+            textNumber = '0' + textNumber; // NumberFormat for 'de-DE' seems to throw error on leading decimal separator
+        }
+        #if.isAX6
+        System.Globalization.CultureInfo invariant = System.Globalization.CultureInfo::get_InvariantCulture();
+        System.Globalization.CultureInfo deCult = System.Globalization.CultureInfo::GetCultureInfo('de-DE');
+        System.Double float1 = System.Double::Parse(textNumber, invariant.get_NumberFormat());
+        System.Double float2 = System.Double::Parse(textNumber, deCult.get_NumberFormat());
+    
+        System.Double scalar = subStr(textNumber,1,1) == '-' ? -1 : 1;
+        System.Double midresult = System.Math::Min(System.Math::Abs(float1), System.Math::Abs(float2));
+        real res = midResult;
+        real rScalar = scalar;
+        return res * rscalar;
+        #endif
+        #ifnot.isAx6
+        System.Double float1 = System.Double::Parse(textNumber, System.Globalization.CultureInfo::InvariantCulture.NumberFormat);
+        System.Double float2 = System.Double::Parse(textNumber, System.Globalization.CultureInfo::GetCultureInfo('de-DE').NumberFormat);
+        return System.Math::Min(System.Math::Abs(float1), System.Math::Abs(float2)) * (float1 < 0 ? -1 : 1);
+        #endif
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getClassFromSysAttribute</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds out if there is a class that has a certain attribute. Please notice this method does only support finding classes where there is only one attribute defined. 
+    /// 
+    /// NB!: Use TFMGetRegistrationConfiguration::getClassFromSysAttribute instead.
+    /// </summary>
+    /// <param name = "_baseClassName"></param>
+    /// <param name = "_sysAttribute"></param>
+    /// <returns></returns>
+    public static Object getClassFromSysAttribute(ClassName       _baseClassName, SysAttribute    _sysAttribute)
+    {
+        SysDictClass        dc = new SysDictClass(className2Id(_baseClassName));
+        ListEnumerator      classesExtending = dc.extendedBy().getEnumerator();
+        SysDictClass        dcSub;
+        ClassId             attributeClassId = classIdGet(_sysAttribute);
+        SysDictClass        attrDC = new SysDictClass(classIdGet(_sysAttribute));
+        boolean             thereIsAMatch;
+        Object              result = dc.isAbstract() ? null : dc.makeObject();
+        Object              testResult;
+        MethodName          methodname;
+        Set                 parmMethodsOnAttributeClass  = TFMFormLookupHelper::parmMethodsOnClass(attributeClassId);
+        SetEnumerator       sEnum;
+        ExecutePermission   exePerm;
+        ClassName attributeClassName = classId2Name(attributeClassId);
+
+        while (classesExtending.moveNext())
+        {
+            dcSub = new SysDictClass(classesExtending.current());
+        
+            testResult = dcSub.getAttribute(attributeClassName);
+            if (testResult == null)
+            {
+                continue;
+            }
+        
+            thereIsAMatch = true;
+            exePerm = new ExecutePermission();
+            exePerm.assert();
+            sEnum = parmMethodsOnAttributeClass.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                methodname = sEnum.current();
+                thereIsAMatch = thereIsAMatch && (attrDC.callObject(methodname,testResult) == attrDC.callObject(methodname,_sysAttribute));
+            }
+            if (thereIsAMatch)
+            {
+                return dcSub.makeObject();
+            }
+            CodeAccessPermission::revertAssert();
+        }
+    
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPrimaryKeysFromTableName</Name>
+				<Source><![CDATA[
+    public static Map getPrimaryKeysFromTableName(TableName _tableName)
+    {
+        Map             retMap = new Map(Types::String, Types::Class);
+        int             i;
+        DictField       dictField;
+        DictTable       dictTable = new SysDictTable(tablename2id(_tableName));
+        DictIndex       dictIndex = dictTable ? new DictIndex(tablename2id(_tableName),dictTable.clusterIndex()) : null;
+        if (!DictIndex)
+        {
+            return retMap;
+        }
+
+        for (i = 1; i <= DictIndex.numberOfFields();i++)
+        {
+            dictField = new DictField(DictTable.id(), dictIndex.field(i));
+            retMap.insert(dictField.name(),dictField);
+            
+        }
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldsOnTable</Name>
+				<Source><![CDATA[
+    public static Map fieldsOnTable(TableName _tableName)
+    {
+        Map         returnMap   = new Map(Types::String, Types::Int64);
+        DictTable   dt          = new DictTable(tableName2Id(_tableName));
+		int         fieldNo     = 0;
+
+		if (dt == null)
+        {
+            return returnMap;
+        }
+
+        for (fieldNo = 0; fieldNo <= dt.fieldCnt(); fieldNo++)
+        {
+            if (!(new DictField(tableName2Id(_tableName),dt.fieldCnt2Id(fieldNo)).isSystem()))
+            {
+                returnMap.insert(dt.fieldName(dt.fieldCnt2Id(fieldNo)),dt.fieldCnt2Id(fieldNo));
+            }
+        }
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBuffers</Name>
+				<Source><![CDATA[
+    public static Set getBuffers(Map _values, str _tableName, Map _replacementMap = new Map(Types::String, Types::Class))
+    {
+        str             refRecord   = _values.exists(tableStr(ReferenceIdentity)) ? _values.lookup(tableStr(ReferenceIdentity)) : '';
+        Common          record = TFMHelper::getBufferFromStr(refRecord);
+        
+        Set             records = new Set (Types::Record);
+        QueryRun        qr;
+        if (record != null && tableId2Name(record.TableId) == _tableName)
+        {
+            records.add(record);
+            return records;
+        }
+
+        if (!record)
+        {
+            qr = TFMHelper::findBuffersFromMap(_values,_tableName, _replacementMap);
+        }
+        else
+        {
+            qr = TFMGenericDataHelper::getRelatedTable(record, _tableName);
+        }
+        while (qr.next())
+        {
+            record = qr.get(tableName2id(_tableName));
+            records.add(record);
+        }
+        
+        return records;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mergeMaps</Name>
+				<Source><![CDATA[
+    public static Map mergeMaps(Map _map1, Map _map2, boolean _appendValue = false, str _appendStr = TFMConstants::lineBreak())
+    {
+        Map retMap;
+        MapEnumerator mapEnum;
+        str existingValue;
+        
+        if( !_map1)
+        {
+            //throw error(Error::wrongUseOfFunction(funcName()));
+            _map1 = new Map(_map2.keyType(),_map2.valueType());
+		}
+        // Check compatibility
+        if(_map1 && _map2)
+        {
+            if(_map1.keyType() != _map2.keyType() || _map1.valueType() != _map2.valueType())
+            {
+                throw error(Error::wrongUseOfFunction(funcName()));
+            }
+        }
+
+        retMap = _map1;
+        mapEnum = _map2.getEnumerator();
+        while(mapEnum.moveNext())
+        {
+            if( !retMap.exists(mapEnum.currentKey()))
+            {
+                retMap.insert(mapEnum.currentKey(), mapEnum.currentValue());
+            }
+            else if (_appendValue && _map1.valueType() == Types::String)
+            {
+                existingValue = retMap.lookup(mapEnum.currentKey());
+                retMap.insert(mapEnum.currentKey(),  mapEnum.currentValue()+ (existingValue ? _appendStr : '')+existingValue);
+            }
+        }
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findBuffersFromMap</Name>
+				<Source><![CDATA[
+    public static QueryRun findBuffersFromMap(Map _values, str _tableName, Map _replacementMap = new Map(Types::String, Types::Class))
+    {        
+        Map                     primaryKeys = TFMHelper::getPrimaryKeysFromTableName(_tableName);
+        MapEnumerator           mEnum       = _replacementMap.elements() ? _replacementMap.getEnumerator() : primaryKeys.getEnumerator();
+        DictField               dictField;
+        Query                   q = new Query();
+        QueryRun                qr;
+        QueryBuildDataSource    qbds = q.addDataSource(tablename2id(_tableName));
+        QueryBuildRange         qbr;
+        
+        while (mEnum.moveNext())
+        {
+            dictField = mEnum.currentValue();
+            qbr = qbds.addRange(fieldName2id(tablename2id(_tableName),dictField.name()));
+            qbr.value(_values.exists(mEnum.currentKey()) ? _values.lookup(mEnum.currentKey()) : '');
+        }
+        
+        qr = new QueryRun(q);
+        
+        return qr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBufferFromStr</Name>
+				<Source><![CDATA[
+    public static Common getBufferFromStr(str _refRecordStr)
+    {
+        container   refCon;
+        Common      record;
+        refrecid    refID;
+
+        if (!_refRecordStr)
+        {
+            return null;
+        }
+        refCon      = strSplit(_refRecordStr,';').pack();
+        record          = new DictTable(tableName2Id(conPeek(refCon ,4))).makeRecord();
+        refID           = str2Int64(conPeek(refCon ,5));
+        select firstonly record where record.RecId == refID;
+        
+        return record;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>baseType2InputType</Name>
+				<Source><![CDATA[
+    public static TFMInputTypes baseType2InputType(Types _type)
+    {
+        TFMInputTypes ret = TFMInputTypes::Text;
+        switch ( _type)
+        {
+            case Types::Int64 :
+            case Types::String :
+                ret = TFMInputTypes::Text;//#InputTypeText;
+                break;
+            case Types::Date : 
+                ret = TFMInputTypes::Date;//#InputTypeDate;
+                break;
+            case Types::Integer :
+                ret = TFMInputTypes::Integer;//#InputTypeInteger;
+                break;
+            case Types::Enum : 
+                ret = TFMInputTypes::List;//#InputTypeList;
+                break;
+            
+            case Types::Real :
+                ret = TFMInputTypes::Decimal;//#InputTypeDecimal;
+                break;
+        }
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>strFmt</Name>
+				<Source><![CDATA[
+    public static str strFmt(str _inStr, container _values)
+    {
+        //to avoid BPUnusedStrFmtArgument 
+        str outStr = _inStr;
+        int conCount = 1;
+
+        for (conCount = 1; conCount <= conLen(_values); conCount++)
+        {
+            outStr = strReplace(outStr,'%'+int2Str(conCount),strFmt('%1',conPeek(_values,conCount)));
+        }
+        return outStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>strSplit</Name>
+				<Source><![CDATA[
+    static List strSplit(str _stringToSplit, str _delimiter)
+    {
+        List list = new List(Types::String);
+        int oldPos = 1;
+        int pos;
+        int delLength = strLen(_delimiter);
+        int strLength = strLen(_stringToSplit);
+
+        do
+        {
+            pos = strScan(_stringToSplit, _delimiter, oldPos, strLength);
+            if (!pos)
+            {
+                pos = strLength+1;
+            }
+            list.addEnd(subStr(_stringToSplit, oldPos, pos-oldPos));
+            oldPos = pos+delLength;
+        }
+        while (pos <= strLength);
+
+        return list;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertStr2utcDateTime</Name>
+				<Source><![CDATA[
+    public static utcDateTime convertStr2utcDateTime(str 100 datetimestr)
+    {
+        utcDateTime dateOut = utcDateTimeNull();
+        str 100 tempDateStr;
+        System.String nDatetimestr = datetimestr;
+        System.DateTime datetime;
+        System.DateTime datetimeUTC;
+        System.Globalization.CultureInfo daDK = new System.Globalization.CultureInfo('da-DK');
+        System.Boolean b;
+        boolean o;
+    
+        b = System.DateTime::TryParseExact(nDatetimestr, 'yyyy-MM-ddTHH:mm:ss.FFFzzz', daDK, System.Globalization.DateTimeStyles::AdjustToUniversal, byref datetime);
+        o = b;
+        if (!o)
+        {
+            b = System.DateTime::TryParseExact(nDatetimestr, 'yyyy-MM-ddTHH:mm:ss.FFzzz', daDK, System.Globalization.DateTimeStyles::AdjustToUniversal, byref datetime);
+            o = b;
+        }
+        if (!o)
+        {
+            b = System.DateTime::TryParseExact(nDatetimestr, 'yyyy-MM-dd', daDK, System.Globalization.DateTimeStyles::None, byref datetime);
+            o = b;
+        }
+    
+        if (o == true)
+        {
+            try
+            {
+                //datetime = System.DateTime::ParseExact(datetimestr, "yyyy-MM-ddTHH:mm:ss.FFFzzz", daDK);
+                datetimeUTC = datetime.ToUniversalTime();
+    
+                dateout = Global::clrSystemDateTime2UtcDateTime( datetimeUTC );
+
+            }
+    
+            catch(Exception::Error)
+            {
+                dateOut = utcDateTimeNull();
+            }
+    
+            catch(Exception::CLRError)
+            {
+                dateOut = utcDateTimeNull();
+            }
+        }
+        if (dateOut == utcDateTimeNull())
+        {
+            tempDateStr = datetimestr;
+            if (strlen(tempDateStr) >= 19)
+            {
+                tempDateStr = subStr(tempDateStr,1,19);
+            }
+            dateOut = DateTimeUtil::parse( tempDateStr);
+        }
+    
+        return dateOut;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>date2Str</Name>
+				<Source><![CDATA[
+    public static str date2Str(Date _date)
+    {
+        return  date2str(_date,123,2,3,2,3,4);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EnsureInventDim</Name>
+				<Source><![CDATA[
+    /// <param name="inventDim">InventDim to correct</param>
+    /// <summary>
+    /// Will ensure the inventDim WMSLocationId, InventLocationId and InventSiteId is set
+    /// </summary>
+    /// <param name = "inventDim">InventDim to correct</param>
+    /// <param name = "_inventTransID"></param>
+    /// <returns>Returns true if changed</returns>
+    public static boolean EnsureInventDim(InventDim inventDim, InventTransId _inventTransID = '')
+    {
+        boolean corrected = false;
+        WMSLocation wmsLocation;
+        InventTrans iTrs;
+        InventTransOrigin iOrigin;
+    
+        #if.isAX6
+        if (inventDim.wMSPalletId && !inventDim.wMSLocationId)
+        {
+            inventDim.wMSLocationId = WMSPallet::find(inventDim.wMSPalletId).wMSLocationId;
+
+            corrected = true;
+        }
+        #endif
+        TFMInventDimHelper::locationMismatch(inventDim, _inventTransID);
+        if (inventDim.LicensePlateId && !inventDim.wMSLocationId)
+        {
+            if (!WHSLicensePlate::exist(inventDim.LicensePlateId))
+            {
+                WHSLicensePlate::createLicensePlate(inventDim.LicensePlateId);
+            }
+            inventDim.wMSLocationId = TFMInventDimHelper::WmsLocationIdFromLicensePlate(inventDim.LicensePlateId).wMSLocationId;
+            if (_inventTransID && !inventDim.wMSLocationId)
+            {
+                select firstonly iTrs order by RecId desc where iTrs.inventDimId
+                    join iOrigin where iTrs.InventTransOrigin == iOrigin.recId && iOrigin.InventTransId == _inventTransID;
+
+                inventDim.InventLocationId = inventDim.InventLocationId ? inventDim.InventLocationId : iTrs.inventLocationId();
+                inventDim.wMSLocationId = InventLocation::find(inventDim.InventLocationId).WMSLocationIdDefaultReceipt;
+            }
+            corrected = true;
+        }
+        
+
+        if (inventDim.wMSLocationId && !inventDim.InventLocationId)
+        {
+            if ((select count(RecId) from wmsLocation where wmsLocation.wMSLocationId == inventDim.wMSLocationId).RecId == 1)
+            {
+                wmsLocation.selectForUpdate(false);
+                select firstOnly wmsLocation
+                    where wmsLocation.wMSLocationId == inventDim.wMSLocationId;
+    
+                if (wmsLocation)
+                {
+                    inventDim.InventLocationId = wmsLocation.inventLocationId;
+                    corrected = true;
+                }
+            }
+        }
+    
+        if (inventDim.InventLocationId && !inventDim.InventSiteId)
+        {
+            inventDim.InventSiteId = InventLocation::find(inventDim.InventLocationId).InventSiteId;
+            corrected = true;
+        }
+    
+        return corrected;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEnumValues</Name>
+				<Source><![CDATA[
+    public static str getEnumValues(int _enumId)
+    {
+        DictEnum        dictEnum;
+        int             valueIndex;
+        str             labelId;
+        str             list;
+        
+        dictEnum    = new DictEnum(_enumId);
+    
+        if (dictEnum)
+        {
+            for (valueIndex = 0 ; valueIndex < dictEnum.values(); valueIndex++)
+            {
+                labelId = dictEnum.index2LabelId(valueIndex);
+                list += SysLabel::labelId2String(labelId);
+                // Do not add a value separator to the last element
+                if (valueIndex < dictEnum.values()-1)
+                {
+                    list += ';';
+                }
+            }
+        }
+        return list;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>enumName</Name>
+				<Source><![CDATA[
+    //Shows name instead of label
+    public static str enumName(EnumId _enumId, anyType _enumValue)
+    {
+        SysDictEnum sysDictEnum;        
+    
+        sysDictEnum = new SysDictEnum(_enumId);
+        return sysDictEnum.value2Symbol(_enumValue);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>EnumSymbol2Value</Name>
+				<Source><![CDATA[
+    //Shows name instead of label
+    public static int EnumSymbol2Value(EnumId _enumId, str _enumSymbol)
+    {  
+        return new SysDictEnum(_enumId).symbol2Value(_enumSymbol);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lotNumber_ExpirationDate</Name>
+				<Source><![CDATA[
+    public static date lotNumber_ExpirationDate(str _lotNumber)
+    {
+        return str2date(substr(_lotNumber, strfind(_lotNumber, ',', 1, strlen(_lotNumber)) + 1, strlen(_lotNumber)), 123);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lotNumber_LotNumber</Name>
+				<Source><![CDATA[
+    public static str lotNumber_LotNumber(str _lotNumber)
+    {
+        int i;
+
+        i = strfind(_lotNumber, ',', 1, strlen(_lotNumber));
+        if (i > 0)
+        {
+            return substr(_lotNumber, 1, i - 1);
+        }
+        else
+        {
+            return _lotNumber;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>string2ItemID</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Converts a string to an ItemId - Looking for barcode for the Item. The invent Dim is set on the IDimLookup parameter if found.
+    /// </summary>
+    public static ItemId string2ItemID(str _value, InventDim _iDimLookup)
+    {
+        ItemId				itemId;
+        Str                 inputItemId = _value;
+        InventItemBarcode   inventItemBarcode;
+        InventItemGTIN      inventItemGTIN;
+        InventDim			iDim;
+    
+        // Determine if the provided value is a barcode or an item id
+        inventItemBarcode = InventItemBarcode::findInputBarcode(inputItemId);
+        if (inventItemBarcode)
+        {
+            itemId = inventItemBarcode.itemId;
+            iDim = inventItemBarcode.inventDim();
+        }
+        else
+        {
+            inventItemGTIN = InventItemGTIN::findGTIN(inputItemId);
+            if (inventItemGTIN)
+            {
+                itemId = inventItemGTIN.itemId;
+                iDim = inventDim::find(inventItemGTIN.inventDimId);
+            }
+            else if (InventTable::exist(inputItemId))
+            {
+                itemId = InventTable::find(inputItemId).ItemId;
+            }
+        }
+
+		if (iDim)
+        {
+            _iDimLookup.data(iDim);
+        }
+        return itemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExtractItemId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Extract the itemID from the request node by looking at barcodes values also.
+    /// 
+    /// if found the inventdim data is set on the provided _iDim.
+    /// </summary>
+    public static ItemId ExtractItemId( InventDim   _iDim,
+                                        XMLNode     _requestDataNode,
+                                        Str         _itemElement = TFMConstants::ItemNumber() )
+    {
+        InventDim           inventDimLookup;
+        ItemId              itemId = TFMHelper::string2ItemID(TFMHelper::ExtractItemId_Raw( _requestDataNode, _itemElement), inventDimLookup);
+        if (inventDimLookup)
+        {
+            _iDim.data(inventDimLookup);
+        }
+    
+        return ItemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ExtractItemId_Raw</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Extracts the raw ItemId from the request node.
+    /// </summary>
+    public static str ExtractItemId_Raw( XMLNode      _requestDataNode,
+                                            str        _itemElement = TFMConstants::ItemNumber() )
+    {
+        str               inputItemId;
+    
+        inputItemId         = _requestDataNode.getNamedElement( _itemElement ).innerText();
+    
+        return inputItemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldGroupSetProvider</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Provides a map that links a field group (concatenated by tableId and fieldGroupName) to a set of fields. The map is stored in memory cache, so it can be reused by different calls, and the field set only needs to be constructed once for each field group.
+    /// </summary>
+    /// <returns>A map of fields in field groups per table</returns>
+    protected static Map fieldGroupSetProvider()
+    {
+        System.Runtime.Caching.ObjectCache memCache = System.Runtime.Caching.MemoryCache::Default;
+        
+        Map fieldGroupMap = memCache.Get(funcName());
+
+        if(!fieldGroupMap)
+        {
+            fieldGroupMap = new Map (Types::String, Types::Class);
+            memCache.Add(funcName(), fieldGroupMap, new System.Runtime.Caching.CacheItemPolicy());
+        }
+        return fieldGroupMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldGroupToSet</Name>
+				<Source><![CDATA[
+    public static Set fieldGroupToSet(TableId _tableId, FieldGroupName _fieldGroupName)
+    {
+        Set             retSet;
+        DictTable       dTable;
+        DictField       dField;
+        DictFieldGroup  dFieldGroup;
+        int             fieldId;
+        int             counter;
+        int             fieldCnt;
+        str             key = strFmt('%1_%2', _tableId, _fieldGroupName);   
+        Map             fieldGroupMap = TFMHelper::fieldGroupSetProvider();
+
+        if (fieldGroupMap.exists(key))
+        {
+            return fieldGroupMap.lookup(key);
+        }
+
+        dTable = new DictTable(_tableId);
+        retSet = new Set(Types::String);
+        if (dTable)
+        {
+            for(counter = 1; counter <= dTable.fieldGroupCnt(); counter++)
+            {
+                if(_fieldGroupName == dTable.fieldGroup(counter))
+                {
+                    dFieldGroup = new DictFieldGroup(_tableId, _fieldGroupName);
+                    if(dFieldGroup)
+                    {
+                        for (fieldCnt=1; fieldCnt <= dFieldGroup.numberOfFields(); fieldCnt++)
+                        {
+                            fieldId = dFieldGroup.field(fieldCnt);
+                            dField = new DictField(_tableId, FieldId);
+                            if(dField)
+                            {
+                                retSet.add(dField.name());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        fieldGroupMap.insert(key, retSet);
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formatItemQty</Name>
+				<Source><![CDATA[
+    #tfm
+    #if.isAX5
+    public static str formatItemQty(InventQty _quantity,  UnitID _unit = '~', boolean _absoluteValue = false)
+    {
+        ;
+        if (_unit == '~')
+        _unit = InventParameters::find().DefaultUnitId;
+
+        return num2str(_absoluteValue ? abs(_quantity) : _quantity, 0, Unit::find(_unit).UnitDecimals, 1, 0);
+    }
+    #endif
+
+    #ifnot.isAX5
+    public static str formatItemQty(InventQty _quantity, UnitOfMeasureSymbol _unit = '~', boolean _absoluteValue = false)
+
+    {
+
+        UnitOfMeasure       unitOfMeasure;
+
+        UnitOfMeasureSymbol unit = prmIsDefault(_unit) ? InventParameters::find().DefaultUnitId : _unit;
+
+        unitOfMeasure = unitOfMeasure::findBySymbol(unit);
+
+        return num2str(_absoluteValue ? abs(_quantity) : _quantity, 0, unitOfMeasure.DecimalPrecision, 1, 0);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formatLineNum</Name>
+				<Source><![CDATA[
+    #endif
+
+    public static str formatLineNum(LineNum _lineNum)
+    {
+        int d = 0;
+
+        while ((d < 10) && (_lineNum != str2num( num2str(_lineNum,1,d,1,0) ) ))
+        {
+            d++;
+        }
+        return num2str(_lineNum, 1, d, 1, 0);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConvertibleUnitList</Name>
+				<Source><![CDATA[
+    public static str getConvertibleUnitList(InventTable _inventTable)
+    {
+        UnitOfMeasureConversion conv;
+        UnitOfMeasure uom;
+        UnitOfMeasure uomSource;
+        str chkList = ';';
+        str unitList = '';
+    
+        uomSource = UnitOfMeasure::findBySymbol(_inventTable.inventUnitId() );
+        unitList = unitList + _inventTable.inventUnitId();
+    
+        while select conv
+            where conv.Product == _inventTable.Product
+            join uom
+            where uom.RecId == conv.FromUnitOfMeasure
+        {
+            if (strScan(chkList, ';'+uom.Symbol+';', 1, 1000) <= 0)
+            {
+                unitList = unitList + (unitList ? ';' : '') + uom.Symbol;
+                chkList += uom.Symbol +';';
+            }
+        }
+    
+        while select conv
+            where conv.Product == 0 // Standard conversion
+               && conv.FromUnitOfMeasure == uomSource.RecId
+            join uom
+            where uom.RecId == conv.ToUnitOfMeasure
+        {
+            if (strScan(chkList, ';'+uom.Symbol+';', 1, 1000) <= 0)
+            {
+                unitList = unitList + (unitList ? ';' : '') + uom.Symbol;
+                chkList += uom.Symbol + ';';
+            }
+        }
+    
+        return unitList;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>List2Set</Name>
+				<Source><![CDATA[
+    public static Set List2Set(List _list)
+    {
+        ListEnumerator le = _list.getEnumerator();
+        Set retSet = new Set(_list.typeId());
+
+		while (le.moveNext())
+        {
+            retSet.add(le.current());
+        }
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>utcDateTime2Str</Name>
+				<Source><![CDATA[
+    public static str utcDateTime2Str(utcDateTime _datetime)
+    {
+        Date theDate = DateTimeUtil::date(_datetime);
+    
+        return  date2str(theDate,123,2,3,2,3,4);
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findImageDocuRef</Name>
+				<Source><![CDATA[
+    public static DocuRef findImageDocuRef(Common _record, DocuTypeId _typeID = '')
+    {
+        DocuRef defaultDocuRef;
+        select firstonly defaultDocuRef order by defaultDocuRef.CreatedDateTime desc
+                where
+                    defaultDocuRef.RefTableId == _record.TableId
+                    && defaultDocuRef.RefRecId == _record.RecId
+                    && defaultDocuRef.RefCompanyId == _record.DataAreaId
+                    && (defaultDocuRef.TypeId == _typeID || !_typeID);
+                
+
+        return defaultDocuRef;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeDocurefHTML</Name>
+				<Source><![CDATA[
+    public static str makeDocurefHTML(Common _buffer)
+    {
+        str                     html = '<html><body>';
+        DocuRef                 docuRef;
+        System.Drawing.Image    image;
+        System.Drawing.Image    newImage;
+        str                     base64str;
+        boolean                 foundSome = false;
+        
+        html += '<table width="100%" cellspacing="0" cellpadding="2" border="0">';
+        while select docuRef where docuRef.RefRecId == _buffer.RecId && docuRef.RefTableId == _buffer.tableId && docuRef.TypeId == TFMParameters::find().DocuTypeId
+        {
+        
+            if (docuRef)
+            {
+                image = TFMHelper::getAttachmentAsImage(docuRef);
+                if (image)
+                {
+                    newImage = TFMImageHelper::scaleImage(image,250,250);
+        
+                    base64str = TFMImageHelper::Image2Base64(newImage);
+        
+                    html += '<tr><td colspan="2" align="center"><img src="data:image/png;base64,' + base64str + '" /></td></tr>';
+                    html += '<tr><td colspan="2" align="center">'+docuRef.Notes+'</td></tr>';
+                    foundSome = true;
+                }
+            }
+        }
+        html += '</table>';
+        html += '</body></html>';
+
+        return foundSome ? html : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findDefaultImageDocuRef</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds the DocuRef record which carries the default image for the given record.
+    /// </summary>
+    /// <param name = "_record">Record with associated images.</param>
+    /// <returns>DocuRef record with default image</returns>
+    public static DocuRef findDefaultImageDocuRef(Common _record)
+    {
+        #if.isAX6
+        DocuRef defaultDocuRef;
+        EcoResProductImage localEcoResProductImage;
+        select firstonly defaultDocuRef
+                where
+                    defaultDocuRef.RefTableId == _record.TableId
+                    && defaultDocuRef.RefRecId == _record.RecId
+                    && defaultDocuRef.RefCompanyId == _record.DataAreaId
+                join localEcoResProductImage
+                where
+                    defaultDocuRef.RecId == localEcoResProductImage.RefRecId
+                    && localEcoResProductImage.DefaultImage == NoYes::Yes;
+
+        return defaultDocuRef;
+        #endif
+        #ifnot.isAX6
+        return EcoResProductImage::findDefaultImageDocuRef(_record);
+        #endif
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAttachmentAsImage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Retrieves a document attachment packed into container.
+    /// </summary>
+    /// <param name="_docuRef">A document reference that has an attached file.</param>
+    /// <returns>Container with the file contents.</returns>
+    /// <remarks>This method should not be used with File::sendFileToUser.  Instead use DocumentManagement::getAttachmentPublicUrl() and the Browser class.</remarks>
+    public static System.Drawing.Image getAttachmentAsImage(DocuRef _docuRef)
+    {
+        #ifnot.isAX6
+        try
+        {
+            return System.Drawing.Image::FromStream(DocumentManagement::getAttachmentStream(_docuRef));
+        }
+        catch 
+        {
+            return null;
+        }
+        #endif
+        #if.isAX6
+        
+        DocuValue dValue;
+        Binary      binary;
+        EcoResProductImage localEcoResProductImage;
+
+        BinData     binData = new BinData();
+        System.IO.MemoryStream memoryStream;
+    
+    
+        select firstonly dValue where dValue.RecId == _docuRef.ValueRecId;
+    
+        if (dValue && dValue.File != conNull())
+        {
+            return System.Drawing.Image::FromStream(Binary::constructFromContainer(localEcoResProductImage.MediumSize).getMemoryStream());
+        }
+    
+        select firstonly localEcoResProductImage where _docuRef.RecId == localEcoResProductImage.RefRecId && localEcoResProductImage.DefaultImage == NoYes::Yes;
+        return System.Drawing.Image::FromStream(Binary::constructFromContainer(localEcoResProductImage.MediumSize).getMemoryStream());
+
+        #endif
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeItemHTML</Name>
+				<Source><![CDATA[
+    public static str makeItemHTML(InventTable _inventTable)
+    {
+        InventItemBarcode       inventItemBarcode;
+        InventItemGTIN          inventItemGTIN;
+        int                     tableLine;
+        str                     html = '<html><body>';
+        DocuRef                 docuRef;
+        System.Drawing.Image    image;
+        System.Drawing.Image    newImage;
+        str                     base64str;
+        html += '<b><u>' + _inventTable.productName(new xInfo().language()) + '</u></b><br/>';
+        html += '<i>' + _inventTable.itemDescriptionOrName(new xInfo().language()) + '</i><br/>';
+        html += '<table width="100%" cellspacing="0" cellpadding="2" border="0">';
+        tableLine = 0;
+        while select ItemBarCode, Qty, UnitId from inventItemBarcode
+        where InventItemBarcode.itemId == _inventTable.itemId
+            && inventItemBarcode.itemBarCode
+            && inventItemBarcode.useForInput
+        {
+            tableLine++;
+            html += '<tr '+((tableLine mod 2) == 0 ? 'bgcolor="#d8dcd8"':'')+'><td>'+inventItemBarcode.itemBarCode+'</td>'+
+                    '<td align="right">'+TFMHelper::formatItemQty(inventItemBarcode.qty, inventItemBarcode.UnitID)+'</td>'+
+                    '<td>'+inventItemBarcode.UnitID+'</td></tr>';
+        }
+        while select GlobalTradeItemNumber, UnitID from inventItemGTIN
+        where inventItemGTIN.itemId == _inventTable.itemId
+            && inventItemGTIN.GlobalTradeItemNumber
+        {
+            tableLine++;
+            html += '<tr '+((tableLine mod 2) == 0 ? 'bgcolor="#d8dcd8"':'')+'><td>'+inventItemGTIN.GlobalTradeItemNumber+'</td>'+
+                    '<td align="right">'+TFMHelper::formatItemQty(1, inventItemGTIN.UnitID)+'</td>'+
+                    '<td>'+inventItemGTIN.UnitID+'</td></tr>';
+        }
+        
+        docuRef = TFMHelper::findDefaultImageDocuRef(_inventTable);
+        if (docuRef)
+        { 
+            image = TFMHelper::getAttachmentAsImage(docuRef);
+            
+            if(image)
+            {
+                newImage = TFMImageHelper::scaleImage(image,250,250);
+                base64str = TFMImageHelper::Image2Base64(newImage);
+            } 
+            else
+            {
+                base64str = '';
+            }
+        
+            html += '<tr><td colspan="2" align="center"><img src="data:image/png;base64,' + base64str + '" /></td></tr>';
+        }
+        html += '</table>';
+        html += '</body></html>';
+
+        return html;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeHtmlFromCommon</Name>
+				<Source><![CDATA[
+    public static str makeHtmlFromCommon(Common _common)
+    {
+        str				html = '<html><body><h1>'+tableId2PName(_common.tableId) + ' (' +tableId2Name(_common.tableId) + ') '+"@TFM:fieldsanddata"+'</h1>';
+        str				fieldsHtml ='<h2>'+"@TFM:PossibleFieldstouse"+'</h2><table><tr><th><h2><u>' + "@SYS25058" + '</u></h2></th><th><h2><u>'+ "@SYS34979" + '</u></h2></th><th><h2><u>'+ "@SYS7403"+ '</u></h2></th></tr>';
+        str				methodsHtml ='<h2>'+"@TFM:PossibleDisplaymethodstouse" + '</h2><table><tr><th><h2><u>' + "@SYS34979" + '</u></h2></th><th><h2><u>'+ "@SYS7403" + '</u></h2></th></tr>';
+        MapEnumerator   keyFields = TFMHelper::getPrimaryKeysFromTableName(tableId2Name(_common.TableID)).getEnumerator();
+        DictField		dictField;
+        SysDictTable	dt = new SysDictTable(_common.tableId);
+        SetEnumerator	fgEnum = dt.fieldGroups().getEnumerator();
+        DictFieldGroup	fg;
+        int				i;
+        MethodName		mName;
+        SysDictMethod	method;
+        SetEnumerator   sEnum = dt.methods(true,false,true).getEnumerator();
+        Map				foundMethods = new Map(Types::String, Types::String);
+
+        while (sEnum.moveNext())
+        {            
+            method = sEnum.current();
+            mName = method.name();
+            if (method.displayType() != DisplayFunctionType::Get)
+            {
+                continue;
+            }
+            if (method.parameterCnt() && method.parameterTypeName(1) == tableId2Name(_common.tableid))
+            {
+                foundMethods.insert(mName,strFmt('%1',dt.callObject(mName,_common,_common)));
+                //methodsHtml += '<tr><td>'+ mName + '</td><td>'+strFmt('%1',dt.callObject(mName,_common,_common))+ '</td></tr>';
+            }
+            else if(method.parameterCnt() == 1 && method.parameterOptional(1) || !method.parameterCnt())
+            {
+                foundMethods.insert(mName,strFmt('%1',dt.callObject(mName,_common)));
+                //methodsHtml += '<tr><td>'+ mName + '</td><td>'+strFmt('%1',dt.callObject(mName,_common))+ '</td></tr>';
+            }
+            if (foundMethods.exists(mName))
+            {
+				methodsHtml += '<tr><td>'+ mName + '</td><td>'+foundMethods.lookup(mName)+ '</td></tr>';
+            }
+        }
+
+        methodsHtml += '</table>';
+
+        
+		if (dt.titleField1())
+        {
+            fieldsHtml += '<tr><td colspan="3"><b><i>' + "@TFM:TitleFields" + '</i></b></td></tr>';
+            dictField = new DictField(_common.tableId,dt.titleField1());
+            fieldsHtml += '<tr><td>' +dictField.label() + '</td><td>'+dictField.name() + '</td><td>'+strFmt('%1',_common.(dictField.id()))+ '</td></tr>';
+			if (dt.titleField2())
+            {
+                dictField = new DictField(_common.tableId,dt.titleField2());
+                fieldsHtml += '<tr><td>' +dictField.label() + '</td><td>'+dictField.name() + '</td><td>'+strFmt('%1',_common.(dictField.id()))+ '</td></tr>';
+            }
+        }
+
+        fieldsHtml += '<tr><td colspan="3"><b><i>' + "@SYS87570" + '</i></b></td></tr>';
+        while (keyFields.moveNext())
+        {
+            dictField = keyFields.currentValue();
+            fieldsHtml += '<tr><td>' +dictField.label() + '</td><td>'+dictField.name() + '</td><td>'+strFmt('%1',_common.(dictField.id()))+ '</td></tr>';
+        }
+
+        while (fgEnum.moveNext())
+        {
+            fg = fgEnum.current();
+            fieldsHtml += '<tr><td colspan="3"><b><i>' + strFmt("@SYS76766","@SYS76179",fg.label()) + '</i></b></td></tr>';
+            for (i = 1; i <= fg.numberOfFields(); i++)
+            {
+                dictField = new DictField(_common.tableId,fg.field(i));
+				if (dictField)
+                {
+                    fieldsHtml += '<tr><td>' +dictField.label() + '</td><td>'+dictField.name() + '</td><td>'+strFmt('%1',_common.(dictField.id()))+ '</td></tr>';
+                }
+                else if (foundMethods.exists(fg.methodName(fg.field(i))))
+				{
+					//Is display Method
+                    mName = fg.methodName(fg.field(i));
+                    fieldsHtml += '<tr><td>[' + "@SYS74330" + ']</td><td>'+ mName + '</td><td>'+foundMethods.lookup(mName)+ '</td></tr>';
+				}
+            }
+        }
+        fieldsHtml += '</table>';
+
+        
+
+        html += '<table><tr><td>'+fieldsHtml+'</td><td>' + methodsHtml + '</td></tr></table></body></html>';
+        return html;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeRelationsHtmlFromCommon</Name>
+				<Source><![CDATA[
+    public static str makeRelationsHtmlFromCommon(Common _common)
+    {
+        str html = '<html><body>';
+        str relationsHtml ='<h2>'+"@TFM:PossibleRelatedTablestouse" + '</h2><table><tr><th><h2><u>' + "@SYS25058" + '</u></h2></th><th><h2><u>'+ "@SYS34979" + '</u></h2></th></tr>';
+        str relatedTableName;
+        
+        xRefTableRelation tblRelation;
+
+
+
+        while select tblRelation where (tblRelation.TableName == tableId2Name(_common.tableId) || tblRelation.RelatedTableName == tableId2Name(_common.tableId))
+        {
+            relatedTableName = tblRelation.TableName == tableId2Name(_common.tableId) ? tblRelation.RelatedTableName : tblRelation.TableName;
+            relationsHtml += '<tr><td>'+ tableId2PName(tableName2Id(relatedTableName)) + '</td><td>'+relatedTableName+ '</td></tr>';
+        }
+
+        relationsHtml += '</table>';
+
+        html += relationsHtml + '</body></html>';
+        return html;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>stripLastCharIfSlash</Name>
+				<Source><![CDATA[
+    public static str stripLastCharIfSlash(str _input)
+    {
+        str output = _input;
+        if(strEndsWith(output, '/'))
+        {
+            output = substr(output, 0, strLen(output)-1);
+        }
+        return output;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resource2BinData</Name>
+				<Source><![CDATA[
+    public static BinData resource2BinData(str _resStr)
+    {
+        ResourceNode        node = SysResource::getResourceNode(_resStr);
+        BinData             binData = new BinData();
+        container           recourceNode;
+
+        if(node)
+        {
+            recourceNode = SysResource::getResourceNodeData(node);
+            binData.setData(recourceNode);
+        }
+        
+        return binData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resource2str</Name>
+				<Source><![CDATA[
+    public static str resource2str(str _resStr)
+    {
+        //return TFMHelper::resource2BinData(_resStr).getStrData();
+        str   ret;
+        using(System.IO.Stream resourceStream = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::GetResourceContentStream(_resStr))
+        {
+            ret = new System.IO.StreamReader(resourceStream,System.Text.Encoding::Default).ReadToEnd();
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DocuRefexist</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks if any attachments exist for the record.
+    /// - duplicated from DocuRef::exists and added exists join to TFMParameters
+    /// </summary>
+    /// <param name = "refDataareaId">The data area to search.</param>
+    /// <param name = "refTableId">The table containing the record.</param>
+    /// <param name = "refRecId">The ID of the record.</param>
+    /// <returns>true if at least one attachment exists; otherwise, false.</returns>
+    public static boolean DocuRefexist(DataAreaId refDataareaId, TableId refTableId, RecId refRecId)
+    {
+        DocuRef docuRef;
+        TFMParameters tfmParameters;
+
+        // Use a select list since DocuRef contains a memo field for notes, and customers
+        // often add additional big fields. This will cause queries which select the whole
+        // table buffer to take significant time, up to 100ms+. By selecting only the recid
+        // this query will take ~2ms.
+        select firstonly RecId from docuRef
+                    where docuRef.RefCompanyId  == refDataareaId &&
+                          docuRef.RefTableId    == DocuRef::GetRootTableID(refTableId) &&
+                          docuRef.RefRecId      == refRecId
+                exists join tfmParameters
+                    where tfmParameters.DocuTypeId == docuRef.TypeId;
+
+        return docuRef.RecId != 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formatXml</Name>
+				<Source><![CDATA[
+    public static str formatXml(str _xml)
+    {
+        str ret;
+        str tagContent;
+        int indentLevel = 0;
+        int pos = 1;
+        int openTagPos;
+        int closeTagPos;
+        int xmlLength = strLen(_xml);
+        boolean nodeClosed = false;
+        str newLine = TFMConstants::newLine();
+        str indent = TFMConstants::tab();
+
+        while (pos <= xmlLength)
+        {
+            openTagPos = strScan(_xml, '<', pos, xmlLength-pos);
+            if (openTagPos == 0)
+            {
+                ret += substr(_xml, pos, xmlLength - pos + 1);
+                break;
+            }
+            else
+            {
+                ret += substr(_xml, pos, openTagPos - pos);
+                closeTagPos = strScan(_xml, '>', openTagPos, xmlLength - pos + 1);
+                if (closeTagPos == 0)
+                {
+                    ret += substr(_xml, openTagPos, xmlLength - openTagPos + 1);
+                    break;
+                }
+                else
+                {
+                    tagContent = substr(_xml, openTagPos + 1, closeTagPos - openTagPos - 1);
+                    if (subStr(tagContent,1,1) == '/')
+                    {
+                        indentLevel--;
+                        ret += (nodeClosed ? newLine + strRep(indent, indentLevel) : '') + '<' + tagContent + '>';
+                        nodeClosed = true;
+                    }
+                    else 
+                    {
+                        ret += (pos == 1 ? '' : newLine) + strRep(indent, indentLevel) + '<' + tagContent + '>';
+                        if (subStr(tagContent,strLen(tagContent),1) != '/' && subStr(tagContent,1,1) != '?')
+                        {
+                            indentLevel++;
+                        }
+                        nodeClosed = false;
+                    }
+                    
+                    pos = closeTagPos + 1;
+                }
+            }
+        }
+        
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

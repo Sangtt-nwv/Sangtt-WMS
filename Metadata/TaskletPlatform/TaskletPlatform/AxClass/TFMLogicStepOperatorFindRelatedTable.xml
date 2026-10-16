@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicStepOperatorFindRelatedTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicStepOperatorFindRelatedTable extends TFMLogicBlock implements TFMLogicStepOperatorInterface, TFMLogicBlockProvideTableNamesInterface
+{
+    TableName                           tableFrom;
+    TFMTableRelation                    tableToRelation;
+    TableName						    tableTo; 
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        return tableTo ? strFmt("Find %1", tableTo) : "Find Related Table";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tablesProvided</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Provides a set of table names that the current block provides at runtime
+    /// </summary>
+    /// <returns>A set of table names as strings</returns>
+    public Set tablesProvided()
+    {
+        Set tables = new Set(Types::String);
+        if (tableTo)
+        {
+            tables.add(tableTo);
+        }
+        return tables;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTableToRelation</Name>
+				<Source><![CDATA[
+    [TFMParameter('', "Relation to find Table")]
+    public TFMTableRelation parmTableToRelation(TFMTableRelation _tableToRelation = tableToRelation)
+    {
+        if (_tableToRelation != tableToRelation)
+        {
+            tableTo = TFMGenericDataHelper::tableNameFromRelation(_tableToRelation, tableFrom);
+        }
+
+        tableToRelation = _tableToRelation;
+        return tableToRelation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTableFrom</Name>
+				<Source><![CDATA[
+    [TFMParameter('', "Table From")]
+    public TableName parmTableFrom(TableName _tableFrom = tableFrom)
+    {
+        tableFrom = _tableFrom;
+        return tableFrom;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runLogic</Name>
+				<Source><![CDATA[
+    public str runLogic ( TFMRequestElement _request )
+    {
+        Common              tableFromBuffer = _request.logicContext().getTableFromAnyBlock(this.parmTableFrom());
+        Common              common = TFMGenericDataHelper::tableBufferFromRelation(tableToRelation, tableFromBuffer);
+        
+        if (common)
+        {
+            _request.logicContext().addDataContext(common, this.parmName());
+        }
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupExpression</Name>
+				<Source><![CDATA[
+    [TFMLookupMethodForEDT(extendedTypestr(TFMTableRelation))]
+    public void lookupExpression(FormStringControl _callingControl)
+    {
+        SysDictTable	sdt;
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpTableName), _callingControl);
+        TmpTableName                    tmpLookup;
+        
+        sysTableLookup.addLookupfield(fieldnum(TmpTableName, TableName),true);
+        if (!tableFrom)
+        {
+            return;
+        }
+
+        sdt = new SysDictTable(tableName2Id(tableFrom));
+        tmpLookup.setTmp();
+        SetEnumerator sEnum = sdt.relations().getEnumerator();
+        while (sEnum.moveNext())
+        {
+            SysDictRelation sdr = sEnum.current();
+            
+            tmpLookup.TableName  = sdr.name();
+            tmpLookup.insert();
+        }
+
+        //Find table methods
+        sEnum = sdt.methods(true,false,false).getEnumerator();
+        while (sEnum.moveNext())
+        {
+            SysDictMethod sdm = sEnum.current();
+            
+            if (sdm.returnType() == Types::Record && sdm.hasImplementation())
+            {
+                boolean mandatoryParms = false;
+                for (int i = 0; i < sdm.parameterCnt(); i++)
+                {
+                    mandatoryParms = mandatoryParms || !sdm.parameterOptional(i + 1);
+                }
+                if (!mandatoryParms)
+                {
+                    tmpLookup.TableName  = sdm.name() + '()';
+
+                    tmpLookup.insert();
+                }
+            }
+        }
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMBlockDatabaseTable);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

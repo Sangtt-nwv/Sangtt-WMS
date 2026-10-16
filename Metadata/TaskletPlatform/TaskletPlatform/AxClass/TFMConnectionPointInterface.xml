@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMConnectionPointInterface</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Interface to add to class, that should support having connection points.
+/// </summary>
+interface TFMConnectionPointInterface
+{
+	
+}
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+</AxClass>

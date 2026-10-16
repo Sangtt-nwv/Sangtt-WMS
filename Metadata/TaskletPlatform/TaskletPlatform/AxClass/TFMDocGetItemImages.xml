@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocGetItemImages</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Document handler for the Item Image Collector.
+/// </summary>
+[TFMMenu('RegisterItemImage', "@TFM:RegisterItemImage", "@TFM:RegisterItemImage", resourceStr(TFMItemImageCapture), true, true, ['Miscellaneous', 'MainMenu']),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), 'RegisterItemImage', methodStr(TFMDocGetItemImages, GetItemRegistrationCollectors)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'RegisterItemImage', methodStr(TFMDocGetItemImages,postItemImage))]
+class TFMDocGetItemImages extends TFMDocumentHandler
+{
+    boolean                 dimLocked;
+    InventTable             inventTable;
+    InventDim               inventDim;
+    Common                  common;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getCommon</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(Common))]
+    public Common getCommon()
+    {
+        return common;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        TFMDocumentHandlerDescription ret;
+
+        ret = "@TFM:RegisterItemImage";
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret = new Map(Types::String, Types::String);
+
+        ret.insert('RegisterItemImage', "@TFM:RegisterItemImage");
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RegisterItemImageHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Register Image page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration RegisterItemImageHeader()
+    {
+        TFMReferenceDataConfiguration linesHeader = new TFMReferenceDataConfiguration();
+        linesHeader.addCollector(TFMGetReferenceData::defaultItemIdCollector(1));
+        return linesHeader;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>RegisterItemImageCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create a "Item Image Collector" configuration.
+    /// </summary>
+    /// <returns>A string</returns>
+    [TFMDocumentType(classStr(TFMGetRegistrationConfiguration), 'RegisterItemImage')]
+    protected str RegisterItemImageCollectors()
+    {
+
+        this.addFunctionCollectors(methodStr(TFMDocGetItemImages,GetItemRegistrationCollectors));
+        
+        return "@TFM:MEL9";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetItemRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method that returns the registration collectors for the create Quarantine order flow
+    /// </summary>
+    /// <returns>The registration collectors for the create Quarantine order flow</returns>
+    public Map GetItemRegistrationCollectors()
+    {
+        Map returnMap = new Map(Types::string, Types::Class);
+        int add = 10;
+        InventDimParm           parm;
+        parm.setActiveProductDim(EcoResProductDimGroupSetup::newInventTable(request.parmInventTable()));
+        if (!dimLocked)
+        {            
+            returnMap = TFMInventDimHelper::GetInventDimCollectors(add, TFMInventDimSetup::Construct(request.parmInventTable()),parm);
+        }
+        add += returnMap.elements()*10 + 15;
+        returnMap.insert(extendedTypeStr(ImageDataString),TFMRegistrationCollectorImageCapture::ImageCaptureStepMap(add,extendedTypeStr(ImageDataString),"@SYS59132","@SYS59132",''));
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postItemImage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to post Item Image registrations.
+    /// </summary>    
+    /// <returns>Message whether the operation ended in success or error.</returns>
+    [TFMPostMethod(tableStr(Common))]
+    protected str postItemImage()
+    {
+        ItemId                              itemid;
+        InventDimCombination                iDimCom;
+        TFMRequestItemAndDimensionElement   postRequest = request;        
+        str                                 mediaIDs = postRequest.getFieldValue(extendedTypeStr(ImageDataString));
+        
+        itemid = postRequest.parmItemId();//TFMHelper::ExtractItemId(inventDim, requestData, #ItemNumber);
+        inventDim = InventDim::findOrCreate(postRequest.parmInventDim());//TFMHelper::ExtractInventDim(inventDim, itemid, requestData);
+            
+       
+        iDimCom = InventDimCombination::find(itemid,inventDim.inventDimId);
+
+        if (mediaIDs)
+        {
+            common = iDimCom;
+            if (common == null)
+            {
+                common = InventTable::find(itemid);
+            }
+            TFMMediaQueue::AddMap2Queue(common, TFMMediaQueue::separateIDsAndComments(mediaIDs), postRequest.parmdeviceID());
+        }
+
+        return 'ok';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRecord</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSetAttribute(tableStr(Common))]
+    public Common getRecord()
+    {
+        return common;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

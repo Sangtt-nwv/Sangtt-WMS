@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Analytics & ER"
+  short_description: "Model KPIs, aggregate measurements, entity store, and Electronic Reporting"
+  default_prompt: "Use $analytics-and-er to build or wire a KPI, aggregate measurement, or ER format for this D365FO change."

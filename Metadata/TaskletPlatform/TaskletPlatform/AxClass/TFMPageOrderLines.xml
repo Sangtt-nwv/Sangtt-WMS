@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageOrderLines</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMPageType('OrderLines', "Order Lines")]
+class TFMPageOrderLines extends TFMPage
+{
+    Set dataSources;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+        numberOfPromotedItems = 4;
+        this.parmAvailableForMenuPages(false); 
+        description = "@TFM:TheOrderLinespageismadefororderl";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDataSource</Name>
+				<Source><![CDATA[
+    public void addDataSource(TableName _tableName)
+    {
+        dataSources.add(_tableName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDataSources</Name>
+				<Source><![CDATA[
+    public Set getDataSources()
+    {
+        return dataSources;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pageSpecificListTags</Name>
+				<Source><![CDATA[
+    public Map pageSpecificListTags()
+    {
+        Map ret = super();
+        ret.insert('ActionDefinedQuantity','0');
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DefaultActions</Name>
+				<Source><![CDATA[
+    public Map DefaultActions(int _promoteOffset = 0)
+    {
+        Map								ret;
+        TFMMenuItemStateConfiguration	menuItemStateConf;
+        
+        ret = super(_promoteOffset);
+        menuItemStateConf = TFMMenuItemStateConfiguration::Construct(TFMConstants::RegisterBarcode(), -1);
+        ret.insert(menuItemStateConf.parmMenuItemName(),menuItemStateConf);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPageTiles</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    protected void addPageTiles()
+    {
+        
+        TFMPageOrderLinesConfiguration	conf = this.getConfiguration();
+        TFMService service = TFMServiceProvider::getServices().lookup(conf.parmId());
+        TFMWorkflowsTable wfTable = TFMWorkflowsTable::Find(service.getWorkflow());
+        super();
+        this.addHtmlEntry("@TFM:Workflow", '<a href="/?cmp=' + curExt()+ '&mi=Action%3A' + menuItemActionStr(TFMPageOverviewSubPageNavigator)+ '&FormName='+ FormStr(TFMWorkflows) + '&WorkflowName=' + wfTable.WorkflowName +'">'+wfTable.WorkflowName+'</a>',FormStr(TFMWorkflows),resourceStr(TFMEntityWorkflow));
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initializeDataSources</Name>
+				<Source><![CDATA[
+    public void initializeDataSources()
+    {
+        TFMPageDatasources		ds;
+        SysDictClass			sdc;
+        ListEnumerator			lEnum;
+        TFMTableNameAttribute	attr;
+        Array					array;
+        int						idx;
+        select firstonly RecId from ds where ds.PageID == name;
+        if (ds.RecId)
+        {
+            return;
+        }
+        lEnum = new SysDictClass(classNum(TFMXMLFormatOrderLines)).extendedBy(true).getEnumerator();
+        while (lEnum.moveNext())
+        {
+            sdc = new SysDictClass(lEnum.current());
+            array = sdc.getAttributes(classStr(TFMTableNameAttribute));
+            for (idx = 1; idx <= array.lastIndex(); idx++)
+            {
+                attr = array.value(idx);
+                if (strScan(sdc.name(), name,1,133))
+                {
+                    TFMPageDatasources::FindOrCreate(name,attr.parmTableName(),attr.parmOrderType());
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

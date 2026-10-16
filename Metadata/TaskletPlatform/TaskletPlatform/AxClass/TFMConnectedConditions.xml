@@ -1,0 +1,729 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMConnectedConditions</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMConnectedConditions
+{
+    Map conditions;
+    Map connections;
+    Map conditionsResults;
+    Map keyOverrideMap;
+    Map reverseKeyOverrideMap;
+
+    public static int resultNodeId = 123456789;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        conditions = new Map(Types::Integer, Types::Class);
+        connections = new Map(Types::Integer, Types::Class);
+        conditionsResults = new Map (Types::Integer, Types::Container);
+        keyOverrideMap = new Map (Types::Integer, Types::Integer);
+        reverseKeyOverrideMap = new Map (Types::Integer, Types::Integer);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveToDelta</Name>
+				<Source><![CDATA[
+    public void saveToDelta(str _domainName, str _DomainKey, Version _version, Name _subId, MethodName _methodName)
+    {
+        TFMConditionsTable              conditionsTable;
+        TFMConditionsParameters         conditionParms;
+        TFMConditionsParameterValues    conditionparmValues;
+        TFMConditionsLink               linkTable;
+        MapEnumerator                   mEnum;
+        TFMCondition                    condition;
+        Set                             connectedNodes;
+        Map                             hash2RecId = new Map(Types::Integer, Types::Int64);
+        SetEnumerator                   sEnum;
+        SysDictClass                    sdc;
+
+        ttsbegin;
+
+        select firstonly forupdate conditionsTable where conditionsTable.Domain == _domainName && 
+            conditionsTable.DomainKey       == _DomainKey   &&
+            conditionsTable.Version         == _version     &&
+            conditionsTable.SubID           == _subId       &&
+            conditionsTable.Method          == _methodName;
+
+        conditionsTable.delete();
+
+        ttscommit;
+        conditionsTable.Domain      = _domainName;
+        conditionsTable.DomainKey   = _DomainKey;
+        conditionsTable.Version     = _version;
+        conditionsTable.SubID       = _subId;
+        conditionsTable.Method      = _methodName;
+        conditionsTable.insert();
+        mEnum = conditions.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            condition = mEnum.currentValue();
+            sEnum = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(condition.parmDataContract())).getEnumerator();
+            sdc = new SysDictClass(classIdGet(condition.parmDataContract())); 
+            
+            conditionParms.ContractClass    = classId2Name(classIdGet(condition.parmDataContract()));
+            conditionParms.ConditionsKey    = conditionsTable.RecId;
+            conditionParms.insert();
+            hash2RecId.insert(condition.GetHashCode(), conditionParms.RecId);
+
+            conditionparmValues.HeaderRec = conditionParms.RecId;
+            while (sEnum.moveNext())
+            {
+                conditionparmValues.Method  = sEnum.current();
+                conditionparmValues.Value   = sdc.callObject(sEnum.current(),condition.parmDataContract());
+                conditionparmValues.ValueStr= con2Str(conditionparmValues.Value,';');
+                conditionparmValues.insert();
+            }
+        }
+        mEnum = connections.getEnumerator();
+        while(mEnum.moveNext())
+        {
+            connectedNodes = mEnum.currentValue();
+            sEnum = connectedNodes.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                if (hash2RecId.exists(mEnum.currentKey()) && hash2RecId.exists(sEnum.current()))
+                {
+                    linkTable.FromCondition = hash2RecId.lookup(mEnum.currentKey());
+                    linkTable.ToCondition   = hash2RecId.lookup(sEnum.current());
+                    linkTable.insert();
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>noOfEndNodes</Name>
+				<Source><![CDATA[
+    public int noOfEndNodes()
+    {
+        Map             localConnections = new Map(Types::Integer, Types::Class);
+        boolean         connected;
+        MapEnumerator   mEnum = conditions.getEnumerator();
+
+        while (mEnum.moveNext())
+        {
+            localConnections.insert(mEnum.currentKey(), connections.exists(mEnum.currentKey()) ? connections.lookup(mEnum.currentKey()) : new Set(Types::Integer));
+        }
+            
+        connected = TFMConnectedConditions::isGraphConnected(localConnections);
+
+        return connected ? 1 : 2;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkForLoop</Name>
+				<Source><![CDATA[
+    public boolean checkForLoop(int _fromKey, int _toKey)
+    {
+        Map             localConnections = new Map(Types::Integer, Types::Class);
+        boolean         loopPresent;
+        MapEnumerator   mEnum = connections.getEnumerator();
+
+        while (mEnum.moveNext())
+        {
+            localConnections.insert(mEnum.currentKey(), mEnum.currentValue());
+        }
+        Set SubCons = localConnections.exists(_fromKey) ? localConnections.lookup(_fromKey) : new Set(Types::Integer);
+        subCons.add(_toKey);
+        localConnections.add(_fromKey, subCons);
+
+        loopPresent = TFMConnectedConditions::LoopCheck(localConnections, _fromKey);
+
+        return loopPresent;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkForTypeCompatibility</Name>
+				<Source><![CDATA[
+    public container checkForTypeCompatibility()
+    {
+        MapEnumerator   mEnum = connections.getEnumerator();
+        TFMCondition    kondiTo;
+        TFMCondition    kondiFrom;
+        SetEnumerator   sEnum;
+        Set             connectionToCurrent;
+        
+        while (mEnum.moveNext())
+        {
+            kondiFrom = this.conditionFromHash(mEnum.currentKey());
+            connectionToCurrent = mEnum.currentValue();
+            sEnum = connectionToCurrent.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                kondiTo = this.conditionFromHash(sEnum.current());
+                if (!kondiTo.parmDataContract().inputTypes().in(kondiFrom.parmDataContract().outputType()))
+                {
+                    
+                    return [false, strFmt("@TFM:Connectionbetween12and34notvalid",  kondiFrom.nodeDisplay(), kondiFrom.parmDataContract().outputType(), kondiTo.nodeDisplay(), kondiTo.parmDataContract().inputTypes())];
+                }
+            }
+        }
+        
+        return [true,''];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>functionConditionPresent</Name>
+				<Source><![CDATA[
+    public boolean functionConditionPresent()
+    {
+        MapEnumerator           mEnum = conditions.getEnumerator();
+        TFMCondition            condition;
+        
+        while (mEnum.moveNext())
+        {
+            condition = mEnum.currentValue();
+            if (condition.parmDataContract() is TFMLogicContextFunctionsDataContract)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getReturnType</Name>
+				<Source><![CDATA[
+    public TFMLogicContextTypes getReturnType()
+    {
+        MapEnumerator                   mEnum;
+        TFMCondition                    condition;
+        Set                             connectedNodes;
+        
+        SetEnumerator                   sEnum = this.endNodes().getEnumerator(); 
+        SysDictClass                    sdc;
+        TFMLogicContextTypes            ret;
+        
+        
+        if (sEnum.moveNext())
+        {            
+            condition = conditions.exists(sEnum.current()) ? conditions.lookup(sEnum.current()) : null;
+            
+            if (condition == null && keyOverrideMap.exists(sEnum.current()))
+            {
+                condition = conditions.exists(keyOverrideMap.lookup(sEnum.current())) ? conditions.lookup(keyOverrideMap.lookup(sEnum.current())) : null;
+            }
+            if (condition != null)
+            {
+                ret = condition.parmDataContract().outputType();
+            }
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addCondition</Name>
+				<Source><![CDATA[
+    public void addCondition(Object _condition, int _keyOverride = 0)
+    {
+        conditions.insert(_condition.GetHashCode() ,_condition);
+        keyOverrideMap.insert(_keyOverride ? _keyOverride : _condition.GetHashCode(), _condition.GetHashCode());
+        keyOverrideMap.insert(_condition.GetHashCode(), _condition.GetHashCode());
+
+        reverseKeyOverrideMap.insert(_condition.GetHashCode(), _keyOverride ? _keyOverride : _condition.GetHashCode());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeCondition</Name>
+				<Source><![CDATA[
+    public void removeCondition(int _hash)
+    {
+        int             keyOverride = keyOverrideMap.exists(_hash) ? keyOverrideMap.lookup(_hash) : _hash;
+        MapEnumerator   mEnum;
+        Set             connectedNodes;
+        List            newNodes;
+        ListEnumerator  lEnum;
+        int             currentHash;
+        Map             replaceMap;
+
+        keyOverrideMap.remove(keyOverride);
+        conditions.remove(keyOverride);
+
+        if (connections.exists(keyOverride))
+        {
+            connections.remove(keyOverride);
+        }
+        mEnum = connections.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            connectedNodes = mEnum.currentValue();
+            if (connectedNodes.in(keyOverride))
+            {
+                connectedNodes.remove(keyOverride);
+            }
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEnumerator</Name>
+				<Source><![CDATA[
+    public MapEnumerator getEnumerator()
+    {
+        return conditions.getEnumerator();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addLink</Name>
+				<Source><![CDATA[
+    public void addLink(Object _from, Object _to)
+    {
+        int fromKey = _from.GetHashCode(); 
+        int toKey   = _to.GetHashCode();
+        Set SubCons = connections.exists(fromKey) ? connections.lookup(fromKey) : new Set(Types::Integer);
+        subCons.add(toKey);
+        if (this.checkForLoop(fromKey, toKey))
+        {
+            warning ("@TFM:Loopdetectedlinkingnotallowed");
+            return;
+        }
+        connections.add(fromKey, subCons);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeLink</Name>
+				<Source><![CDATA[
+    public void removeLink(int _fromId, int _toId)
+    {
+        Set subCons = connections.exists(_fromId) ? connections.lookup(_fromId) : new Set(Types::Integer);
+        if (subCons.in(_toId))
+        {
+            subCons.remove(_toId);
+        }
+        connections.add(_fromId, subCons);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getToLinks</Name>
+				<Source><![CDATA[
+    public Set getToLinks(int _fromId)
+    {
+        int fromKey = keyOverrideMap.lookup(_fromId);
+        Set             connectedNodes = connections.exists(fromKey) ? connections.lookup(fromKey) : new Set(Types::Integer);
+        Set             retSet = new Set(Types::Integer);
+        SetEnumerator   sEnum;
+
+        sEnum = connectedNodes.getEnumerator();
+
+        while (sEnum.moveNext())
+        {
+            if (conditions.exists(sEnum.current()))
+            {
+                retSet.add(sEnum.current());
+            }
+        }
+
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromLinks</Name>
+				<Source><![CDATA[
+    public Set getFromLinks(int _toId)
+    {
+        int             toKey = keyOverrideMap.lookup(_toId);
+        MapEnumerator   mEnum       = connections.getEnumerator();
+        Set             subCons;
+        Set             retSet = new Set(Types::Integer);
+        while (mEnum.moveNext())
+        {
+            subCons = mEnum.currentValue();
+            if (subCons.in(toKey) && conditions.exists(mEnum.currentKey()))
+            {
+                retSet.add(mEnum.currentKey());
+            }
+        }
+
+        return retSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>endNodes</Name>
+				<Source><![CDATA[
+    public Set endNodes()
+    {
+        Set             endNodes    = new Set(Types::Integer);
+        MapEnumerator   mEnum       = connections.getEnumerator();
+        Set             subCons;
+        SetEnumerator   sEnum;
+        if (!connections.elements())
+        {
+            //No connected nodes, meaning only one condition
+            mEnum = conditions.getEnumerator();
+            if(mEnum.moveNext() && mEnum.currentKey())
+            {
+                endNodes.add(mEnum.currentKey());
+            }
+            return endNodes;
+        }
+        while (mEnum.moveNext())
+        {
+            subCons = mEnum.currentValue();
+            sEnum = subCons.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                if (conditions.exists(sEnum.current()))
+                {
+                    //Add all to nodes in Set
+                    endNodes.add(sEnum.current());
+                }
+            }
+        }
+        mEnum       = connections.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            subCons = mEnum.currentValue();
+            if ((subCons.elements() && endNodes.in(mEnum.currentKey())) || !conditions.exists(mEnum.currentKey()))
+            {
+                //Subtract all nodes, that has children
+                endNodes.remove(mEnum.currentKey());
+            }
+        }
+        return endNodes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDepth</Name>
+				<Source><![CDATA[
+    public int getDepth()
+    {
+        SetEnumerator           sEnum               = this.endNodes().getEnumerator();
+        int                     depth;
+        while (sEnum.moveNext())
+        {
+            
+            depth = this.drillDown(sEnum.current());
+        }
+        return depth;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drillDown</Name>
+				<Source><![CDATA[
+    protected int drillDown(int _currentCon, int _currentDepth = 0)
+    {
+        SetEnumerator  fromLinks = this.getFromLinks(_currentCon).getEnumerator();
+        int             depth = _currentDepth + 1;
+        while (fromLinks.moveNext())
+        {
+            depth = max(this.drillDown(fromLinks.current(),_currentDepth + 1), depth);
+        }
+        return depth;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>conditionFromHash</Name>
+				<Source><![CDATA[
+    public TFMCondition conditionFromHash(int _hash)
+    {
+        int hashKey = keyOverrideMap.exists(_hash) ? keyOverrideMap.lookup(_hash) : _hash;
+        return conditions.exists(hashKey) ? conditions.lookup(hashKey) : null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTemporaryId</Name>
+				<Source><![CDATA[
+    public int getTemporaryId(int _hash)
+    {
+        return keyOverrideMap.exists(_hash) ? keyOverrideMap.lookup(_hash) : _hash;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHashFromKey</Name>
+				<Source><![CDATA[
+    public int getHashFromKey(int _key)
+    {
+        return reverseKeyOverrideMap.exists(_key) ? reverseKeyOverrideMap.lookup(_key) : _key;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>evaluateConditionsForMethodOnObject</Name>
+				<Source><![CDATA[
+    public void evaluateConditionsForMethodOnObject(Object _objectToModify, TFMLogicContext _context, MethodName _methodName)
+    {
+        SysDictClass    sdc = new SysDictClass(classIdGet(_objectToModify));
+        anytype         result;
+        SysDictMethod   sdm;
+        if (sdc && sdc.hasObjectMethod(_methodName))
+        {
+            sdm = new SysDictMethod(UtilElementType::ClassInstanceMethod, sdc.id(), _methodName);
+
+            result = this.evaluate(_context);
+            try
+            {
+
+                sdc.callObject(_methodName,_objectToModify,result);
+            }
+            catch
+            {
+                Info(strFmt('fault when adding %1 to method %2 on class %3', result, _methodName, classId2Name(classIdGet(_objectToModify))));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>evaluate</Name>
+				<Source><![CDATA[
+    public anytype evaluate(TFMLogicContext _context)
+    {
+        anytype                 result;
+        TFMCondition            condition;        
+        Set                     endNodes            = this.endNodes();   
+        SetEnumerator           sEnum               = endNodes.getEnumerator();
+        MapEnumerator           mEnum               = conditions.getEnumerator();
+        if (endNodes.elements() > 1)
+        {
+            info("@TFM:Moreendnodesinconditionthanone");
+        }
+        // Loop through all conditions and add children hierarchically
+        while (mEnum.moveNext())
+        {
+            condition   = mEnum.currentValue();
+            
+            this.addChildrenToCondition(condition);
+            
+        }
+        while ( sEnum.moveNext())
+        {
+            condition = conditions.lookup(sEnum.current());
+            result = condition.evaluate(_context);
+        }
+        
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addChildrenToCondition</Name>
+				<Source><![CDATA[
+    protected void addChildrenToCondition(TFMCondition _condition)
+    {
+        SetEnumerator           sEnum = this.getFromLinks(_condition.GetHashCode()).getEnumerator();
+        TFMCondition            childCondition;
+        while(sEnum.moveNext())
+        {
+            childCondition = conditions.lookup(sEnum.current());
+            _condition.addChild(childCondition);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isGraphConnected</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Determines if all integers in the map form a single connected graph.
+    /// </summary>
+    /// <param name = "_graph">Map where Key = Integer, Value = Set(Integer)</param>
+    /// <returns>True if connected, False if disjoint.</returns>
+    public static boolean isGraphConnected(Map _graph)
+    {
+        if (!_graph || _graph.elements() <= 1)
+        {
+            return true; // An empty graph is technically connected (trivial)
+        }
+
+        // STEP 1: Build a symmetric (undirected) graph and collect all unique nodes.
+        // We transform the input "A -> B" into "A <-> B" so we can traverse in any direction.
+        Map symmetricGraph = new Map(Types::Integer, Types::Class);
+        Set allNodes = new Set(Types::Integer);
+        MapEnumerator mapEnum = _graph.getEnumerator();
+
+        while (mapEnum.moveNext())
+        {
+            int nodeKey = mapEnum.currentKey();
+            Set neighbors = mapEnum.currentValue();
+
+            allNodes.add(nodeKey);
+
+            // Ensure the source node exists in our symmetric graph
+            if (!symmetricGraph.exists(nodeKey))
+            {
+                symmetricGraph.insert(nodeKey, new Set(Types::Integer));
+            }
+
+            if (neighbors)
+            {
+                SetEnumerator neighborEnum = neighbors.getEnumerator();
+                while (neighborEnum.moveNext())
+                {
+                    int neighbor = neighborEnum.current();
+                    allNodes.add(neighbor);
+
+                    // 1. Add connection: nodeKey -> neighbor
+                    Set keyNeighbors = symmetricGraph.lookup(nodeKey);
+                    keyNeighbors.add(neighbor);
+
+                    // 2. Add connection: neighbor -> nodeKey (The fix for undirected traversal)
+                    if (!symmetricGraph.exists(neighbor))
+                    {
+                        symmetricGraph.insert(neighbor, new Set(Types::Integer));
+                    }
+                    Set neighborNeighbors = symmetricGraph.lookup(neighbor);
+                    neighborNeighbors.add(nodeKey);
+                }
+            }
+        }
+
+        // STEP 2: Prepare for Breadth-First Search (BFS)
+        Set visitedNodes = new Set(Types::Integer);
+        // Instead of a single queue, we use a 'Frontier' list to process layer by layer.
+        // This avoids the lack of 'removeHead' and modification-during-iteration issues.
+        List currentFrontier = new List(Types::Integer);
+
+        // Pick an arbitrary start node (the first one found in our universal set)
+        SetEnumerator allNodesEnum = allNodes.getEnumerator();
+        allNodesEnum.moveNext();
+        int startNode = allNodesEnum.current();
+
+        // Initialize BFS
+        visitedNodes.add(startNode);
+        currentFrontier.addEnd(startNode);
+
+        // STEP 3: Execute BFS using the symmetric graph
+        while (currentFrontier.elements() > 0)
+        {
+            // Prepare the next layer of nodes to visit
+            List nextFrontier = new List(Types::Integer);
+            ListEnumerator frontierEnum = currentFrontier.getEnumerator();
+
+            while (frontierEnum.moveNext())
+            {
+                int currentNode = frontierEnum.current();
+
+                // Find neighbors in the SYMMETRIC map
+                if (symmetricGraph.exists(currentNode))
+                {
+                    Set currentNeighbors = symmetricGraph.lookup(currentNode);
+                    
+                    if (currentNeighbors)
+                    {
+                        SetEnumerator neighborsEnum = currentNeighbors.getEnumerator();
+
+                        while (neighborsEnum.moveNext())
+                        {
+                            int neighbor = neighborsEnum.current();
+
+                            // If we haven't visited this neighbor yet, process it
+                            if (!visitedNodes.in(neighbor))
+                            {
+                                visitedNodes.add(neighbor);
+                                nextFrontier.addEnd(neighbor); // Add to next layer
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Move to the next layer
+            currentFrontier = nextFrontier;
+        }
+
+        // STEP 4: Verification
+        // If the number of visited nodes equals the total number of unique nodes,
+        // then the graph is fully connected.
+        return visitedNodes.elements() == allNodes.elements();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>loopCheck</Name>
+				<Source><![CDATA[
+    public static boolean loopCheck(Map _connections, int _fromLink)
+    {
+        Set setVisited = new Set(Types::Integer);
+        Set setStack = new Set(Types::Integer);
+        return TFMConnectedConditions::SetHasLoop(_connections, _fromLink,setVisited, setStack);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SetHasLoop</Name>
+				<Source><![CDATA[
+    protected static boolean SetHasLoop(Map _connections, int _fromLink, Set _setVisited, Set _setStack)
+    {
+        Set             links = _connections.exists(_fromLink) ? _connections.lookup(_fromLink) : new Set(Types::Integer);
+        SetEnumerator   sEnum = links.getEnumerator();
+        _setVisited.add(_fromLink);
+        _setStack.add(_fromLink);
+
+        while (sEnum.moveNext())
+        {
+            
+            if (!_setVisited.in(sEnum.current()))
+            {
+                if (TFMConnectedConditions::SetHasLoop(_connections, sEnum.current(), _setVisited, _setStack))
+                {
+                    return true;
+                }
+            }
+            else if (_setStack.in(sEnum.current()))
+            {
+                return true;
+            }
+        }
+
+        _setStack.remove(_fromLink);
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobWorkflowsTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobWorkflowsTable extends common
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>GetWorkflowDomainName</Name>
+				<Source><![CDATA[
+    public static str GetWorkflowDomainName(str _workflowName)
+    {
+        return TFMWorkflowsTable::GetWorkflowDomainName(_workflowName);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@MobileWMS:MobWorkflowsTableDeveloperDocumentation</DeveloperDocumentation>
+	<FormRef>TFMWorkflows</FormRef>
+	<Label>@SYS105532</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>WorkflowName</TitleField1>
+	<TitleField2>Description</TitleField2>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS34991</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WorkflowName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>WorkflowType</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Setup</Name>
+			<Label>@SYS12687</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>WorkflowName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>WorkflowType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ScanBehaviourWhenRegisteringQuantity</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>AutoSave</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CancelBehaviour</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PrefillExpectedValueOnLocationScan</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IncludeHiddenStepsInSummary</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FastForwardMode</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>WorkflowName</Name>
+			<AllowEdit>No</AllowEdit>
+			<StringSize>60</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Description</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>WorkflowType</Name>
+			<AllowEdit>No</AllowEdit>
+			<EnumType>TFMWorkflowType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>AutoSave</Name>
+			<Label>@MobileWMS:Autosave</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>CancelBehaviour</Name>
+			<EnumType>TFMWorkflowCancelBehaviour</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PrefillExpectedValueOnLocationScan</Name>
+			<Label>@MobileWMS:PrefillExpectedValueOnLocationSc</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IncludeHiddenStepsInSummary</Name>
+			<Label>@MobileWMS:IncludeHiddenStepsInSummary</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>FastForwardMode</Name>
+			<EnumType>TFMWorkflowFastForwardMode</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ScanBehaviourWhenRegisteringQuantity</Name>
+			<EnumType>TFMWorkflowScanBehaviourWhenRegisteringQuantity</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>UpdateCounter</Name>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>WorkflowIdx</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>WorkflowName</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

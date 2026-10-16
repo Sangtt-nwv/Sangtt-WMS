@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicComponentInventoryJournalLines</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic Block component that handles data collection for items on inventory journal lines
+/// </summary>
+public class MwmsLogicComponentInventoryJournalLines extends MwmsLogicComponentInventoryJournalId
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicComponentInventoryJournalLines Construct()
+    {
+        return new MwmsLogicComponentInventoryJournalLines();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        
+        subComponents.addComponent(new TFMLogicComponentDimensions());
+        subComponents.addComponent(new TFMLogicComponentQuantity());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>provideDataIfPossible</Name>
+				<Source><![CDATA[
+    public Common provideDataIfPossible(Common _table)
+    {
+        Common ret;
+
+        ret = super(_table);
+
+        if (_table.TableId == tableNum(InventJournalTrans) || _table.TableId == tableNum(InventJournalTrans_Tag))
+        {
+            ret = this.initInventJournalTrans(_table);
+        }
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initInventJournalTrans</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to initiate or update a InventJournalTrans buffer
+    /// </summary>
+    /// <param name = "_trans">A InventJournalTrans buffer</param>
+    /// <returns>A InventJournalTrans buffer</returns>
+    protected Common initInventJournalTrans(Common _trans)
+    {
+        TFMRequestItemAndDimensionElement   docRequest      = subComponents.getComponent(classStr(TFMLogicComponentDimensions)).componentRequest(request);
+        InventJournalId                     inventJournalId = docRequest.parmJournalId();
+        InventDim                           inventDim;
+        // Find the journal to add a line to
+        InventJournalTable                  inventJournalTable = InventJournalTable::find(inventJournalId,true);
+        FieldId                             qtyFieldId = inventJournalTable.JournalType == InventJournalType::TagCounting ? fieldNum(InventJournalTrans_tag, Qty) : fieldNum(InventJournalTrans, Qty);
+        FieldId                             inventDimFieldId = inventJournalTable.JournalType == InventJournalType::TagCounting ? fieldNum(InventJournalTrans_tag, InventDimId) : fieldNum(InventJournalTrans, InventDimId);
+        FieldId                             WorkerFieldId = inventJournalTable.JournalType == InventJournalType::TagCounting ? fieldNum(InventJournalTrans_tag, Worker) : fieldNum(InventJournalTrans, Worker);
+        FieldId                             regOnMobId = inventJournalTable.JournalType == InventJournalType::TagCounting ? fieldNum(InventJournalTrans_tag, MobRegisteredOnMobile) : fieldNum(InventJournalTrans, MobRegisteredOnMobile);
+        if (!_trans.RecId)
+        {
+            //New record
+            Common trans = _trans;
+            trans.initFromInventJournalTable(inventJournalTable);
+            trans.initValue();
+            trans.initFromInventTable(docRequest.parmInventTable());
+        }
+        _trans.selectForUpdate(true);
+        _trans.(qtyFieldId) = docRequest.parmQuantity();        
+
+        inventDim = docRequest.createInventDim(inventDim);
+        //docRequest.parmInventDim(inventDim);
+        _trans.setInventDimId(inventDim.inventDimId);
+        if (inventJournalTable.JournalType != InventJournalType::TagCounting)
+        {
+            // Set the cost price for the line
+            _trans.setCostPrice(_trans.(inventDimFieldId), _trans.inventDim(), _trans.inventTableModuleInvent());
+        }
+        _trans.(WorkerFieldId) = HcmWorker::userId2Worker(curUserId());
+        // Registered on mobile
+        _trans.(regOnMobId) = true;
+        return _trans;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMInventDimSetup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class to handle the inventory Dimension setup per item.
+/// </summary>
+class TFMInventDimSetup
+{
+    #MacroLib.TFM
+    #ifnot.isAX5
+    InventDimGroupSetup                         inventDimGroupSetup;
+    EcoResStorageDimensionGroupFldSetup         storageLocationFldSetup, storageWMSPalletIdFldSetup, storageLicensePlateFldSetup;
+    EcoResTrackingDimensionGroupFldSetup        trackingBatchFldSetup,trackingInventSerialIdFldSetup;
+    TFMOrderTypes                               orderType;
+    #endif
+    #if.isAX5
+    InventDimGroupId                            dimGroupId;
+    #endif
+    InventTable                                 inventTable;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmInventTable</Name>
+				<Source><![CDATA[
+    public InventTable parmInventTable(InventTable _inventTable = InventTable)
+    {
+        inventTable = _inventTable;
+        return inventTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMInventDimSetup Construct(InventTable _inventTable, TFMOrderTypes _orderType = '')
+
+    {
+
+        return new TFMInventDimSetup(_inventTable, _orderType);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(InventTable _inventTable, TFMOrderTypes _orderType = '')
+    {
+        #if.isAX5
+        dimGroupId = _inventtable.DimGroupId;
+        #endif
+        #ifnot.isAX5
+        inventDimGroupSetup = InventDimGroupSetup::newInventTable(_inventTable);
+        orderType = _orderType;
+        storageLocationFldSetup = EcoResStorageDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getStorageDimensionGroup(),fieldNum(InventDim,WMSLocationId));	          
+        trackingBatchFldSetup =  EcoResTrackingDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getTrackingDimensionGroup(),fieldNum(InventDim,InventBatchId));
+        trackingInventSerialIdFldSetup =  EcoResTrackingDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getTrackingDimensionGroup(),fieldNum(InventDim,inventSerialId));
+        #if.isAX6
+        storageWMSPalletIdFldSetup = EcoResStorageDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getStorageDimensionGroup(),fieldNum(InventDim,WmsPalletId));        
+        #endif
+
+        storageLicensePlateFldSetup = EcoResStorageDimensionGroupFldSetup::findByDimensionGroupFieldId(inventDimGroupSetup.getStorageDimensionGroup(),fieldNum(InventDim,LicensePlateId));
+        #endif
+        inventTable = _inventTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerBatchID</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to validate whether Batch ID should be registered or not.
+    /// </summary>
+    /// <returns>True as a string if Batch ID should be registered. Otherwise false as a string.</returns>
+    public boolean registerBatchID()
+    {
+        #if.isAX5
+        if (inventDimSetup::find(dimGroupId, fieldnum(InventDim, inventBatchId)).Active)
+        #endif
+        #ifnot.isAX5
+        if(trackingBatchFldSetup.IsActive)
+        #endif
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerSerialNumber</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to validate whether serial numbers should be registered or not.
+    /// </summary>
+    /// <returns>True as a string if serial numbers should be registered. Otherwise false as a string.</returns>
+    public boolean registerSerialNumber()
+    {
+        #tfm
+
+        #if.isAX5
+        if (inventDimSetup::find(dimGroupId, fieldnum(InventDim, inventSerialId)).Active)
+        #endif
+        #ifnot.isAX5
+        if(trackingInventSerialIdFldSetup.IsActive)// && ((orderType && orderType == #TypeReceive && !trackingInventSerialIdFldSetup.IsAllowBlankReceiptEnabled) || orderType != #TypeReceive))
+        #endif
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerSerialNumberSales</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to validate whether serial numbers should be registered for sales or not.
+    /// </summary>
+    /// <returns>True as a string if serial numbers should be registered. Otherwise false as a string.</returns>
+    public boolean registerSerialNumberSales()
+    {
+        return trackingInventSerialIdFldSetup.IsSalesProcessActivated;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerWMSLocation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to validate whether WMS Location should be registered or not.
+    /// </summary>
+    /// <returns>True as a string if WMS Location should be registered. Otherwise false as a string.</returns>
+    public boolean registerWMSLocation()
+    {
+        #if.isAX5
+        if (inventDimSetup::find(dimGroupId, fieldnum(InventDim, wMSLocationId)).Active)
+        #endif
+        #ifnot.isAX5
+        if(storageLocationFldSetup.IsActive)
+        #endif
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerWMSPallet</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to validate whether the WMS Pallet dimension is active
+    /// </summary>
+    /// <returns>string, True if dimension is active, otherwise False.</returns>    
+    public boolean registerWMSPallet()
+    {
+
+        #if.isAX5
+        return inventDimSetup::find(dimGroupId, fieldnum(InventDim, wMSPalletId)).Active;
+        #endif
+        #if.isAX6
+        return storageWMSPalletIdFldSetup.IsActive || storageLicensePlateFldSetup.IsActive;
+        #endif
+        
+        return storageLicensePlateFldSetup.IsActive; // NB. there is an extension to this method in MobileWMS
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerLicensePlate</Name>
+				<Source><![CDATA[
+    public boolean registerLicensePlate()
+    {
+        #if.isAX5
+        return false;
+        #endif
+        
+        return storageLicensePlateFldSetup.IsActive; // NB. there is an extension to this method in MobileWMS
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateWMSLocation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to validate whether the WMS Location dimension is active.
+    /// </summary>
+    /// <returns>True as a string if dimension is active. Otherwise false as a string.</returns>
+    public boolean validateWMSLocation()
+    {
+        #tfm
+        #if.isAX5
+        if (inventDimSetup::find(dimGroupId, fieldnum(InventDim, WMSLocationId)).Active)
+        #endif
+        #ifnot.isAX5
+        if(inventDimGroupSetup.getFieldSetup(fieldNum(InventDim,WMSLocationId)).isActive())
+        #endif
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListItemContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+public class TFMListItemContract
+{
+    str            listItemId;
+    str            title;
+    str            line2;
+    str            line3;
+    str            line4;
+    str            iconName;
+    str            line4Class;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmListItemId</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public str parmListItemId(str _listItemId = listItemId)
+    {
+        listItemId = _listItemId;
+        return listItemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTitle</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public str parmTitle(str _title = title)
+    {
+        title = _title;
+        return title;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLine2</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public str parmLine2(str _line2 = line2)
+    {
+        line2 = _line2;
+        return line2;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLine3</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public str parmLine3(str _line3 = line3)
+    {
+        line3 = _line3;
+        return line3;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLine4</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public str parmLine4(str _line4 = line4)
+    {
+        line4 = _line4;
+        return line4;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLine4Class</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public str parmLine4Class(str _line4Class = line4Class)
+    {
+        line4Class = _line4Class;
+        return line4Class;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIconName</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public str parmIconName(str _iconName = iconName)
+    {
+        iconName = _iconName;
+        return iconName;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

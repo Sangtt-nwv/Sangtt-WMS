@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMXMLFormatOrders</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for general orders.
+/// </summary>
+class TFMXMLFormatOrders extends TFMXMLFormat
+{
+    str                     backendId;
+    str                     status;
+    str                     headerLabel1;
+    str                     headerLabel2;
+    str                     headerValue1;
+    str                     headerValue2;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+		if (sdt && sdt.titleField1())
+        {
+            if (!headerLabel1)
+            {
+                headerLabel1            = new DictField(common.tableId, sdt.titleField1()).Label();
+                headerValue1            = common.(sdt.titleField1());
+            }
+            if (!displayLine1)
+            {
+                fieldsToAdd.insert(TFMConstants::DisplayLine1()+ '_Label', headerLabel1);
+                fieldsToAdd.insert(TFMConstants::DisplayLine1(), headerValue1);
+            }
+
+        }
+        if (sdt && sdt.titleField2())
+        {
+            if (!headerLabel2)
+            {
+                headerLabel2            = new DictField(common.tableId, sdt.titleField2()).label();
+                headerValue2            = common.(sdt.titleField2());
+            }
+			if (!displayLine2)
+            {
+                fieldsToAdd.insert(TFMConstants::DisplayLine2()+ '_Label', headerLabel2);
+                fieldsToAdd.insert(TFMConstants::DisplayLine2(), headerValue2);
+            }
+        }
+        super();
+
+        
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>clearValues</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void clearValues()
+    {
+        super();
+        backendId = '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHeaderValue1</Name>
+				<Source><![CDATA[
+    public str parmHeaderValue1(str _headerValue1 = headerValue1)
+    {
+        headerValue1 = _headerValue1;
+        return headerValue1;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHeaderValue2</Name>
+				<Source><![CDATA[
+    public str parmHeaderValue2(str _headerValue2 = headerValue2)
+    {
+        headerValue2 = _headerValue2;
+        return headerValue2;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHeaderLabel1</Name>
+				<Source><![CDATA[
+    public str parmHeaderLabel1(str _headerLabel1 = headerLabel1)
+    {
+        headerLabel1 = _headerLabel1;
+        return headerLabel1;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHeaderLabel2</Name>
+				<Source><![CDATA[
+    public str parmHeaderLabel2(str _headerLabel2 = headerLabel2)
+    {
+        headerLabel2 = _headerLabel2;
+        return headerLabel2;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertFieldsToMap</Name>
+				<Source><![CDATA[
+    public void convertFieldsToMap()
+    {        
+  	if (!backendId)
+        {
+            backendId = TFMHelper::generateBackendId(common,orderType);
+        }
+        fieldsToAdd.insert(TFMConstants::BackendId(), fieldsToAdd.exists(TFMConstants::BackendId()) ? fieldsToAdd.lookup(TFMConstants::BackendId()) : backendId);
+        //status
+        if (!fieldsToAdd.exists(TFMConstants::Status()))
+        {
+            status =  TFMLockedOrders::isOrderLocked(backendid,deviceId, TFMlockingLevel::User) ? TFMConstants::locked() : TFMConstants::Unlocked();
+            fieldsToAdd.insert(TFMConstants::Status(), fieldsToAdd.exists(TFMConstants::Status()) ? fieldsToAdd.lookup(TFMConstants::Status()) : status);
+        }
+        else
+        {
+            status = fieldsToAdd.lookup(TFMConstants::Status());
+        }
+        if(status == TFMConstants::locked())
+        {
+            displayLine5 += (displayLine5 ? "@TFM:lineBreak" : '') + strFmt("@TFM:Orderlockedby",HcmWorker::find(HcmWorker::userId2Worker(TFMLockedOrders::find(backendId,'').UserID)).name());
+        }
+        fieldsToAdd.insert('lockedImage', status == TFMConstants::locked() ? resourceStr(TFMLocked) : 'unlocked');
+        fieldsToAdd.insert(TFMConstants::HeaderLabel1(), fieldsToAdd.exists(TFMConstants::HeaderLabel1()) ? fieldsToAdd.lookup(TFMConstants::HeaderLabel1()) : headerLabel1);
+        fieldsToAdd.insert(TFMConstants::HeaderLabel2(), fieldsToAdd.exists(TFMConstants::HeaderLabel2()) ? fieldsToAdd.lookup(TFMConstants::HeaderLabel2()) : headerLabel2);
+        fieldsToAdd.insert(TFMConstants::HeaderValue1(), fieldsToAdd.exists(TFMConstants::HeaderValue1()) ? fieldsToAdd.lookup(TFMConstants::HeaderValue1()) : headerValue1);
+        fieldsToAdd.insert(TFMConstants::HeaderValue2(), fieldsToAdd.exists(TFMConstants::HeaderValue2()) ? fieldsToAdd.lookup(TFMConstants::HeaderValue2()) : headerValue2);
+
+		if (ds.showImages)
+        {
+            if (!imageID)
+			{
+				imageID = strReplace(backendId,'/','|');
+			}
+			fieldsToAdd.insert('imageId', fieldsToAdd.exists('imageId') ? fieldsToAdd.lookup('imageId') : imageID);
+        }
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setXML</Name>
+				<Source><![CDATA[
+    protected void setXML()
+    {
+        this.appendToXML(resultXml.getNamedElement(TFMConstants::Orders()) ? resultXml.getNamedElement(TFMConstants::Orders()) : resultXml.root());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _parentNode)
+    {
+        recordLineTag = TFMConstants::BaseOrder();
+        super(_parentNode);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

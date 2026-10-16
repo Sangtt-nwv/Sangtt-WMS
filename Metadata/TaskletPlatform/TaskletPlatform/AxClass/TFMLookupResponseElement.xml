@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLookupResponseElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLookupResponseElement extends TFMResponseElement
+{
+    Map							backendIds;
+    Map							registrationCollectors;
+    Map							addValues;
+    Map							buffers;
+    Map							htmls;
+    TFMDocumentTypeId			documentType;
+    TFMDocumentContentSubject	contentType;
+    Map							dataSources;
+    Map							RecID2OrderType;
+    Map							sortingMap;
+    className					clsName;
+    TFMRequestElement			request;
+    Map							filterValues;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>contentType</Name>
+				<Source><![CDATA[
+    public TFMDocumentContentSubject contentType()
+    {
+        return contentType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new (TFMDocumentTypeId _documentType, TFMDocumentContentSubject _contentType = '')
+    {
+        container callStack = xSession::xppCallStack();
+        int i = 1;
+        backendIds = new Map(Types::Integer,Types::String);
+        registrationCollectors = new Map(Types::Integer, Types::Class);
+        buffers = new Map(Types::Integer, Types::Record);
+        addValues = new Map(Types::Integer, Types::Class);
+        htmls = new Map(Types::Integer,Types::String);
+        dataSources = new Map(Types::String,Types::Class);
+        RecID2OrderType = new Map(Types::Int64, Types::String);
+        sortingMap = new Map(Types::String, Types::Integer);
+        documentType = _documentType;
+        contentType = _contentType;
+        if (documentType == classStr(TFMGetRegistrationConfiguration) || documentType == classStr(TFMPostAdhocRegistration) || documentType == classStr(TFMLookup))
+        {
+            documentType = subStr(documentType,4,100);
+        }
+        
+        while (!clsName && i < conLen(callStack))
+        {
+            clsName = conPeek(callStack,i);
+			if (strScan(clsName,classStr(TFMLookupResponseElement),0,100))
+            {
+                clsName = '';
+            }
+            i += 4;
+        }
+        clsName = subStr(clsName,1,strScan(clsName,'[',1,100)-1);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMLookupResponseElement Construct(TFMDocumentTypeId _documentType, TFMDocumentContentSubject _contentType = '')
+    {
+        return new TFMLookupResponseElement(_documentType, _contentType);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBuffers</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The bufferes set in the TFMLookupResponseElement.
+    /// </summary>
+    /// <returns>The map containing the buffers.</returns>
+    public Map getBuffers()
+    {
+        return buffers;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeResponse</Name>
+				<Source><![CDATA[
+    public void removeResponse(int idx)
+    {
+        backendIds.remove(idx);
+        buffers.remove(idx);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addResponse</Name>
+				<Source><![CDATA[
+    public void addResponse(Common _buffer, TFMBackendId _backendId = '', TFMDocumentHandler _handler = null, Map _additionalValuesMap = new Map(Types::String, Types::String))
+    {
+        int					        nextKey = backendIds.elements();
+        Map					        addValue = _additionalValuesMap;
+        Map                         colMap = null;
+        TFMRegistrationCollectors	regCollectors;
+        TFMRegistrationCollector    collector;
+        TFMBackendId		        backendId = _backendId ? _backendId : (tableId2Name(_buffer.tableId) + '/RecId/' + int642Str(_buffer.RecId));
+        TFMPageDatasources	        ds;
+        TFMXMLFormatLookup	        xmlFormat;
+        int					        increment;
+        str					        sortKey;
+        TFMBackendIDInstance        backendIdhandler = TFMBackendIDInstance::Construct(backendId);
+        MapEnumerator               mEnum;
+        TFMOrderTypes		        orderType = backendIdhandler.parmType();
+        str                         recordType;
+        
+        RecID2OrderType.insert(_buffer.recId,orderType);
+
+        str orderTypeStr = RecID2OrderType.lookup(_buffer.recid);
+        str tableName = tableId2Name(_buffer.tableId);
+        str tableNameAndType = tableName + orderTypeStr;
+
+        if (!dataSources.exists(tableNameAndType))
+        {
+            ds = TFMPageDatasources::FindOrCreate(contentType,tableName,orderTypeStr);
+            xmlFormat = TFMXMLFormat::constructFromDataSource(ds,classStr(TFMXMLFormatLookup));
+            dataSources.insert(tableNameAndType, xmlFormat);
+        }
+        else
+        {
+            xmlFormat = dataSources.lookup(tableNameAndType);
+            ds = xmlFormat.dataSource();
+        }
+
+        backendIds.insert(nextKey,backendId);
+        if (_handler != null)
+        {
+            //test if there is an active process for this contentType, and get collectors from there
+            regCollectors = this.collectorsFromProcess(_buffer, contentType);
+            if (!regCollectors)
+            {
+                //Revert to classic, if no process
+                regCollectors = TFMRegistrationCollectors::ConstructFromMap(_handler.getCollectorMap(documentType,contentType,addValue),true);
+                registrationCollectors.insert(nextKey,regCollectors);
+            }
+            else 
+            {
+                registrationCollectors.insert(nextKey,regCollectors);
+                addValues.insert(nextKey,regCollectors.AdditionalValues());
+            }
+        }
+        buffers.insert(nextKey,_buffer);
+
+        if (ds.SortingField)
+        {
+            sortKey = ds.sortingKey(_buffer);
+            increment = 0;
+            while (sortingMap.exists(sortkey + int2Str(increment)))
+            {
+                increment++;
+            }
+            sortingMap.insert( sortkey + int2Str(increment), nextKey);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>collectorsFromProcess</Name>
+				<Source><![CDATA[
+    protected TFMRegistrationCollectors collectorsFromProcess(Common _buffer, TFMDocumentContentSubject _contentType)
+    {
+        Map                             collectorMap    = new Map(Types::String, Types::Class);
+        Map                             resultMap       = new Map(Types::Integer, Types::Class);
+        TFMProcess                      process;
+        TFMReferenceDataConfiguration   refCon;
+        SetEnumerator                   sEnum;
+        TFMRegistrationCollector        collector;
+        TFMRegistrationConfigurationResponseElement              response;
+        Map                             fieldsForHeader= new Map(Types::String, Types::String);
+        SetEnumerator                   fieldsOnTable;
+        SetEnumerator                   dataTypesOnTable;
+        TFMRequestElement               requestElement;
+        SysDictField                    sdf;
+        MapEnumerator                   mEnum;
+        TFMRegistrationCollectors       collectors;
+        Map                             aliases;
+        Map                             additionalValues = new Map (Types::String, Types::String);
+        
+        if (!TFMProcessProvider::GetAllProcessesImpl().processExists(_contentType))
+        {
+            return null;
+        }
+
+        process = TFMProcessProvider::GetAllProcessesImpl().getProcess(_contentType, TFMProcessVersion::newestProcessVersion(_contentType).Version);
+        aliases = process.combiFieldAliases();
+        refCon = process.getHeaders();
+        sEnum = refCon.getCollectors().getEnumerator();
+        requestElement = this.getRequestElement(_contentType);
+        while (sEnum.moveNext())
+        {
+            //fill in each filter/header field
+            collector = sEnum.current();
+            //Find if field can be filled from buffer.
+            if (collector.origins().hasTable(tableId2Name(_buffer.TableId)))
+            {
+                //fill from field
+                fieldsOnTable = collector.origins().fieldsFromTable(tableId2Name(_buffer.TableId)).getEnumerator();
+                //Take first entry
+                if (fieldsOnTable.moveNext())
+                {
+                    fieldsForHeader.insert(collector.parmName(), strFmt('%1',_buffer.(fieldName2Id(_buffer.TableId, fieldsOnTable.current()))));
+                    requestElement.addField(collector.parmName(), strFmt('%1',_buffer.(fieldName2Id(_buffer.TableId, fieldsOnTable.current()))),true);
+                    if (aliases.exists(collector.parmName()) && !requestElement.getFieldMap().exists(aliases.lookup(collector.parmName())))
+                    {
+                        requestElement.addField(aliases.lookup(collector.parmName()), requestElement.getFieldValue(collector.parmName()), true);
+                    }
+                    if (aliases.exists(collector.parmName()))
+                    {
+                        additionalValues.insert(aliases.lookup(collector.parmName()), requestElement.getFieldValue(collector.parmName()));
+                    }
+                }
+            }
+            else
+            {
+                //See if compatible EDT is on table
+                dataTypesOnTable = collector.origins().dataTypesEnumerator();
+                while (dataTypesOnTable.moveNext() && !fieldsForHeader.exists(collector.parmName()))
+                {
+                    fieldsOnTable= TFMLogicBlockDataInheritanceHandler::fieldsInheritedFromEDT(tableId2Name(_buffer.TableId),dataTypesOnTable.current()).getEnumerator();
+                    if (fieldsOnTable.moveNext())
+                    {
+                        sdf = fieldsOnTable.current();
+                        fieldsForHeader.insert(collector.parmName(), strFmt('%1',_buffer.(sdf.id())));
+                        requestElement.addField(collector.parmName(), strFmt('%1',_buffer.(sdf.id())),true);
+                        if (aliases.exists(collector.parmName()) && !requestElement.getFieldMap().exists(aliases.lookup(collector.parmName())))
+                        {
+                            requestElement.addField(aliases.lookup(collector.parmName()), requestElement.getFieldValue(collector.parmName()), true);
+                        }
+                        if (aliases.exists(collector.parmName()))
+                        {
+                            additionalValues.insert(aliases.lookup(collector.parmName()), requestElement.getFieldValue(collector.parmName()));
+                        }
+                    }
+                }
+            }
+        }
+    
+        
+        collectors = process.getCollectors(requestElement);
+        mEnum = additionalValues.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            collectors.addAdditionalValue(mEnum.currentKey(), mEnum.currentValue());
+        }
+        return collectors;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRequestElement</Name>
+				<Source><![CDATA[
+    protected TFMRequestElement getRequestElement(TFMDocumentContentSubject _contentType)
+    {
+        TFMRequestElement requestElement = TFMXMLDeserializer::findClass(TFMConstants::GetRegistrationConfiguration(), _contentType);
+        requestElement.parmRoot(request);
+        
+        requestElement.parmDocumentType(TFMConstants::GetRegistrationConfiguration());
+        requestElement.parmContentType(_contentType);
+        return requestElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addHtmlResponse</Name>
+				<Source><![CDATA[
+    public void addHtmlResponse(TFMBackendId _backendId, str _html)
+    {
+        int nextKey = backendIds.elements();
+        
+        backendIds.insert(nextKey,_backendId);
+        htmls.insert(nextKey,_html);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addCollectorResponse</Name>
+				<Source><![CDATA[
+    public void addCollectorResponse(Common _buffer, TFMBackendId _backendId, Map _collectors, Map _additionalValuesMap = new Map(Types::String, Types::String))
+    {
+        int nextKey = backendIds.elements();
+        Map addValue = _additionalValuesMap;
+        backendIds.insert(nextKey,_backendId);
+        
+        registrationCollectors.insert(nextKey,TFMRegistrationCollectors::ConstructFromMap(_collectors,true));
+        addValues.insert(nextKey,addValue);
+        
+        buffers.insert(nextKey,_buffer);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getXML</Name>
+				<Source><![CDATA[
+    public XmlDocument getXML()
+    {
+        XmlDocument						returnXML = new XmlDocument();
+        XmlElement						tmpRootElement          = returnXML.createElement('responseData');
+        TFMFilterAdditionsDataBinding	dataBinding;
+        Map								subMap;
+        filterValues = new Map(Types::String, Types::Class);
+
+		if (request != null && clsName)
+        {
+            while select dataBinding where dataBinding.ClassName == clsName
+            {
+                subMap = filterValues.exists(dataBinding.TableName) ? filterValues.lookup(dataBinding.TableName) : new Map(Types::String, Types::String);
+				if (request.getFieldValue(dataBinding.FilterFieldName))
+                {
+                    subMap.insert(dataBinding.FieldName, request.getFieldValue(dataBinding.FilterFieldName));
+                    filterValues.insert(dataBinding.TableName,subMap);
+                }
+            }
+        }
+
+        this.appendToXML(tmpRootElement);
+        return returnXML;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setRequest</Name>
+				<Source><![CDATA[
+    public void setRequest(TFMRequestElement _request)
+    {
+        request = _request;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _element)
+    {
+        boolean				useSorting = !htmls.elements() && buffers.elements() <= sortingMap.elements();
+        MapEnumerator		mEnum = useSorting ? sortingMap.getEnumerator() : backendIds.getEnumerator();
+        TFMBackendId        backendId;
+        Map                 regCollector;
+        XmlDocument         returnXML = _element.ownerDocument();
+        TFMXMLFormat        format;
+        TFMXMLFormatLookup  formatLookup;
+        XmlElement          tmpRootElement          = _element;
+        XmlElement			lookupResponse;
+        XmlElement			htmlElement;
+        str					html;
+        TFMOrderTypes		orderType;
+        container			bacIdCon;
+        int					currentKey;
+        Common				common;
+        Map					filterFields;
+        MapEnumerator		fieldsEnum;
+        str					fieldValue;
+        boolean				skipRecord;        
+        returnXML.appendChild(tmpRootElement);
+
+        while (!htmls.elements() && mEnum.moveNext())
+        {            
+            skipRecord = false;
+            currentKey = useSorting  ? mEnum.currentValue() : mEnum.currentKey();
+            common = buffers.lookup(currentKey);
+			if (filterValues.exists(tableId2Name(common.tableId)))
+            {
+                filterFields = filterValues.lookup(tableId2Name(common.tableId));
+                fieldsEnum = filterFields.getEnumerator();
+				while (fieldsEnum.moveNext())
+                {
+                    fieldValue = strFmt('%1',common.(fieldName2Id(common.tableId,fieldsEnum.currentKey())));
+					if (fieldValue != fieldsEnum.currentValue())
+                    {
+                        skipRecord = true;
+                    }
+                }
+            }
+            if (skipRecord)
+            {
+                continue;
+            }
+            backendId = useSorting  ? backendIds.lookup(mEnum.currentValue()) : mEnum.currentValue();
+            bacIdCon = strSplit(backendId,'/').pack();
+            orderType = conLen(bacIdCon) == 7 ? conPeek(bacIdCon,7) : '';
+            format = TFMXMLFormat::constructFromBackendID(backendId, classStr(TFMXMLFormatLookup));
+            formatLookup = classIdGet(format) == classNum(TFMXMLFormat) ? new TFMXMLFormatLookup() : format;
+            formatLookup.parmDisplayLine1(backendId);
+            formatLookup.initFromCommon(returnXML,common,1,orderType,contentType);
+            formatLookup.parmPageID(pageId ? pageId : contentType);
+            if (registrationCollectors.exists(currentKey))
+            {                
+                formatLookup.setRegistrationCollector(registrationCollectors.lookup(currentKey));
+                formatLookup.setAdditionalValues(addValues.exists(currentKey) ? addValues.lookup(currentKey) : new Map(Types::String, Types::String));
+            }
+            formatLookup.run();
+        }
+        
+        while (htmls.elements() && mEnum.moveNext())
+        {
+            html += htmls.exists(mEnum.currentKey()) ?  htmls.lookup(mEnum.currentKey()) : '';
+        }
+        if (html)
+        {
+            html = '<html height="100%"><body height="100%" style="background-color:#d7d7d7;">' + html + '</body></html>';
+            lookupResponse = returnXML.createElement(TFMConstants::LookupResponseElement());
+            tmpRootElement.appendChild(lookupResponse);
+            htmlElement = returnXML.createElement('html');
+            lookupResponse.appendChild(htmlElement);
+            htmlElement.innerText(html);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

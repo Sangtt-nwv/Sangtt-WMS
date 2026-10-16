@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxFormExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>InventJournalTable.Mob</Name>
+	<ControlModifications />
+	<Controls>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControlgblohrwn1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormCheckBoxControl">
+				<Name>InventJournalTable_MobReleasedToMobile</Name>
+				<Type>CheckBox</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>MobReleasedToMobile</DataField>
+				<DataSource>InventJournalTable</DataSource>
+			</FormControl>
+			<Parent>gridOverview</Parent>
+		</AxFormExtensionControl>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControl5sffkkkf1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormCheckBoxControl">
+				<Name>InventJournalTable_MobCountByLP</Name>
+				<Type>CheckBox</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataField>MobCountByLP</DataField>
+				<DataSource>InventJournalTable</DataSource>
+			</FormControl>
+			<Parent>gridOverview</Parent>
+		</AxFormExtensionControl>
+	</Controls>
+	<DataSourceModifications />
+	<DataSourceReferences />
+	<DataSources />
+	<Parts />
+	<PropertyModifications />
+</AxFormExtension>

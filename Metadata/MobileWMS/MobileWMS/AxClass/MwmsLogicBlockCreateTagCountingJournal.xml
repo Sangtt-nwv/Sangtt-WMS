@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockCreateTagCountingJournal</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic block used to create Tag Counting Journals
+/// </summary>
+class MwmsLogicBlockCreateTagCountingJournal extends MwmsLogicBlockjournalsCommon implements TFMLogicBlockDataCollectionInterface
+{
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        components.addComponent(new MwmsLogicComponentInventoryJournalsCommonHeader());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method provides the header fields, that are needed to find out which data should be collected.
+    /// </summary>
+    /// <returns>A MobReferenceDataConfiguration object, containing registration collectors for the header.</returns>
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        return components.getHeaders();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method gives you the registration collectors for this data collection block.
+    /// </summary>
+    /// <returns>A collection of registration collectors.</returns>
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        return components.getCollectors();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>autoCreatedProcesses</Name>
+				<Source><![CDATA[
+    public Set autoCreatedProcesses()
+    {
+        Set ret = super();
+        TFMProcess process = TFMProcess::Construct(TFMConstants::CreateTagCountingJournal());
+        process.addBlock(this);
+        ret.add(process);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method is called before the post method, and gives the option to add extra registration collectors for the user to be prompted for before the post method is executed.
+    /// </summary>
+    /// <returns>Returns a MobRegistrationCollectors object if the user must be further prompted, otherwise it returns null</returns>
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The method executed when all data has been collected, and contains the posting logic.
+    /// </summary>
+    /// <returns>A MobPostResponseData object.</returns>
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData                 postResponse = TFMPostResponseData::Construct();
+        InventJournalName                   inventJournalName;
+        InventDimParm			            inventDimParm;
+        
+        
+        // Get the name of the profit/loss journal to create
+        inventJournalName = InventJournalName::find(MobParameters::find().InventJournalNameTagCounting,true);
+        docRequest.addField(extendedTypeStr(JournalNameId),inventJournalName.JournalNameId);
+        inventJournalTable.JournalType          = inventJournalType::TagCounting;
+        inventJournalTable = components.provideDataIfPossible(inventJournalTable);
+        InventDimFixedClass::inventDimFixed2InventDimParm(inventJournalTable.InventDimFixed,inventDimParm);
+        inventDimParm.WMSLocationIdFlag		= NoYes::Yes;
+        inventDimParm.InventLocationIdFlag	= NoYes::Yes;
+        inventDimParm.InventSiteIdFlag		= NoYes::Yes;
+        inventJournalTable.InventDimFixed = inventDimParm.inventDimFixed();        
+        inventJournalTable.insert();
+    
+    
+        postResponse.parmResponseText("@MobileWMS:TagCountingJournalcreatedsucessfully");
+        return postResponse;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMUnplannedTagCountIcon);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

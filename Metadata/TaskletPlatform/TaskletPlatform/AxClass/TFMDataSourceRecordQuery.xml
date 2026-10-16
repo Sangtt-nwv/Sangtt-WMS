@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDataSourceRecordQuery</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDataSourceRecordQuery extends RunBase
+{
+    QueryRun			queryRun;
+    DialogField			dfType;
+    DialogField			dfName;
+    dialogGroup			dg;
+    dialogGroup			dgp;
+    TFMPageDatasources	pds;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>showQueryValues</Name>
+				<Source><![CDATA[
+    public boolean showQueryValues()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showQuerySelectButton</Name>
+				<Source><![CDATA[
+    public boolean showQuerySelectButton()
+    {
+        
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastValueElementName</Name>
+				<Source><![CDATA[
+    public identifierName lastValueElementName()
+    {
+        identifierName ret = classStr(TFMDataSourceRecordQuery);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    protected boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    public void initParmDefault()
+
+    {
+        Query query;
+        QueryBuildDataSource    qbd;
+        
+        super();
+        if (pds.PackedQuery != conNull())
+        {
+            queryRun = new QueryRun(pds.PackedQuery);
+            return;
+        }
+        query = new Query();
+		
+        qbd = query.addDataSource(tableName2Id(pds.TableName));
+
+        queryRun = new QueryRun(query);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryRun</Name>
+				<Source><![CDATA[
+    public QueryRun queryRun()
+    {
+        ;
+        return queryRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void new(TFMPageDatasources	_pds)
+    {
+
+        pds = _pds;
+		if (!pds)
+        {
+            Error("@TFM:NoDatasourcechosen");
+        }
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Main</Name>
+				<Source><![CDATA[
+    public static void Main(Args _args)
+    {
+        TFMDataSourceRecordQuery	recordQuery;
+        FormRun						caller = _args.caller();
+        FormDataSource				dataSourcesDS = caller.dataSource(tableStr(TFMPageDatasources));
+        TFMPageDatasources			pds = dataSourcesDS.cursor();
+
+        recordQuery = new TFMDataSourceRecordQuery(pds);
+
+        if (recordQuery.prompt())
+        {
+            recordQuery.run();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public Object dialog(DialogRunbase _dialog = null, boolean _forceOnClient = false)
+    {
+        dialog dialog;
+
+        dialog = super();
+        dialog.caption( "@SYS339218");
+		
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        
+        Query						q;
+        //Common						common;
+        //Set							records = new Set(Types::Record);
+        //XML							xml;
+        
+        super();
+        q = queryRun.Query();
+        q.name(pds.TableName+';'+pds.OrderType + ';' + pds.PageID);
+        ttsbegin;
+        pds.selectForUpdate(true);
+        pds.PackedQuery = queryRun.pack();
+        pds.update();
+        ttscommit;
+        /*while (queryRun.next())
+        {
+            common = queryRun.get(tableName2Id(designTable.RefTableName));
+            records.add(common);
+            break; // Only interested in one record
+        }
+        xml = designTable.getXML(records, TFMPrintZPLDPI::Preview, new Map(Types::String, Types::String));
+
+        printProcessor.process(designTable.DesignID,xml,history,'pdf');
+        //Browser br = new Browser();
+        //br.navigate(history.TempURL,false, false);
+        Args args = new Args();
+        FormRun		formRun;
+        args.parm('https://docs.google.com/gview?url='+history.TempURL + '&embedded=true');
+        //args.parm('https://taskletfactory.interform400.com:8086');
+        args.name(formStr(TFMPrintPDFPreview));
+        formRun = classfactory.formRunClass(args);
+        formRun.init();
+        formRun.run();
+
+        formRun.wait();*/
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

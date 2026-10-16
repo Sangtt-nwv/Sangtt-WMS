@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocLicensePlateMultiMove</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType(classStr(TFMPostAdhocRegistration),'MoveMultiLicensePlates'),
+TFMDocumentType(classStr(TFMGetRegistrationConfiguration),'MoveMultiLicensePlates')]
+class MobDocLicensePlateMultiMove extends TFMDocumentHandler
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return "@MobileWMS:MoveMultipleLicensePlates";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerMenu</Name>
+				<Source><![CDATA[
+    public container registerMenu()
+    {
+        container ret = [['MoveMultiLicensePlates', "@MobileWMS:MoveMultipleLicensePlates", true, resourceStr(MobPalletMoveIcon)]];
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MoveMultipleLicensePlatesFilter</Name>
+				<Source><![CDATA[
+	[TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration MoveMultipleLicensePlatesFilter()
+    {
+        TFMReferenceDataConfiguration refData = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorList  warehouse = TFMGetReferenceData::createDefaultWarehouseReferenceData(1);
+        refData.addCollector(warehouse);
+
+        return refData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret;
+
+        ret = super();
+        ret.insert('MoveMultipleLicensePlates', "@MobileWMS:MoveMultipleLicensePlates");
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MoveMultipleLicensePlatesPrompt</Name>
+				<Source><![CDATA[
+    [TFMCollectorMap(classStr(TFMGetRegistrationConfiguration), 'MoveMultiLicensePlates'), TFMCollectorConfigurationAdditionalAttribute('cancelBehaviour', 'Warn')]
+    public Map MoveMultipleLicensePlatesPrompt()
+    {
+        Map										returnMap = new Map(Types::String,Types::Class);
+        TFMRegistrationCollectorTypeAndQuantity licensePlates = new TFMRegistrationCollectorTypeAndQuantity(1,extendedTypeStr(WHSLicensePlateId),"@WAX67","@WAX67","@WAX67");
+        TFMRegistrationCollectorText			Location = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(WMSLocationId));      
+        Location.parmId(20);
+
+        licensePlates.parmUniqueValues(true);
+        licensePlates.setOnlineValidationDocument(methodStr(MobOnlineValidator, LicensePlateValidation));
+		
+        returnMap.insert(extendedTypeStr(WHSLicensePlateId),licensePlates.getMap());
+        returnMap.insert(extendedTypeStr(WMSLocationId),Location.getMap());
+
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MoveMultipleLicensePlatesPost</Name>
+				<Source><![CDATA[
+    [TFMDocumentType(classStr(TFMPostAdhocRegistration),'MoveMultiLicensePlates')]
+    public void MoveMultipleLicensePlatesPost()
+    {
+        str					lps		= request.getFieldValue(extendedTypeStr(WHSLicensePlateId));
+        WMSLocationId		locId	= request.getFieldValue(extendedTypeStr(WMSLocationId));
+        InventLocationId	whs		= request.getFieldValue(MobConstants::Warehouse());
+        ListEnumerator		lpList	= strSplit(lps,';').getEnumerator();
+        WhsLicensePlateId	lpToMove;
+
+        if (!WMSLocation::exist(locId,whs))
+        {
+            throw Error (strFmt("@SYS53781",locId,whs));
+        }
+
+        while(lpList.moveNext())
+        {
+            lpToMove = subStr(lpList.current(),1,strScan(lpList.current(),'=',1,100)-1);
+            MobPostHelper::MoveLicensePlate(lpToMove,whs,locId);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

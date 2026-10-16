@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobInventLocationsPickReceiveTypes</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobInventLocationsPickReceiveTypes extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns MobInventLocationsPickReceiveTypes if it exists else it returns null
+    /// </summary>
+    /// <param name="_inventLocationId"></param>
+    /// <param name="_forupdate"></param>
+    public static MobInventLocationsPickReceiveTypes find(InventLocationId _inventLocationId, boolean _forupdate = false)
+    {
+        MobInventLocationsPickReceiveTypes pickReceiveInfo;
+    
+        pickReceiveInfo.selectForUpdate(_forupdate);
+    
+        select firstOnly pickReceiveInfo
+            where pickReceiveInfo.InventLocationId == _inventLocationId;
+    
+        return pickReceiveInfo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateFieldValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_fieldName"></param>
+    /// <param name = "_arrayIndex"></param>
+    /// <returns></returns>
+    public boolean validateFieldValue(FieldName _fieldName, int _arrayIndex = 1)
+    {
+        boolean ret;
+    
+        ret = super(_fieldName, _arrayIndex);
+    
+        if (_fieldName == fieldStr(MobParameters, PickPickingRoute) && this.PickPickingRoute)
+        {
+            this.PickSale = NoYes::No;
+        }
+        else if (_fieldName == fieldStr(MobParameters, PickSale) && this.PickSale)
+        {
+            this.PickPickingRoute = NoYes::No;
+        }
+        else if (_fieldName == fieldStr(MobParameters, ReceiveArrival) && this.ReceiveArrival)
+        {
+            this.ReceivePurch = NoYes::No;
+        }
+        else if (_fieldName == fieldStr(MobParameters, ReceivePurch) && this.ReceivePurch)
+        {
+            this.ReceiveArrival = NoYes::No;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@MobileWMS:InventLocationsPickReceiveTypesDevDesc</DeveloperDocumentation>
+	<Label>@SYS6437</Label>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>InventLocationId</TitleField1>
+	<TitleField2>OverwriteDefault</TitleField2>
+	<ClusteredIndex>PrimaryIdx</ClusteredIndex>
+	<CreateRecIdIndex>No</CreateRecIdIndex>
+	<PrimaryIndex>PrimaryIdx</PrimaryIndex>
+	<ReplacementKey>PrimaryIdx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>InventLocationId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OverwriteDefault</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PickPickingRoute</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PickProd</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PickSale</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PickTransfer</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveArrival</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveProductionInput</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceivePurch</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveRMA</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveTransfer</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>InventLocationId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>OverWrite</Name>
+			<Label>@SYS3074</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>OverwriteDefault</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Pick</Name>
+			<Label>@SYS50416</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>PickSale</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PickPickingRoute</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PickProd</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PickTransfer</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Receive</Name>
+			<Label>@SYS52744</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ReceivePurch</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveTransfer</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveArrival</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveProductionInput</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveRMA</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Identification</Name>
+			<Label>@SYS5711</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>InventLocationId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>InventLocationId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>InventLocationId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>OverwriteDefault</Name>
+			<ExtendedDataType>MobOverwriteDefault</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PickPickingRoute</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL59</HelpText>
+			<Label>@MobileWMS:MEL58</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PickProd</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL57</HelpText>
+			<Label>@MobileWMS:MEL92</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PickSale</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL52</HelpText>
+			<Label>@MobileWMS:MEL51</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PickTransfer</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL56</HelpText>
+			<Label>@MobileWMS:MEL55</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ReceiveArrival</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL62</HelpText>
+			<Label>@MobileWMS:MEL61</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ReceiveProductionInput</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL80</HelpText>
+			<Label>@MobileWMS:MEL79</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ReceivePurch</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL54</HelpText>
+			<Label>@MobileWMS:MEL53</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ReceiveRMA</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MobileWMS147</HelpText>
+			<Label>@MobileWMS:ShowReturnOrders</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ReceiveTransfer</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL56</HelpText>
+			<Label>@MobileWMS:MEL55</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>PrimaryIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>InventLocationId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>InventLocation</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<RelatedTable>InventLocation</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelatedTableRole>InventLocationOverride</RelatedTableRole>
+			<RelationshipType>Association</RelationshipType>
+			<Role>InventLocation</Role>
+			<UseDefaultRoleNames>No</UseDefaultRoleNames>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>InventLocationId</Name>
+					<SourceEDT>InventLocationID</SourceEDT>
+					<Field>InventLocationId</Field>
+					<RelatedField>InventLocationId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMGraphTreeNodeWorkflow</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMGraphTreeNodeWorkflow extends TFMGraphTreeNode
+{
+    str				groupName;
+    ResourceName	resName;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>draw</Name>
+				<Source><![CDATA[
+    public void draw(System.Drawing.Graphics _bmpDC, Map _treeNodes)
+    {
+        TFMGraphRectInteractionWorkflow wRect = rect as TFMGraphRectInteractionWorkflow;
+        rect.parmLowerColor(255<<24);
+        rect.parmUpperColor(128 + 128 << 8 + 128 << 16 + 255<<24);
+        rect.parmTextColor(255 + 255 << 8 + 255 << 16 + 255<<24);
+        /*rect.parmLeft(rect.parmLeft() - rect.iWidth()*0.25);
+        rect.parmRight(rect.parmRight() + rect.iWidth()*0.25);*/
+        wRect.parmResourceName(resName);
+        arrowGraphScale = 0;
+        super(_bmpDC, _treeNodes);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void new()
+    {
+        super();
+        RectClassName		= classStr(TFMGraphRectInteractionWorkflow);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmGroupName</Name>
+				<Source><![CDATA[
+    public str parmGroupName(str _groupName = groupName)
+    {
+        groupName = _groupName;
+
+        return groupName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmResourceName</Name>
+				<Source><![CDATA[
+    public ResourceName parmResourceName(ResourceName _resName = ResName)
+    {
+        resName = _resName;
+        return resName;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

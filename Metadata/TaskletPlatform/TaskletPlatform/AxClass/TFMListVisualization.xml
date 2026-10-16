@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListVisualization</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMListVisualization extends TFMAbstractListRender
+{
+    int						totalWidth = 250;
+    Map						valuesMap;
+
+    TFMListConfiguration    listConfigElement;
+    TFMList                 list;
+
+    boolean                 drawCells;
+    boolean                 drawDevice;
+
+    str                     listHtmlOutputResult;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmList</Name>
+				<Source><![CDATA[
+    public TFMList parmList(TFMList _list = list)
+    {
+        list = _list;
+        return list;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDrawDevice</Name>
+				<Source><![CDATA[
+    public boolean parmDrawDevice(boolean _drawDevice = drawDevice)
+    {
+        drawDevice = _drawDevice;
+        return drawDevice;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDrawCells</Name>
+				<Source><![CDATA[
+    public boolean parmDrawCells(boolean _drawCells = drawCells)
+    {
+        drawCells = _drawCells;
+        return drawCells;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmValuesMap</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Contains the values to use when using data set display. Replacing the tags {DisplayLine1} with data.
+    /// </summary>
+    /// <param name = "_valuesMap"></param>
+    /// <returns></returns>
+    public Map parmValuesMap(Map _valuesMap = valuesMap)
+    {
+        valuesMap = _valuesMap;
+        return valuesMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DrawList</Name>
+				<Source><![CDATA[
+    public static void DrawList(TFMHtmlViewerCtrl _htmlViewer, TFMListId _listId, TFMListsVersion _version, boolean _drawCells, boolean _drawDevice, TFMPageDatasources _dataSet, real _scale = 1, str _pageTitleOverride = '', str _pageIconOverride = '', Map _bottomIcons = new Map(Types::String,Types::Class), System.Drawing.Bitmap _imageToUse = null)
+    {
+        TFMList list = TFMListsProvider::getAllLists().getList(_listId);
+        if(!list)
+        {
+            _htmlViewer.parmHtml(strFmt("@TFM:Thelist1doesnotexist", _listId));
+            return;
+        }
+
+        _htmlViewer.parmSkipSanitizer(true);
+        _htmlViewer.parmHtml(TFMListVisualization::getHtmlForList(list, _version, _drawCells, _drawDevice, _dataSet, _scale, _pageTitleOverride, _pageIconOverride, _bottomIcons, _imageToUse));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHtmlForList</Name>
+				<Source><![CDATA[
+    public static str getHtmlForList(TFMList _list, TFMListsVersion _version, boolean _drawCells, boolean _drawDevice, TFMPageDatasources _dataSet, real _scale = 1, str _pageTitleOverride = '', str _pageIconOverride = '', Map _bottomIcons = new Map(Types::String,Types::Class), System.Drawing.Bitmap _imageToUse = null, int _width = 750)
+    {
+        Map						valueMap;
+        TFMListVisualization	visualization = new TFMListVisualization();
+
+        visualization.buildList(_list, _version);
+        visualization.parmDrawDevice(_drawDevice);
+
+        if(_dataSet)
+        {
+            valueMap = TFMListVisualization::findDataset(_list, _dataset);
+            visualization.parmValuesMap(valueMap);
+        }
+
+        visualization.parmDrawCells(_drawCells);
+
+        str htmlOutput;
+
+        if(_drawDevice)
+        {
+            str listContent = visualization.Draw(TFMDrawPage::contentWidth, _list.parmListName());
+            htmlOutput += TFMDrawPage::drawWithDevice(listContent,_bottomIcons, _pageTitleOverride, _pageIconOverride);
+        }
+        else
+        {
+            htmlOutput = visualization.Draw(_width, _list.parmListName());
+            htmlOutput = '<div style="padding: 15px;">' + htmlOutput + '</div>';
+        }
+        return htmlOutput;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findDataset</Name>
+				<Source><![CDATA[
+    public static Map findDataset(TFMList _list, TFMPageDatasources _datasources)
+    {
+        Common					common;
+        TFMXMLFormat			formatClass;
+        
+        XmlDocument				resultXml   = new XmlDocument();
+        Map						returnMap = new Map(Types::String, Types::String);
+        XmlElement				ordersElement = resultXml.appendChild(resultXml.createElement('responseData'));
+        TFMPage					page;
+        ClassName				clsName;
+        TFMPageType				pType;
+        if (!_datasources)
+        {
+            return returnMap;
+        }
+        page = TFMPagesProvider::getAllPages().getPage(_datasources.PageID);
+        if (!page)
+        {
+            return returnMap;
+        }
+        
+        pType = page.parmType();
+        common = _list.getDataFromDataSet(_datasources);
+        formatClass = TFMXMLFormat::constructFromDataSource(_datasources,pType == 'OrderList' ? Classstr(TFMXMLFormatOrders) : (pType == 'OrderLines' ? Classstr(TFMXMLFormatOrderLines) : Classstr(TFMXMLFormatLookup)));
+        formatClass.parmCommon(common);
+        formatClass.run();
+  
+        returnMap = TFMHelper::mergeMaps(returnMap,formatClass.parmFieldsToAddMap());
+        
+        return returnMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>XMLFieldsToMap</Name>
+				<Source><![CDATA[
+    public static void XMLFieldsToMap(XmlNode _element, Map _map)
+    {
+        XmlNode node;
+        XmlNode child;
+        
+        node = _element.firstChild();
+        while (node)
+        {
+            child = node.firstChild();
+            if (child != null && child.nodeType() == XmlNodeType::Text)
+            {
+                _map.insert(node.name(), node.innerText());
+            }
+            else
+            {
+                TFMListVisualization::XMLFieldsToMap(node,_map);
+            }
+            node = node.nextSibling();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMenuTitle</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the menu title for the page. The labels will be translated so @{LABEL_ID} will be translated. {SOMEVALUE} will remain because only @{} are translated.
+    /// </summary>
+    /// <param name = "_title"></param>
+    /// <returns></returns>
+    public static str getMenuTitle(str _title)
+    {
+        str menuTitle = TFMTranslationProvider::replaceAllTranslations(_title);
+        return menuTitle;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Draw</Name>
+				<Source><![CDATA[
+    public str Draw(int _width, TFMListId _listId, int _yStart = 50)
+    {
+        totalWidth = _width;
+
+        str output = strFmt('<div style="width: %1px;min-width: %1px;max-width: %1px; overflow: hidden; border: 1px solid rgba(221, 221, 221, 1);">', _width);
+        listConfigElement.render(this);
+        output += listHtmlOutputResult;
+        output += '</div>';
+       return output;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildList</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Builds the list by converting the list configuration to Row and Column elements. Where the set of rows is the top level.
+    /// </summary>
+    /// <param name = "_listId"></param>
+    protected void buildList(TFMList _list, TFMListsVersion _listVersion)
+    {
+        this.parmList(_list);
+        listConfigElement = _list.getListConfiguration(_listVersion);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildLayoutFromCode</Name>
+				<Source><![CDATA[
+    protected TFMListConfiguration buildLayoutFromCode(TFMList _list)
+    {
+        TFMListElements			listElements;
+        if(_list)
+        {
+            return _list.getList();
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderList</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Renders the list as html (string).
+    /// </summary>
+    /// <param name = "_listConfiguration"></param>
+    public void renderList(TFMListConfiguration _listConfiguration)
+    {
+        listHtmlOutputResult = _listConfiguration.parmDisplayStatus() ? ''
+            + '<div style="display: flex;width: 100%;">'
+            + '<div style="width: 100%;">' 
+            : '';
+
+        this.render(_listConfiguration);
+        if(_listConfiguration.parmDisplayStatus())
+        {
+            listHtmlOutputResult += '</div>';
+            listHtmlOutputResult += '<div style="height: auto; min-width: 10px; width: 10px; background-color: #e88a30;border: 2px #e88a30 solid;"></div>';
+            listHtmlOutputResult += '</div>';
+        }       
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderRow</Name>
+				<Source><![CDATA[
+    public void renderRow(TFMListRow _row)
+    {
+        TFMListBase listElement;
+        MapEnumerator	mEnum = _row.getChildren().getEnumerator();
+        while(mEnum.moveNext())
+        {
+            listHtmlOutputResult += '<div style="padding: 3px;display: flex;">';
+            listElement = mEnum.currentValue();
+            listElement.render(this);
+            listHtmlOutputResult += '</div>';
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderColumn</Name>
+				<Source><![CDATA[
+    public void renderColumn(TFMListColumn _column)
+    {
+        MapEnumerator	mEnum = _column.getChildren().getEnumerator();
+        int width = _column.parmwidth();
+        str widthStr = (width) ? 'width: ' + int2Str(width) + '%;' : '';
+
+        while(mEnum.moveNext())
+        {
+            TFMListBase listElement = mEnum.currentValue();
+            if(listElement)
+            {
+                str tableColumnStr = '<div ';
+                tableColumnStr += strFmt('style="padding: 3px;overflow: hidden;%1', widthStr); // add the width if not 0
+                
+                if(drawCells)
+                {
+                    tableColumnStr += strFmt('border: 1px solid rgba(221, 221, 221, 1);'); // add the border to the column
+                }
+                
+                if(_column.parmBackgroundColor())
+                {
+                    tableColumnStr += strFmt(' background-color: #%1; ', _column.parmBackgroundColor());
+                }
+                tableColumnStr += '">';
+
+                listHtmlOutputResult += tableColumnStr;
+
+                listElement.render(this);
+
+                listHtmlOutputResult += '</div>';
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderText</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Renders the text element ín html.
+    /// </summary>
+    /// <param name = "_textElement"></param>
+    public void renderText(TFMListTextElement _textElement)
+    {
+        str textElemetnOutput;
+        TFMFonts        font = TFMFonts::Find(_textElement.parmFontId());
+        TFMListXAlign   xAlign = _textElement.parmHorizontalAlignment();
+        str textToUseInDraw = _textElement.parmText();
+
+        if(valuesMap && valuesMap.elements())
+        {
+            textToUseInDraw = _textElement.replaceTextWithValue(textToUseInDraw, valuesMap);
+        }
+
+        textElemetnOutput += '<div style="display: block; ';
+        if(font.size)
+        {
+            textElemetnOutput += strFmt('font-size: %1;', font.size);
+        }
+
+        textElemetnOutput += strFmt(' color: #%1;', font.color ? font.color : '000000');
+
+        if(font.italic)
+        {
+            textElemetnOutput += ' font-style: italic; ';
+        }
+        if(font.bold)
+        {
+            textElemetnOutput += ' font-weight: bold; ';
+        }
+
+        // set XALign
+        if(xAlign)
+        {
+            switch(xAlign)
+            {
+                case SysChartHorizontalAlignment::Left:
+                    textElemetnOutput += 'text-align: left; ';
+                    break;
+                case SysChartHorizontalAlignment::Center:
+                    textElemetnOutput += 'text-align: center; ';
+                    break;
+                case SysChartHorizontalAlignment::Right:
+                    textElemetnOutput += 'text-align: right; ';
+                    break;
+                default: 
+                    break;
+            }
+        }
+
+        textElemetnOutput += '">';
+
+        textElemetnOutput += textToUseInDraw;
+
+        textElemetnOutput += '</div>';
+
+        listHtmlOutputResult += textElemetnOutput;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>renderImage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Render the image Element as html.
+    /// </summary>
+    /// <param name = "imageElement"></param>
+    /// <returns></returns>
+    public void renderImage(TFMListImageElement _imageElement)
+    {
+        str imgStr;
+        boolean positionApplied; 
+        TFMMediaItem mediaItem;
+        TFMListXAlign xAlign = _imageElement.parmHorizontalAlignment();
+        TFMListYAlign yAlign = _imageElement.parmVerticalAlignment();
+        int xPercentageValue = 50;
+        int yPercentageValue = 50;
+
+        // set img src
+        imgStr = '<div style=" display: flex; ';
+        
+        // set horizontal and vertical placement.
+        switch(xAlign)
+        {
+            case SysChartHorizontalAlignment::Left:
+                imgStr += strFmt('justify-content: %1;', 'left');
+                break;
+            case SysChartHorizontalAlignment::Center:
+                imgStr += strFmt('justify-content: %1;', 'center');
+                break;
+            case SysChartHorizontalAlignment::Right:
+                imgStr += strFmt('justify-content: %1;', 'right');
+                break;
+            default:
+                break;
+        }
+
+        switch(yAlign)
+        {
+            case TFMVerticalAlignment::Top:
+                imgStr += strFmt('align-items: %1;', 'start');
+                break;
+            case TFMVerticalAlignment::Center:
+                imgStr += strFmt('align-items: %1;', 'center');
+                break;
+            case TFMVerticalAlignment::Bottom:
+                imgStr += strFmt('align-items: %1;', 'end');
+                break;
+            default:
+                break;
+        }
+        imgStr += ' ;width: 100%; ">'; //the container div and style attribute.
+
+        imgStr += '<img ';
+        imgStr += ' src="';
+        
+        imgStr += TFMDocGetMedia::getURLFromIconName(_imageElement.replaceTextWithValue(_imageElement.parmSourceId(), valuesMap));
+        imgStr += '" ';
+        imgStr += strFmt(' style="width: %1%;" ', _imageElement.parmwidth() ? _imageElement.parmwidth() : 10);
+        imgStr += ' />';
+
+        imgStr += '</div>'; // end of the container div
+        
+
+        listHtmlOutputResult += imgStr;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

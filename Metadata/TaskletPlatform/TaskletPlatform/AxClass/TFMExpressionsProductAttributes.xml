@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMExpressionsProductAttributes</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDescription("Expression to find the product attribute of a certain item. Takes ItemId and Attribute Name as Paramters")]
+class TFMExpressionsProductAttributes extends TFMExpressions
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processExpressionValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Expression to find the product attribute of a certain item
+    /// </summary>
+    /// <param name = "_value">Should be an item id</param>
+    /// <param name = "_attributeName">Name of the attribute</param>
+    /// <returns></returns>
+    public str processExpressionValue(str _value, str _attributeName = '')
+    {
+        InventTable                                             objinventTable;
+        EcoResProduct                                        objecoResProduct;
+        EcoResValue                                           objecoResValue;
+        EcoResAttributeValue                             objecoResAttributeValue;
+        EcoResAttribute                                      objecoResAttribute;
+        EcoResInstanceValue                              objecoResInstanceValue;
+        EcoResAttributeType                              objecoResAttributeType;
+        EcoResProductInstanceValue                 objecoResProductInstanceValue;
+        //EcoResProductAttributeValue					valueView;
+        //int i = 0;
+        str retValue;
+        /*ItemId	itemId = subStr(_value,1,strScan(_value,',',1,strLen(_value))-1);
+        str     AttributeName = subStr(_value,1+strScan(_value,',',1,strLen(_value)),strLen(_value));*/
+
+        ItemId  ItemId = _value;
+        str     AttributeName = _attributeName;
+
+        while select objecoResAttributeValue
+            join objecoResAttribute
+            where objecoResAttributeValue.Attribute == objecoResAttribute.RecId
+            join objecoResAttributeType
+            where objecoResAttribute.AttributeType == objecoResAttributeType.RecId
+            join objecoResInstanceValue
+            where objecoResAttributeValue.InstanceValue == objecoResInstanceValue.RecId
+            join objecoResValue
+            where objecoResAttributeValue.Value == objecoResValue.RecId
+            join objecoResProductInstanceValue
+            where objecoResInstanceValue.RecId == objecoResProductInstanceValue.RecId
+            join objecoResProduct
+            where objecoResProduct.RecId == objecoResProductInstanceValue.Product
+            join objinventTable
+            where objinventTable.Product == objecoResProduct.RecId
+            && objinventTable.itemid==ItemId
+        {
+            if (AttributeName == objecoResAttribute.Name)
+            {
+                //retValue += (strFmt("@SYS76766",objecoResAttribute.Name, objecoResValue.value()));
+                retValue += objecoResValue.value();
+            }
+        }
+
+        return retValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processExpressionCommon</Name>
+				<Source><![CDATA[
+    [SysObsolete]
+    public str processExpressionCommon(Common _common)
+    {
+        str ret;
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

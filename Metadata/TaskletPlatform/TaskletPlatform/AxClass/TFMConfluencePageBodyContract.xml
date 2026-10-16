@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMConfluencePageBodyContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+public class TFMConfluencePageBodyContract
+{
+    TFMConfluencePageViewContract viewContract;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>view</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('view')]
+    public TFMConfluencePageViewContract view(TFMConfluencePageViewContract _viewContract = viewContract)
+    {
+        viewContract = _viewContract;
+        return _viewContract;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

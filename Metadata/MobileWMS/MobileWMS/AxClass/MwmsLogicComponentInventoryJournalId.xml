@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicComponentInventoryJournalId</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Component to add journal Id to headers
+/// </summary>
+class MwmsLogicComponentInventoryJournalId extends TFMLogicComponent
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Header fields this component may require
+    /// </summary>
+    /// <returns>A MobReferenceDataConfiguration if header fields are needed, otherwise null can be returned</returns>
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        refCon = super();
+        refCon.addCollector(TFMGetReferenceData::defaultJournalIdCollector(0, extendedTypeStr(JournalId), true, extendedTypeStr(InventJournalId)));
+        return refCon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicComponentInventoryJournalId Construct()
+    {
+        return new MwmsLogicComponentInventoryJournalId();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>requestClassProvided</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method that tells which request Class it's data can be parsed into
+    /// </summary>
+    /// <returns>The name of the request class the components data can be parsed to</returns>
+    public ClassName requestClassProvided()
+    {
+        return classStr(TFMRequestItemAndDimensionElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>provideDataIfPossible</Name>
+				<Source><![CDATA[
+    public Common provideDataIfPossible(Common _table)
+    {
+        Common ret;
+
+        ret = super(_table);
+
+        if (_table.TableId == tableNum(InventJournalTable))
+        {
+            ret = this.initInventJournalTable();
+        }
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initInventJournalTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to initialize a new InventJournalTable
+    /// </summary>
+    /// <returns>An InventJournalTable buffer</returns>
+    protected InventJournalTable initInventJournalTable()
+    {
+        InventJournalId                     inventJournalId;
+        TFMRequestItemAndDimensionElement   docRequest = subComponents.getComponent(classStr(TFMLogicComponentDimensions)).componentRequest(request);
+        inventJournalId                 = docRequest.parmJournalId();
+        // Find the journal to add a line to
+        InventJournalTable                  inventJournalTable = InventJournalTable::find(inventJournalId,true);
+        // Calculate the number of lines
+        inventJournalTable::initTotal(inventJournalTable);
+
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

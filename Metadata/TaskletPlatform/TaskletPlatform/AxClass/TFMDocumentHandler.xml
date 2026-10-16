@@ -1,0 +1,788 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentHandler</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Abstract class for document handling. All reguests from the mobile unit will be rerouted to a Document Handler class.
+/// </summary>
+abstract public class TFMDocumentHandler extends TFMInputHandler implements TFMTranslationDeclarantInterface
+{
+    TFMDocumentXML          resultStr;
+    TFMXMLFormat            TFMXMLFormat;
+    int                     sorting;    
+    Common					resultTable;    
+    DictMethod				MethodUsed;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>canBeEnqueued</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Can the document be put into queue ?
+    /// </summary>
+    /// <returns>True if document can be enqueued, otherwise false.</returns>
+    public boolean canBeEnqueued()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>subHandler</Name>
+				<Source><![CDATA[
+	public TFMDocumentHandler subHandler()
+    {
+        return this;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMethod</Name>
+				<Source><![CDATA[
+    public DictMethod parmMethod(DictMethod _MethodInstance = MethodUsed)
+    {
+        MethodUsed = _MethodInstance;
+        return MethodUsed;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmResultXML</Name>
+				<Source><![CDATA[
+    public XmlDocument parmResultXML(XmlDocument _resultXML = resultXml)
+    {
+        resultXml = _resultXML;
+        return resultXml;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTTSHandlingRequired</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Needs the TTS handling is requried. E.g. does this method post and change tables that requires the ttsbegin to be called outside the method.
+    /// </summary>
+    /// <returns></returns>
+    public boolean getTTSHandlingRequired()
+    {
+        if(strScan( strLwr(request.parmName()), 'post', 0, 1000000) || 
+           strScan( strLwr(request.parmDocumentType()), 'post', 0, 1000000) || 
+           strScan( strLwr(request.parmDocumentType()), 'lockorder', 0, 1000000)
+            )
+        {
+            return true;
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getIcon</Name>
+				<Source><![CDATA[
+    public ResourceName getIcon()
+{
+        ResourceName icon = resourceStr(TFMTaskletLogo);
+        TFMMenuAttribute    menuAttribute;
+        SysDictClass        DC;
+        Array               attributeArray;
+        int                 i;
+        container		menuCon = this.registerMenu();
+		if (menuCon != conNull())
+        {
+            icon = conPeek(conPeek(menuCon,1),4);
+        }
+        else
+        {
+            DC = new SysDictClass(classIdGet(this));
+        
+            attributeArray = DC.getAttributes(classStr(TFMMenuAttribute));
+            for (i = 1; attributeArray && i <= attributeArray.lastIndex(); i++)
+            {
+                menuAttribute = attributeArray.value(i);
+                icon = menuAttribute.parmIconName();
+            }
+        }
+        return icon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>documenthandler</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandler documenthandler()
+    {
+        return this;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResultTable</Name>
+				<Source><![CDATA[
+    public Common getResultTable()
+    {
+        
+        TFMOrderPostDataSetAttribute		postOrderDataSet = new TFMOrderPostDataSetAttribute('');
+        Map						datamethods = TFMAttributeHandler::getMethodNamesFromSysAttribute(classIdGet(this),postOrderDataSet,true);
+        MapEnumerator						mEnum = datamethods.getEnumerator();
+        while (mEnum.moveNext() && !resultTable)
+        {
+			if (SysTest::hasMethod(this,mEnum.currentKey()))
+            {
+                resultTable = new SysDictClass(classIdGet(this)).callObject(mEnum.currentKey(),this);
+                if (resultTable.RecId)
+                {
+                    return resultTable;
+                }
+            }
+        }
+        return resultTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method used, if a document handler wishes to add a translation to be used in the mobile device.
+    /// </summary>
+    /// <returns>Map containing translation key and translated text in the current language.</returns>
+    public Map addTranslations()
+    {
+        return new Map(Types::String, Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// A method to get the description of the document handlers function.
+    /// </summary>
+    /// <returns>A description of the document handlers function.</returns>
+    abstract public TFMDocumentHandlerDescription description()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages pages = TFMPageHelper::getPagesFromClass(this);
+        return pages;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>enqueuedAnswer</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// A method returning the answer the current user will get, if the document has been put in queue.
+    /// </summary>
+    /// <returns>The answer the mobile user will get, if the document has been put in queue.</returns>
+    public TFMDocumentXML enqueuedAnswer()
+    {
+        return "@TFM:TFM47";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResult</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The resulting XML from when the document has been processed.
+    /// </summary>
+    /// <returns>The resulting XML from when the document has been processed.</returns>
+    public XML getResult()
+    {
+        if (resultXml)
+        {
+            return resultXml.outerXml();
+        }
+    
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResultStr</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The result as a string.
+    /// </summary>
+    /// <returns>The result as a string.</returns>
+    public str getResultStr()
+    {
+        return resultStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResponseElement</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The resulting response Element
+    /// </summary>
+    /// <returns>A TFMResponseElement object containing the response.</returns>
+    public TFMResponseElement getResponseElement()
+    {
+		if ( responseElement == null)
+        {
+            responseElement = new TFMResponseElement();
+            responseElement.parmInnerXML(this.getResult());
+            responseElement.parmResponseText(this.getResultStr());
+        }
+        responseElement.parmDeviceId(request.parmdeviceID());
+        return responseElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        this.fillInParms();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fillInParms</Name>
+				<Source><![CDATA[
+    public void fillInParms()
+    {
+        //Fill all parm methods
+        ClassId thisClassId = classIdGet(this);
+        SetEnumerator methods = TFMFormLookupHelper::parmMethodsOnClass(thisClassId).getEnumerator();
+        SysDictClass thisSysDictClass = new SysDictClass(thisClassId);
+
+        while (methods.moveNext())
+        {
+            thisSysDictClass.callObject(methods.current(),this,TFMDocumentParameters::getValue(thisSysDictClass.name(),methods.current()));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindCorrespondingCollectorMethod</Name>
+				<Source><![CDATA[
+    public static MethodName FindCorrespondingCollectorMethod(classID _classOverrideID, MethodName _methodName)
+    {
+        DictClass                       DC = new DictClass(_classOverrideID);
+        TFMCollectorMapAttribute        attr;
+        Array                           array;
+        int                             i, j;
+        DictMethod                      DM;
+        MethodName                      methodName = subStr(_methodName,1+strscan(_methodName,'.',1,strLen(_methodName)),strLen(_methodName));
+        
+        for (i = 1; i <= DC.objectMethodCnt(); i++)
+        {
+            DM = DC.objectMethodObject(i);
+            array = DM.getAttributes(classStr(TFMCollectorMapAttribute));
+            if (array != null)
+            {
+                for (j = 1; j <= array.lastIndex(); j++)
+                {
+                    attr = array.value(j);
+                    if (attr.parmDocumentType() == methodName)
+                    {
+                        return DM.name();
+                    }
+                }
+            }
+        }
+
+        if (SysTest::hasMethod(DC.makeObject(),_methodName))
+        {
+            return _methodName;
+        }
+
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindCorrespondingPostMethod</Name>
+				<Source><![CDATA[
+    public static MethodName FindCorrespondingPostMethod(classID _classOverrideID, MethodName _CollectorMethodName)
+    {
+        SysDictClass                    DC = new SysDictClass(_classOverrideID);
+        TFMCollectorMapAttribute        attr;
+        TFMDocumentTypeAttribute        docTypeAttr;
+        TFMDocumentContentSubject       content;
+        TFMDocumentTypeId               docType;
+        Array                           array;
+        Array                           PMarray;
+        int                             i, j;
+        DictMethod                      DM, DMCollect;
+        MethodName                      methodName = subStr(_CollectorMethodName,1+strscan(_CollectorMethodName,'.',1,strLen(_CollectorMethodName)),strLen(_CollectorMethodName));
+        //SysTest::hasMethod
+        
+        for (i = 1; i <= DC.objectMethodCnt(); i++)
+        {
+            DMCollect =  DC.objectMethodObject(i);
+            if (DMCollect.name() == methodName)
+            {
+                array = DMCollect.getAttributes(classStr(TFMCollectorMapAttribute));
+                if (array != null)
+                {
+                    for (j = 1; j <= array.lastIndex(); j++)
+                    {
+                        attr = array.value(j);       
+                        content = attr.parmContentType();
+                        docType = attr.parmDocumentType();
+                        break;
+                    }
+                }                
+            }
+        }
+
+        for (i = 1; i <= DC.objectMethodCnt(); i++)
+        {
+            DM = DC.objectMethodObject(i);
+            array = DM.getAttributes(classStr(TFMDocumentTypeAttribute));
+            PMarray = DM.getAttributes(classStr(TFMPostMethodAttribute));
+            if (array != null && PMarray != null)
+            {
+                for (j = 1; j <= array.lastIndex(); j++)
+                {
+                    docTypeAttr = array.value(j);
+                    if (docTypeAttr.parmDocumentType() == substr(classStr(TFMPostAdhocRegistration),4,100) && docTypeAttr.parmContentType() == content)
+                    {
+                        return DM.name();
+                    }
+                    else if (docTypeAttr.parmDocumentType() == docType && docTypeAttr.parmContentType() == content)
+                    {
+                        return DM.name();
+                    }
+
+                }
+            }
+        }
+
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addFunctionCollectors</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Generic method to find if there are additional steps setup to be added to the flow.
+    /// </summary>
+    /// <param name = "_methodName">The method name for which to check if additional steps has been set up.</param>
+    public void addFunctionCollectors(MethodName _methodName)
+    {
+        DictClass                                       dc = new DictClass(classIdGet(this));
+        ExecutePermission                               perm = new ExecutePermission();
+        XmlElement                                      registrationCollectorConfigurationElement;
+        XmlElement                                      stepsElement;
+        str						                        name;
+        Map                                             collectorMap;
+        MapEnumerator                                   collectors;
+        MethodName                                      requestName = TFMDocumentHandler::FindCorrespondingCollectorMethod(dc.id(),_methodName);
+        SysDictMethod                                   sdm;
+        Array                                           attrArr;
+        int                                             arrIndex;
+        TFMCollectorConfigurationAdditionalAttribute    additionalAttr;
+
+        resultXml       = new XmlDocument();
+        
+        if (sysTest::hasMethod(this,requestName))
+        {
+            Perm.assert();
+            collectorMap = dc.callObject(requestName,this);
+            CodeAccessPermission::revertAssert();
+        }
+        else
+        {
+            throw Error(strFmt("@TFM:RequestTypeDoesNotExist",requestName));
+        }
+        // Create the registrationCollectorConfiguration element
+        registrationCollectorConfigurationElement = resultXml.createElement(TFMConstants::registrationCollectorConfiguration());
+
+        //registrationCollectorConfigurationElement.setAttribute('noStepsBehaviour','Post');
+    
+        // Create the steps element
+        stepsElement = resultXml.createElement(TFMConstants::steps());
+        registrationCollectorConfigurationElement.appendChild(stepsElement);
+        
+        sdm = new SysDictMethod(UtilElementType::ClassInstanceMethod, classIdGet(this), requestName);
+        attrArr = sdm.getAttributes(classStr(TFMCollectorConfigurationAdditionalAttribute));
+        for (arrIndex = 1; arrIndex <= attrArr.lastIndex(); arrIndex++)
+        {
+            additionalAttr = attrArr.value(arrIndex);
+            registrationCollectorConfigurationElement.setAttribute(additionalAttr.parmAttributeName(), additionalAttr.parmValue());
+        }
+        this.addToCollectors(collectorMap,classIdget(this),requestName);
+        collectors = collectorMap.getEnumerator();
+        while (collectors.moveNext())
+        {
+            name = TFMConstants::add();
+            if ('typeAndQuantity' == collectors.currentValue().lookup('inputType'))
+            {
+                name = 'typeAndQuantity';
+            }
+            TFMRegistrationCollector::addGenericRegistrationStep(stepsElement,name,collectors.currentValue());
+        }
+            
+        resultXml.appendChild(registrationCollectorConfigurationElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addToCollectors</Name>
+				<Source><![CDATA[
+    public void addToCollectors(Map _collectors, ClassId _orderClass, MethodName _methodName)
+    {
+        // By default we do not have any collectors to add, but if the document handler wants to add collectors based on user setup, it can override this method and add collectors to the flow.
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCollectorMap</Name>
+				<Source><![CDATA[
+    public Map getCollectorMap(TFMDocumentTypeId _documentType, TFMDocumentContentSubject _contentType = '', Map _additionalValues = new Map(Types::String, Types::String))
+    {
+        Map                         collectorMap;
+        DictClass                   dc = new DictClass(classIdGet(this));
+        TFMCollectorMapAttribute    attribute = new TFMCollectorMapAttribute(_documentType, _contentType);
+        ExecutePermission           perm = new ExecutePermission();
+        DictMethod                  Method = TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classIdGet(this),attribute);
+        TFMDocumentTypeAttribute    docTypeAttr;
+        if (Method == null)
+        {
+            docTypeAttr = new TFMDocumentTypeAttribute(classStr(TFMGetRegistrationConfiguration), _contentType);
+            Method = TFMGetRegistrationConfiguration::getMethodFromSysAttribute(classIdGet(this),docTypeAttr);
+        }
+
+        if (Method && sysTest::hasMethod(this,Method.name()))
+        {
+            Perm.assert();
+            collectorMap = dc.callObject(Method.name(),this);
+            CodeAccessPermission::revertAssert();
+        }
+        
+        return collectorMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRequestDataMap</Name>
+				<Source><![CDATA[
+    public Map getRequestDataMap()
+    {
+        Map reqDataMap = new Map(Types::String, Types::String);
+        XmlElement reqData = requestXml != null ? requestXml.root().getNamedElement(TFMConstants::requestData()) : null;
+
+        if ( reqData == null)
+        {
+            return reqDataMap;
+        }
+
+        reqData = reqData.firstChild();
+
+        if ( reqData == null)
+        {
+            return reqDataMap;
+        }
+        while(reqData)
+        {
+            reqDataMap.insert(reqData.name(),reqData.innerXml());
+            reqData = reqData.nextSibling();
+        }
+        return reqDataMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAncestor</Name>
+				<Source><![CDATA[
+    protected ClassId getAncestor(Object _class)
+    {
+        ClassId finalClassId = new SysDictClass(classIdGet(_class)).extend();
+
+        while (new SysDictClass(finalClassId).extend())
+        {
+            finalClassId = new SysDictClass(finalClassId).extend();
+        }
+        return finalClassId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to process the received document. This method must be overridden in sub-classes.
+    /// </summary>
+    public void process()
+    {
+        str                         requestName;
+        DictClass                   dc = new DictClass(classIdGet(this));
+        ExecutePermission           perm = new ExecutePermission();
+        anytype						retVal;
+        TFMResponseElement			responseData;
+
+        resultXml       = new XmlDocument();
+        requestName     = request.parmName();
+        
+        if (sysTest::hasMethod(this,requestName))
+        {
+            Perm.assert();
+            retVal = dc.callObject(requestName,this);
+            
+            if (typeOf(retVal) == Types::String)
+            {
+                resultStr = retVal;
+            }
+            else if (typeOf(retVal) == Types::Class && this.getAncestor(retVal) == classNum(TFMResponseElement))
+            {
+                responseData = retVal;
+                resultStr = responseData.parmResponseText();
+                responseElement = responseData;
+            }
+            CodeAccessPermission::revertAssert();
+        }
+		//else if (dc.get) //Check for method with attribute
+        else
+        {
+            throw Error(strFmt("@TFM:RequestTypeDoesNotExist",requestName));
+        }        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isPostMethod</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method used to determine whether or not a given method is a Posting method.
+    /// </summary>
+    /// <param name = "_requestName">The name of the method to be checked.</param>
+    /// <returns>True, if method is a post method (i.e. has the TFMPostMethod attribute). Otherwise false.</returns>
+    public boolean isPostMethod(str _requestName)
+    {
+        
+        DictClass                       DC = new DictClass(classIdGet(this));
+        Object                          attr;
+        Array                           array;
+        int                             i, j;
+        DictMethod                      DM;
+        
+        for (i = 1; i <= DC.objectMethodCnt(); i++)
+        {
+            DM = DC.objectMethodObject(i);
+            if (DM.name() != _requestName)
+            {
+                continue;
+            }
+            array = DM.getAttributes(classStr(TFMPostMethodAttribute));
+            if (array != null)
+            {
+                for (j = 1; j <= array.lastIndex(); j++)
+                {
+                    attr = array.value(j);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The run method, always executed.
+    /// </summary>
+    final public void run()
+    {
+        infolog.language(new xInfo().language());
+        this.fillInParms();
+        this.process();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllDocumentTypes</Name>
+				<Source><![CDATA[
+    public Set getAllDocumentTypes(ClassName _clsName = classStr(TFMDocumenttypeAttribute))
+    {
+        Set methodDocs = this.getDocumentTypes();
+        SysDictClass sdc = new SysDictClass(classIdGet(this));
+        Array arr = sdc.getAttributes(_clsName);
+        int j;
+        Object attrObject;
+        if (arr != null)
+        {
+            for (j = 1; j <= arr.lastIndex(); j++)
+            {
+                    
+                attrObject = arr.value(j);
+                if (SysTest::hasMethod(attrObject, methodStr(TFMDocumenttypeAttribute,parmDocumentType)) && !methodDocs.in(attrObject.parmDocumentType()) && !attrObject.parmContentType())
+                {
+                    methodDocs.add(attrObject.parmDocumentType());
+                }
+                else if (SysTest::hasMethod(attrObject, methodStr(TFMOrderListGetOrdersDocumentTypeAttribute,parmMethodName)))
+                {
+                    methodDocs.add(attrObject.parmMethodName());
+                }
+            }
+        }
+
+        return methodDocs;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    public Set getDocumentTypes()
+    {
+        return new Set(Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getReferenceDataMethods</Name>
+				<Source><![CDATA[
+    public Set getReferenceDataMethods()
+    {
+        return new Set(Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerImage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method that returns a image reference, that is used in the documents. Extend this method to add images for a certain Document / menu
+    /// </summary>
+    /// <returns>Map with image ID as key, and a resource ID as value.</returns>
+    public Map registerImage()
+    {
+        return new Map(Types::String, Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerMenu</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method a document handler can use to register a new menu to be available in the device.
+    /// </summary>
+    /// <returns>A container with the menu ID's</returns>
+    public container registerMenu()
+    {
+        return conNull();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setRequestXml</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to set the request XML.
+    /// </summary>
+    /// <param name = "_xml">The request XML as a string.</param>
+    public void setRequestXml(XmlDocument _xml)
+    {
+        requestXml = _xml;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRequestObject</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// returns the request object.
+    /// </summary>
+    /// <returns></returns>
+    public TFMRequestElement getRequestObject()
+    {
+        return request;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setRequestObject</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to set the request XML.
+    /// </summary>
+    /// <param name = "_xml">The request XML as a string.</param>
+    public void setRequestObject(TFMRequestElement _request)
+    {        
+        request = _request;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>newClassId</Name>
+				<Source><![CDATA[
+    public static TFMDocumentHandler newClassId(ClassId _classId)
+    {
+        DictClass           dictClass;
+        Object              action;
+    
+        if (! _classId)
+        {
+            return null;
+        }
+        if (! SysDictClass::isSuperclass(_classId,classnum(TFMDocumentHandler )))
+        {
+            return null;
+        }
+        dictClass       = new DictClass(_classId);
+        action          = dictClass.makeObject();
+    
+        return action;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

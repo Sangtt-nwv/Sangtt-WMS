@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListTagCountingLineWithRegistrations</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMListIdAttribute('TagCountingLineWithRegistrations')]
+class TFMListTagCountingLineWithRegistrations extends TFMListOrderLines
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>quantityCellContent</Name>
+				<Source><![CDATA[
+    protected str quantityCellContent()
+    {
+        return '{Quantity}{slash}{InventQtyTotal} {UnitOfMeasure}';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+   /// <summary>
+   /// Adding Tag and Tag Label to list
+   /// </summary>
+   /// <returns></returns>
+    public TFMListConfiguration getList()
+    {
+        Map children;
+        TFMListRows listRows;
+        TFMListRow listRow;
+        TFMListColumn fillColumn;
+        TFMListColumn labelColumn;
+        TFMListTextElement textElement;
+        TFMListColumn valueColumn;
+
+        TFMListConfiguration listConfig = super();
+        listConfig.parmDisplayStatus(false);
+
+        children = listConfig.getChildren();
+        listRows = children.lookup(0);
+
+        listRow = TFMListRow::Construct();
+        fillColumn = TFMListColumn::Construct();
+        fillColumn.parmwidth(60);
+        listRow.addColumn(fillColumn);
+
+        labelColumn = TFMListColumn::Construct();
+        labelColumn.parmBackgroundColor('AACFF2');
+        labelColumn.parmwidth(19);
+        textElement = TFMListTextElement::Construct();
+        textElement.parmText('{tagLabel}');
+        textElement.parmFontId(TFMFonts::FindOrCreateFromProperties('MediumContent',TFMFontSizes::medium,true,false,'').id);
+        
+        labelColumn.addElement(textElement);
+        listRow.addColumn(labelColumn);
+
+        valueColumn = TFMListColumn::Construct();
+        valueColumn.parmBackgroundColor("@TFM:AACFF2");
+        valueColumn.parmwidth(20);
+
+        textElement = TFMListTextElement::Construct();
+        textElement.parmText('{tag}');
+        textElement.parmFontId(TFMFonts::FindOrCreateFromProperties('MediumContentBold',TFMFontSizes::medium,false,false,'').id);
+        textElement.parmHorizontalAlignment(SysChartHorizontalAlignment::Right);
+      
+        valueColumn.addElement(textElement);
+        listRow.addColumn(valueColumn);
+
+        //move the rows and insert the new
+        listRows.addChild(listRow);
+
+        return listConfig;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

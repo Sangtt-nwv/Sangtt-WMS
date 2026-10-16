@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageClassOverrideDialog</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPageClassOverrideDialog extends RunBase
+{
+    DialogField             checkmarkField;
+    Map                     fields;
+    Map						savedPages;
+    DialogGroup             dlg;
+    Common                  printFromBuffer;
+    FormDataSource			ds;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    //int                     qty;
+    public Object dialog()
+    {
+        Dialog                      dialog = super();
+        Map                         pages = TFMPagesProvider::getAllPages().getPages();
+        MapEnumerator               pagesEnum = pages.getEnumerator();
+        TFMPages					mobPages;
+        TFMPage						page;
+        MapEnumerator               pageEnum;
+
+        
+        // Set a title for dialog
+        dialog.caption("@TFM:GenerateFromDocuments");
+        fields = new Map (Types::String, Types::Class);
+        savedPages = new Map (Types::String, Types::Class);
+        while (pagesEnum.moveNext())
+        {
+            dlg = dialog.addGroup(pagesEnum.currentKey());
+            dlg.hideIfEmpty(false);
+            mobPages = pagesEnum.currentValue();
+            pageEnum = mobPages.getPages().GetEnumerator();
+            while (pageEnum.moveNext())
+            {
+                page = pageEnum.currentValue();
+                checkmarkField = dialog.addField(extendedTypeStr(NoYesId), pageEnum.currentKey() + ' (' + page.parmType() + ')');
+                checkmarkField.value(0);
+                fields.insert(pageEnum.currentKey(),checkmarkField);
+                savedPages.insert(pageEnum.currentKey(),page);
+            }
+        }
+                
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        MapEnumerator mEnum = fields.getEnumerator();
+        //str             output;
+        
+        while ( mEnum.moveNext())
+        {
+            checkmarkField = mEnum.currentValue();
+            if (!checkmarkField.value())
+            {
+                continue;
+            }
+            //Info (mEnum.currentKey() +' '+  strFmt('%1',checkmarkField.value()));
+
+            TFMDeltaPages::createFromPageClass(savedPages.lookup(mEnum.currentKey()), true);
+            
+            
+        }
+		if (ds)
+        {
+
+            ds.executeQuery();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prompt</Name>
+				<Source><![CDATA[
+    public boolean prompt()
+    {
+        boolean ret;
+        //FormBuildStringControl      control;
+        ret = super();
+        
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    // Retrieve values from Dialog
+    public boolean getFromDialog()
+    {
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    protected boolean canRunInNewSession()
+    {
+        boolean ret;
+
+        ret = false;
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        TFMPageClassOverrideDialog pagesDialog = new TFMPageClassOverrideDialog();
+        pagesDialog.setDataSource(_args.record().datasource());
+
+        // Prompt the dialog, if user clicks in OK it returns true
+        if (pagesDialog.prompt())
+        {
+            pagesDialog.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDataSource</Name>
+				<Source><![CDATA[
+    public void setDataSource(FormDataSource _ds)
+    {
+        ds = _ds;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return conNull();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container packedClass)
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

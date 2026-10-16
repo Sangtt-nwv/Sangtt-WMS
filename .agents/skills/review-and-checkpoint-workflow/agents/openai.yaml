@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Review Workflow"
+  short_description: "Checkpoint and semantically review D365FO changes"
+  default_prompt: "Use $review-and-checkpoint-workflow to review this D365FO change."

@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicBlockProdErrorQty</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic block used for registration of scrap from production
+/// </summary>
+class MwmsLogicBlockProdErrorQty extends MwmsLogicBlock implements TFMLogicBlockDataCollectionInterface
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static MwmsLogicBlockProdErrorQty Construct()
+    {
+        return new MwmsLogicBlockProdErrorQty();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        components.addComponent(new TFMLogicComponentDataContext());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>autoCreatedProcesses</Name>
+				<Source><![CDATA[
+    public Set autoCreatedProcesses()
+    {
+        Set ret = super();
+        TFMProcess process = TFMProcess::Construct('ProdErrorQty');
+        process.addBlock(this);
+        ret.add(process);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+        TFMRegistrationCollectors collectors = components.getCollectors();
+        TFMRegistrationCollector errorQtyCollector = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(ProdReportedError));
+        
+        // Add the step to register the error cause
+        TFMRegistrationCollectorList errorCause = TFMRegistrationCollectorList::ListStep(false,10,TFMConstants::ErrorCause(),"@SYS13992","@SYS14862",'',TFMHelper::getEnumValues(enumNum(ProdErrorCause)),true);
+        collectors.addCollector(errorQtyCollector);
+        collectors.addCollector(errorCause);
+        return collectors;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        return components.getHeaders();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Name of the block Type.
+    /// </summary>
+    /// <returns>Name of the block</returns>
+    public Name blockName()
+    {
+        return "@SYS325491";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>post</Name>
+				<Source><![CDATA[
+    public TFMPostResponseData post()
+    {
+        TFMPostResponseData         response = TFMPostResponseData::Construct();
+        ProdId                      prodId;
+        InventQty                   errorQty = TFMHelper::convertStr2Num(request.getFieldValue(extendedTypeStr(ProdReportedError)));
+        str                         errorCause = Request.getFieldValue(TFMConstants::ErrorCause());
+        PmfProdCoBy                 prodCoBy;
+        str                         refRecord = request.getFieldValue(tableStr(ReferenceIdentity));
+        container                   refCon;
+        RefRecId                    refId;
+        ProdTable                   prodtable;
+        prodJournalTable            prodJournalTable;
+        ProdJournalTableData        prodTableData;
+        LineNum                     lineNum;
+        ProdJournalProd             prodJournalProd;
+        ProdJournalName             prodJournalName;
+        ProdJournalCheckPost        journalCheckPost;
+        ProdErrorCause              prodErrorCause;
+        NoYes                       noYes;
+        int                         startLine;
+        int                         i;
+        str                         errorMessage;
+
+        if (refRecord)
+        {
+            refCon      = strSplit(refRecord,';').pack();
+            if (conPeek(refCon ,4) == tableStr(PmfProdCoBy))
+            {
+                prodCoBy          = new DictTable(tableName2Id(conPeek(refCon ,4))).makeRecord();
+                refId = str2Int64(conPeek(refCon ,5));
+                select firstonly prodCoBy where prodCoBy.RecId == refId;
+                // Get the production/job id from the XML
+                prodId      = prodCoBy.ProdId;
+                prodTable = ProdTable::find(prodId);
+            }
+            else
+            {
+                prodTable          = new DictTable(tableName2Id(conPeek(refCon ,4))).makeRecord();
+                refId = str2Int64(conPeek(refCon ,5));
+                select firstonly prodTable where prodTable.RecId == refId;
+                // Get the production/job id from the XML
+                prodId      = prodTable.ProdId;
+
+            }
+        }
+        select firstOnly prodJournalProd order by LineNum desc where prodJournalProd.ProdId == prodId;
+        lineNum = prodJournalProd.LineNum + 1;
+
+        // Get the journal name from the TFMile WMS parameters
+        prodJournalName = ProdJournalName::find(MobParameters::find().ProdJournalNameFinish);
+        prodJournalTable.initValue();
+        prodJournalTable.JournalType        = prodJournalType::ReportFinished;
+        prodTableData = JournalTableData::newTable(ProdJournalTable);
+        prodTableData.initFromJournalName(prodJournalName);
+        prodJournalTable.NumOfLines         = 1;
+        prodJournalTable.Description        = "@MobileWMS:MEL36";
+        prodJournalTable.ProdId             = prodId;
+        prodJournaltable.insert();
+        prodJournalProd.clear();
+        prodJournalProd.initValue();
+        prodJournalProd.initFromProdJournalTable(prodJournalTable);
+        prodJournalProd.initFromProdTable(prodTable);
+        if (prodCoby)
+        {
+            prodJournalProd.pmfInitFromProdCoBy(prodCoby);
+        }
+        prodJournalProd.QtyError = errorQty;
+        prodJournalProd.QtyGood = 0;
+        prodJournalProd.ErrorCause = str2enum(prodErrorCause,errorCause);
+        prodJournalProd.ProdFinished = NoYes::No;
+
+        prodJournalProd.LineNum = lineNum;
+        prodJournalProd.validateWrite();
+        prodJournalProd.insert();
+        startLine        = Global::infologLine();
+        journalCheckPost = ProdJournalCheckPostProd::newJournalCheckPost(true,true,JournalCheckPostType::Post,prodJournalTable.TableId,prodJournalTable.JournalId);
+        
+        JournalCheckPost.runOperation();
+        
+        if (ProdJournalTable::exist (prodJournalTable.JournalId) && ! ProdJournalTable::find(prodJournalTable.JournalId).Posted)
+        {
+            if(Global::infologLine() > startLine)
+            {
+                for (i = startLine+1; i<=infolog.num();i++)
+                {
+                    errorMessage += infolog.text(i);
+                }
+            }
+            throw error(errorMessage);
+        }
+        response.parmResponseText("@MobileWMS:MEL81");
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostRegistrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors prePostRegistrationCollectors()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMTrashCanFilled);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

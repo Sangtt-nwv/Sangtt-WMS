@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMBackendIDInstance</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMBackendIDInstance
+{
+    TableName       tblName;
+    FieldName       fldName;
+    TFMOrderTypes   types;
+    str             fieldValue;
+    }
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMBackendIDInstance Construct(TFMBackendId _backendId)
+    {
+        return new TFMBackendIDInstance(_backendId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(TFMBackendId _backendId)
+    {        
+        container		backendCon = TFMHelper::strSplit(_backendId,'/').pack();
+        tblName = conPeek(backendCon,4);
+        fldName = conPeek(backendCon,5);
+        fieldValue = conPeek(backendCon,6);
+        types = conLen(backendCon) > 6 ? conPeek(backendCon,7) : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTableName</Name>
+				<Source><![CDATA[
+    public TableName parmTableName(TableName   _tblName = tblName)
+    {
+        tblName = _tblName;
+        return tblName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFieldName</Name>
+				<Source><![CDATA[
+    public FieldName parmFieldName(FieldName   _fldName = fldName)
+    {
+        fldName = _fldName;
+        return fldName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmType</Name>
+				<Source><![CDATA[
+    public TFMOrderTypes parmType(TFMOrderTypes   _types = types)
+    {
+        types = _types;
+        return types;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFieldValue</Name>
+				<Source><![CDATA[
+    public str parmFieldValue(str   _fieldValue = fieldValue)
+    {
+        fieldValue = _fieldValue;
+        return fieldValue;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

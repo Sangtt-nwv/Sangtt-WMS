@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMFormSysResourceHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMFormSysResourceHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getResources</Name>
+				<Source><![CDATA[
+	public void getResources()
+    {
+        //Microsoft.Dynamics.AX.Metadata.MetaModel.AxResource axRes;
+		System.Collections.Specialized.StringEnumerator resourcesEnumerator = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::ResourceNames();
+        while (resourcesEnumerator.MoveNext())
+        {
+            //System.String resName= resourcesEnumerator.Current;
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

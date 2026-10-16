@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentParameters</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMDocumentParameters extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>CreateOrUpdateParameter</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public static void CreateOrUpdateParameter(ClassName _className, MethodName _methodName, anytype _value)
+    {
+        TFMDocumentParameters   docParm;
+        ttsbegin;
+        select firstonly forupdate docParm where docParm.ClassName == _className && docParm.MethodName == _methodName;
+        
+        docParm.MethodName  = _methodName;
+        docParm.Value       = [_value];
+        docParm.ClassName   = _className;
+        docParm.ValueString = strFmt('%1', _value);
+        docParm.write();
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exists</Name>
+				<Source><![CDATA[
+    public static boolean exists(ClassName _className, MethodName _methodName)
+    {
+        TFMDocumentParameters   docParm;
+        select firstonly RecId from docParm where docParm.ClassName == _className && docParm.MethodName == _methodName;
+        return docParm.RecId != 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getValue</Name>
+				<Source><![CDATA[
+    public static anytype getValue(ClassName _className, MethodName _methodName)
+    {
+        TFMDocumentParameters   docParm;    
+        SysDictClass            DC;
+        DictMethod              dm;    
+        Array                   array;
+        int                     j;
+        anytype                 retVal;
+        TFMParameterAttribute   parmAttr;
+        select firstonly forupdate docParm where docParm.ClassName == _className && docParm.MethodName == _methodName;
+
+        if (docParm.RecId)
+        {
+            return conPeek(docParm.Value,1);
+        }
+        dm = new DictMethod(UtilElementType::ClassInstanceMethod, className2Id(_className), _methodName);
+        
+        array = DM.getAttributes(classstr(TFMParameterAttribute));
+        if (array != null)
+        {
+            for (j = 1; j <= array.lastIndex(); j++)
+            {
+                parmAttr = array.value(j);
+                    
+                retVal = parmAttr.parmDefaultValue();
+            }
+        }
+        
+        return retVal;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@TFM:DocumentParameters</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>ClassName</TitleField1>
+	<TitleField2>MethodName</TitleField2>
+	<CacheLookup>EntireTable</CacheLookup>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ClassName</Name>
+			<ExtendedDataType>ClassName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>MethodName</Name>
+			<ExtendedDataType>MethodName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldContainer">
+			<Name>Value</Name>
+			<Label>@SYS11762</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ValueString</Name>
+			<ExtendedDataType>description</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>IndexMethodClass</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>MethodName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>ClassName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>Partition</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>DataAreaId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

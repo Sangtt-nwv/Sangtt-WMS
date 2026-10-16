@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobConfluencePageBodyContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+public class MobConfluencePageBodyContract
+{
+    MobConfluencePageViewContract viewContract;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>view</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('view')]
+    public MobConfluencePageViewContract view(MobConfluencePageViewContract _viewContract = viewContract)
+    {
+        viewContract = _viewContract;
+        return _viewContract;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

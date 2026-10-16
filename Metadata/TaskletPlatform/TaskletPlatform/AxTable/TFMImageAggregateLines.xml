@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMImageAggregateLines</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMImageAggregateLines extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>initValue</Name>
+				<Source><![CDATA[
+    public void initValue()
+    {
+        this.Height = 100;
+        this.Width = 100;
+        this.xCenterPct = 50;
+        this.yCenterPct = 50;
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    public void insert()
+    {
+        this.LineNum = TFMImageAggregateLines::nextLineNum(this.IconID);
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateWrite</Name>
+				<Source><![CDATA[
+    public boolean validateWrite()
+    {
+        boolean ret;
+        
+
+        ret = super();
+
+        if (this.IconID == this.IconToUse || TFMImageAggregateLines::testForCyclicRedundancy(this.IconToUse,this.IconID))
+        {
+            warning("@SYS35601");
+            ret = false;
+        }
+		
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testForCyclicRedundancy</Name>
+				<Source><![CDATA[
+	public static boolean testForCyclicRedundancy(ResourceName _iconToTest, ResourceName _iconToAvoid)
+    {        
+		TFMImageAggregateLines lines;
+        boolean					ret;
+		while select lines where lines.IconID == _iconToTest
+        {
+            if (lines.IconToUse == _iconToAvoid)
+            {
+                return true;
+            }
+            ret = ret || TFMImageAggregateLines::testForCyclicRedundancy(lines.IconToUse,_iconToAvoid);
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nextLineNum</Name>
+				<Source><![CDATA[
+    public static real nextLineNum(ResourceName _iconParentName)
+    {
+        TFMImageAggregateLines line;
+        select firstonly line order by LineNum desc where line.IconID == _iconParentName;
+
+        return line.lineNum +1;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MoveUp</Name>
+				<Source><![CDATA[
+    public static void MoveUp(RefRecId _nodeToMove)
+    {
+        TFMImageAggregateLines lineAbove;
+        TFMImageAggregateLines	lineChosen;
+        LineNum		tempLineNum;
+        ttsbegin;
+        select forupdate firstonly lineChosen where lineChosen.RecId == _nodeToMove;
+        select forupdate firstonly lineAbove order by LineNum desc where lineAbove.IconID == lineChosen.IconID && lineAbove.LineNum < lineChosen.LineNum;
+        if (lineAbove)
+        {
+            tempLineNum = lineAbove.LineNum;
+
+            lineAbove.LineNum = lineChosen.LineNum;
+            lineChosen.LineNum = tempLineNum;
+            lineAbove.update();
+            lineChosen.update();
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MoveDown</Name>
+				<Source><![CDATA[
+    public static void MoveDown(RefRecId _nodeToMove)
+    {
+        TFMImageAggregateLines lineBelow;
+        TFMImageAggregateLines	lineChosen;
+        LineNum		tempLineNum;
+        ttsbegin;
+        select forupdate firstonly lineChosen where lineChosen.RecId == _nodeToMove;
+        select forupdate firstonly lineBelow order by LineNum asc where lineBelow.IconID == lineChosen.IconID && lineBelow.LineNum > lineChosen.LineNum;
+
+        if (lineBelow)
+        {
+            tempLineNum = lineBelow.LineNum;
+
+            lineBelow.LineNum = lineChosen.LineNum;
+            lineChosen.LineNum = tempLineNum;
+            lineBelow.update();
+            lineChosen.update();
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@TFM:ImageAggregateLines</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>IconToUse</TitleField1>
+	<TitleField2>LineNum</TitleField2>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>IconToUse</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>xCenterPct</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>yCenterPct</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Width</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Height</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>scaleRelativeToCanvas</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LineNum</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>IconToUse</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>xCenterPct</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>yCenterPct</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Width</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Height</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>IconToUse</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>xCenterPct</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>yCenterPct</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Width</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Height</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>scaleRelativeToCanvas</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>IconID</Name>
+			<ExtendedDataType>ResourceName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>IconToUse</Name>
+			<ExtendedDataType>ResourceName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>xCenterPct</Name>
+			<ExtendedDataType>Percent</ExtendedDataType>
+			<Label>@TFM:CenterXinpercentage</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>yCenterPct</Name>
+			<ExtendedDataType>Percent</ExtendedDataType>
+			<Label>@TFM:CenterYInPercentage</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>Width</Name>
+			<ExtendedDataType>Percent</ExtendedDataType>
+			<Label>@SYS7069</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>Height</Name>
+			<ExtendedDataType>Percent</ExtendedDataType>
+			<Label>@SYS13182</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>LineNum</Name>
+			<ExtendedDataType>LineNum</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>scaleRelativeToCanvas</Name>
+			<Label>@TFM:ScalerelativetoCanvas</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>sortIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>LineNum</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>IconID</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>TFMImageAggregate</Name>
+			<RelatedTable>TFMImageAggregate</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>IconID</Name>
+					<Field>IconID</Field>
+					<RelatedField>IconID</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

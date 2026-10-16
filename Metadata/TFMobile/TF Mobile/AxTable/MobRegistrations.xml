@@ -1,0 +1,1523 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobRegistrations</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobRegistrations extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>arrival</Name>
+				<Source><![CDATA[
+    public void arrival(Map  _journalTransMap)
+    {
+        InventDim                   tmpInventDim;
+        InventDim                   inventDimReceipt;
+        WMSJournalTrans             wMSJournalTrans;
+        LineNum                     lineNum;
+        #tfm
+        
+        lineNum  = str2num(strReplace(this.InventTransId, ',', '.'));
+    
+        //wMSJournalTrans = WMSJournalTrans::find(this.InventRefId, lineNum, true);
+        select firstonly forupdate wMSJournalTrans where wMSJournalTrans.journalId == this.InventRefId && wMSJournalTrans.inventTransId == this.InventTransId;
+        if (wMSJournalTrans)
+        {
+            if (wMSJournalTrans.qty > this.InventQty)
+            {
+                wMSJournalTrans = MobRegistrations::WmsJournalTransSplit(wMSJournalTrans, this.inventQty);
+            }
+            if (!_journalTransMap.exists(wMSJournalTrans.RecId))
+            {
+                wMSJournalTrans.qty     = this.InventQty;
+                _journalTransMap.insert(wMSJournalTrans.RecId, wMSJournalTrans);
+    
+                inventDimReceipt = InventDim::find(this.ToInventDimId());
+                tmpInventDim     = InventDim::find(wMSJournalTrans.inventDimId);
+    
+                tmpInventDim.wMSLocationId  = inventDimReceipt.WMSLocationId;
+                tmpInventDim.LicensePlateId = inventDimReceipt.LicensePlateId;
+                #if.isAX6
+                tmpInventDim.wMSPalletId     = inventDimReceipt.wMSPalletId;
+                #endif
+    
+                if (inventDimReceipt.InventBatchId)
+                {
+                    this.findOrCreateBatchSetExpDate(InventTrans::findTransId(wMSJournalTrans.inventTransId), inventDimReceipt.inventBatchId);
+                }
+    
+                tmpInventDim.inventBatchId      = inventDimReceipt.InventBatchId;
+                tmpInventDim.inventSerialId     = inventDimReceipt.InventSerialId;
+    
+                wMSJournalTrans.InventDimId   = InventDim::findOrCreate(tmpInventDim).InventDimId;
+    
+                if (this.ReturnDispositionCodeId == TFMConstants::RMA_QA())
+                {
+                    wMSJournalTrans.createQuarantineOrder = NoYes::Yes;
+                }
+                else
+                {
+                    wMSJournalTrans.createQuarantineOrder = NoYes::No;
+                    wMSJournalTrans.ReturnDispositionCodeId = this.ReturnDispositionCodeId;
+                }
+    
+                // Only check the picking and buffer locations for pallet transfers
+                
+                // Items registered on the mobile device will specify the final location where the item is placed
+                // There is no need to get AX to check anything
+                wMSJournalTrans.checkPickingLocation = false;
+    
+                wMSJournalTrans.update();
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>counting</Name>
+				<Source><![CDATA[
+    public void counting()
+    {
+        InventJournalTrans  inventJournalTrans  = InventJournalTrans::findInventTransId(this.InventTransId, true);
+        InventDim           inventDim;
+        InventJournalId     JournalId = inventJournalTrans.JournalId;
+        WHSLicensePlateId   licensePlate = inventJournalTrans.inventDim().LicensePlateId;
+        this.countLine(inventJournalTrans);
+
+        if (!inventJournalTrans.inventJournalTable().MobCountByLP || !licensePlate)
+        {
+            return;
+        }
+
+        while select inventJournalTrans where inventJournalTrans.JournalId == JournalId && inventJournalTrans.InventTransId != this.inventtransid
+            join LicensePlateId from inventDim where inventDim.inventDimId == inventJournalTrans.inventDimId && inventDim.LicensePlateId == licensePlate
+        {
+            this.countLine(inventJournalTrans);
+        }
+
+        /*InventDimParm       InventDimParm;
+        inventDimParm.initFromInventDim(inventJournalTrans.inventDim());
+        InventQty           inventQty = InventSumDatePhysicalDim::onHandQty(TFMHelper::today(),inventJournalTrans.ItemId,inventJournalTrans.inventDim(),inventDimParm);
+        
+        inventJournalTrans.Counted                  = inventJournalTrans.inventJournalTable().TFMCountByLP && inventJournalTrans.inventDim().LicensePlateId ? inventQty : this.InventQty;
+        inventJournalTrans.Worker                   = HcmWorker::userId2Worker(curuserId());
+        inventJournalTrans.inventMovement().journalSetCounted();
+        inventJournalTrans.TFMRegisteredOnMobileWMS   = NoYes::Yes;
+        inventJournalTrans.update();*/
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>countLine</Name>
+				<Source><![CDATA[
+    public void countLine(InventJournalTrans  _inventJournalTrans)
+    {
+        InventDimParm       InventDimParm;
+        inventDimParm.initFromInventDim(_inventJournalTrans.inventDim());
+        InventQty           inventQty = InventSumDatePhysicalDim::onHandQty(TFMHelper::today(),_inventJournalTrans.ItemId,_inventJournalTrans.inventDim(),inventDimParm);
+        
+        _inventJournalTrans.Counted                  = _inventJournalTrans.inventJournalTable().MobCountByLP && _inventJournalTrans.inventDim().LicensePlateId ? inventQty : this.InventQty;
+        _inventJournalTrans.Worker                   = HcmWorker::userId2Worker(curuserId());
+        _inventJournalTrans.inventMovement().journalSetCounted();
+        _inventJournalTrans.MobRegisteredOnMobile   = NoYes::Yes;
+        _inventJournalTrans.update();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>countingTag</Name>
+				<Source><![CDATA[
+    public void countingTag()
+    {
+        InventJournalTrans_Tag  inventJournalTrans_Tag;
+        
+        select firstonly forupdate inventJournalTrans_Tag
+            where inventJournalTrans_Tag.RecId == str2int64(this.InventTransId);
+    
+        inventJournalTrans_Tag.qty                      = this.InventQty;
+        inventJournalTrans_Tag.Worker                   = HcmWorker::userId2Worker(curuserId());
+        inventJournalTrans_Tag.MobRegisteredOnMobile   = NoYes::Yes;
+        inventJournalTrans_Tag.update();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>moveDimensionForGitOrder</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// If the location, batch or serialno received from the mobile device is different from the one specified on the git order
+    /// then we move the item using the unplanned move functionality
+    ///
+    /// </summary>
+    /// <param name = "_gitOrder">The ITMGoodsInTransitOrder where the batch and locations could be changed.</param>
+    public void moveDimensionForGitOrder(ITMGoodsInTransitOrder _gitOrder)
+    {
+        WMSLocationId                   fromWmsLocationId;
+        WMSLocationId                   toWmsLocationId;
+        InventLocationId                toInventLocationId;
+        InventTrans                     gitInventTrans;
+        InventBatchId                   toInventBatchId;
+        InventSerialId                  toSerialId;
+        InventDim                       inventDimIssue;
+        InventDim                       inventDimReceipt;
+        TFMInventDimSetup               mobInventDimSetup;
+        Map							    qtys = new Map(Types::String,Types::Real);
+        Map							    itemIds = new Map(Types::String,Types::String);
+        Map							    inventDimIssues = new Map(Types::String,Types::Record);
+        Map							    inventDimReceipts = new Map(Types::String,Types::Record);
+
+        inventDimIssue = _gitOrder.inventDim();
+        fromWmsLocationId = inventDimIssue.wMSLocationId;
+        inventDimReceipt = InventDim::find(this.ToInventDimId(), false);
+        toInventLocationId = inventDimReceipt.InventLocationId;
+
+        toWmsLocationId = WMSLocation::find( inventDimReceipt.wMSLocationId,  inventDimIssue.inventLocationId ).wMSLocationId;
+        toWmsLocationId = toWmsLocationId ? toWmsLocationId : fromWmsLocationId;
+
+        gitInventTrans = InventTrans::findTransId(_gitOrder.InventTransId);
+
+        if(inventDimReceipt.inventBatchId && inventDimReceipt.inventBatchId != inventDimIssue.inventBatchId)
+        {
+            toInventBatchId = inventDimReceipt.inventBatchId;
+            this.findOrCreateBatchSetExpDate(gitInventTrans, inventDimReceipt.inventBatchId);
+        }
+
+        if (inventDimReceipt.inventSerialId && inventDimReceipt.inventSerialId != inventDimIssue.inventSerialId)
+        {
+            toSerialId = inventDimReceipt.inventSerialId;
+            this.findOrCreateSerialId(gitInventTrans, inventDimReceipt.inventSerialId);
+        }
+
+        // If the batch, serial or location received from the mobile device is different from the one specified on the git order then change the Dim.
+        if (toInventBatchId || toSerialId || (toWmsLocationId && fromWmsLocationId != toWmsLocationId))
+        {
+            // Get the dimension setup for the item
+            mobInventDimSetup = TFMInventDimSetup::Construct(inventTable::find(_gitOrder.ItemId));
+               
+            inventDimReceipt.data(inventDimIssue);
+            inventDimReceipt.wmsLocationId = toWmsLocationId;
+            if(toInventLocationId)
+            {
+                inventDimReceipt.inventLocationid = toInventLocationId;
+            }
+            
+            if(toInventBatchId)
+            {
+                inventDimReceipt.inventBatchId = toInventBatchId;
+            }
+
+
+            if(toSerialId)
+            {
+                inventDimReceipt.inventSerialId = toSerialId;
+            }
+           
+            inventDimReceipt = InventDim::findOrCreate(inventDimReceipt);
+
+            // If the item is using pallet id the pallet must be moved with the MovePallet function
+            // Otherwise we move the item using the unplanned move
+            // Determine if a pallet id or location should be used
+            if (mobInventDimSetup.registerLicensePlate())
+            {
+                qtys.insert('1', this.Qty);
+                itemIds.insert('1',_gitOrder.ItemId);
+                inventDimIssues.insert('1',inventDimIssue);
+                inventDimReceipts.insert('1',inventDimReceipt);
+                MobPostHelper::inventJournalTransferMulti(qtys,itemIds,inventDimIssues, inventDimReceipts);
+            }
+            else
+            {
+                MobPostHelper::inventJournalTransfer(this.Qty,_gitOrder.ItemId,inventDimIssue, inventDimReceipt, !(!toSerialId));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findOrCreateBatchSetExpDate</Name>
+				<Source><![CDATA[
+    private void findOrCreateBatchSetExpDate(InventTrans _inventTrans, InventBatchId _inventBatchId)
+    {
+        InventBatch         inventBatch = InventBatch::find(_inventBatchId, _inventTrans.ItemId, true);
+        str                 pdsVendBatchDateStr = this.getExtraInfoValue(MobConstants::pdsvendbatchdate());
+        PdsVendBatchDate    pdsVendBatchDate = pdsVendBatchDateStr ? str2Date(pdsVendBatchDateStr, 123) : dateNull();
+        str                 pdsVendExpiryDateStr = this.getExtraInfoValue(MobConstants::pdsvendexpirydate());
+        PdsVendExpiryDate   pdsVendExpiryDate = pdsVendExpiryDateStr ? str2Date(pdsVendExpiryDateStr, 123) : dateNull();
+    
+        if (!inventBatch)
+        {
+            inventBatch.initFromInventTrans(_inventTrans);
+            inventBatch.itemId          = _inventTrans.ItemId;
+            inventBatch.inventBatchId   = _inventBatchId;
+        }
+    
+        if (this.expDate)
+        {
+            inventBatch.expDate = this.expDate;
+        }
+        if (pdsVendBatchDate != dateNull() && !inventBatch.PdsVendBatchDate)
+        {
+            inventBatch.PdsVendBatchDate    = pdsVendBatchDate;
+        }
+        if (pdsVendExpiryDate != dateNull() && !inventBatch.PdsVendExpiryDate)
+        {
+            inventBatch.PdsVendExpiryDate   = pdsVendExpiryDate;
+        }
+        inventBatch.write();
+
+        if (this.expDate && this.expDate != inventBatch.expDate)
+        {
+            inventBatch.expDate = this.expDate;
+            inventBatch.write();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateBatchExpDate</Name>
+				<Source><![CDATA[
+    private void updateBatchExpDate(RefRecId _InventTransRecId)
+    {
+        InventTrans     inventTrans = InventTrans::findRecId(_InventTransRecId);
+        InventBatch     inventBatch = InventBatch::find(inventTrans.inventBatchId(), inventTrans.ItemId, true);
+
+        if(inventBatch && !inventBatch.expDate)
+        {
+            inventBatch.expDate = this.expDate;
+            inventBatch.update();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findOrCreateSerialId</Name>
+				<Source><![CDATA[
+    /*private void findOrCreateBatchSetExpDate2(WMSJournalTrans _wmsJournalTrans, InventBatchId _inventBatchId)
+    {
+        InventBatch inventBatch = InventBatch::find(_inventBatchId, _wmsJournalTrans.ItemId, true);
+    
+        if (!inventBatch)
+        {
+            inventBatch.initFromWMSJournalTrans(_wmsJournalTrans);
+            inventBatch.itemId          = _wmsJournalTrans.ItemId;
+            inventBatch.inventBatchId   = _inventBatchId;
+        }
+    
+        if (this.expDate)
+        {
+            inventBatch.expDate = this.expDate;
+        }
+        inventBatch.write();
+    }*/
+
+    private void findOrCreateSerialId(InventTrans _inventTrans, InventSerialId _inventSerialId)
+    {
+        InventSerial inventSerial = InventSerial::find(_inventSerialId, _inventTrans.ItemId, true);
+    
+        if (!inventSerial)
+        {
+            inventSerial.itemId         = _inventTrans.ItemId;
+            inventSerial.inventSerialId = _inventSerialId;
+        }
+    
+        inventSerial.write();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ItemNumber</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds the itemnumber, from the origin.
+    /// Uses InventRefType, InventTransId, InventRefId, RefRecId
+    /// </summary>
+    /// <returns>
+    /// ItemId if found
+    /// </returns>
+    /// <remarks>
+    ///
+    /// </remarks>
+    
+    public display ItemId ItemNumber()
+    {
+        ItemId          itemId;
+        LineNum         lineNum;
+        //WMSJournalTrans wmsTrans;
+    
+    
+        switch (this.InventRefType)
+        {
+            case MobInventRefType::InventArrival:
+                lineNum  = str2num(strReplace(this.InventTransId, ',', '.'));
+                itemId = WMSJournalTrans::find(this.InventRefId, lineNum).itemId;
+                break;
+    
+            case MobInventRefType::Purch:
+                itemId = PurchLine::findInventTransId(this.InventTransId).ItemId;
+                break;
+    
+            case MobInventRefType::InventTransfer:
+                itemId = InventTransferLine::findTransIdShip(this.InventTransId).ItemId;
+                if (!itemId)
+                {
+                    itemId = InventTransferLine::findTransIdReceive(this.InventTransId).ItemId;
+                }
+                break;
+    
+            case MobInventRefType::Sales:
+                itemId = SalesLine::findInventTransId(this.InventTransId).ItemId;
+                break;
+
+            case MobInventRefType::None:
+                itemId = (select firstonly WMSOrderTrans where WMSOrderTrans.RecId == this.RefRecId).ItemId;
+                break;
+    
+            case MobInventRefType::ProdLine:
+                itemId = (select firstonly prodJournalBom where prodJournalBom.InventTransId == this.InventTransId).ItemId;
+                break;
+    
+            case MobInventRefType::InventJournal:
+                itemId = (select firstOnly InventJournalTrans where InventJournalTrans.RecId == this.RefRecId).ItemId;
+                break;
+        }
+        if (!itemId && this.InventTransId)
+        {
+            itemId = InventTransOrigin::findByInventTransId(this.InventTransId).ItemId;
+        }
+    
+        return itemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pick</Name>
+				<Source><![CDATA[
+    // pick as much as possible instead of full quantity
+    public void pick()
+    {
+        InventMovement              movement;
+        InventTrans                 inventTrans;
+        TmpInventTransWMS           tmpInventTransWMS;
+        InventDim                   tmpInventDim;
+        InventTransSplit            inventTransSplit;
+        RefRecId                    refRecId;
+        ProdJournalBOM              prodJournalBOM;
+        InventQty                   totalQtyToPick;
+        InventQty                   remainingQtyToPick;
+        InventTransType             inventTransType;
+        InventTransRefId            inventTransRefId;
+        InventDim                   inventDimIssue;
+        inventTransOrigin           inventTransOrigin;
+        Map                         mapQtyByTmpInventTransWMS;          //tmpInventTransWMS recId -> map InventTrans recId -> qty
+        Map                         mapInventTransInventTransOrigin;    //inventTrans recId       -> InventTransOrigin recId
+        Map                         mapQtyByInventTrans;                //inventTrans recId       -> selectedQty
+        InventTransferLine          inventTransferLine;
+        InventTransChildRefId		childRefID;
+        #tfm
+        totalQtyToPick = this.InventQty;
+        remainingQtyToPick = totalQtyToPick;
+    
+        // If quantity is zero, skip and return
+        if(this.InventQty == 0)
+        {
+            return;
+        }
+
+        if (this.InventRefType == MobInventRefType::Sales)
+        {
+            movement            = InventMovement::construct(SalesLine::findInventTransId(this.inventTransId));
+            inventTransType     = InventTransType::Sales;
+            inventTransRefId    = this.InventRefId;
+        }
+    
+        if (this.InventRefType == MobInventRefType::InventTransfer)
+        {
+            inventTransferLine = InventTransferLine::findTransIdShip(this.InventTransId);
+            movement = InventMovement::construct( inventTransferLine );
+            inventTransType = InventTransType::TransferOrderShip;
+            inventTransRefId = inventTransferLine.TransferId;
+        }
+
+        if (this.InventRefType == MobInventRefType::Purch)
+        {
+            
+            movement            = InventMovement::construct(PurchLine::findInventTransId(this.inventTransId));
+            inventTransType = InventTransType::Purch;
+            inventTransRefId = this.InventRefId;
+        }
+    
+        if (this.InventRefType == MobInventRefType::ProdLine)
+        {
+            select firstonly forupdate prodJournalBOM
+                index hint TransIdIdx
+                where prodJournalBOM.RecId			== this.RefRecId
+                    && prodJournalBOM.JournalId     == this.InventRefId;
+    
+            if (prodJournalBOM)
+            {
+                movement            = InventMovement::construct(prodJournalBOM);
+                inventTransType     = InventTransType::ProdLine;
+                inventTransRefId    = prodJournalBOM.ProdId;
+                this.inventTransId	= prodJournalBOM.InventTransId;
+                childRefID			= prodJournalBOM.InventTransChildRefId;
+            }
+        }
+    
+        //prepare pick
+    
+        //select open trans
+        while select RecId from inventTransOrigin
+            where inventTransOrigin.InventTransId  == this.InventTransId
+            && inventTransOrigin.ReferenceCategory == inventTransType
+        join inventTrans
+            where (inventTrans.StatusIssue  == StatusIssue::ReservPhysical ||
+                    inventTrans.StatusIssue  == StatusIssue::OnOrder) &&
+                    inventTransOrigin.RecId == inventTrans.InventTransOrigin &&
+                    (inventTrans.TransChildRefId == childRefID || !childRefID)
+    
+        {
+            mapQtyByTmpInventTransWMS       = new Map(Types::Int64,Types::Class);
+            mapInventTransInventTransOrigin = new Map(Types::Int64,Types::Int64);
+            mapQtyByInventTrans             = new Map(Types::Int64,Types::Container);
+    
+    
+            //less quantity (split needed)
+            if (abs(remainingQtyToPick) < -inventTrans.Qty && !InventTable::find(inventTrans.ItemId).modelGroup().NegativePhysical)   //inventTrans.Qty neg. on issue
+            {
+                //split
+                inventTransSplit   = InventTransSplit::construct();
+                inventTransSplit.parmInventTrans(inventTrans);
+                inventTransSplit.parmSplitQty(-abs(remainingQtyToPick));
+                #ifnot.isAx6
+                inventTransSplit.runOperation();
+                #endif
+                #if.isAX6
+                inventTransSplit.run();
+                #endif
+                refRecId = inventTransSplit.updRecId();    //returns the new recid
+    
+                inventTrans = InventTrans::findRecId(refRecId);
+            }
+    
+            //save registrations
+            tmpInventTransWMS.initFromInventTrans(inventTrans);
+            tmpInventTransWMS.InventQty = -inventTrans.Qty;
+            tmpInventTransWMS.ReferenceId = this.InventRefId;
+            tmpInventTransWMS.ReferenceCategory = inventTransType;
+            tmpInventTransWMS.ItemId = inventTrans.ItemId;
+            inventDimIssue = InventDim::find(this.InventDimId());
+    
+            //set invent dimensions
+            tmpInventDim = InventDim::find(inventTrans.inventDimId);
+            tmpInventDim.wMSLocationId      = inventDimIssue.WMSLocationId;
+            tmpInventDim.inventBatchId      = inventDimIssue.InventBatchId;
+            tmpInventDim.inventSerialId     = inventDimIssue.InventSerialId;
+            tmpInventDim.LicensePlateId     = inventDimIssue.LicensePlateId;
+            #if.isAX6
+            tmpInventDim.wMSPalletId     = inventDimIssue.wMSPalletId;
+            #endif
+            TFMHelper::EnsureInventDim(tmpInventDim);
+            tmpInventTransWMS.InventDimId   = InventDim::findOrCreate(tmpInventDim).InventDimId;
+            tmpInventTransWMS.insert();
+    
+            mapInventTransInventTransOrigin.insert(inventTrans.RecId,inventTransOrigin.RecId);
+    
+            mapQtyByInventTrans.insert(inventTrans.RecId,[-inventTrans.Qty]);
+    
+            mapQtyByTmpInventTransWMS.insert(tmpInventTransWMS.RecId,mapQtyByInventTrans);
+            InventTransWMS_Pick_Mob::MobUpdateInventServer(tmpInventTransWMS,mapQtyByTmpInventTransWMS.pack(),mapInventTransInventTransOrigin.pack());
+    
+            remainingQtyToPick -= tmpInventTransWMS.InventQty;
+    
+            if (remainingQtyToPick <= 0)
+            {
+                break;
+            }
+        }
+    
+        if (remainingQtyToPick > 0)
+        {
+            throw error(TFMHelper::strfmt("@TFM:MEL8", [totalQtyToPick]));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    public void insert()
+    {
+        super();
+        if (this.ToteID)
+        {
+            MobToteTable::FindOrCreate(this.ToteID,InventDim::find(this.InventDimId ? this.InventDimId : this.ToInventDimId));
+            MobToteContent::addContent(this.ToteID,this.Qty, this.RefRecId, this.InventDimId);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pickWMS</Name>
+				<Source><![CDATA[
+    // pick as much as possible instead of full quantity
+    public Map pickWMS(Map _selectedLines)
+    {
+        InventDim                   tmpInventDim;
+        InventQty                   totalQtyToPick;
+        InventQty                   remainingQtyToPick;
+        WMSOrderTrans               localSplittedOrderTrans;
+        WMSPickingRoute             pickingRoute;
+        WMSOrderTrans               wmsOrderTrans;
+        WmsOrderTransType_Output_OrderPick           wmsOrderTransType;
+        InventDim                   inventDimIssue;
+        Map                         localSelectedLines;
+        boolean                     negativePhysical;
+        InventOnhandQty             inventOnHandQty;
+        InventQty                   iqty;
+        InventDimParm               inventDimParmFrom;
+        boolean                     overpicking;
+        #tfm
+        
+        // If quantity is zero, skip and return
+        if(this.InventQty == 0)
+        {
+            return _selectedLines;
+        }
+
+        if (this.InventRefType != MobInventRefType::None)
+        {
+            throw error(strfmt("@SYS118114",funcname()));
+        }
+        pickingRoute = WMSPickingRoute::find(this.InventRefId);
+    
+        if (!this.InventRefId || !pickingRoute)
+        {
+            throw error(strfmt("@SYS15067",this.InventRefId ? this.InventRefId : this.InventTransId)); //using the InventTransID to provide info even though it is not an order.
+        }
+        totalQtyToPick = this.InventQty;
+        remainingQtyToPick = totalQtyToPick;
+    
+        //select open trans
+        ttsbegin;
+        while select firstonly forupdate wmsOrderTrans
+            where wmsOrderTrans.RecId == this.RefRecId &&
+                  wmsOrderTrans.expeditionStatus != WMSExpeditionStatus::Complete
+        {
+            if (!_selectedLines.exists(wmsOrderTrans.RecId))
+            {
+                // set invent dimensions
+                // The registrations from the mobile device can either be of type TAKE or PLACE
+                // TAKE registrations relate to where items are taken from
+                // PLACE registration relate to where items are placed
+    
+                inventDimIssue = InventDim::find(this.InventDimId());
+                tmpInventDim = InventDim::find(wmsOrderTrans.inventDimId);
+                tmpInventDim.wMSLocationId      = inventDimIssue.WMSLocationId;
+                tmpInventDim.inventBatchId      = inventDimIssue.InventBatchId;
+                tmpInventDim.inventSerialId     = inventDimIssue.InventSerialId;
+                tmpInventDim.LicensePlateId     = inventDimIssue.LicensePlateId;
+                #if.isAX6
+                tmpInventDim.wMSPalletId     = inventDimIssue.wMSPalletId;
+                #endif
+
+                // If serial number is active but only for sales we need to handle serial number dimension
+                if(TFMInventDimHelper::SerialNumberIsactiveInSalesOnly(wmsOrderTrans.itemId))
+                {
+                    InventTrackingRegisterTrans::createFromSerial(inventDimIssue.inventSerialId, wmsOrderTrans.inventTransId, false);
+                    tmpInventDim.inventSerialId = '';
+                }
+
+                TFMHelper::EnsureInventDim(tmpInventDim);
+                wmsOrderTransType = WMSOrderTransType_Output_OrderPick::newWMSOrderTrans(wmsOrderTrans) as WmsOrderTransType_Output_OrderPick;
+    
+                // Make sure that the new invent dim exists before the CheckFinishPickingLine function is called
+                tmpInventDim.inventDimId = '';
+                tmpInventDim = InventDim::findOrCreate(tmpInventDim);
+                inventDimParmFrom.initFromInventDim(tmpInventDim);
+                inventOnHandQty = InventOnHandQty::newPArameters(wmsOrderTrans.ItemId, tmpInventDim, inventDimParmFrom);
+                iqty = inventOnHandQty.physicalInvent();
+                overpicking = remainingQtyToPick > wmsOrderTrans.qty;
+                wmsOrderTrans = wmsOrderTransType.MobCheckFinishPickingLine(tmpInventDim, remainingQtyToPick, iqty);
+
+                negativePhysical = InventTable::find(wmsOrderTrans.ItemId).modelGroup().NegativePhysical;
+
+                if (wmsOrderTrans.RecId != this.RefRecId && this.ToteID)
+                {
+                    //Split was made. Update Tote
+
+                    //TODO: Add the updateContent in Mob
+                    //TFMToteContent::updateContent(this.ToteID,wmsOrderTrans.qty, this.RefRecId, wmsOrderTrans.RecId);
+                }
+    
+                // Set the new InventDim on the pick line
+                wmsOrderTrans.InventDimId = tmpInventDim.inventDimId;
+    
+                _selectedLines.insert(wmsOrderTrans.RecId,[wmsOrderTrans.OrderId,wmsOrderTrans.RecVersion]);
+    
+                localSelectedLines = new Map(Types::Int64,Types::Container);
+                
+
+                if (negativePhysical && iqty-remainingQtyToPick < 0 && wmsOrderTrans.RecId != this.RefRecId)
+                {
+                    if (wmsOrderTransType.getExtraSplittedLine().recid)
+                    {
+                        localSplittedOrderTrans = wmsOrderTransType.getExtraSplittedLine();
+                    }
+                    else
+                    {
+                        select firstonly forupdate RecVersion, recid from localSplittedOrderTrans where localSplittedOrderTrans.RecId == this.RefRecId;
+                    }
+                    if (localSplittedOrderTrans)
+                    {
+                        if (overpicking)
+                        {
+                            localSplittedOrderTrans.qty = remainingQtyToPick- wmsOrderTrans.qty;
+                            localSplittedOrderTrans.wmsOrderTransType().updateQty();
+                            localSplittedOrderTrans.update();
+                        }
+                        localSelectedLines.insert(localSplittedOrderTrans.RecId,[wmsOrderTrans.OrderId,localSplittedOrderTrans.RecVersion]);
+                    }
+                    
+                }
+                else
+                {
+                    wmsOrderTrans.qty = totalQtyToPick;
+                    wmsOrderTrans.wmsOrderTransType().updateQty();
+                    wmsOrderTrans.update();
+                }
+                localSelectedLines.insert(wmsOrderTrans.RecId,[wmsOrderTrans.OrderId,wmsOrderTrans.RecVersion]);
+    
+                WMSOrderTransType::finishPickingLinesMulti(localSelectedLines.pack(),'',pickingRoute.operatorWorker);
+    
+                remainingQtyToPick -= (wmsOrderTrans.Qty + localSplittedOrderTrans.qty);
+            }
+        }
+        ttscommit;
+    
+        if (remainingQtyToPick > 0 && !negativePhysical)
+        {
+            throw error(TFMHelper::strfmt("@TFM:MEL8", [totalQtyToPick]));
+        }
+        return _selectedLines;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>register</Name>
+				<Source><![CDATA[
+    // register as much as possible instead of full quantity
+    public server void register()
+    {
+        InventMovement              movement;
+        InventTrans                 inventTrans;
+        TmpInventTransWMS           tmpInventTransWMS;
+        InventDim                   tmpInventDim;
+        InventTransSplit            inventTransSplit;
+        RefRecId                    refRecId;
+        InventQty                   totalQtyToReg;
+        InventQty                   remainingQtyToReg;
+        InventTransType             inventTransType;
+        InventTransRefId            inventTransRefId;
+        InventDim                   inventDimReceipt;
+        inventTransOrigin           inventTransOrigin;
+        Map                         mapQtyByTmpInventTransWMS;          //tmpInventTransWMS recId -> map InventTrans recId -> qty
+        Map                         mapInventTransInventTransOrigin;    //inventTrans recId       -> InventTransOrigin recId
+        Map                         mapQtyByInventTrans;                //inventTrans recId       -> selectedQty
+        
+        #tfm
+        totalQtyToReg = this.InventQty;
+        remainingQtyToReg = totalQtyToReg;
+    
+        switch (this.InventRefType)
+        {
+            case MobInventRefType::Purch :
+                movement            = InventTransWMS_Register::inventMovement(PurchLine::findInventTransId(this.inventTransId));
+                inventTransRefId    = this.InventRefId;
+                inventTransType     = InventTransType::Purch;
+                
+                break;
+    
+            case MobInventRefType::InventTransfer :
+        
+                movement            = InventTransWMS_Register::inventMovement(InventTrans::findTransId(InventTransferLine::findTransIdReceive(this.inventTransId).InventTransId));
+                inventTransType     = InventTransType::TransferOrderReceive;
+                inventTransRefId    = this.InventRefId;
+    
+                if  (movement.newMovement_TransferReceipt())
+                {
+                    movement =  movement.newMovement_TransferReceipt();
+                    movement =  movement.newMovement_TransferIssueReceive() ?  movement.newMovement_TransferIssueReceive() : movement;
+                    movement =  movement.newMovement_TransferReceipt() ? movement.newMovement_TransferReceipt()  : movement;
+                }
+                break;
+    
+            case MobInventRefType::InventArrival :
+        
+                movement            = InventMovement::construct(PurchLine::findInventTransId(this.inventTransId));
+                inventTransType     = InventTransType::Purch;
+                inventTransRefId    = this.InventRefId;
+                break;
+        }
+    
+        //select open trans
+        while select inventTrans
+            where inventTrans.StatusReceipt == StatusReceipt::Ordered
+        join inventTransOrigin
+            where inventTransOrigin.InventTransId == this.InventTransId &&
+                  inventTransOrigin.ReferenceCategory == inventTransType &&
+                  inventTransOrigin.ReferenceId == inventTransRefId &&
+                  inventTransOrigin.RecId == inventTrans.InventTransOrigin
+        {
+    
+            mapQtyByTmpInventTransWMS       = new Map(Types::Int64,Types::Class);
+            mapInventTransInventTransOrigin = new Map(Types::Int64,Types::Int64);
+            mapQtyByInventTrans             = new Map(Types::Int64,Types::Real);
+    
+            //less quantity (split needed)
+            if (remainingQtyToReg < inventTrans.Qty)
+            {
+                //split
+                inventTransSplit   = InventTransSplit::construct();
+                inventTransSplit.parmInventTrans(inventTrans);
+                inventTransSplit.parmSplitQty(remainingQtyToReg);
+                
+                #ifnot.isAx6
+                inventTransSplit.runOperation();
+                #endif
+                #if.isAX6
+                inventTransSplit.run();
+                #endif
+                refRecId = inventTransSplit.updRecId();    //returns the new recid
+    
+                inventTrans = InventTrans::findRecId(refRecId);
+            }
+    
+            //save registrations
+            tmpInventTransWMS.initFromInventTrans(inventTrans);
+            tmpInventTransWMS.initFromInventTransOrigin(inventTransOrigin);
+            tmpInventTransWMS.InventQty =  remainingQtyToReg;
+    
+            inventDimReceipt = InventDim::find(this.ToInventDimId());
+    
+            if (inventDimReceipt.InventBatchId)
+            {
+                this.findOrCreateBatchSetExpDate(inventTrans, inventDimReceipt.inventBatchId);
+            }
+    
+            if (inventDimReceipt.inventSerialId)
+            {
+                this.findOrCreateSerialId(inventTrans, inventDimReceipt.inventSerialId);
+            }
+    
+            //set invent dimensions
+            tmpInventDim                    = InventDim::find(inventTrans.inventDimId);
+    
+            tmpInventDim.wMSLocationId      = inventDimReceipt.WMSLocationId;
+    
+            tmpInventDim.inventBatchId      = inventDimReceipt.InventBatchId;
+            tmpInventDim.inventSerialId     = inventDimReceipt.InventSerialId;
+            tmpInventDim.LicensePlateId     = inventDimReceipt.LicensePlateId;
+            #if.isAX6
+            tmpInventDim.wMSPalletId     = inventDimReceipt.wMSPalletId;
+            #endif
+            TFMHelper::EnsureInventDim(tmpInventDim);
+            tmpInventTransWMS.InventDimId   = InventDim::findOrCreate(tmpInventDim).InventDimId;
+            tmpInventTransWMS.insert();
+    
+            mapInventTransInventTransOrigin.insert(inventTrans.RecId,inventTransOrigin.RecId);
+    
+            mapQtyByInventTrans.insert(inventTrans.RecId,inventTrans.Qty);
+    
+            mapQtyByTmpInventTransWMS.insert(tmpInventTransWMS.RecId,mapQtyByInventTrans);
+    
+            remainingQtyToReg -= tmpInventTransWMS.InventQty;
+    
+            if (false == InventTransWMS_Register_Mob::MobUpdateInventOnServer(inventTrans,
+                                                                tmpInventTransWMS,
+                                                                mapQtyByTmpInventTransWMS.pack(),
+                                                                mapInventTransInventTransOrigin.pack()))
+            {
+                throw error("@SYS40031");
+            }
+
+            // Check if expiration date is set on autocreated batch ID
+            if(this.expDate && !inventDimReceipt.inventBatchId)
+            {
+                this.updateBatchExpDate(refRecId);  
+            }
+            break;
+        }
+    
+        if (remainingQtyToReg > 0.0)
+        {
+            throw error(TFMHelper::strfmt("@TFM:MEL8", [totalQtyToReg]));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ToInventDimID</Name>
+				<Source><![CDATA[
+    protected InventDimId ToInventDimID()
+    {
+        return this.ToInventDimId ? this.ToInventDimId : this.InventDimId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InventDimID</Name>
+				<Source><![CDATA[
+    protected InventDimId InventDimID()
+    {
+        return !this.InventDimId ? this.ToInventDimId : this.InventDimId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SaveRequest</Name>
+				<Source><![CDATA[
+    public static MobRegistrations SaveRequest(List                     _lines,
+                                               MobInventRefType         _inventRefType,
+                                               InventRefId              _inventRefId = '',
+                                               boolean                  _flipSign = false)
+    {
+        ListEnumerator                  lEnum = _lines.getEnumerator();
+        ListEnumerator                  registrations;
+        TFMRequestLineElement           line;
+        TFMRequestRegistrationElement   registration;
+        //int                     n;
+        MobRegistrations                MobRegistrations;
+        MobRegistrations                MobRegistrationsTake;
+        MobRegistrations                MobRegistrationsPlace;
+        MobRegistrations                MobRegistrationsNew;
+        MobRegistrations                firstMobRegistrations;
+        InventDim                       inventDimIssue;
+        InventDim                       inventDimReceipt;
+        UnitOfMeasureSymbol             UnitTo;
+        InventDim                       inventDim;
+        boolean                         firstMobRegistrationsNew = true;
+        InventQty                       qtyPlace;
+        InventQty                       qtyPlaceSum;
+        boolean                         takeFound = false;
+        ItemId                          itemId;
+        EcoResProduct                   ecoResProduct;
+        TFMDocumentMessageId            messageId;
+        MobRegistrationsExtraInfo       mobRegistrationsExtraInfo;
+        Map                             extraInfoFieldMap;
+        MapEnumerator                   extraInfoEnum;
+        str                             labelString = TFMConstants::AttributeLabel();
+    
+        while (lEnum.moveNext())
+        {
+            line = lEnum.current();
+            MobRegistrations.clear();
+            messageId = line.parmRoot().parmmessageId();
+            MobRegistrations.MessageId = messageId;
+            registrations = line.Registrations().getEnumerator();
+            while (registrations.moveNext())
+            {
+                inventDimIssue.clear();
+                inventDimReceipt.clear();
+                registration = registrations.current();
+                
+                MobRegistrations.InventRefType			= _inventRefType;
+                MobRegistrations.InventRefId			= _inventRefId;
+                MobRegistrations.ToteID					= registration.parmToteId();
+                MobRegistrations.expDate				= registration.parmExpirationDate();
+                MobRegistrations.Qty					= registration.parmQuantity() * (_flipSign ? -1 : 1);
+                MobRegistrations.Unit					= registration.parmUnitOfMeasure();
+                MobRegistrations.Handled				= NoYes::No;
+                
+                if (InventTrans::findTransId(line.parmLineNumber()))
+                {
+                    MobRegistrations.InventTransId         = line.parmLineNumber();
+                }
+                else if (InventTransOrigin::findByInventTransId(line.parmLineNumber()))
+                {
+                    MobRegistrations.InventTransId         = line.parmLineNumber();
+                }
+                else if (InventJournalTrans::findInventTransId(line.parmLineNumber()) && _inventRefType == MobInventRefType::InventJournal)
+                {
+                    MobRegistrations.InventTransId         = line.parmLineNumber();
+                }
+                else
+                {
+                    MobRegistrations.RefRecId              = str2int64(line.parmLineNumber());
+                }
+    
+                MobRegistrations.ReturnDispositionCodeId = '';
+                
+                if (registration.ExtraInfo() != null )
+                {
+                    MobRegistrations.ReturnDispositionCodeId = registration.ExtraInfo().parmRMA_CauseId();
+                }
+
+                if (registration.ExtraInfo() != null && !MobRegistrations.InventTransId)
+                {
+                    MobRegistrations.InventTransId = registration.ExtraInfo().parmInventTransId();
+                }
+                
+                if (registration.ExtraInfo() != null )
+                {
+                    itemId =  registration.ExtraInfo().parmItemId();
+                }
+
+                if (!itemId)
+                {
+                    itemId = MobRegistrations.ItemNumber();
+                }
+
+                if (!itemId)
+                {
+                    MobRegistrationsErrors::LogError(MobRegistrations.MessageId,MobRegistrations, strFmt("@TFM:Linenotfoundin",_inventRefType));
+                    //continue;
+                }
+
+                /*if (TFMInventRefType::InventArrival == _inventRefType)
+                {
+                    
+                    MobRegistrations.InventTransId = WMSJournalTrans::find(MobRegistrations.InventRefId, str2num(strReplace(MobRegistrations.InventTransId, ',', '.'))).InventTransId;
+                }*/
+                MobRegistrations.InventQty = MobRegistrations.Qty;
+                ecoResProduct = InventTable::find(itemId).Product();
+                if (MobRegistrations.Unit)
+                {
+                    UnitTo = InventTable::find(itemId).inventUnitId();
+                    MobRegistrations.InventQty             = UnitOfMeasureConverter::convert(  MobRegistrations.Qty,
+                                                                UnitOfMeasure::findBySymbol( MobRegistrations.Unit).RecId,
+                                                                UnitOfMeasure::findBySymbol( UnitTo ).RecId,
+                                                                true,
+                                                                ecoResProduct.RecId);
+                    MobRegistrations.Unit = UnitTo;
+                }
+    
+                MobRegistrations.ActionType = registration.parmActionType();
+                switch(MobRegistrations.ActionType)
+                {
+                    case TFMActionTypes::TAKE :
+                                
+                        inventDimIssue = registration.ExtractInventDim(itemId);
+                        TFMHelper::EnsureInventDim(inventDimIssue);
+                        MobRegistrations.InventDimId       = InventDim::findOrCreate(inventDimIssue).inventDimId;
+                        break;
+    
+                    case TFMActionTypes::PLACE :
+                        
+                        inventDimReceipt = registration.ExtractInventDim(itemId);
+                        TFMHelper::EnsureInventDim(inventDimReceipt,MobRegistrations.InventTransId);
+                        MobRegistrations.ToInventDimId     = InventDim::findOrCreate(inventDimReceipt).inventDimId;
+                        break;
+    
+                    /*default :
+                        TFMHelper::ExtractInventDim(inventDimIssue, ItemId, registrationNode, #FromLocation, 'LotNumber', 'SerialNumber');
+                        TFMHelper::EnsureInventDim(inventDimIssue);
+                        MobRegistrations.InventDimId       = InventDim::findOrCreate(inventDimIssue).inventDimId;
+                        TFMHelper::ExtractInventDim(inventDimReceipt, ItemId, registrationNode, #ToLocation, 'LotNumber', 'SerialNumber');
+                        TFMHelper::EnsureInventDim(inventDimReceipt);
+                        MobRegistrations.ToInventDimId     = InventDim::findOrCreate(inventDimReceipt).inventDimId;
+                        break;*/
+                }
+                
+                /*MobRegistrations.initFromLineNode(lineNode);
+                MobRegistrations.initFromRegistrationNode(registrationNode);*/
+
+                MobRegistrations.insert();
+    
+                if (! firstMobRegistrations)
+                {
+                    firstMobRegistrations = MobRegistrations;
+                }
+
+                // Save extra info
+                if(registration.ExtraInfo() != null)
+                {
+                    extraInfoFieldMap = registration.ExtraInfo().getFieldMap();  
+                    extraInfoEnum = extraInfoFieldMap.getEnumerator();
+                    mobRegistrationsExtraInfo.MobRegistration = MobRegistrations.RecId;
+                    while(extraInfoEnum.moveNext())
+                    {
+                        mobRegistrationsExtraInfo.Key = extraInfoEnum.currentKey();
+                        if(subStr(mobRegistrationsExtraInfo.Key, strLen(mobRegistrationsExtraInfo.Key), -5) != labelString)  // skip labeldata
+                        {
+                            mobRegistrationsExtraInfo.Value = extraInfoEnum.currentValue();
+                            mobRegistrationsExtraInfo.insert();
+                        }
+                    }
+                }
+
+            }
+        }
+    
+        while select forupdate MobRegistrationsPlace
+            index OrderLineNumIdx
+            where MobRegistrationsPlace.InventRefType == _inventRefType &&
+                  MobRegistrationsPlace.InventRefId   == _inventRefId &&
+                  MobRegistrationsPlace.handled       == NoYes::No &&
+                  MobRegistrationsPlace.ActionType    == TFMActionTypes::PLACE
+        {
+            takeFound = false;
+            qtyPlaceSum = 0;
+            qtyPlace = MobRegistrationsPlace.InventQty;
+    
+            while select forupdate MobRegistrationsTake
+                index OrderLineNumIdx
+                where MobRegistrationsTake.InventRefType   == _inventRefType &&
+                      MobRegistrationsTake.InventRefId     == _inventRefId &&
+                      MobRegistrationsTake.handled         == NoYes::No &&
+                      MobRegistrationsTake.ActionType      == TFMActionTypes::TAKE &&
+                      ((_inventRefType == MobInventRefType::None &&
+                        MobRegistrationsTake.RefRecId              == MobRegistrationsPlace.RefRecId) ||
+                       (_inventRefType != MobInventRefType::None &&
+                        MobRegistrationsTake.InventTransId         == MobRegistrationsPlace.InventTransId))
+                join inventDim
+                    where inventDim.inventDimId     == MobRegistrationsTake.InventDimId &&
+                          inventDim.inventBatchId   == InventDim::find(MobRegistrationsPlace.ToInventDimId).inventBatchId &&
+                          inventDim.inventSerialId  == InventDim::find(MobRegistrationsPlace.ToInventDimId).inventSerialId
+            {
+                takeFound = true;
+    
+                if (qtyPlace)
+                {
+                    if(MobRegistrationsTake.InventQty < qtyPlace)
+                    {
+                        qtyPlace = MobRegistrationsTake.InventQty;
+                    }
+
+                    MobRegistrationsNew.clear();
+                    MobRegistrationsNew.MessageId       = messageId;
+                    MobRegistrationsNew.InventRefType   = _inventRefType;
+                    MobRegistrationsNew.InventRefId     = _inventRefId;
+                    MobRegistrationsNew.expDate         = MobRegistrationsTake.expDate;
+                    MobRegistrationsNew.InventQty       = qtyPlace;
+                    MobRegistrationsNew.Unit            = MobRegistrationsTake.Unit;
+                    MobRegistrationsNew.Handled         = NoYes::No;
+                    MobRegistrationsNew.RefRecId        = MobRegistrationsTake.RefRecId;
+                    MobRegistrationsNew.InventTransId   = MobRegistrationsTake.InventTransId;
+                    MobRegistrationsNew.InventDimId     = MobRegistrationsTake.InventDimId;
+                    MobRegistrationsNew.ToInventDimId   = MobRegistrationsPlace.ToInventDimId;
+                    MobRegistrationsNew.insert();
+    
+                    if (firstMobRegistrationsNew)
+                    {
+                        firstMobRegistrationsNew        = false;
+                        firstMobRegistrations           = null;
+                        firstMobRegistrations           = MobRegistrationsNew;
+                    }
+    
+                    MobRegistrationsTake.InventQty -= qtyPlace;
+                    qtyPlaceSum += qtyPlace;
+                    qtyPlace = MobRegistrationsPlace.InventQty - qtyPlaceSum;
+                    if (MobRegistrationsTake.InventQty == 0)
+                    {
+                        MobRegistrationsTake.handled = NoYes::Yes;
+                    }
+                    MobRegistrationsTake.Update();
+                }
+            }
+    
+            // Only update the PLACE registration if a take line was found
+            // In situations where the mobile device only delivers PLACE registrations
+            // it is important that they are NOT marked as handled
+            if (takeFound)
+            {
+                MobRegistrationsPlace.handled = NoYes::Yes;
+                MobRegistrationsPlace.Update();
+            }
+        }
+    
+        return firstMobRegistrations;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>WmsJournalTransSplit</Name>
+				<Source><![CDATA[
+    // Copied from Class WmsJournalTransSplit.serverRun()
+    private server static WMSJournalTrans WmsJournalTransSplit(WMSJournalTrans _wmsJournalTransOrig, InventQty _splitQty )
+    {
+        #OCCRetryCount
+        SalesLine               salesLine;
+        WMSJournalTrans         transOrig;
+        WMSJournalTrans         transSplit;
+    
+        setprefix(WMSJournalTransSplit::description());
+    
+        try
+        {
+            ttsbegin;
+            if (_wmsJournalTransOrig.ReturnItemNum && _wmsJournalTransOrig.InventTransType == InventTransType::Sales)
+            {
+                if (ReturnDispositionCode::find(_wmsJournalTransOrig.ReturnDispositionCodeId).createReplacement())
+                {
+                    salesLine = SalesLine::findInventTransId(_wmsJournalTransOrig.InventTransId);
+                    if (ReturnReplaceItemRef::deleteReplaceSetup(salesLine.SalesId, salesLine.LineNum))
+                    {
+                        //One or more Replacement orders, related to Arrival journal %1 line number %2 and return order %3, has been deleted.
+                        info(strfmt("@SYS116538", _wmsJournalTransOrig.JournalId, _wmsJournalTransOrig.LineNum, _wmsJournalTransOrig.ReturnItemNum));
+                    }
+                }
+            }
+    
+            transOrig = WMSJournalTrans::find(_wmsJournalTransOrig.JournalId, _wmsJournalTransOrig.LineNum, true);
+            transOrig.Qty = transOrig.Qty - _splitQty;
+            transOrig.update();
+    
+            transSplit.data(_wmsJournalTransOrig);
+    
+            if(_wmsJournalTransOrig.ReturnItemNum && _wmsJournalTransOrig.InventTransType == InventTransType::Sales)
+            {
+                transSplit.InventTransId = SalesLine::splitReturnLine(transOrig.InventTransId, _splitQty*-1);
+                SalesLine::changeReturnOrderType(transSplit.InventTransId);
+            }
+    
+            transSplit.Qty                      = _splitQty;
+            transSplit.ReturnDispositionCodeId  = '';
+            transSplit.LineNum                  = 0;
+            transSplit.insert();
+            ttscommit;
+    
+            return transSplit;
+        }
+        catch (Exception::Deadlock)
+        {
+            retry;
+        }
+        catch (Exception::UpdateConflict)
+        {
+            if (appl.ttsLevel() == 0)
+            {
+                if (xSession::currentRetryCount() >= #RetryNum)
+                {
+                    throw Exception::UpdateConflictNotRecovered;
+                }
+                else
+                {
+                    retry;
+                }
+            }
+            else
+            {
+                throw Exception::UpdateConflict;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromLineNode</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Called from .SaveRegistrations() to be used for CoC during record initialization
+    /// </summary>
+    /// <param name = "_lineNode">
+    /// The lineNode currently being processed in .SaveRegistrations()
+    /// </param>
+    protected void initFromLineNode(XmlNode  _lineNode)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromRegistrationNode</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Called from .SaveRegistrations() to be used for CoC during record initialization
+    /// </summary>
+    /// <param name = "_lineNode">
+    /// The registrationNode currently being processed in .SaveRegistrations()
+    /// </param>
+    protected  void initFromRegistrationNode(XmlNode  _registrationNode)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getExtraInfoValue</Name>
+				<Source><![CDATA[
+    public description getExtraInfoValue(KeyValueLong _key)
+    {
+        return MobRegistrationsExtraInfo::getExtraInfoValue(this.RecId, _key);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@MobileWMS:RegistrationsDevDesc</DeveloperDocumentation>
+	<Label>@SCM:JmgRegistrationsTabName</Label>
+	<Tags>NoExport</Tags>
+	<TitleField1>InventRefType</TitleField1>
+	<TitleField2>InventRefId</TitleField2>
+	<ClusteredIndex>OrderLineNumIdx</ClusteredIndex>
+	<CreatedTransactionId>Yes</CreatedTransactionId>
+	<ModifiedTransactionId>Yes</ModifiedTransactionId>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ActionType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>expDate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Handled</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventDimId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventQty</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventRefId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventRefType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventTransId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Qty</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RefRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReturnDispositionCodeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ToInventDimId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Unit</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ActionType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>expDate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Handled</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventDimId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventQty</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventRefId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventRefType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventTransId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MessageId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Qty</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RefRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReturnDispositionCodeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ToInventDimId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Unit</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ActionType</Name>
+			<EnumType>TFMActionTypes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldDate">
+			<Name>expDate</Name>
+			<ExtendedDataType>InventBatchExpDate</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Handled</Name>
+			<ExtendedDataType>TFMHandled</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>InventDimId</Name>
+			<ExtendedDataType>InventDimId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>InventQty</Name>
+			<ExtendedDataType>InventQty</ExtendedDataType>
+			<Label>@SpedFiscalBlockK:InventoryQuantity</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>InventRefId</Name>
+			<ExtendedDataType>InventRefId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>InventRefType</Name>
+			<EnumType>MobInventRefType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ToteID</Name>
+			<ExtendedDataType>TFMToteId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>InventTransId</Name>
+			<ExtendedDataType>InventTransId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldGuid">
+			<Name>MessageId</Name>
+			<ExtendedDataType>TFMDocumentMessageId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>Qty</Name>
+			<ExtendedDataType>Qty</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>RefRecId</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ReturnDispositionCodeId</Name>
+			<ExtendedDataType>ReturnDispositionCodeId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ToInventDimId</Name>
+			<ExtendedDataType>InventDimId</ExtendedDataType>
+			<HelpText>@SYS15702</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SYS103530</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Unit</Name>
+			<ExtendedDataType>UnitOfMeasureSymbol</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>OrderLineNumIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Handled</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>ReturnDispositionCode</Name>
+			<Cardinality>ZeroOne</Cardinality>
+			<RelatedTable>ReturnDispositionCode</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ReturnDispositionCodeId</Name>
+					<Field>ReturnDispositionCodeId</Field>
+					<RelatedField>DispositionCodeId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>MessageQueue</Name>
+			<Cardinality>OneMore</Cardinality>
+			<RelatedTable>MobDocumentQueue</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>MessageId</Name>
+					<SourceEDT>MobDocumentMessageId</SourceEDT>
+					<Field>MessageId</Field>
+					<RelatedField>MessageId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

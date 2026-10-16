@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMXMLFormatOrderLines</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Order lines formatting class
+/// </summary>
+class TFMXMLFormatOrderLines extends TFMXMLFormat
+{
+    str                     orderBackendId;
+    str                     lineNumber;
+    str                     fromBin;
+    str                     toBin;
+    str                     itemNumber;
+    str                     description;    
+    boolean                 registerSerialNumber;
+    boolean                 registerBatchNumber;    
+    str                     serialNumber;
+    str                     lotNumber;
+    str                     quantity;
+    str                     registeredQuantity;
+    str                     unitOfMeasure;
+    str                     status;    
+    str                     overDeliveryValidation;
+    str                     underDeliveryValidation;
+    str                     barcodeFormat;
+    str                     itemBarcode;
+    Set                     extraInfo;
+    TFMOrderTypes           mainOrderType;
+    InventDim               inventDim;
+    TFMInventDimSetup		mobInventDimSetup;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addBarcode</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Can be called after initItemBarcode(...), to add barcodes to use.
+    /// </summary>
+    /// <param name="_barCode">
+    /// Barcode to append.
+    /// </param>
+    /// <remarks>
+    /// Barcode is not added, if empty.
+    /// </remarks>
+    protected void addBarcode(ItemBarCode _barCode)
+    {
+        if (strLTrim(_barcode))
+        {
+            itemBarcode = itemBarcode + (itemBarcode ? ';' : '') + _barCode;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getOrdersElement</Name>
+				<Source><![CDATA[
+    protected XmlElement getOrdersElement()
+    {
+        XmlElement retElement = resultXml.getNamedElement(TFMConstants::OrderLines());
+
+        if (retElement == null)
+        {
+            retElement = resultXml.root();
+        }
+
+        return retElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromCommon</Name>
+				<Source><![CDATA[
+    public void initFromCommon(XmlDocument _resultXml, Common _common, int _sorting, TFMOrderTypes _orderType = '', TFMPageID _pageId = '')
+    {
+        if (!_common)
+        {
+            throw error(strfmt("@SYS113735",classId2Name(classnum(TFMXMLFormat)),'Common'));
+        }
+        if (!_resultXml)
+        {
+            throw error(strFmt("@SYS113735",classId2Name(classnum(TFMXMLFormat)),'XmlDocument'));
+        }
+        overDeliveryValidation = TFMHelper::enumName(enumnum(TFMOverDeliveryValidation),TFMOverDeliveryValidation::None); //Must be able to handle partial receipt;
+        extraInfo = new Set(Types::String);
+        super(_resultXml, _common, _sorting, _orderType, _pageId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setInventDim</Name>
+				<Source><![CDATA[
+    protected void setInventDim(ItemId _itemId)
+    {
+        mobInventDimSetup   = TFMInventDimSetup::Construct(InventTable::find(_itemId),mainOrderType);
+    
+        registerSerialNumber    = mobInventDimSetup.registerSerialNumber();
+        registerBatchNumber     = mobInventDimSetup.registerBatchID();
+    
+        serialNumber            = inventDim.inventSerialId;
+        if (registerBatchNumber)
+        {
+            lotNumber               = '@type=batch;' + inventDim.inventBatchId;
+        }   
+    
+        displayLine4 = '';
+        displayLine5 = '';
+    
+        //displayline4
+        if (inventDim.configId)
+        {
+            displayLine4 += SysLabel::labelId2String2("@SYS14011") + ': ' + inventDim.configId + '  ';
+        }
+        if (inventDim.InventSizeId)
+        {
+            displayLine4 += SysLabel::labelId2String2("@SYS28127") + ': ' + inventDim.InventSizeId + '  ';
+        }
+        if (inventDim.InventStyleId)
+        {
+            displayLine4 += SysLabel::labelId2String2("@SYS92859") + ': ' + inventDim.InventStyleId + '  ';
+        }
+        if (inventDim.InventColorId)
+        {
+            displayLine4 += SysLabel::labelId2String2("@SYS30436") + ': ' + inventDim.InventColorId + '  ';
+        }
+        //displayline 5:
+        #if.isAX6
+        if (inventDim.wMSPalletId)
+        {
+            displayLine5 += SysLabel::labelId2String2("@SYS50254") + ': ' + inventDim.wMSPalletId + '  ';
+        }
+        #endif
+        if (inventDim.inventBatchId)
+        {
+            displayLine5 += SysLabel::labelId2String2("@SYS14462") + ': ' + inventDim.inventBatchId + '  ';
+        }
+        if (inventDim.inventSerialId)
+        {
+            displayLine5 += SysLabel::labelId2String2("@SYS477") + ': ' + inventDim.inventSerialId + '  ';
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setCachedXML</Name>
+				<Source><![CDATA[
+    protected boolean setCachedXML()
+    {
+        XML			orderXml = TFMXMLTable::getXML(common, orderType);
+        XmlElement	ordersElement;
+        XmlElement	orderElement;
+
+        if(!resultXml)
+        {
+            // Non Legacy Response
+            if (orderXml)
+            {
+                cachedResponse.insert(tableId2Name(common.TableId)+int642Str(Common.RecId), orderXml);
+            }
+            return orderXml != '';
+        }
+
+        ordersElement = this.getOrdersElement();
+        orderElement = resultXml.createElement(TFMConstants::BaseOrderLine());
+        orderElement.innerXml(orderXml);
+        if (!ordersElement)
+        {
+            resultXml.appendChild(orderElement);
+        }
+        else
+        {
+            ordersElement.appendChild(orderElement);
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertFieldsToMap</Name>
+				<Source><![CDATA[
+    public void convertFieldsToMap()
+    {
+        
+        int i;
+        super();
+        
+        //BackendId
+        fieldsToAdd.insert(TFMConstants::OrderBackendID(), fieldsToAdd.exists(TFMConstants::OrderBackendID()) ? fieldsToAdd.lookup(TFMConstants::OrderBackendID()) : orderBackendId);
+        
+        //LineNumber ✔️
+        if (!lineNumber)
+        {
+            lineNumber = int642str(common.RecId);
+        }
+        fieldsToAdd.insert(extendedTypeStr(LineNumber), fieldsToAdd.exists(extendedTypeStr(LineNumber)) ? fieldsToAdd.lookup(extendedTypeStr(LineNumber)) : lineNumber);
+    
+        //FromBin  (From location) ✔️
+        fieldsToAdd.insert(TFMConstants::FromBin(), fieldsToAdd.exists(TFMConstants::FromBin()) ? fieldsToAdd.lookup(TFMConstants::FromBin()) : fromBin);
+    
+        //ToBin  (To location) ✔️
+        fieldsToAdd.insert(TFMConstants::ToBin(), fieldsToAdd.exists(TFMConstants::ToBin()) ? fieldsToAdd.lookup(TFMConstants::ToBin()) : toBin);
+
+        //Warehouse ✔️
+        fieldsToAdd.insert(TFMConstants::Warehouse(), fieldsToAdd.exists(TFMConstants::Warehouse()) ? fieldsToAdd.lookup(TFMConstants::Warehouse()) : inventDim.InventLocationID);
+        
+        //ItemNumber ✔️
+        if (!itemNumber)
+        {
+            i = new SysDictTable(common.TableId).fieldName2Id(extendedTypeStr(ItemId));
+            if (i)
+            {
+                itemNumber = common.(i);
+            }
+        }
+        fieldsToAdd.insert(TFMConstants::ItemNumber(), fieldsToAdd.exists(TFMConstants::ItemNumber()) ? fieldsToAdd.lookup(TFMConstants::ItemNumber()) : itemNumber);
+        fieldsToAdd.insert(extendedTypeStr(ItemId), fieldsToAdd.exists(extendedTypeStr(ItemId)) ? fieldsToAdd.lookup(extendedTypeStr(ItemId)) : itemNumber);
+
+
+    
+        //Description ✔️
+        fieldsToAdd.insert(extendedTypeStr(Description), fieldsToAdd.exists(extendedTypeStr(Description)) ? fieldsToAdd.lookup(extendedTypeStr(Description)) : description);
+        
+        //ItemBarcode ✔️
+        fieldsToAdd.insert(TFMConstants::ItemBarcode(), fieldsToAdd.exists(TFMConstants::ItemBarcode()) ? fieldsToAdd.lookup(TFMConstants::ItemBarcode()) : itemBarCode);
+        
+        //RegisterSerialNumber ✔️
+        fieldsToAdd.insert(TFMConstants::RegisterSerialNumber(), fieldsToAdd.exists(TFMConstants::RegisterSerialNumber()) ? fieldsToAdd.lookup(TFMConstants::RegisterSerialNumber()) : strFmt('%1',registerSerialNumber));
+        
+        //RegisterLotNumber (Batchnumber) ✔️
+        fieldsToAdd.insert(TFMConstants::RegisterLotNumber(), fieldsToAdd.exists(TFMConstants::RegisterLotNumber()) ? fieldsToAdd.lookup(TFMConstants::RegisterLotNumber()) : strFmt('%1',registerBatchNumber));
+    
+        
+        //SerialNumber ✔️
+        fieldsToAdd.insert(TFMConstants::SerialNumber(), fieldsToAdd.exists(TFMConstants::SerialNumber()) ? fieldsToAdd.lookup(TFMConstants::SerialNumber()) : SerialNumber);
+        
+        //LotNumber / Batchnumber ✔️
+        fieldsToAdd.insert(TFMConstants::LotNumber(), fieldsToAdd.exists(TFMConstants::LotNumber()) ? fieldsToAdd.lookup(TFMConstants::LotNumber()) : lotNumber);
+    
+        //Quantity
+        fieldsToAdd.insert(TFMConstants::Quantity(), fieldsToAdd.exists(TFMConstants::Quantity()) ? fieldsToAdd.lookup(TFMConstants::Quantity()) : quantity);
+    
+        //RegisteredQuantity
+        fieldsToAdd.insert(TFMConstants::RegisteredQuantity(), fieldsToAdd.exists(TFMConstants::RegisteredQuantity()) ? fieldsToAdd.lookup(TFMConstants::RegisteredQuantity()) : registeredQuantity);
+            
+        //UnitOfMeasure ✔️
+        fieldsToAdd.insert(TFMConstants::UnitOfMeasure(), fieldsToAdd.exists(TFMConstants::UnitOfMeasure()) ? fieldsToAdd.lookup(TFMConstants::UnitOfMeasure()) : unitOfMeasure);
+            
+        //Status
+        fieldsToAdd.insert(TFMConstants::Status(), fieldsToAdd.exists(TFMConstants::Status()) ? fieldsToAdd.lookup(TFMConstants::Status()) : status);
+            
+        // UnderDeliveryValidation
+        fieldsToAdd.insert(TFMConstants::UnderDeliveryValidation(), fieldsToAdd.exists(TFMConstants::UnderDeliveryValidation()) ? fieldsToAdd.lookup(TFMConstants::UnderDeliveryValidation()) : underDeliveryValidation);
+        
+        // OverDeliveryValidation
+        if (overDeliveryValidation || fieldsToAdd.exists(TFMConstants::OverDeliveryValidation()))
+        {
+            fieldsToAdd.insert(TFMConstants::OverDeliveryValidation(), fieldsToAdd.exists(TFMConstants::OverDeliveryValidation()) ? fieldsToAdd.lookup(TFMConstants::OverDeliveryValidation()) : overDeliveryValidation);
+        }
+
+        //barcodeFormat ✔️
+        if (barcodeFormat)
+        {
+            fieldsToAdd.insert(TFMConstants::BarcodeFormat(), fieldsToAdd.exists(TFMConstants::BarcodeFormat()) ? fieldsToAdd.lookup(TFMConstants::BarcodeFormat()) : barcodeFormat);
+        }
+
+        if (itemNumber && ds.ShowImages)
+        {
+            if (imageId && InventTable::find(imageID ) || (!imageID && !fieldsToAdd.exists('imageId') ))
+            {
+                imageId = TFMHelper::imageIDFromDocuref(TFMHelper::FindItemDocuref(itemNumber,inventDim.inventDimId));
+            }
+            fieldsToAdd.insert('imageId', fieldsToAdd.exists('imageId') ? fieldsToAdd.lookup('imageId') : imageId);
+        }
+
+        fieldsToAdd.insert(TFMConstants::processSessionID(), TFMHelper::BackendId2UniqueID(orderBackendId) + '|'+ curUserId() + '|' + date2Str(TFMHelper::today(),321,1,DateSeparator::None,1,DateSeparator::None,2) + subStr(strReplace(time2Str(timeNow(),TimeSeparator::Space,TimeSeparator::Space),' ',''),1,4)+ '|'+ strReplace(orderBackendId,'/','|'));
+
+        
+
+        fieldsToAdd = TFMHelper::mergeMaps(fieldsToAdd, this.getAdditionalValuesFromWorkflow());
+
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAdditionalValuesFromWorkflow</Name>
+				<Source><![CDATA[
+	protected Map getAdditionalValuesFromWorkflow()
+    {
+        TFMPageOrderLinesConfiguration	conf;
+        TFMService						service;
+        TFMWorkflowsTable				wfTable;
+        TFMWorkflowSteps				steps;
+        TFMWorkflowBlock				wFBlock;
+        Map								retMap = new Map(Types::String, Types::String);
+
+		if (!page)
+        {
+            return retMap;
+        }
+
+        conf = page.getConfiguration();
+        service = TFMServiceProvider::getServices().lookup(conf.parmId());
+        wfTable = TFMWorkflowsTable::Find(service.getWorkflow());
+        while select steps where steps.WorkflowName == wfTable.WorkflowName
+        {
+            wFBlock = new SysDictClass(className2Id(steps.CallClass)).makeObject();
+            retMap = TFMHelper::mergeMaps(retMap, wFBlock.AdditionalValues(common));
+        }
+
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setXML</Name>
+				<Source><![CDATA[
+    protected void setXML()
+    {
+
+        this.appendToXML(this.getOrdersElement());
+
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _parentNode)
+    {   
+        
+        recordLineTag = TFMConstants::BaseOrderLine();
+        
+        super(_parentNode);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addToLineElement</Name>
+				<Source><![CDATA[
+    protected void addToLineElement(XmlElement _parentNode)
+    {
+        super(_parentNode);
+
+        this.switchToDynamicWorkflow(_parentNode);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>switchToDynamicWorkflow</Name>
+				<Source><![CDATA[
+    public void switchToDynamicWorkflow(XmlElement _lineElement)
+    {
+		Object 							conf;
+        Map								services = TFMServiceProvider::getServices();
+        TFMService						service;
+        
+        this.getPage();
+
+        if (!page)
+        {
+            return;
+        }
+
+        conf = page.getConfiguration();
+		if (classIdGet(conf) != classNum(TFMPageOrderLinesConfiguration))
+        {
+            return;
+        }
+        service = services.lookup(conf.parmId());
+        TFMWorkflowsTable::Find(service.getWorkflow()).appendToXml(_lineElement,common);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

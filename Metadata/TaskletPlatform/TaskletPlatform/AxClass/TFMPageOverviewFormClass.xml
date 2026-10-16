@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageOverviewFormClass</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPageOverviewFormClass extends Object
+{
+    Map					    foundPages;
+    FormGroupControl	    fgc;
+    boolean				    first;
+    Map					    imageLocations;
+    MapEnumerator		    pageEnum;
+    str					    filterStr;
+    Map					    pageHtmls;
+    TFMPage				    currentPage;
+    TFMHtmlViewerCtrl	    pageinfo, DevicePreview;
+    Object				    fr;
+    TFMHtmlViewerCtrl	    HTML;
+    str					    loadingURL;
+    FormButtonControl       firstControlSelectedByFilter;
+    TFMHtmlListCtrl         htmlListCtrl;
+
+    public TFMPages     pagesOnForm;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>cacheTimeStamp</Name>
+				<Source><![CDATA[
+    public static str cacheTimeStamp()
+    {
+        System.DateTime dt = System.DateTime::Now;
+        System.TimeSpan ts = System.TimeSpan::FromMinutes(10);
+        int64			delta = dt.Ticks mod ts.Ticks;
+        System.DateTime result = new System.DateTime(dt.Ticks - delta, dt.Kind);
+        return result.ToShortTimeString();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(FormGroupControl _fgc, TFMHtmlListCtrl _htmlListCtrl)
+    {
+        pagesOnForm = TFMPagesProvider::getAllPages();
+        System.Runtime.Caching.ObjectCache memCache = System.Runtime.Caching.MemoryCache::Default;
+        str cacheId = classId2Name(classIdGet(this)) + TFMPageOverviewFormClass::cacheTimeStamp() + strLwr(curExt());
+        fgc = _fgc;
+        imageLocations = memCache.Get(cacheId);
+        if(!imageLocations)
+        {
+            imageLocations = new Map(Types::String, Types::String);
+            memCache.Add(cacheId, imageLocations, new System.Runtime.Caching.CacheItemPolicy());
+        }
+        
+        first = true;
+        foundPages	= new Map(Types::String, Types::Class);
+        
+        foundPages = pagesOnForm.getPages();
+
+        pageHtmls = new Map(Types::String, Types::String);
+        pageEnum = pagesOnForm.getPages().getEnumerator();
+        pageinfo = fgc.formRun().design().controlName(formControlStr(TFMPageOverview,PageInfo));
+        DevicePreview= fgc.formRun().design().controlName(formControlStr(TFMPageOverview,DevicePreview));
+        
+        fr = fgc.formRun();
+        
+        loadingURL = TFMDocGetMedia::getURLFromIconName(resourceStr(TFMLoading));
+        htmlListCtrl = _htmlListCtrl;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>currentPage</Name>
+				<Source><![CDATA[
+    public TFMPage currentPage()
+    {
+        return currentPage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>filterText</Name>
+				<Source><![CDATA[
+    public void filterText(str _filterStr)
+    {
+        FormButtonControl	fwc;
+        TFMPage				page;
+        filterStr			= _filterStr;
+        MapEnumerator mEnum = foundPages.getEnumerator();
+        TFMPages filteredPages = new TFMPages();
+
+        if(_filterStr)
+        {
+            while (mEnum.moveNext())
+            {
+                page = foundPages.exists(mEnum.currentKey()) ? foundPages.lookup(mEnum.currentKey()) : null;
+                if ((strScan(mEnum.currentKey(), _filterStr,1,100) || (page && strScan(page.parmType(),_filterStr,1,100)) || (page && strScan(page.parmTitle(),_filterStr,1,100)) || !_filterStr))
+                {
+                    filteredPages.addPage(page);
+                }
+            }
+        }
+        else
+        {
+            filteredPages = pagesOnForm;
+        }
+
+        htmlListCtrl.sendItemsToJavascriptControl(filteredPages);
+
+        this.showPageFoundByFilter(_filterStr);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>loadAllPages</Name>
+				<Source><![CDATA[
+    public void loadAllPages()
+    {
+        htmlListCtrl.sendItemsToJavascriptControl(pagesOnForm);
+        this.setCurrentPage('MainMenu');
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showPageFoundByFilter</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// If the filterStr matches a page then show the page.
+    /// </summary>
+    private void showPageFoundByFilter(str _filterStr)
+    {
+        if (pagesOnForm.getPage(_filterStr))
+        {
+            this.setCurrentPage(_filterStr);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>windowClickOverride</Name>
+				<Source><![CDATA[
+    public void windowClickOverride(FormControl _sender)
+    {
+        this.setCurrentPage(_sender.name());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setCurrentPage</Name>
+				<Source><![CDATA[
+    public void setCurrentPage(str _pageId)
+    {
+        if(foundPages.exists(_pageId))
+        {
+            currentPage = foundPages.lookup(_pageId);
+            this.updatePage();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updatePage</Name>
+				<Source><![CDATA[
+    public void updatePage(boolean _forceVisualReload = false)
+    {
+        TFMPage page = currentPage;
+        str	htmlDesc;
+
+        if(!page)
+        {
+            return;
+        }
+        DevicePreview.parmHtml('<table width="400"><tr><td><img style="width: 400px;" src="'+loadingURL+'" /></td></tr><tr><td style="text-align: center; vertical-align: middle;"><h1>'+"@SYS4128"+'</h1></td></tr></table>');
+ 
+        if (!_forceVisualReload && pageHtmls.exists(page.parmId()))
+        {
+            htmlDesc = pageHtmls.lookup(page.parmId());
+        }
+        else
+        {
+            htmlDesc = page.descriptionHtml();
+            pageHtmls.insert(page.parmId(),htmlDesc);
+        }
+        pageinfo.parmHtml(htmlDesc);
+
+        this.addTiles();
+
+        if(_forceVisualReload) //eg. when the refresh button is pressed in the client.
+        {
+            fr.removePreviewToForceUpdate(page.parmId());
+        }
+
+        fr.updateGrid();
+        fr.updateVisual();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTiles</Name>
+				<Source><![CDATA[
+    public void addTiles()
+    {
+        int i = 100;
+        Object                  fwc;
+        FormButtonControl       fbc;
+        System.Drawing.Bitmap   image;
+        FormGroupControl        grpControl = pageinfo.formRun().design().controlName(formControlStr(TFMPageOverview,tileGroup));
+        FormGroupControl        grpActionsControl = pageinfo.formRun().design().controlName(formControlStr(TFMPageOverview,ActionTileGroup));
+        MapEnumerator           tileImages = currentPage.tilesImages().getEnumerator();
+        str                     navToKey;
+
+        while (grpControl.controlCount())
+        {
+            grpControl.formRun().design().removeControl(grpControl.controlNum(1).id());
+        }
+
+        while (grpActionsControl.controlCount())
+        {
+            grpActionsControl.formRun().design().removeControl(grpActionsControl.controlNum(1).id());
+        }
+
+        while (tileImages.moveNext())
+        {
+            navToKey = currentPage.tileKey2FormName(tileImages.currentKey());
+
+            str controlName = currentPage.parmId() + '___' + (navToKey ? navToKey : int2Str(i));
+            FormGroupControl groupControl = (navToKey ? grpActionsControl : grpControl);
+            if(!groupControl.formRun().design().controlName(controlName))
+            {
+                TFMHtmlViewerCtrl buttonCtrl = groupControl.addControlEx(classStr(TFMHtmlViewerCtrl), controlName);
+                buttonCtrl.parmShowProgressInformation("@TFM:Processing");
+                buttonCtrl.parmSkipSanitizer(true);
+
+                str titleHtml;
+                if(navToKey)
+                {
+                    titleHtml =
+                        '<a href="javascript:void(0);" data-dyn-bind="click: $control.TFMButtonClicked" id="'+ controlName +'" >'
+                        + '<div class="tile-square" >'
+                            + tileImages.currentValue()
+                        + '</div>'
+                        + '</a>';
+                    buttonCtrl.actionDelegate += eventhandler(this.htmlButtonClicked);
+                }
+                else
+                {
+                    titleHtml = '<div class="tile-square-info" >'
+                    + tileImages.currentValue()
+                    + '</div>';
+                }
+                buttonCtrl.parmHtml(titleHtml);
+                
+                
+            }
+            i++;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>htmlButtonClicked</Name>
+				<Source><![CDATA[
+    public void htmlButtonClicked(str _controlName)
+    {
+        #avifiles
+
+        Args	    Args;
+        container   nameCon = TFMHelper::strsplit(_controlName,'___').pack();
+        str         navTo = conLen(nameCon) == 5 ? conPeek(nameCon,5) : '';
+        FormRun     formRun;
+        if (!navTo)
+        {
+            return;
+        }
+
+        if (pagesOnForm.getPages().exists(navTo))
+        {
+            currentPage = foundPages.lookup(navTo);
+            this.updatePage();
+        }
+        else if ( formName2Pname(navTo))
+        {
+            fr.cancelUpdateVisual();
+            
+            Args = new Args(navTo);
+            Args.caller(fr);
+            
+            formRun = new FormRun(Args);
+            formRun.init();
+            formRun.run();
+            formRun.wait();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>openFormFromPageOverview</Name>
+				<Source><![CDATA[
+    public static void openFormFromPageOverview(container parms)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateTypeBarcodePropertiesWithGs1AIs</Name>
+				<Source><![CDATA[
+    public void populateTypeBarcodePropertiesWithGs1AIs(FormGroupControl _fgc)
+    {
+        TFMGS1AISetup ais;
+
+        while select ais order by Name
+        {
+            TFMFormHelper::type2FormControl(_fgc, extendedTypeNum(NoYesId), extendedTypeNum(NoYesId), ais.Name +'_'+ int2Str(ais.GS1AI), strFmt('%1',TFMGS1AITypeBarcodeSetup::enabled(currentPage.parmId(),ais.Name,ais.GS1AI)), ais.Name + ' (' + int2Str(ais.GS1AI) + ')', methodStr(TFMPageOverviewFormClass, GS1AI_modified),this);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GS1AI_modified</Name>
+				<Source><![CDATA[
+    public boolean GS1AI_modified(FormCheckBoxControl _sender)
+    {
+        container content = strSplit(_sender.name(),'_').pack();
+        Name AIname = conpeek(content,conLen(content)-1);
+        int  GS1AI  = conpeek(content,conLen(content));
+
+        TFMGS1AITypeBarcodeSetup::setEnabled(currentPage.parmId(),AIname,GS1AI,_sender.checked());
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

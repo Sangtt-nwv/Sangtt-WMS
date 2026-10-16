@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocLocationContent</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Document handler class for the Location Content page.
+/// </summary>
+[TFMTableName(tableStr(InventSum),staticMethodStr(MobConstants,LocationContent)),
+    TFMDocumentType(classStr(TFMLookup), staticMethodStr(MobConstants,LocationContent), methodStr(MobDocLocationContent,lookupLocationContent )),
+    TFMMenu(staticMethodStr(MobConstants,LocationContent),"@MobileWMS:MobileWMS164","@MobileWMS:MobileWMS164",resourceStr(MobLocationContentIcon),true,true,['MainMenu', 'Warehouse', 'Outbound'],true)
+]
+class MobDocLocationContent extends TFMDocumentHandler
+{
+    FieldName   fieldNameToOmit;
+    NoYes       enableOmitField;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmFieldNameToOmit</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Parameter to make the summation omit certain fields
+    /// </summary>
+    /// <param name = "_fieldNameToOmit">FieldName on InventDim to omit in selection</param>
+    /// <returns></returns>
+    [TFMParameter('',"@MobileWMS:OmitFieldInSum","@MobileWMS:Summation")]
+    public FieldName parmFieldNameToOmit(FieldName _fieldNameToOmit)
+    {
+        fieldNameToOmit = _fieldNameToOmit;
+        return fieldNameToOmit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmEnableOmitField</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Parameter to make the summation omit certain fields
+    /// </summary>
+    /// <param name = "_fieldNameToOmit">FieldName on InventDim to omit in selection</param>
+    /// <returns></returns>
+    [TFMParameter(NoYes::No,"@MobileWMS:AddShowAllInFilter","@MobileWMS:Summation")]
+    public NoYesId parmEnableOmitField(NoYesId _enableOmitField)
+    {
+        enableOmitField = _enableOmitField;
+        return enableOmitField;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Description method for the class
+    /// </summary>
+    /// <returns>A text description.</returns>
+    public TFMDocumentHandlerDescription description()
+    {
+        return "@MobileWMS:MobileWMS164";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LocationContentCfgHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The header/filter for the Location Content page.
+    /// </summary>
+    /// <returns>The filter fields as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration LocationContentCfgHeader()
+    {
+        TFMReferenceDataConfiguration   refData = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorList    regCollectorList = new TFMRegistrationCollectorList(5,MobConstants::Warehouse(),"@SYS6437","@SYS6437","@SYS6437");
+        TFMRegistrationCollector		collectWmsLoc = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(WMSLocationId));
+        TFMRegistrationCollectorList    showAllDimensions;
+        
+        regCollectorList.parmDataTable(methodStr(TFMGetReferenceData,WarehouseFilterList));
+        regCollectorList.parmDataKeyColumn(extendedtypestr(InventLocationId));
+        regCollectorList.parmDataDisplayColumn(extendedtypestr(Name));
+
+        refData.addCollector(regCollectorList);
+        collectWmsLoc.parmOptional(false);
+        refData.addCollector(collectWmsLoc);
+
+        //refData.parmUseDynaFilter(true);
+
+        if (enableOmitField)
+        {
+            showAllDimensions = new TFMRegistrationCollectorList(3,'showAll',"@SYS35266", "@SYS35266","@SYS35266");
+            showAllDimensions.parmDataTable(methodStr(TFMGetReferenceData, listNoYes));
+            showAllDimensions.parmAcceptBarcode(false);
+            refData.addCollector(showAllDimensions);
+        }
+
+        return refData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages ret = super();
+
+        ret.getPage(MobConstants::LocationContent()).addAction(MobConstants::CreateQuarantineOrders(),1,3);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupLocationContent</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to return Location Content elements to the mobile client.
+    /// </summary>
+    /// <returns>A MobLookupResponseElement instance containing the data needed for he lookup page on the mobile device.</returns>
+    protected TFMLookupResponseElement lookupLocationContent()
+    {
+        TFMLookupResponseElement    lookupResponse = TFMLookupResponseElement::Construct(classStr(TFMLookup), MobConstants::LocationContent());
+        
+        TFMRequestWarehouseElement  warehouse = request;
+        
+        InventLocationId            inventLocationId    = warehouse.parmWarehouse();
+        WmsLocationId               wmsLocationId       = warehouse.parmLocation();
+
+        str                         showAll = request.getFieldValue('showAll');
+        this.getLookupLocationContent(lookupResponse, inventLocationId, wmsLocationId, showAll);
+        return lookupResponse;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLookupLocationContent</Name>
+				<Source><![CDATA[
+    public void getLookupLocationContent(TFMLookupResponseElement _lookupResponse, InventLocationId _inventLocationId, WmsLocationId _wmsLocationId, str _showAllFieldValue = '')
+    {
+        WMSLocation                 wmsLocation;
+        Query                       q = new Query();
+        QueryRun                    qr;
+        QueryBuildDataSource        queryBuildDataSource;
+        
+
+        queryBuildDataSource = q.addDataSource(tableNum(WMSLocation));
+        
+        queryBuildDataSource.addRange(fieldnum(WMSLocation,WMSLocationId)).value(_wmsLocationId);
+        queryBuildDataSource.addRange(fieldnum(WMSLocation,InventLocationId)).value(_inventLocationId == MobConstants::All() ? '*' : _inventLocationId);
+
+        qr = new QueryRun(q);
+        while (qr.next())
+        {
+            wmsLocation = qr.get(tableNum(WMSLocation));
+            if (!MobInventLocationsGroupRights::existsUser(curUserId(), wmsLocation.inventLocationId))  // Make sure user only sees warehouses, they have access to
+            {
+                continue;
+            }
+            this.addLookupResponseForLocation(wmsLocation, _lookupResponse, _showAllFieldValue);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addLookupResponseForLocation</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Adds the lookup response for the provided location.
+    /// </summary>
+    /// <param name = "_wmsLocation">The location to add the response for</param>
+    /// <param name = "_lookupResponse">The lookup response to add the response to.</param>
+    protected void addLookupResponseForLocation(WMSLocation _wmsLocation, TFMLookupResponseElement _lookupResponse, str _showAllFieldValue)
+    {
+        MobInventOnhand_availAndPhysical::populateLookupResponse(_lookupResponse, '', _wmsLocation.inventLocationId, _wmsLocation.wMSLocationId, _showAllFieldValue == 'Yes' ? '' : fieldNameToOmit);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

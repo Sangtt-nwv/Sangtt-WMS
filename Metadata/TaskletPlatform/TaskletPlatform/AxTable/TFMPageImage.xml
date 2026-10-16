@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageImage</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMPageImage extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>SetOverviewImage</Name>
+				<Source><![CDATA[
+    public static void SetOverviewImage(TFMPageID _pageId, str _overviewImage)
+    {
+        TFMPageImage imgTable;
+
+        ttsbegin;
+        imgTable = TFMPageImage::Find(_pageId,true);
+
+        imgTable.PageID = _pageId;
+        imgTable.OverviewImage = _overviewImage;
+        imgTable.write();
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetOverviewImage</Name>
+				<Source><![CDATA[
+    public static str GetOverviewImage(TFMPageID _pageId)
+    {
+        
+        return TFMPageImage::Find(_pageId).OverviewImage;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Find</Name>
+				<Source><![CDATA[
+	public static TFMPageImage Find (TFMPageID _pageId, boolean _selectforUpdate = false)
+    {
+        TFMPageImage imgTable;
+
+        imgTable.selectForUpdate(_selectForUpdate);
+        select firstonly imgTable where imgTable.pageId == _pageId;
+
+        return imgTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removePageImage</Name>
+				<Source><![CDATA[
+    public static void removePageImage(TFMPageID _pageId)
+    {
+        TFMPageImage imgTable;
+        str cacheId = formstr(TFMPageOverview) + TFMPageOverviewFormClass::cacheTimeStamp() + strLwr(curExt());
+        System.Runtime.Caching.ObjectCache memCache = System.Runtime.Caching.MemoryCache::Default;
+
+        Map	 pagePreviews = memCache.Get(cacheId);
+        pagePreviews = new Map(Types::String, Types::String);
+        memCache.Add(cacheId, pagePreviews, new System.Runtime.Caching.CacheItemPolicy());
+        
+        ttsbegin;
+        delete_from imgTable where imgTable.pageId == _pageId;
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>@TFM:PageImage</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>PageID</Name>
+			<ExtendedDataType>TFMPageID</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OverviewImage</Name>
+			<ExtendedDataType>Notes</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DeviceImage</Name>
+			<ExtendedDataType>Notes</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

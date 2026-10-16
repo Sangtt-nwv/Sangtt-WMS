@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContextInfoContext</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicContextInfoContext extends TFMLogicContextFunctions
+{
+    ItemId itemId;
+    InventTable inventTable;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMLogicContextInfoContext Construct()
+    {
+        TFMLogicContextInfoContext infoSetup = new TFMLogicContextInfoContext();
+        return infoSetup;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Name</Name>
+				<Source><![CDATA[
+    public Name Name()
+    {
+        return 'Context Information';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    protected void new()
+    {
+        super();
+        outputType = TFMLogicContextTypes::String;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmItemId</Name>
+				<Source><![CDATA[
+    public ItemId parmItemId(ItemId _itemId = itemId)
+    {
+        ItemId = _itemId;
+        inventTable = InventTable::find(_ItemId);        
+        return ItemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>process</Name>
+				<Source><![CDATA[
+    [DataContract(classStr(TFMInfoContextContract))]
+    public Object process()
+    {
+        TFMInfoContextContract      contract = new TFMInfoContextContract();
+        str                         html;
+        InventQuarantineOrder       qOrder;
+
+        if (context.getFieldContent(extendedTypeStr(InventQuarantineId)))
+        {
+            //Init ItemId
+            qOrder = InventQuarantineOrder::find(context.getFieldContent(extendedTypeStr(InventQuarantineId)));
+            context.addFieldContent(extendedTypeStr(ItemId),qOrder.ItemId);
+        
+            html = TFMHelper::makeDocurefHTML(qOrder);
+
+            contract.parmQOrderInformation(html);
+        }
+
+        if ((context.getFieldContent(extendedTypeStr(ItemId)) || context.getFieldContent(TFMConstants::ItemNumber())))
+        {
+            //Init ItemId
+            this.parmItemId(context.getFieldContent(extendedTypeStr(ItemId)) ? context.getFieldContent(extendedTypeStr(ItemId)) : context.getFieldContent(TFMConstants::ItemNumber()));
+        
+            html = TFMHelper::makeItemHTML(inventTable);
+
+            contract.parmItemInfo(html);
+        }
+
+        
+
+
+        return contract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>icon</Name>
+				<Source><![CDATA[
+    public ResourceName icon()
+    {
+        return resourceStr(TFMDatatypeInformation);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

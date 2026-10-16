@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMCommandResponse</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class TFMCommandResponse
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public abstract void appendToXML(XmlElement _element)
+    {
+        // to be overridden by subclasses
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

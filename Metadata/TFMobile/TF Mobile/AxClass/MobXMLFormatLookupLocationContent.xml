@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatLookupLocationContent</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+#mob
+[TFMTableNameAttribute(tableStr(InventSum),staticMethodStr(MobConstants,LocationContent))]
+class MobXMLFormatLookupLocationContent extends TFMXMLFormatLookup
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        InventSum       inventSum = common;
+        InventTable     inventTable = InventTable::find(inventSum.ItemId);
+        Qty             physicalAvail = inventSum.AvailPhysical;
+        Qty             physicalInvent = inventSum.PhysicalInvent;
+        str             unit = inventTable.inventUnitId();
+        str             quantityStr = MobHelper::formatItemQty(physicalAvail, unit);
+        str             physicalInventStr = MobHelper::formatItemQty(physicalInvent,unit);
+        
+        super();
+        inventDim = inventSum.inventDim();
+        imageId = MobHelper::imageIDFromDocuref(MobHelper::FindItemDocuref(inventSum.itemId,inventSum.InventDimId));
+        displayLine1 = inventSum.ItemId;
+        displayLine2 = inventTable.productName(new xInfo().language());
+        // Build display line 4 to show configuration, size, style and color (if enabled)
+        displayLine3 = '';
+        if (inventDim.configId)
+        {
+            displayLine3 = SysLabel::labelId2String2("@SYS14011") + ': ' + inventDim.configId + '  ';
+        }
+    
+        if (inventDim.InventSizeId)
+        {
+            displayLine3 += SysLabel::labelId2String2("@SYS28127") + ': ' + inventDim.InventSizeId + '  ';
+        }
+    
+        if (inventDim.InventStyleId)
+        {
+            displayLine3 += SysLabel::labelId2String2("@SYS92859") + ': ' + inventDim.InventStyleId + '  ';
+        }
+    
+        if (inventDim.InventColorId)
+        {
+            displayLine3 += SysLabel::labelId2String2("@SYS30436") + ': ' + inventDim.InventColorId;
+        }
+    
+    
+        // Build display line 4 to show batch, serial and pallet number
+        displayLine4 = '';
+        if (inventDim.inventBatchId)
+        {
+            displayLine4 += MobHelper::strFmt("@MobileWMS:MobileWMS155", [inventDim.inventBatchId]);
+        }
+        if (inventDim.inventSerialId)
+        {
+            displayLine4 += (displayLine4 ? ' / ' : '') + MobHelper::strFmt("@MobileWMS:MobileWMS156", [inventDim.inventSerialId]);
+        }
+        if (inventDim.LicensePlateId)
+        {
+            displayLine4 += (displayLine4 ? ' / ' : '') + strFmt("@MobileWMS:LPShort", inventDim.LicensePlateId);
+        }
+        #if.isAX6
+        if (inventDim.wMSPalletId)
+        {
+            displayLine4 += (displayLine4 ? ' / ' : '') + strFmt("@MOB157", inventDim.wMSPalletId);
+        }
+        #endif
+        //docuRef = MobHelper::findDefaultImageDocuRef(itemTable);
+        
+
+        fieldsToAdd.insert(MobConstants::UnitOfMeasure(), unit);
+        fieldsToAdd.insert(MobConstants::Quantity(), quantityStr);
+        fieldsToAdd.insert(extendedTypeStr(InventQtyTotal), physicalInventStr);
+        fieldsToAdd.insert(MobConstants::ItemNumber(), InventSum.ItemId);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxSecurityRole xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobUser</Name>
+	<Label>@MobileWMS:MobileWMS134</Label>
+	<DirectAccessPermissions />
+	<Duties>
+		<AxSecurityDutyReference>
+			<Name>MOBDocumentService</Name>
+		</AxSecurityDutyReference>
+		<AxSecurityDutyReference>
+			<Name>TFMDocumentService</Name>
+		</AxSecurityDutyReference>
+	</Duties>
+	<Privileges />
+	<SubRoles>
+		<AxSecurityRoleReference>
+			<Name>TFMUser</Name>
+		</AxSecurityRoleReference>
+	</SubRoles>
+</AxSecurityRole>

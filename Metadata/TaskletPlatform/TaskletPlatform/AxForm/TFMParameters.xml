@@ -1,0 +1,609 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMParameters</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMParameters extends FormRun
+{
+    TFMDocumentTreeBuilder		treeBuilder;
+    
+    [FormObservable]
+    str                 versionStr = '';
+    [FormObservable]
+    str                 publisher = '';
+    [FormObservable]
+    str                 versionName = '';
+
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        TFMVersion versionClass = TFMVersion::Construct();
+        versionStr = versionClass.getModelVersion();
+        publisher = versionClass.getModelPublisher();
+        versionName = versionClass.getVersionName();
+        super();
+        TFMParameters::find();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void run()
+    {
+        super();
+        TFMVersion::Construct().populateGroupWithExtensions(AddOnsGroup);
+
+        TFMDocumentParametersEdit edt = new TFMDocumentParametersEdit(ContentFromTree);
+        edt.showDocumentParametersTiles(DocParmTiles);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modelVersion</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public display Description modelVersion()
+    {
+        return versionStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modelPublisher</Name>
+				<Source><![CDATA[
+    public display Name modelPublisher()
+    {
+        
+        return publisher;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modelVersionName</Name>
+				<Source><![CDATA[
+    public display Name modelVersionName()
+    {
+        return versionName;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>DocumentTree</Name>
+				<Type>Tree</Type>
+				<Methods>
+					<Method>
+						<Name>selectionChanged</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name = "_OldItem"></param>
+        /// <param name = "_NewItem"></param>
+        /// <param name = "_how"></param>
+        public void selectionChanged(FormTreeItem _OldItem, FormTreeItem _NewItem, FormTreeSelect _how)
+        {
+            super(_OldItem, _NewItem, _how);
+            treeBuilder.selectionChanged(_NewItem.idx(),_NewItem.data());
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>TFMParameters</Name>
+			<Table>TFMParameters</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DeveloperMode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DocuTypeId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EndpointDisplayName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EndpointTenantId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ImageFrames</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Key</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SysAADClientId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TracingEnabled</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>TFMTracingUsers</Name>
+			<Table>TFMTracingUsers</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UserId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@TFM:TaskletMobilePlatformParameters</Caption>
+		<Pattern xmlns="">TableOfContents</Pattern>
+		<PatternVersion xmlns="">1.1</PatternVersion>
+		<Style xmlns="">TableOfContents</Style>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<AlignControl>No</AlignControl>
+				<ElementPosition>1073741823</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Tab</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>General</Name>
+						<ElementPosition>1073741822</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>GeneralTabTitle</Name>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>GeneralTabTitleText</Name>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@SYS2952</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabControl">
+								<Name>GeneralFastTab</Name>
+								<Type>Tab</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>GeneralTabPage</Name>
+										<Pattern>FieldsFieldGroups</Pattern>
+										<PatternVersion>1.1</PatternVersion>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>ShowInDevice</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>ShowInDevice_DocuTypeId</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DocuTypeId</DataField>
+														<DataSource>TFMParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>ShowInDevice_ImageFrames</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>ImageFrames</DataField>
+														<DataSource>TFMParameters</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>Images</DataGroup>
+												<DataSource>TFMParameters</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>VersionGroup</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>VersionString</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataMethod>modelVersion</DataMethod>
+														<Label>@SYS16131</Label>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>Publisher</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataMethod>modelPublisher</DataMethod>
+														<Label>@SYS305181</Label>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>VersionName</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataMethod>modelVersionName</DataMethod>
+														<Label>@SYS34986</Label>
+													</AxFormControl>
+												</Controls>
+												<Caption>@SYS16131</Caption>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>AddOnsGroup</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls />
+												<Caption>@SYS104268</Caption>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>Logo</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls />
+											</AxFormControl>
+										</Controls>
+										<ColumnsMode>Fill</ColumnsMode>
+										<Caption>@SYS2952</Caption>
+									</AxFormControl>
+								</Controls>
+								<Style>FastTabs</Style>
+							</AxFormControl>
+						</Controls>
+						<HideIfEmpty>No</HideIfEmpty>
+						<Caption>@SYS2952</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>DocumentsTab</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>DocumentTabTitle</Name>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>DocumentTabTitleText</Name>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@SYS54210</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabControl">
+								<Name>DocumentsFastTab</Name>
+								<Type>Tab</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>DocumentsTabPage</Name>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>DocumentsGroup</Name>
+												<ElementPosition>1879048185</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Height>1000</Height>
+												<HeightMode>SizeToAvailable</HeightMode>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>SizeToAvailable</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormTreeControl">
+														<Name>DocumentTree</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<HeightMode>SizeToAvailable</HeightMode>
+														<Type>Tree</Type>
+														<Visible>No</Visible>
+														<FormControlExtension
+															i:nil="true" />
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormGroupControl">
+														<Name>DocParmTiles</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<HeightMode>SizeToAvailable</HeightMode>
+														<Type>Group</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls />
+														<Columns>5</Columns>
+														<HideIfEmpty>No</HideIfEmpty>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormGroupControl">
+														<Name>BlackBar</Name>
+														<Height>20</Height>
+														<HeightMode>Manual</HeightMode>
+														<Type>Group</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls />
+														<HideIfEmpty>No</HideIfEmpty>
+														<FrameType>GroupedFieldsLabel</FrameType>
+													</AxFormControl>
+												</Controls>
+												<DataSource>TFMParameters</DataSource>
+											</AxFormControl>
+										</Controls>
+										<Caption>@SYS7764</Caption>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>DocParmTab</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>ContentFromTree</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<HeightMode>SizeToAvailable</HeightMode>
+												<Type>Group</Type>
+												<WidthMode>SizeToAvailable</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls />
+												<ArrangeMethod>Auto</ArrangeMethod>
+												<Columns>5</Columns>
+												<ColumnsMode>Fill</ColumnsMode>
+												<HideIfEmpty>No</HideIfEmpty>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+								</Controls>
+								<Style>FastTabs</Style>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS54210</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Tracing</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>TOCMainTrace</Name>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>TraceInstruction</Name>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>TracingGroup</Name>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>TFMParameters_TracingEnabled</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>TracingEnabled</DataField>
+										<DataSource>TFMParameters</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormActionPaneControl">
+										<Name>FormActionPaneControl1</Name>
+										<Type>ActionPane</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonGroupControl">
+												<Name>FormButtonGroupControl1</Name>
+												<Type>ButtonGroup</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormCommandButtonControl">
+														<Name>NewTraceUser</Name>
+														<Type>CommandButton</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Command>New</Command>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCommandButtonControl">
+														<Name>DeleteTraceUser</Name>
+														<Type>CommandButton</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Command>Delete</Command>
+													</AxFormControl>
+												</Controls>
+												<DataSource>TFMTracingUsers</DataSource>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>TraceUsers</Name>
+										<Type>Grid</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>TFMTracingUsers_UserId</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>UserId</DataField>
+												<DataSource>TFMTracingUsers</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataSource>TFMTracingUsers</DataSource>
+									</AxFormControl>
+								</Controls>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS4004867</Caption>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<Style>VerticalTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts>
+		<AxFormPartReference xmlns="">
+			<Name>HelpPart</Name>
+			<MenuItemName>TFMHelpPart</MenuItemName>
+		</AxFormPartReference>
+	</Parts>
+</AxForm>

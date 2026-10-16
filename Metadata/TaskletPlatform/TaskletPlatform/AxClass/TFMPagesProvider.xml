@@ -1,0 +1,573 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPagesProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMPagesProvider extends TFMCachedProvider
+{
+    private Map languagePagesMap;
+
+    private int versionUpdateCounter = timeNow();
+    boolean	devMode;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>instance</Name>
+				<Source><![CDATA[
+    public static TFMPagesProvider instance()
+    {
+        TFMPagesProvider   provider;
+        provider = TFMCachedProvider::getProviderInstance(classStr(TFMPagesProvider));
+        return provider;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEntity</Name>
+				<Source><![CDATA[
+    public anytype getEntity()
+    {
+        return languagePagesMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setEntity</Name>
+				<Source><![CDATA[
+    public void setEntity(anytype _entity)
+    {
+        this.languagePagesMap = _entity;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    private void new()
+    {
+        devMode = TFMParameters::find().DeveloperMode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllPages</Name>
+				<Source><![CDATA[
+     /// <summary>
+     /// Static helper method to get All pages.
+     /// </summary>
+     /// <returns>All pages in the system.</returns>
+    public static TFMPages getAllPages(LanguageId _languageId = currentUserLanguage())
+    {
+        TFMPagesProvider provider = TFMPagesProvider::instance();
+        Map langPages = provider.getEntityImpl();
+        TFMPages pages;
+        if(langPages.exists(_languageId))
+        {
+            pages = langPages.lookup(_languageId);
+        }
+        else
+        {
+            pages = provider.createPagesForLanguage(_languageId);
+            langPages.add(_languageId, pages);
+            provider.setupLinksAndDependantData(pages);
+        }
+        return pages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateVersion</Name>
+				<Source><![CDATA[
+    public static void updateVersion()
+    {
+        TFMPagesProvider::instance().updateVersionCounter();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateVersionCounter</Name>
+				<Source><![CDATA[
+    public void updateVersionCounter()
+    {
+        versionUpdateCounter++;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructEntityImpl</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Fetches all pages from documents, categories (MenuPages) and overridden pages.
+    /// </summary>
+    /// <returns></returns>
+    public anytype constructEntityImpl()
+    {
+        this.languagePagesMap = new Map(Types::String, Types::Class);
+        return this.languagePagesMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createPagesForLanguage</Name>
+				<Source><![CDATA[
+    protected TFMPages createPagesForLanguage(LanguageId _languageId)
+    {
+        TFMPages                pages = new TFMPages(); 
+        this.addPagesFromDocuments(pages);
+        this.addMenuPagesFromGroups(pages);
+        this.addAndPopuplateFromOverrridenPages(pages);
+        return pages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setupLinksAndDependantData</Name>
+				<Source><![CDATA[
+    protected void setupLinksAndDependantData(TFMPages _pages)
+    {
+        TFMProcessCollection    processes = TFMProcessProvider::GetAllProcessesImpl();
+        MapEnumerator			mEnum;
+        TFMPage					page;
+        TFMPageConfiguration	conf;
+        Map                     sortedMenuItems;
+
+        // Initialize Delta Layer
+        mEnum = _pages.getPages().getEnumerator();
+        while (mEnum.moveNext())
+        {
+            page = mEnum.currentValue();
+            conf = page.getConfiguration();
+            if (conf)
+            {
+                conf.updateDelta();
+            }
+        }
+
+        try
+        {
+            mEnum.reset();
+            while(mEnum.moveNext())
+            {
+                page = mEnum.currentValue();
+                    
+                sortedMenuItems = this.getSortedMenuItemsForPage(page);
+                TFMPageMenuItems::createMenuItems(sortedMenuItems, page); //insert into TFMMenuItemsTable
+
+
+                if(page is TFMPageUnplannedItemRegistration)
+                {
+                    this.setUpValuesForUnplannedItemRegistrations(page, processes);
+                }
+
+            }
+        }
+        catch
+        {
+        }
+
+        try
+        {
+            // make sure the default work flows has been created
+            TFMWorkflowProvider::loadDefaultWorkflows();
+        }
+        catch
+        {
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setUpValuesForUnplannedItemRegistrations</Name>
+				<Source><![CDATA[
+    protected void setUpValuesForUnplannedItemRegistrations(TFMPageUnplannedItemRegistration _page, TFMProcessCollection _processes)
+    {
+        TFMProcess   process;
+        Set          collectors;
+        str          useRegistrationCollector;
+        TFMPageUnplannedItemRegistrationConfiguration conf = _page.getConfiguration() as TFMPageUnplannedItemRegistrationConfiguration;
+
+        if(conf.parmUseRegistrationCollector() == 'auto' && _processes.processExists(conf.parmType()))
+        {
+            process = TFMProcessProvider::GetAllProcessesImpl().getNewestLockedProcess(conf.parmType());
+            collectors = process.blockCollection().getRawCollectors();
+            useRegistrationCollector  = collectors.elements()  ? TFMConstants::True() : TFMConstants::False();
+            conf.parmUseRegistrationCollector(useRegistrationCollector);
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addMandatoryAndDefaultMenuItemsToAllPages</Name>
+				<Source><![CDATA[
+        /// <summary>
+        /// Adds mandatory and (depending on existing menu items) standard menu items for the page.
+        /// </summary>
+    public void addMandatoryAndDefaultMenuItemsToAllPages()
+    {
+        TFMPage page;
+        MapEnumerator mEnum;
+
+        mEnum = this.getEntityImpl().getPages().getEnumerator();
+        while (mEnum.moveNext())
+        {
+            page = mEnum.currentValue();
+            Map sortedMenuItems = this.getSortedMenuItemsForPage(page);
+            TFMPageMenuItems::createMenuItems(sortedMenuItems, page); //insert into TFMMenuItemsTable
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSortedMenuItemsForPage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets a map mandatory and standard menu items for the page. 
+    /// If there are menu items added to the page then the default actions will not be returned but only mandatory menu items. If no menu items has been added then 
+    /// </summary>
+    /// <param name = "_page"></param>
+    /// <returns></returns>
+    public Map getSortedMenuItemsForPage(TFMPage _page) //public for testing purpose
+    {
+        TFMPageMenuItems	    menuItemsTable;
+        List                    menuItemsList = new List(Types::Class); //list of MenuItemStateConfiguration objects.
+        Map					    menuItems;
+        Map					    actions = new Map(Types::String, Types::Class);
+        MapEnumerator		    actionsEnum;
+        Map                     mergedMenuItems;
+
+        // create the suggested menu items for the the page if no menu items has been added for the page.
+        select firstonly menuItemsTable where menuItemsTable.PageID == _page.parmId();
+
+        // get all menu items before creating them to make support for sorting.
+        if(!menuItemsTable)
+        {
+            menuItems = _page.getPageActions();
+        }
+
+        // get mandatory menu items for the pages.
+        mergedMenuItems = TFMHelper::mergeMaps(menuItems, TFMPageMenuItems::getMandatoryMenuItems(_page));
+
+        // sort menu items
+        return this.sortMenuItemsBySortingValue(mergedMenuItems);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sortMenuItemsBySortingValue</Name>
+				<Source><![CDATA[
+    private Map sortMenuItemsBySortingValue(Map menuItemsMapToSort)
+    {
+        TFMMenuItemStateConfiguration menuItem;
+        MapEnumerator mergedMenuItemsEnum = menuItemsMapToSort.getEnumerator();
+        Map           sortedMenuItems = new Map(Types::Real, Types::Class);
+        Map           promotedMenuItems = new Map(Types::Real, Types::Class);
+        MapEnumerator promotedMenuItemsEnum;
+        real promotedMenuSortValue = 4;
+        real sortingValue;
+
+        while(mergedMenuItemsEnum.moveNext())
+        {
+            menuItem = mergedMenuItemsEnum.currentValue();
+            sortingValue = this.findSortingValue(sortedMenuItems, menuItem.getPageActionSetup() && menuItem.getPageActionSetup().parmSortingValue() > 0 ? menuItem.getPageActionSetup().parmSortingValue() : menuItem.parmPromoted());
+            if(menuItem.parmPromoted() > -1 || (menuItem.getPageActionSetup() && menuItem.getPageActionSetup().parmPromoted()))
+            {
+                promotedMenuItems.add(this.findPromotedSortingValue(promotedMenuItems, sortingValue ? sortingValue : promotedMenuSortValue), menuItem); //making sure we do not override an existing value.
+                promotedMenuSortValue = promotedMenuSortValue + 2;
+            } 
+            else
+            {
+                sortedMenuItems.add(sortingValue, menuItem);
+            }
+        }
+
+        promotedMenuItemsEnum = promotedMenuItems.getEnumerator();
+        
+        while(promotedMenuItemsEnum.moveNext())
+        {
+            menuItem = promotedMenuItemsEnum.currentValue();
+            sortedMenuItems.add(promotedMenuItemsEnum.currentKey(), menuItem);
+        }
+
+        return sortedMenuItems;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findSortingValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds the sorting value to use. If the sorting value already exist it adds 0.1 to the sortingValue.
+    /// </summary>
+    /// <returns></returns>
+    private real findSortingValue(Map _sortedMenuItems, real _sortingValue)
+    {
+        if(_sortingValue < 0.1)
+        {
+            _sortingValue = 50;
+        }
+
+        if(_sortedMenuItems.exists(_sortingValue))
+        {
+            return this.findSortingValue(_sortedMenuItems, _sortingValue + 0.2);
+        }
+        return _sortingValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findPromotedSortingValue</Name>
+				<Source><![CDATA[
+    private real findPromotedSortingValue(Map _promotedMenuItem, real _sortingValue)
+    {
+        if(_promotedMenuItem.exists(_sortingValue))
+        {
+            return this.findPromotedSortingValue(_promotedMenuItem, _sortingValue + 0.2);
+        }
+        return _sortingValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addPagesFromDocuments</Name>
+				<Source><![CDATA[
+    protected void addPagesFromDocuments(TFMPages _pages)
+    {
+        TFMGetPagesVisitor     getPagesVisitor = new TFMGetPagesVisitor(_pages);
+        TFMDocumentHandlersProvider::visitDocumentHandlers(getPagesVisitor);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addMenuPagesFromGroups</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Goes through all "Custom" groups and add them as MenuPages
+    /// </summary>
+    protected void addMenuPagesFromGroups(TFMPages _pages)
+    {
+        TFMPage             menuPage;
+        TFMMenuGroups		menuGroups;
+        TFMMenuPermissions  menuPermissions;
+        boolean             menusDidNotExists;
+
+        try
+        {
+            // create MenuGroups if no groups has been set up.
+            select firstonly menuGroups;
+            if(!menuGroups)
+            {
+                TFMMenuGroups::createMenuGroups(_pages);
+            }
+        }
+        catch
+        {
+        }
+
+        
+        while select menuGroups
+        {
+            menuPage = TFMPagesProvider::createMenuPage(menuGroups);
+            _pages.addPage(menuPage);
+        }
+
+        try
+        {
+            // create menu permissions if no permissions has been set up. Adds the default menu items to their groups.
+            select firstonly menuPermissions;
+            if(!menuPermissions)
+            {
+                TFMMenuPermissions::addDefaultMenuPermissions(_pages);
+            }
+        }
+        catch
+        {
+        }
+       
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>menuGroupVersionNumber</Name>
+				<Source><![CDATA[
+    protected static str menuGroupVersionNumber()
+    {
+        UserGroupList       userGroupList;
+        int64               versionInt;
+
+        while select RecId from userGroupList where userGroupList.userId == curUserId()
+        {
+            versionInt = (!versionInt ? userGroupList.RecId : versionInt & userGroupList.RecId);
+        }
+        return int642Str(versionInt);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createMenuPage</Name>
+				<Source><![CDATA[
+    public static TFMPageMenuPage createMenuPage(TFMMenuGroups _menuGroup)
+    {
+        TFMPageMenuPage menuPage = new TFMPageMenuPage();
+        TFMPageMenuConfiguration menuConfiguration;
+        str menuGroupId = _menuGroup.MenuGroupId;
+        menuPage.parmId(menuGroupId);
+        
+        // do the menu icon magic.
+        str icon = _menuGroup.Icon;
+        if(!icon)
+        {
+            icon = 'icon';
+        }
+        else if(_menuGroup.GroupingTypeIcon && menuGroupId != TFMConstants::MenuGroupMainMenu())
+        {
+            icon = _menuGroup.MenuGroupId + '_' + _menuGroup.GroupingTypeIcon + '-' + strAlpha(datetime2Str(_menuGroup.ModifiedDateTime)) + TFMPagesProvider::getUserGroupStr() + TFMConstants::pageIcon();
+        }
+
+        menuPage.parmIcon(icon);
+        menuPage.parmTitle('@{'+menuGroupId+'}');
+        menuPage.parmAvailableForMenuPages(!_menuGroup.UnattachableInMenus);
+
+        if(menuPage.parmAvailableForMenuPages() && menuGroupId != TFMConstants::MenuGroupMainMenu())
+        {
+            menuPage.addPageBelongsToMenuGroups(TFMConstants::MenuGroupMainMenu());
+        }
+
+        else if(menuGroupId == TFMConstants::MenuGroupMainMenu())
+        {
+            menuConfiguration = menuPage.getConfiguration();
+            menuConfiguration.parmWarnOnNavigationBackWarningType(TFMOverDeliveryValidation::Warn);
+        }
+        
+        return menuPage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addAndPopuplateFromOverrridenPages</Name>
+				<Source><![CDATA[
+    protected void addAndPopuplateFromOverrridenPages(TFMPages _pages)
+    {
+        TFMDeltaPages mobQueryPages;
+        TFMPage pageClass;
+        
+        while select mobQueryPages
+        {
+            TFMPage page = _pages.getPage(mobQueryPages.Name);
+            if(!page)
+            {
+                page = TFMPage::getPageClass(mobQueryPages.type,mobQueryPages.Name);
+                _pages.addPage(page);
+            }
+
+            // populate with overridden values
+            if (mobQueryPages.Icon)
+            {
+                page.parmIcon(mobQueryPages.Icon);
+            }
+            if (mobQueryPages.Title)
+            {
+                page.parmTitle(mobQueryPages.Title);
+            }
+            if (mobQueryPages.FilterName)
+            {
+                page.parmFilter(mobQueryPages.FilterName);
+            }
+            if (mobQueryPages.Description)
+            {
+                page.parmDescription(mobQueryPages.Description);
+            }
+
+            //PB: Should we support overridding the type that is found in query pages.?
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>version</Name>
+				<Source><![CDATA[
+    public str version()
+    {
+        TFMPageConfigParms  deltaParms;
+        TFMDeltaPages       confPages;
+        TFMMenuPermissions  menuPermissions;
+        TFMPageMenuItems    menuItems;
+        TFMPinnableValues   pVs;
+        
+        TFMPagesProvider    provider = TFMPagesProvider::instance();
+
+        select firstonly confPages order by ModifiedDateTime desc;
+        select firstonly deltaParms order by ModifiedDateTime desc;
+        select firstonly menuPermissions order by ModifiedDateTime desc;
+        select firstonly menuItems order by ModifiedDateTime desc;
+        select firstonly pVs order by ModifiedDateTime desc;
+
+        return strFmt('C%1.P%2.%3.%4.%5.%6.%7.%8', int2Str(provider.versionUpdateCounter), confPages.RecVersion, this.formatDateForVersion(deltaParms.ModifiedDateTime), this.formatDateForVersion(menuPermissions.ModifiedDateTime)
+            , this.formatDateForVersion(menuItems.ModifiedDateTime), this.formatDateForVersion(pVs.ModifiedDateTime), TFMPagesProvider::menuGroupVersionNumber(), TFMPagesProvider::getUserGroupStr());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>developerMode</Name>
+				<Source><![CDATA[
+	public boolean developerMode()
+    {
+        return devMode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getUserGroupStr</Name>
+				<Source><![CDATA[
+    public static str getUserGroupStr()
+    {
+        UserGroupList   userGroupList;
+        str userGroupsStr = '';
+        while select userGroupList where userGroupList.UserId  == curUserId()
+        {
+            userGroupsStr += userGroupList.groupId;
+        }
+        return userGroupsStr; 
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formatDateForVersion</Name>
+				<Source><![CDATA[
+    private str formatDateForVersion(ModifiedDateTime dateTime)
+    {
+        return strKeep(System.String::Format('{0:s}', dateTime), '1234567890');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

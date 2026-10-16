@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMList</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMList
+{
+    TFMListId			listName;
+    TFMDeltaLevel		deltaLevel;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmListName</Name>
+				<Source><![CDATA[
+	public TFMListId parmListName(TFMListId _listName = listName)
+    {
+        listName = _listName;
+        return listName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        this.setListName();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setListName</Name>
+				<Source><![CDATA[
+    private void setListName()
+    {
+        // Remove the ...List part of the class name and use that for the default list name.
+        str classNameStr = classId2Name(classIdGet(this));
+        int placementOfList = strScan(strLwr(classNameStr), 'list', 2, 10);
+        if( placementOfList > 1) 
+        {
+            listName = subStr(classNameStr, placementOfList + 4 , strLen(classNameStr) - (placementOfList + 3));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDeltaLevel</Name>
+				<Source><![CDATA[
+    public TFMDeltaLevel parmDeltaLevel(TFMDeltaLevel _deltaLevel = deltaLevel)
+    {
+        deltaLevel = _deltaLevel;
+        return deltaLevel;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>hasApprovedVersion</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns true if there is an approved version of the list. That is either a code version or an approved list(delta) version.
+    /// </summary>
+    /// <returns></returns>
+    public boolean hasApprovedVersion()
+    {
+        return (this.parmDeltaLevel() == TFMDeltaLevel::Code || TFMListsVersion::newestVersion(this.parmListName(), true).RecId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getListConfiguration</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the listConfiguration with the provided TFMListsVersion. If the list has a version it is in the delta layer and will be fetched from the database.
+    /// </summary>
+    /// <param name = "_listVersion">The version of the list configuration to fetch. If no version provided the Newest Locked/Approved version</param>
+    /// <returns></returns>
+    public TFMListConfiguration getListConfiguration(TFMListsVersion _listVersion = TFMListsVersion::newestVersion(this.parmListName()))
+    {
+        if(!_listVersion || !_listVersion.RecId)
+        {
+            _listVersion = TFMListsVersion::newestVersion(this.parmListName());
+        }
+        return TFMListConverter::buildListConfiguration(this, _listVersion);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Do not use directly but this method is overridden in inheriting classes. 
+    /// This method constructs the ListConfiguration from code.
+    /// </summary>
+    /// <returns></returns>
+    public TFMListConfiguration getList()
+    {
+        TFMListConfiguration	config = TFMListConfiguration::Construct(listName);
+        return config;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMList Construct(TFMLists _list)
+    {
+        TFMList list = new TFMList();
+        list.parmListName(_list.ListId);
+        return list;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeColumnsInRowElement</Name>
+				<Source><![CDATA[
+    public static void makeColumnsInRowElement(TFMListRow _row, int _noOfRows, int _noOfCols, int _totalWidth, int _lineStart = 1)
+    {
+        int									rowCount, columnCount, DisplayLineCount = _lineStart;
+        TFMListColumn						column;
+        int									colWidth = real2int(_totalWidth / _noOfCols);
+        int									colRest = _totalWidth - colWidth*_noOfCols;
+        Map									columns = new Map(Types::Integer, Types::Class);
+
+        for (rowCount = 1; rowCount <=_noOfRows; rowCount++)
+        {
+            
+            for (columnCount = 1; columnCount <= _noOfCols; columnCount++)
+            {
+                if(columns.exists(columnCount))
+                {
+                    column = columns.lookup(columnCount);
+                }
+				else
+                {
+                    column		= _row.makeColumn(colWidth + (columnCount == 1 ? colRest :0));
+                    columns.insert(columnCount, column);
+                }
+                column.addElement(TFMListTextElement::ConstructTextElement('{DisplayLine'+int2Str(DisplayLineCount)+'_Label}',TFMFonts::FindOrCreateFromProperties('SmallHeaderFont',TFMFontSizes::small,true,false,'').id,SysChartHorizontalAlignment::Left,TFMVerticalAlignment::Top));
+                column.addElement(TFMListTextElement::ConstructTextElement('{DisplayLine'+int2Str(DisplayLineCount)+'}',TFMFonts::FindOrCreateFromProperties('smallFont',TFMFontSizes::small,false,false,'').id,SysChartHorizontalAlignment::Left,TFMVerticalAlignment::Top));
+                DisplayLineCount++;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeDisplayLinesInRowElement</Name>
+				<Source><![CDATA[
+    public static void makeDisplayLinesInRowElement(TFMListRow _row, int _noOfRows, int _totalWidth, int _lineStart = 1)
+    {
+        int									rowCount, columnCount, DisplayLineCount = _lineStart;
+        TFMListColumn						column;
+        int									colWidth = real2int(_totalWidth / 2);
+        int									colRest = _totalWidth - colWidth*2;
+        Map									columns = new Map(Types::Integer, Types::Class);
+
+        for (rowCount = 1; rowCount <=_noOfRows; rowCount++)
+        {
+            
+            for (columnCount = 1; columnCount <= 2; columnCount++)
+            {
+                if(columns.exists(columnCount))
+                {
+                    column = columns.lookup(columnCount);
+                }
+                else
+                {
+                    column = _row.makeColumn(colWidth + (columnCount == 1 ? colRest :0));
+                    columns.insert(columnCount, column);
+                }
+				if (columnCount mod 2)
+                {
+                    column.addElement(TFMListTextElement::ConstructTextElement('{DisplayLine'+int2Str(DisplayLineCount)+'_Label}',TFMFonts::FindOrCreateFromProperties('SmallHeaderFont',TFMFontSizes::small,true,false,'').id,SysChartHorizontalAlignment::Left,TFMVerticalAlignment::Top));
+                }
+				else
+                {
+                    column.addElement(TFMListTextElement::ConstructTextElement('{DisplayLine'+int2Str(DisplayLineCount)+'}',TFMFonts::FindOrCreateFromProperties('smallFont',TFMFontSizes::small,false,false,'').id));
+                }
+            }
+            DisplayLineCount++;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeDisplayLinesInColumnElement</Name>
+				<Source><![CDATA[
+    public static void makeDisplayLinesInColumnElement(TFMListColumn _column, int _lineStart, int _noOfLines, str _font, boolean _labelPrefix = true)
+    {
+        int lineCount;
+        for (lineCount = _lineStart; lineCount <_lineStart+_noOfLines; lineCount++)
+        {            
+            _column.addElement(TFMListTextElement::ConstructTextElement((_labelPrefix ? '{DisplayLine'+int2Str(lineCount)+'_Label}: ' : '')+'{DisplayLine'+int2Str(lineCount)+'}',_font));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement	_listsElement, TFMListsVersion _listVersion = TFMListsVersion::newestVersion(this.parmListName()), boolean _expandCustomComponents = true)
+    {
+        TFMListConfiguration listConf = this.getListConfiguration(_listVersion);
+        listConf.appendToXML(_listsElement, _expandCustomComponents);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDataFromDataSet</Name>
+				<Source><![CDATA[
+    public Common getDataFromDataSet(TFMPageDatasources _datasource)
+    {
+        QueryRun				queryRun;
+        QueryBuildDataSource    qbd;
+        Query					query;
+        Common					common;
+        SysDictTable			sdt = new SysDictTable(tableName2Id(_datasource.TableName));
+
+		if (sdt)
+        {
+            common = sdt.makeRecord();
+        }
+
+        if (_datasource.PackedQuery != conNull())
+        {
+            queryRun = new QueryRun(_datasource.PackedQuery);
+            
+            if (!queryRun.query().dataSourceTable(tableName2Id(_datasource.TableName)))
+            {
+                _datasource.PackedQuery = conNull();
+            }
+        }
+		
+        if (_datasource.TableName && _datasource.PackedQuery == conNull())
+        {
+            query = new Query();
+            qbd = query.addDataSource(tableName2Id(_datasource.TableName));
+            queryRun = new QueryRun(query);			
+        }
+        while (queryRun && queryRun.next())
+        {
+            common = queryRun.get(tableName2Id(_datasource.TableName));
+            break;
+        }
+        return common;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

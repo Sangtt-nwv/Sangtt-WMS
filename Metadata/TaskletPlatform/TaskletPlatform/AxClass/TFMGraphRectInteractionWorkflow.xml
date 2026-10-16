@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMGraphRectInteractionWorkflow</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMGraphRectInteractionWorkflow extends TFMGraphRectInteraction
+{
+    ResourceName resName;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>draw</Name>
+				<Source><![CDATA[
+    public void draw(System.Drawing.Graphics _bmpDC, boolean _drawText = false)
+    {
+        int fontSize = real2int((16.0/124.0)*(rRight-rLeft));
+        System.Drawing.Image resImg		= TFMImageHelper::base64ToImage(TFMImageHelper::resource2Base64(resName));
+
+        TFMGraphicsHelper::drawGradient(_bmpDC,real2int(rLeft),real2int(rTop),real2int(rRight-rLeft),real2int(rBottom-rTop),textColor,241 + 243 << 8 + 249 << 16 + 255 << 24,false,false);
+        TFMGraphicsHelper::drawGradient(_bmpDC,real2int(rLeft),real2int(rTop),real2int(rRight-rLeft),real2int(fontSize*1.5),28 + 53 << 8 + 94 << 16 + 255 << 24 ,28 + 53 << 8 + 94 << 16 + 255 << 24,false,false);
+        TFMGraphicsHelper::drawBmpEdges(_bmpDC,real2int(rLeft),real2int(rTop),real2int(rRight-rLeft),real2int(rBottom-rTop),70 <<16 + 114 << 8 + 196 + 255 << 24 ,false,false);
+        if (_drawText)
+        {
+            this.drawTextAtTopAndSubText(_bmpDC,text,subText,updates);
+        }
+        _bmpDC.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode::AntiAlias;
+        _bmpDC.DrawImage(resImg,new System.Drawing.Rectangle(real2int(rRight)-27,real2int(rBottom)-21,resImg.Width, resImg.Height));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawTextAtTopAndSubText</Name>
+				<Source><![CDATA[
+    public void drawTextAtTopAndSubText(System.Drawing.Graphics _bmpDC, str _text = '', str _subText ='', str _updatesText = '')
+    {
+        int fontSize = real2int((16.0/124.0)*(rRight-rLeft));
+        System.Drawing.Color    color = System.Drawing.Color::FromArgb(64<<24);
+        System.Drawing.Pen      Pen = new System.Drawing.Pen(color,1);
+        int						textHeight;
+
+        textHeight = TFMGraphicsHelper::drawText(_bmpDC,real2int(rLeft+(rRight-rLeft)/2),real2int(rTop+fontSize*0.8),textColor,_text,fontSize*0.5,SysChartHorizontalAlignment::Center,  SysChartVerticalAlignment::Middle ,true,true,'Verdana',this.iWidth());
+        _bmpDC.DrawLine(Pen,real2int(rLeft),real2int(rTop+fontSize*1.5),real2int(rRight),real2int(rTop+fontSize*1.5));
+        //_bmpDC.DrawLine(Pen,real2int(rLeft),real2int(rTop+fontSize*1.5)-textHeight,real2int(rRight),real2int(rTop+fontSize*1.5)-textHeight);
+        
+        textHeight = TFMGraphicsHelper::drawText(_bmpDC,real2int(rLeft+3),real2int(rTop+fontSize*1.5+2),255 << 24, "@TFM:Pagesusingvalidation"+':',7,SysChartHorizontalAlignment::Left,SysChartVerticalAlignment::Auto,true);
+        color = System.Drawing.Color::FromArgb(255 << 24);
+        Pen = new System.Drawing.Pen(color,1);
+        _bmpDC.DrawLine(Pen,real2int(rLeft) +5,real2int(rTop+fontSize*1.5 + 2) + textHeight ,real2int(rRight)-5,real2int(rTop+fontSize*1.5 +2) + textHeight);
+        TFMGraphicsHelper::drawText(_bmpDC,real2int(rLeft+3),real2int(rTop+fontSize*1.5+2),255 << 24, _subText,7);
+        //TFMGraphicsHelper::drawText(_bmpDC,real2int(rLeft+3),real2int(rBottom-fontSize*1.5+2),255+192<<24 ,'Trutter i '+ _updatesText,7,SysChartHorizontalAlignment::Auto,  SysChartVerticalAlignment::Auto,false,true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmResourceName</Name>
+				<Source><![CDATA[
+    public ResourceName parmResourceName(ResourceName _resName = ResName)
+    {
+        resName = _resName;
+        return resName;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

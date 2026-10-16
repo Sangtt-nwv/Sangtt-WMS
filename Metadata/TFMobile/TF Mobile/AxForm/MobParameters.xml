@@ -1,0 +1,2018 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>MobParameters</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class MobParameters extends FormRun
+{
+    InventLocationId			inventLocationId;
+    
+    [FormObservable]
+    str                 versionStr = '';
+    [FormObservable]
+    str                 publisher = '';
+    [FormObservable]
+    str                 versionName = '';
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        MobVersion versionClass = MobVersion::Construct();
+        versionStr = versionClass.getModelVersion();
+        publisher = versionClass.getModelPublisher();
+        versionName = versionClass.getVersionName();
+        super();
+        MobParameters::find();
+        this.UpdateOverwrites();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void run()
+    {
+        super();
+        MobVersion::Construct().populateGroupWithExtensions(AddOnsGroup);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setPickReceive</Name>
+				<Source><![CDATA[
+    void setPickReceive(boolean checked)
+    {
+        Mobpick.allowEdit(checked);
+        Mobreceive.allowEdit(checked);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UpdateOverwrites</Name>
+				<Source><![CDATA[
+    void UpdateOverwrites()
+    {
+        this.setPickReceive(pickReceiveTypes.OverwriteDefault);
+        UnderDeliveryValidation.enabled( MobParameters.PickProd );
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modelVersion</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public display Description modelVersion()
+    {
+        return versionStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modelPublisher</Name>
+				<Source><![CDATA[
+    public display Name modelPublisher()
+    {
+        
+        return publisher;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modelVersionName</Name>
+				<Source><![CDATA[
+    public display Name modelVersionName()
+    {
+        return versionName;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>MobParameters</Name>
+				<Methods />
+				<Fields>
+					<Field>
+						<DataField>PickPickingRoute</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+                if (MobParameters.PickPickingRoute)
+                {
+                    MobParameters.PickSale = NoYes::No;
+                }
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+					<Field>
+						<DataField>PickProd</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+                UnderDeliveryValidation.enabled( MobParameters.PickProd );
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+					<Field>
+						<DataField>PickSale</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+                if (MobParameters.PickSale)
+                {
+                    MobParameters.PickPickingRoute = NoYes::No;
+                }
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+					<Field>
+						<DataField>ReceiveArrival</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+                if (MobParameters.ReceiveArrival)
+                {
+                    MobParameters.ReceivePurch = NoYes::No;
+                }
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+					<Field>
+						<DataField>ReceivePurch</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+                if (MobParameters.ReceivePurch)
+                {
+                    MobParameters.ReceiveArrival = NoYes::No;
+                }
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+			<DataSource>
+				<Name>pickReceiveTypes</Name>
+				<Methods />
+				<Fields>
+					<Field>
+						<DataField>PickPickingRoute</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+                if (pickReceiveTypes.PickPickingRoute)
+                {
+                    pickReceiveTypes.PickSale = NoYes::No;
+                }
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+					<Field>
+						<DataField>PickSale</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+                if (pickReceiveTypes.PickSale)
+                {
+                    pickReceiveTypes.PickPickingRoute = NoYes::No;
+                }
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+					<Field>
+						<DataField>ReceiveArrival</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+                if (pickReceiveTypes.ReceiveArrival)
+                {
+                    pickReceiveTypes.ReceivePurch = NoYes::No;
+                }
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+					<Field>
+						<DataField>ReceivePurch</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+                if (pickReceiveTypes.ReceivePurch)
+                {
+                    pickReceiveTypes.ReceiveArrival = NoYes::No;
+                }
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+			<DataSource>
+				<Name>InventLocation_1</Name>
+				<Methods>
+					<Method>
+						<Name>hasConfig</Name>
+						<Source><![CDATA[
+        display NoYes hasConfig(InventLocation invLoc)
+        {
+            return MobInventLocationsPickReceiveTypes::find( invLoc.InventLocationId).RecId  != 0;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret;
+            ret = super();
+            element.UpdateOverwrites();
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>init</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void init()
+        {
+            QueryBuildDataSource inventLocationQueryBuilder;
+            super();
+
+            inventLocationQueryBuilder = this.query().dataSourceTable(tableNum(InventLocation));
+            inventLocationQueryBuilder.addRange(fieldnum(InventLocation, WHSEnabled)).value(queryValue(NoYes::No));
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>DocumentTree</Name>
+				<Type>Tree</Type>
+				<Methods>
+					<Method>
+						<Name>selectionChanged</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name = "_OldItem"></param>
+        /// <param name = "_NewItem"></param>
+        /// <param name = "_how"></param>
+        public void selectionChanged(FormTreeItem _OldItem, FormTreeItem _NewItem, FormTreeSelect _how)
+        {
+            super(_OldItem, _NewItem, _how);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Location_Grid</Name>
+				<Type>Grid</Type>
+				<Methods>
+					<Method>
+						<Name>enter</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// ghosts og un-ghosts all checkboxes acroding to the value in OverVrite_OverWriteDefaults
+        /// </summary>
+        /// <remarks>
+        ///
+        /// </remarks>
+        
+        public void enter()
+        {
+            super();
+            element.UpdateOverwrites();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>OverWrite_OverwriteDefault</Name>
+				<Type>CheckBox</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            element.setPickReceive(this.checked());
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>MobParameters</Name>
+			<Table>MobParameters</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>CancelQtyOnOrder</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_ValidateBatch</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_ValidateLocation</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_ValidateQty</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_ValidateSerial</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DeveloperMode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DocuTypeId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ImageFrames</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventJournalNameCount</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventJournalNameLossProfit</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventJournalNameTagCounting</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventJournalNameTransfer</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Key</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>NumberSeqCode_PurchReceive</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OverDeliveryValidation</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PickPickingRoute</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PickProd</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PickRMA</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PickSale</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PickTransfer</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ProdJournalNameFinish</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReceiveArrival</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReceiveProductionInput</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReceivePurch</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReceiveRMA</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReceiveTransfer</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ShowImages</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SysAADClientId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TracingEnabled</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UnderDeliveryValidation</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>pickReceiveTypes</Name>
+			<Table>MobInventLocationsPickReceiveTypes</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventLocationId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OverwriteDefault</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PickPickingRoute</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PickProd</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PickSale</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PickTransfer</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReceiveArrival</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReceiveProductionInput</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReceivePurch</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReceiveRMA</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReceiveTransfer</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>InventLocation_1</JoinSource>
+			<LinkType>Active</LinkType>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>InventLocation_1</Name>
+			<Table>InventLocation</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>ActivityType_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AllowLaborStandards</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AllowMarkingReservationRemoval</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>BranchNumber</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ConsolidateShipAtRTW</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>createdBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>createdDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CustAccount_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CustAccount_HU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CycleCountAllowPalletMove</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DecrementLoadLine</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DefaultKanbanFinishedGoodsLocation</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DefaultProductionFinishGoodsLocation</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DefaultShipMaintenanceLoc</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DefaultStatusId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>emptyPalletLocation</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FSHStore</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventCountingGroup_BR</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventLocationId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventLocationIdGoodsInRoute_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventLocationIdQuarantine</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventLocationIdReqMain</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventLocationIdTransit</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventLocationLevel</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventLocationType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventProfileId_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventProfileType_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventSiteId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Manual</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>maxPickingRouteTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>maxPickingRouteVolume</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>modifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>modifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Name</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>NumberSequenceGroup_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>pickingLineTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PrintBOLBeforeShipConfirm</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ProdReserveOnlyWhse</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RBODefaultInventProfileId_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RBODefaultWMSLocationId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RBODefaultWMSPalletId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RemoveInventBlockingOnStatusChange</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReqCalendarId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReqRefill</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReserveAtLoadPost</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RetailInventNegFinancial</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RetailInventNegPhysical</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RetailWeightEx1</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RetailWMSLocationIdDefaultReturn</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RetailWMSPalletIdDefaultReturn</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UniqueCheckDigits</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>useWMSOrders</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>VendAccount</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>VendAccountCustom_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WarehouseAutoReleaseReservation</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WHSEnabled</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WMSAisleNameActive</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WMSLevelFormat</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WMSLevelNameActive</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WMSlocationIdDefaultIssue</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WMSLocationIdDefaultReceipt</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WMSLocationIdGoodsInRoute_RU</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WMSPositionFormat</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WMSPositionNameActive</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WMSRackFormat</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WMSRackNameActive</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>MobPageMenuItems</Name>
+			<Table>MobPageMenuItems</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Enabled</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Icon</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ImageProperty</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MenuType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OrderType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PageID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Promoted</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Title</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>VisibleWhenNoData</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>MobTracingUsers</Name>
+			<Table>MobTracingUsers</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UserId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@MobileWMS:MEL60</Caption>
+		<Pattern xmlns="">TableOfContents</Pattern>
+		<PatternVersion xmlns="">1.1</PatternVersion>
+		<Style xmlns="">TableOfContents</Style>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<AlignControl>No</AlignControl>
+				<ElementPosition>1073741823</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Tab</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>General</Name>
+						<ElementPosition>1073741822</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>GeneralTabTitle</Name>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>GeneralTabTitleText</Name>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@SYS2952</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabControl">
+								<Name>GeneralFastTab</Name>
+								<Type>Tab</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>GeneralTabPage</Name>
+										<Pattern>FieldsFieldGroups</Pattern>
+										<PatternVersion>1.1</PatternVersion>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>NumberSeq</Name>
+												<ElementPosition>805306365</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<Visible>No</Visible>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>NumberSeq_NumberSeqCode_PurchReceive</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>String</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>NumberSeqCode_PurchReceive</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>NumberSeq</DataGroup>
+												<DataSource>MobParameters</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>InventJournalTransfer</Name>
+												<ElementPosition>1073741820</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>InventJournalTransfer_InventJournalNameTransfer</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>String</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>InventJournalNameTransfer</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>InventJournalTransfer_InventJournalNameCount</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>String</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>InventJournalNameCount</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>InventJournalTransfer_InventJournalNameTagCounting</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>String</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>InventJournalNameTagCounting</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>InventJournalTransfer_InventJournalNameLossProfit</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>String</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>InventJournalNameLossProfit</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>InventJournalTransfer_ProdJournalNameFinish</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>String</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>ProdJournalNameFinish</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>InventJournalTransfer</DataGroup>
+												<DataSource>MobParameters</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>ShowInDevice</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>ShowInDevice_DocuTypeId</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>DocuTypeId</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>ShowInDevice_ImageFrames</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>ImageFrames</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>Images</DataGroup>
+												<DataSource>MobParameters</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>VersionGroup</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>VersionString</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataMethod>modelVersion</DataMethod>
+														<Label>@SYS16131</Label>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>Publisher</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataMethod>modelPublisher</DataMethod>
+														<Label>@SYS305181</Label>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>VersionName</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataMethod>modelVersionName</DataMethod>
+														<Label>@SYS34986</Label>
+													</AxFormControl>
+												</Controls>
+												<Caption>@SYS16131</Caption>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>AddOnsGroup</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls />
+												<Caption>@SYS104268</Caption>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>Logo</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls />
+											</AxFormControl>
+										</Controls>
+										<ColumnsMode>Fill</ColumnsMode>
+										<Caption>@SYS2952</Caption>
+									</AxFormControl>
+								</Controls>
+								<Style>FastTabs</Style>
+							</AxFormControl>
+						</Controls>
+						<HideIfEmpty>No</HideIfEmpty>
+						<Caption>@SYS2952</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>PickTab</Name>
+						<ElementPosition>1073741822</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>PickTabTitle</Name>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>GeneralTabTitleTextCopy1Copy1</Name>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@SYS2952</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabControl">
+								<Name>PickFastTab</Name>
+								<Type>Tab</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>PickTabPage</Name>
+										<Pattern>FieldsFieldGroups</Pattern>
+										<PatternVersion>1.1</PatternVersion>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>Pick</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<ElementPosition>1342177275</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Pick_PickSale</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>PickSale</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Pick_PickPickingRoute</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>PickPickingRoute</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Pick_PickProd</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>PickProd</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Pick_PickTransfer</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>PickTransfer</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Pick_PickRMA</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>PickRMA</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>Pick</DataGroup>
+												<DataSource>MobParameters</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>CancelPick</Name>
+												<ElementPosition>1610612730</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>CancelPick_CancelQtyOnOrderCopy1Copy1</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>CancelQtyOnOrder</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>CancelPick</DataGroup>
+												<DataSource>MobParameters</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>UnderDeliveryValidation</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<ElementPosition>1744830457</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormComboBoxControl">
+														<Name>UnderDeliveryValidation_UnderDeliveryValidationCopy1Copy1</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>ComboBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>UnderDeliveryValidation</DataField>
+														<DataSource>MobParameters</DataSource>
+														<Items />
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormComboBoxControl">
+														<Name>UnderDeliveryValidation_OverDeliveryValidationCopy1Copy1</Name>
+														<Type>ComboBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>OverDeliveryValidation</DataField>
+														<DataSource>MobParameters</DataSource>
+														<Items />
+													</AxFormControl>
+												</Controls>
+												<DataGroup>UnderDeliveryValidation</DataGroup>
+												<DataSource>MobParameters</DataSource>
+											</AxFormControl>
+										</Controls>
+										<ColumnsMode>Fill</ColumnsMode>
+										<Caption>@SYS50416</Caption>
+									</AxFormControl>
+								</Controls>
+								<Style>FastTabs</Style>
+							</AxFormControl>
+						</Controls>
+						<HideIfEmpty>No</HideIfEmpty>
+						<Caption>@SYS50416</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>ReceiveTab</Name>
+						<ElementPosition>1073741822</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>ReceiveTabTitle</Name>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>GeneralTabTitleTextCopy1</Name>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@SYS2952</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabControl">
+								<Name>receiveFastTab</Name>
+								<Type>Tab</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>ReceiveTabPage</Name>
+										<Pattern>FieldsFieldGroups</Pattern>
+										<PatternVersion>1.1</PatternVersion>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>Receive</Name>
+												<ElementPosition>1879048185</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Receive_ReceivePurch</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>ReceivePurch</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Receive_ReceiveTransfer</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>ReceiveTransfer</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Receive_ReceiveArrival</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>ReceiveArrival</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Receive_ReceiveProductionInput</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>ReceiveProductionInput</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>Receive_ReceiveRMA</Name>
+														<FilterExpression>%1</FilterExpression>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>ReceiveRMA</DataField>
+														<DataSource>MobParameters</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>Receive</DataGroup>
+												<DataSource>MobParameters</DataSource>
+											</AxFormControl>
+										</Controls>
+										<ColumnsMode>Fill</ColumnsMode>
+										<Caption>@SYS52744</Caption>
+									</AxFormControl>
+								</Controls>
+								<Style>FastTabs</Style>
+							</AxFormControl>
+						</Controls>
+						<HideIfEmpty>No</HideIfEmpty>
+						<Caption>@SYS52744</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>DocumentsTab</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>DocumentTabTitle</Name>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>DocumentTabTitleText</Name>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@SYS54210</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabControl">
+								<Name>DocumentsFastTab</Name>
+								<Type>Tab</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>DocumentsTabPage</Name>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>DocumentsGroup</Name>
+												<ElementPosition>1879048185</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Height>1000</Height>
+												<HeightMode>SizeToAvailable</HeightMode>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>SizeToAvailable</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormTreeControl">
+														<Name>DocumentTree</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<HeightMode>SizeToAvailable</HeightMode>
+														<Type>Tree</Type>
+														<Visible>No</Visible>
+														<FormControlExtension
+															i:nil="true" />
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormGroupControl">
+														<Name>DocParmTiles</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<Type>Group</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls />
+														<Columns>5</Columns>
+														<HideIfEmpty>No</HideIfEmpty>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormGroupControl">
+														<Name>BlackBar</Name>
+														<Height>20</Height>
+														<HeightMode>Manual</HeightMode>
+														<Type>Group</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls />
+														<HideIfEmpty>No</HideIfEmpty>
+														<FrameType>GroupedFieldsLabel</FrameType>
+													</AxFormControl>
+												</Controls>
+												<DataSource>MobParameters</DataSource>
+											</AxFormControl>
+										</Controls>
+										<Caption>@SYS7764</Caption>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>DocParmTab</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>ContentFromTree</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls />
+												<Columns>5</Columns>
+												<HideIfEmpty>No</HideIfEmpty>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+								</Controls>
+								<Style>FastTabs</Style>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS54210</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>WarehouseSetup</Name>
+						<ElementPosition>1610612734</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>WarehouseSetupTabTitle</Name>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>WarehouseSetupTabTitleText</Name>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>@MobileWMS:MEL85</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabControl">
+								<Name>WarehouseSetupFastTab</Name>
+								<Type>Tab</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>WarehouseSetupTabPage</Name>
+										<Type>TabPage</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>GroupTop</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<ElementPosition>715827882</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Height>250</Height>
+												<HeightMode>Auto</HeightMode>
+												<Type>Group</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormGridControl">
+														<Name>Location_Grid</Name>
+														<AllowEdit>No</AllowEdit>
+														<ElementPosition>1431655764</ElementPosition>
+														<FilterExpression>%1</FilterExpression>
+														<Type>Grid</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls>
+															<AxFormControl xmlns=""
+																i:type="AxFormCheckBoxControl">
+																<Name>hasConfig</Name>
+																<ElementPosition>715827880</ElementPosition>
+																<FilterExpression>%1</FilterExpression>
+																<HeightMode>Auto</HeightMode>
+																<Type>CheckBox</Type>
+																<VerticalSpacing>-1</VerticalSpacing>
+																<WidthMode>Auto</WidthMode>
+																<FormControlExtension
+																	i:nil="true" />
+																<BackgroundColor>WindowBackground</BackgroundColor>
+																<DataMethod>hasConfig</DataMethod>
+																<DataSource>InventLocation_1</DataSource>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormStringControl">
+																<Name>StringEdit</Name>
+																<ElementPosition>1073741822</ElementPosition>
+																<FilterExpression>%1</FilterExpression>
+																<HeightMode>Auto</HeightMode>
+																<Type>String</Type>
+																<VerticalSpacing>-1</VerticalSpacing>
+																<WidthMode>Auto</WidthMode>
+																<FormControlExtension
+																	i:nil="true" />
+																<DataField>InventLocationId</DataField>
+																<DataSource>InventLocation_1</DataSource>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormStringControl">
+																<Name>StringEdit1</Name>
+																<ElementPosition>1610612733</ElementPosition>
+																<FilterExpression>%1</FilterExpression>
+																<HeightMode>Auto</HeightMode>
+																<Type>String</Type>
+																<VerticalSpacing>-1</VerticalSpacing>
+																<WidthMode>Auto</WidthMode>
+																<FormControlExtension
+																	i:nil="true" />
+																<DataField>Name</DataField>
+																<DataSource>InventLocation_1</DataSource>
+															</AxFormControl>
+														</Controls>
+														<DataSource>InventLocation_1</DataSource>
+														<MultiSelect>No</MultiSelect>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>OverWrite_OverwriteDefault</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<ElementPosition>1073741823</ElementPosition>
+														<FilterExpression>%1</FilterExpression>
+														<HeightMode>Auto</HeightMode>
+														<Type>CheckBox</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<WidthMode>Auto</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>OverwriteDefault</DataField>
+														<DataSource>pickReceiveTypes</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormGroupControl">
+														<Name>Mobpick</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<ElementPosition>1431655764</ElementPosition>
+														<FilterExpression>%1</FilterExpression>
+														<HeightMode>Auto</HeightMode>
+														<Type>Group</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<WidthMode>Auto</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls>
+															<AxFormControl xmlns=""
+																i:type="AxFormCheckBoxControl">
+																<Name>Pick1_PickSale</Name>
+																<ElementPosition>715827882</ElementPosition>
+																<FilterExpression>%1</FilterExpression>
+																<HeightMode>Auto</HeightMode>
+																<Type>CheckBox</Type>
+																<VerticalSpacing>-1</VerticalSpacing>
+																<WidthMode>Auto</WidthMode>
+																<FormControlExtension
+																	i:nil="true" />
+																<DataField>PickSale</DataField>
+																<DataSource>pickReceiveTypes</DataSource>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormCheckBoxControl">
+																<Name>Pick1_PickPickingRoute</Name>
+																<ElementPosition>1073741823</ElementPosition>
+																<FilterExpression>%1</FilterExpression>
+																<HeightMode>Auto</HeightMode>
+																<Type>CheckBox</Type>
+																<VerticalSpacing>-1</VerticalSpacing>
+																<WidthMode>Auto</WidthMode>
+																<FormControlExtension
+																	i:nil="true" />
+																<DataField>PickPickingRoute</DataField>
+																<DataSource>pickReceiveTypes</DataSource>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormCheckBoxControl">
+																<Name>Pick1_PickProd</Name>
+																<ElementPosition>1431655764</ElementPosition>
+																<FilterExpression>%1</FilterExpression>
+																<HeightMode>Auto</HeightMode>
+																<Type>CheckBox</Type>
+																<VerticalSpacing>-1</VerticalSpacing>
+																<WidthMode>Auto</WidthMode>
+																<FormControlExtension
+																	i:nil="true" />
+																<DataField>PickProd</DataField>
+																<DataSource>pickReceiveTypes</DataSource>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormCheckBoxControl">
+																<Name>Pick1_PickTransfer</Name>
+																<ElementPosition>1789569705</ElementPosition>
+																<FilterExpression>%1</FilterExpression>
+																<HeightMode>Auto</HeightMode>
+																<Type>CheckBox</Type>
+																<VerticalSpacing>-1</VerticalSpacing>
+																<WidthMode>Auto</WidthMode>
+																<FormControlExtension
+																	i:nil="true" />
+																<DataField>PickTransfer</DataField>
+																<DataSource>pickReceiveTypes</DataSource>
+															</AxFormControl>
+														</Controls>
+														<DataGroup>Pick</DataGroup>
+														<DataSource>pickReceiveTypes</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormGroupControl">
+														<Name>MobReceive</Name>
+														<AutoDeclaration>Yes</AutoDeclaration>
+														<ElementPosition>1789569705</ElementPosition>
+														<FilterExpression>%1</FilterExpression>
+														<HeightMode>Auto</HeightMode>
+														<Type>Group</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<WidthMode>Auto</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<Controls>
+															<AxFormControl xmlns=""
+																i:type="AxFormCheckBoxControl">
+																<Name>Receive1_ReceivePurch</Name>
+																<ElementPosition>613566756</ElementPosition>
+																<FilterExpression>%1</FilterExpression>
+																<HeightMode>Auto</HeightMode>
+																<Type>CheckBox</Type>
+																<VerticalSpacing>-1</VerticalSpacing>
+																<WidthMode>Auto</WidthMode>
+																<FormControlExtension
+																	i:nil="true" />
+																<DataField>ReceivePurch</DataField>
+																<DataSource>pickReceiveTypes</DataSource>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormCheckBoxControl">
+																<Name>Receive1_ReceiveTransfer</Name>
+																<ElementPosition>920350134</ElementPosition>
+																<FilterExpression>%1</FilterExpression>
+																<HeightMode>Auto</HeightMode>
+																<Type>CheckBox</Type>
+																<VerticalSpacing>-1</VerticalSpacing>
+																<WidthMode>Auto</WidthMode>
+																<FormControlExtension
+																	i:nil="true" />
+																<DataField>ReceiveTransfer</DataField>
+																<DataSource>pickReceiveTypes</DataSource>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormCheckBoxControl">
+																<Name>Receive1_ReceiveArrival</Name>
+																<ElementPosition>1227133512</ElementPosition>
+																<FilterExpression>%1</FilterExpression>
+																<HeightMode>Auto</HeightMode>
+																<Type>CheckBox</Type>
+																<VerticalSpacing>-1</VerticalSpacing>
+																<WidthMode>Auto</WidthMode>
+																<FormControlExtension
+																	i:nil="true" />
+																<DataField>ReceiveArrival</DataField>
+																<DataSource>pickReceiveTypes</DataSource>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormCheckBoxControl">
+																<Name>Receive1_ReceiveProductionInput</Name>
+																<ElementPosition>1533916890</ElementPosition>
+																<FilterExpression>%1</FilterExpression>
+																<HeightMode>Auto</HeightMode>
+																<Type>CheckBox</Type>
+																<VerticalSpacing>-1</VerticalSpacing>
+																<WidthMode>Auto</WidthMode>
+																<FormControlExtension
+																	i:nil="true" />
+																<DataField>ReceiveProductionInput</DataField>
+																<DataSource>pickReceiveTypes</DataSource>
+															</AxFormControl>
+															<AxFormControl xmlns=""
+																i:type="AxFormCheckBoxControl">
+																<Name>Receive1_ReceiveRMA</Name>
+																<ElementPosition>1840700268</ElementPosition>
+																<FilterExpression>%1</FilterExpression>
+																<HeightMode>Auto</HeightMode>
+																<Type>CheckBox</Type>
+																<VerticalSpacing>-1</VerticalSpacing>
+																<WidthMode>Auto</WidthMode>
+																<FormControlExtension
+																	i:nil="true" />
+																<DataField>ReceiveRMA</DataField>
+																<DataSource>pickReceiveTypes</DataSource>
+															</AxFormControl>
+														</Controls>
+														<DataGroup>Receive</DataGroup>
+														<DataSource>pickReceiveTypes</DataSource>
+													</AxFormControl>
+												</Controls>
+												<FrameType>GroupedFieldsLabel</FrameType>
+											</AxFormControl>
+										</Controls>
+										<ColumnsMode>Fill</ColumnsMode>
+										<Caption>@SYS6437</Caption>
+									</AxFormControl>
+								</Controls>
+								<Style>FastTabs</Style>
+							</AxFormControl>
+						</Controls>
+						<Caption>@MobileWMS:MEL85</Caption>
+						<ParentPage>WarehouseSetup</ParentPage>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>Tracing</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>TOCMainTrace</Name>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>TraceInstruction</Name>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>TracingGroup</Name>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>MobParameters_TracingEnabled</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>TracingEnabled</DataField>
+										<DataSource>MobParameters</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormActionPaneControl">
+										<Name>FormActionPaneControl1</Name>
+										<Type>ActionPane</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonGroupControl">
+												<Name>FormButtonGroupControl1</Name>
+												<Type>ButtonGroup</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormCommandButtonControl">
+														<Name>NewTraceUser</Name>
+														<Type>CommandButton</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Command>New</Command>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCommandButtonControl">
+														<Name>DeleteTraceUser</Name>
+														<Type>CommandButton</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Command>Delete</Command>
+													</AxFormControl>
+												</Controls>
+												<DataSource>MobTracingUsers</DataSource>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>TraceUsers</Name>
+										<Type>Grid</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>MobTracingUsers_UserId</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>UserId</DataField>
+												<DataSource>MobTracingUsers</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataSource>MobTracingUsers</DataSource>
+									</AxFormControl>
+								</Controls>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS4004867</Caption>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<Style>VerticalTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts>
+		<AxFormPartReference xmlns="">
+			<Name>HelpPart</Name>
+			<MenuItemName>MobHelpPart</MenuItemName>
+		</AxFormPartReference>
+	</Parts>
+</AxForm>

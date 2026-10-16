@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrderLines_InventCount</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for Counting lines.
+/// </summary>
+[TFMTableNameAttribute(tableStr(InventJournalTrans))]
+class MobXMLFormatOrderLines_InventCount extends MobXMLFormatOrderLines_Invent
+{
+    InventJournalTrans      inventJournalTrans;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        InventJournalTable      iTbl;
+        WHSLicensePlateId       licensePlateId;
+        InventSum               iSum;
+        ItemId                  itemId;
+        Map                     itemIDs					= new Map(Types::String,Types::Real);
+        MapEnumerator           mEnum;
+        str                     itemString;
+        str                     itemImageStr            = '';
+
+        super();
+    
+        inventJournalTrans      = common;
+        iTbl                    = inventJournalTrans.inventJournalTable();
+        inventDim               = inventJournalTrans.inventDim();
+        orderBackendId          = MobOrder::constructFromTableName(tableStr(InventJournalTable),orderType).getBackendID(InventJournalTable::find(InventJournalTrans.JournalId));//#InventJournalCountPrefix + inventJournalTrans.JournalId;
+        lineNumber              = inventJournalTrans.InventTransId;
+        JournalID               = inventJournalTrans.JournalId;
+        status                  = MobConstants::NotUsed0();
+        
+        underDeliveryValidation = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),TFMUnderDeliveryValidation::None);
+        overDeliveryValidation  = MobHelper::enumName(enumnum(TFMUnderDeliveryValidation),TFMUnderDeliveryValidation::None);
+        if (iTbl.MobCountByLP && inventDim.LicensePlateId)
+        {
+            
+            FieldsToAdd.insert(TFMConstants::ValidateFromBin(), TFMConstants::False()); //Don't prompt for location if on LP
+            this.addBarcode(inventDim.LicensePlateId);
+            displayLine1            = new DictField(tablenum(InventDim), fieldnum(InventDim, LicenseplateId)).Label() + ': ' + inventDim.LicensePlateId;            
+            displayLine2            = new DictField(tablenum(WmsLocation), fieldnum(WmsLocation, WmsLocationId)).Label() + ': ' +inventDim.wMSLocationId;
+            registerBatchNumber     = false;            
+            fieldsToAdd.insert(TFMConstants::RegisterQuantityByScan(), TFMConstants::True());
+            registerSerialNumber    = false;
+            registeredQuantity      = MobConstants::NotUsed0();
+            itemNumber              = inventDim.LicensePlateId;
+            licensePlateId          = InventDim.LicensePlateId;
+            while select InventDim
+            where InventDim.LicensePlateId == licensePlateId
+            join iSum
+                where iSum.InventDimId     == InventDim.InventDimId    &&
+                  iSum.Closed          == NoYes::No && iSum.PhysicalInvent
+            {
+                itemIDs.insert(iSum.ItemId, (itemIDs.exists(iSum.ItemId) ? itemIDs.lookup(iSum.ItemId) : 0) + iSum.PhysicalInvent);
+                itemId = iSum.ItemId;
+                
+            }
+            mEnum = itemIDs.getEnumerator();
+            while(mEnum.moveNext())
+            {
+                itemString += (itemString ? "@MobileWMS:lineBreak" : '') + mEnum.currentKey() + ': ' + MobHelper::formatItemQty(mEnum.currentValue(), inventTable::find(mEnum.currentKey()).inventUnitId()) + ' ' +inventTable::find(mEnum.currentKey()).inventUnitId();
+                itemImageStr += (itemImageStr ? ',' : '') + mEnum.currentKey();
+            }
+
+            if (itemIDs.elements() == 1)
+            {
+                imageId = MobHelper::imageIDFromDocuref(MobHelper::FindItemDocuref(itemId,InventDim.InventDimId));
+                
+            }
+            else
+            {
+                //imageId = resourceStr(MobPalletWithItemsIcon);
+                imageID = itemImageStr;
+            }
+            displayLine3 = itemString;
+            return;
+        }
+
+        this.setInventDim(inventJournalTrans.ItemId);
+    
+        
+        itemNumber              = inventJournalTrans.ItemId;
+        
+        description             = InventTable::find(inventJournalTrans.itemId).productName(new xInfo().language());
+        quantity                = MobHelper::formatItemQty(inventJournalTrans.InventOnHand, inventJournalTrans.unitId());
+        registeredQuantity      = MobConstants::NotUsed0();
+        unitOfMeasure           = inventJournalTrans.unitId();
+                
+        this.addBarcode(inventDim.inventSerialId);
+        this.addBarcode(InventDim.inventBatchId);
+        
+        displayLine3            = new DictField(tablenum(InventJournalTrans), fieldnum(InventJournalTrans, ItemId)).Label() + ': ' + inventJournalTrans.ItemId;
+        displayLine1            = InventTable::find(inventJournalTrans.itemId).productName(new xInfo().language());
+        displayLine2            = new DictField(tablenum(WmsLocation), fieldnum(WmsLocation, WmsLocationId)).Label() + ': ' +inventDim.wMSLocationId;
+        fieldsToAdd.insert(extendedTypeStr(JournalId), JournalId);
+        //itemBarcodeQuantity     += (itemBarcodeQuantity ? ';' : '') + InventJournalTrans.ItemId + '{' + MobHelper::formatLineNum(1.0) + '}';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

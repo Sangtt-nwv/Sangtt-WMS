@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Form Patterns"
+  short_description: "Scaffold canonical D365FO forms and menu items"
+  default_prompt: "Use $form-pattern-scaffolding to scaffold a D365FO form and menu item."

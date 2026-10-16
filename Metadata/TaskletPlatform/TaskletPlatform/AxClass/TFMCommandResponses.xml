@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMCommandResponses</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMCommandResponses
+{
+    List commandResponses;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addCommandResponse</Name>
+				<Source><![CDATA[
+    public void addCommandResponse(TFMCommandResponse _commandResponse)
+    {
+        if (!commandResponses)
+        {
+            commandResponses = new List(Types::Class);
+        }
+        commandResponses.addEnd(_commandResponse);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCommandResponses</Name>
+				<Source><![CDATA[
+    public List getCommandResponses()
+    {
+        return commandResponses;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMCommandResponses Construct()
+    {
+        return new TFMCommandResponses();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _element)
+    {
+        if (commandResponses)
+        {
+            XmlElement commandResponsesElement = _element.ownerDocument().createElement('commands');
+            ListEnumerator enum = commandResponses.getEnumerator();
+            while (enum.moveNext())
+            {
+                TFMCommandResponse commandResponse = enum.current() as TFMCommandResponse;
+                if (commandResponse)
+                {
+                    
+                    commandResponse.appendToXML(commandResponsesElement);
+                    
+                }
+            }
+            _element.appendChild(commandResponsesElement);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

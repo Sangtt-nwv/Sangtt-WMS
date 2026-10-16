@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<IgnoreDiagnostics>
+  <Name>TF MobileWMS_BPSuppressions</Name>
+  <Items>
+    <Diagnostic>
+      <DiagnosticType>BestPractices</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics:://Table/TFMPostOrderPromptOverride/Method/addToCollectors</Path>
+      <Moniker>BPParameterNotUsed</Moniker>
+      <Justification>This parameter is used in the methods extending the method</Justification>
+    </Diagnostic>
+    <Diagnostic>
+      <DiagnosticType>BestPractices</DiagnosticType>
+      <Severity>Warning</Severity>
+      <Path>dynamics:://Table/TFMParameters</Path>
+      <Moniker>BPErrorTableDuplicateUITextField</Moniker>
+      <Justification>These parameters are in two different field groups and on two different tabs, and need to have the same Label.</Justification>
+    </Diagnostic>
+  </Items>
+</IgnoreDiagnostics>

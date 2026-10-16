@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobRequestValidationElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType(methodStr(MobOnlineValidator,GetSerialNumberInformation)),
+TFMDocumentType(methodStr(MobOnlineValidator,LineSelectionFromBarcode)),
+TFMDocumentType(methodStr(MobOnlineValidator,ValidateBatchNumber)),
+TFMDocumentType(methodStr(MobOnlineValidator,LocationValidation)),
+TFMDocumentType(methodStr(MobOnlineValidator,quantityValidation)),
+TFMDocumentType(methodStr(MobOnlineValidator,validateSerialNumberReceipt)),
+TFMDocumentType(methodStr(MobOnlineValidator,toteValidation)),
+TFMDocumentType(methodStr(MobOnlineValidator,toteTypeValidation))]
+class MobRequestValidationElement extends TFMRequestRegistrationElement
+{
+    str					    wmsLocationId; //Str, as location can be license plate in some instances
+    str					    bin;
+    str					    lineNumber;
+    TFMBackendId		    BackendID;
+    str                     orderType;
+    InventLocationId	    inventlocationid;
+    WHSContainerTypeCode    containerType;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmWHSContainerTypeCode</Name>
+				<Source><![CDATA[
+    public WHSContainerTypeCode parmWHSContainerTypeCode(WHSContainerTypeCode _containerType = containerType)
+    {
+        containerType = _containerType;
+        return containerType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBackendID</Name>
+				<Source><![CDATA[
+    public TFMBackendId parmBackendID(TFMBackendId _backendId = BackendID)
+    {
+        BackendID = _backendId;
+        return BackendID;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOrderType</Name>
+				<Source><![CDATA[
+    public TFMBackendId parmOrderType(TFMBackendId _orderType = orderType)
+    {
+        orderType = _orderType;
+        return orderType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOrderBackendID</Name>
+				<Source><![CDATA[
+    public TFMBackendId parmOrderBackendID(TFMBackendId _backendId = BackendID)
+    {
+        BackendID = _backendId;
+        return BackendID;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBin</Name>
+				<Source><![CDATA[
+    public str parmBin(str _bin = bin)
+    {
+        bin = _bin;
+        return bin;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInventlocationid</Name>
+				<Source><![CDATA[
+    public str parmInventlocationid(str _inventlocationid = inventlocationid)
+    {
+        inventlocationid = _inventlocationid;
+        return inventlocationid;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLineNumber</Name>
+				<Source><![CDATA[
+    public str parmLineNumber(str _lineNumber = lineNumber)
+    {
+        lineNumber = _lineNumber;
+        return lineNumber;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmwmsLocationId</Name>
+				<Source><![CDATA[
+    public str parmwmsLocationId(str _wmsLocationId = wmsLocationId)
+    {
+        wmsLocationId = _wmsLocationId;
+        return wmsLocationId;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

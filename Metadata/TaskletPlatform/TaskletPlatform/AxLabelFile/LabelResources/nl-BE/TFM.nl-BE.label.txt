@@ -1,0 +1,336 @@
+NewLabel0 = Etiketfiler oprettet den 06/14/2018 07:04:40 for label-fil Id TFM og sprog da-US
+ ; Etiket fil kommentar - se ovenfor etiket
+TFM1 = Etiketfiler oprettet den 31-05-2006
+ ; Af brugeradministrator
+TFM2 = Dokumentkø
+TFM3 = Microsoft Dynamics AX-bruger, der sendte dokumentet til køen.
+TFM4 = Status for dokumentet i køen.
+TFM5 = ID for dokumenttypen.
+TFM6 = Svar tid
+TFM7 = Svardato
+TFM8 = Type af dokumentet, der er sendt til køen.
+TFM9 = Indtast en beskrivelse af dokumenttypen.
+TFM10 = Indsend type
+TFM11 = Hvordan blev dokumentet sendt til køen, til direkte eller omregnet handling?
+TFM12 = kø
+TFM13 = Standard indsendelsestype
+TFM14 = Klassen der håndterer denne dokumenttype.
+TFM15 = Scanning for dokumenthåndteringsprogrammer
+TFM16 = Dokumenthåndteringsprogrammer
+TFM17 = Ukendt dokumenttype.
+TFM18 = Meddelelses-id eksisterer allerede.
+TFM19 = Ugyldig opsætning for dokumenttype ' %1'.
+TFM20 = Handler ' %1' understøtter ikke enqueued submittals. Skift standard indsendelsestype til 'Direkte'.
+TFM21 = Forespørgslen mislykkedes med følgende fejlmeddelelse: %1
+TFM22 = Dokumenttype brugere
+TFM23 = Besvaret
+TFM24 = Dokumentkø processor
+TFM25 = Kan ikke finde dokumenttype ' %1'.
+TFM26 = Brugerdefineret: Opret kunde
+TFM27 = Dit dokument bliver behandlet hurtigst muligt.
+TFM28 = Intet meddelelses-id i dokumentet, der er sendt til AX.
+TFM29 = Bruger ' %1' er ikke aktiveret for anmodningstype ' %2'.
+TFM30 = Standard dokumenthåndterer
+TFM31 = Standard-svaret svar
+TFM32 = RolePad: Opret kunde
+TFM33 = RolePad: Main request handler
+TFM34 = Ikke-understøttet RolePad-dokumenttype ' %1'.
+TFM35 = Opsæt brugere og brugergrupper, der har lov til at indsende denne type dokument.
+TFM36 = Unik identifikator for den besked, der blev modtaget.
+TFM37 = Se en kø af dokumenter, der er indsendt til systemet.
+TFM38 = Indstil de dokumenttyper, der kan indsendes til systemet.
+TFM39 = TFMil dokumenter
+TFM40 = Vis i oversigt
+TFM41 = Skal dette felt vises i oversigten på enheden?
+TFM42 = QueryValue
+TFM43 = MBA forespørgsler
+TFM44 = AIF-anmodningen kan kun indeholde en forælderskode.
+TFM45 = Rødknuden for AIF-meddelelsen skal være af typen 'konvolut'.
+TFM46 = MBA-anmodningen kan kun indeholde en forælderskode
+TFM47 = Din anmodning er blevet modtaget og vil blive behandlet.
+TFM48 = ID af den enhed, der sendte dokumentet til køen.
+TFM49 = Request
+TFM50 = Svar
+TFM51 = status
+TFM52 = Strengen er for lang for datatypen %1.
+TFM53 = ' %1' er ikke gyldig ' %2'.
+TFM54 = Meddelelses-id
+TFM55 = Applikationsbruger eller gruppe
+TFM56 = ID'en af ​​applikationsbrugeren eller brugergruppen.
+TFM57 = Enheds-id
+TFM58 = Dokumenttype
+TFM59 = Brugertype
+TFM60 = Type af bruger: Brugergruppe eller enkeltbruger.
+TFM61 = Bruger
+TFM62 = Completed
+TFM63 = Diverse
+TFM64 = Rapporter
+TFM65 = AIF
+TFM66 = Brugerdefineret: Opret salgsordre
+TFM67 = Behandle alle nye dokumenterede dokumenter i køen.
+TFM68 = Forhør om dokumenter fra mobile enheder.
+TFM69 = Jobs på dokumenter fra mobilenheder.
+TFM70 = Opsætning af mobile dokumenter.
+TFM71 = Slet dokumenter ældre end historikgrænsen.
+TFM72 = Ryd køen op
+TFM73 = Slet gamle poster i dokumentkøen.
+TFM74 = XML-anmodning sendt til køen fra en mobilenhed.
+TFM75 = Svar returneret til mobilenheden, når anmodningen er modtaget.
+TFM76 = Faktisk resultat af anmodningen. For direkte behandling er resultatet indstillet, når dokumentet indsendes; Ved enkodet behandling er resultatet indstillet, når dokumentkøen behandles.
+TFM77 = Staging database
+TFM78 = Navn på tabellen i stationsdatabasen.
+TFM79 = Staging database tabeller
+TFM80 = Konfigurer tabeller til denne staging database.
+TFM81 = Læs databaseskema
+TFM82 = Læs databaseskema fra stationsdatabasen.
+TFM83 = Navn på feltet i stationsdatabasen.
+TFM84 = Type af feltet i stationsdatabasen.
+TFM85 = Staging database felter
+TFM86 = Opsætning af felter til denne databasetabell.
+TFM87 = Indtast filnavnet på SSIS-pakken (.dtsx-filen) for at bruge som en skabelon for de genererede pakker.
+TFM88 = Vælg SSIS-pakken
+TFM89 = Kortlægningstabel
+TFM90 = Vælg en primær tabel, hvormed du skal kortlægge databasetabellen.
+TFM91 = Ingen kortlægning
+TFM92 = Normalfelt
+TFM93 = Fast værdi
+TFM94 = Kortlægningstype
+TFM95 = Hvordan skal feltet i staging-databasen være kortlagt til Microsoft Dynamics AX-tabellen?
+TFM96 = Kortlægningsfelt
+TFM97 = Vælg det felt, hvorpå du skal kortlægge databaseportfeltet.
+TFM98 = Intet gyldigt resultat fra handler ' %1'.
+TFM99 = Ugyldige data i ' %1' anmodning.
+TFM100 = Prøve: Opret kunde
+TFM101 = Fejl ved udførelse af kode:
+TFM102 = Stack spor
+TFM103 = %1 - linje %2
+TFM104 = Behandle markerede forespørgsler i dokumentkøen.
+TFM105 = Indholdsemne
+TFM106 = Kunde navn: ' %1'
+TFM107 = Parametre indstillet til dokumenttypen.
+TFM108 = Opsætning af parametre for handlerklassen valgt til dokumenttypen.
+TFM109 = Kunde ' %1', Element ' %2'
+TFM110 = Handler skema
+TFM111 = Viser det importerede XML-skema.
+TFM112 = En kort beskrivelse af indholdet af dokumentet.
+TFM113 = Skema ID.
+TFM114 = Dokumentskemaer
+TFM115 = Skema navneområde
+TFM116 = XML navneområde for skemaet.
+TFM117 = Opsæt skemaer, der kan bruges til at validere indgående dokumenter.
+TFM118 = Tildel XML-skemaer til håndtereren. Disse skemaer bruges til at validere indgående dokumenter.
+TFM119 = Udvalgte skemaer
+TFM120 = Resterende skemaer
+TFM121 = Importer XML-skema fra en ekstern fil.
+TFM122 = Streng schema validering
+TFM123 = Skal dokumenter af denne type valideres ved hjælp af streng skema validering? Standard er afslappet validering (elementer i navneområder uden for de tildelte skemaer accepteres).
+TFM124 = Nulstil status for et dokument fra Behandling til Klar til behandling.
+TFM125 = Vil du nulstille status til Klar til behandling?
+TFM126 = Kan ikke returnere et svar til anmodningen   %1  fordi det ikke er blevet behandlet endnu.
+TFM127 = Original anmodning
+TFM128 = Original XML-anmodning indsendt til køen fra en mobilenhed.
+TFM129 = Forespørgslen kan ikke behandles. Brugeren har ikke tilstrækkelige rettigheder i Microsoft Dynamics AX.
+TFM130 = Klar til behandling
+TFM131 = Besvaret dato og klokkeslæt
+TFM132 = ** Manglende etiket **
+TFM133 = Vis produktion
+TFM134 = TFMil bruger
+TFM135 = Serviceintegration til mobil
+TFM136 = indsende til tjeneste
+TFM137 = Vedligehold den mobile løsning
+TFM138 = Invoke Mobile service
+TFM139 = Vedligehold mobile indstillinger
+TFM140 = Request text
+ ; XML-anmodningen i rå tekstformular
+TFM141 = Realtime registreringer
+TFM142 = TFMil registrerings id
+TFM143 = Mobile WMS: Tilføj bruger eller gruppe
+TFM144 = Angiv
+TFM145 = Tilføj bruger / gruppe
+TFM146 = Tilføjet %1: ' %2' til dokumenttype: ' %3'
+TFM147 = Vis returordrer på mobilenheden
+TFM148 = Produktion / Job
+ ; Indtastning af produktionsnummer eller job-id
+TFM149 = Stregkode " %1" er registreret på elementet " %2".
+TFM150 = Nummerpladen eksisterer allerede.
+TFM151 = Forældre licensplade eksisterer allerede.
+TFM152 = Forældre licensplade er udløbet.
+TFM153 = En licensplade er oprettet.
+TFM154 = Valgfrit, angiv forælder LP
+TFM155 = B / N: %1
+ ; Batchnumber
+TFM156 = S / N: %1
+ ;Serienummer
+TFM157 = PL: %1
+ ; Palle
+TFM158 = Modtag tidsskrifter
+TFM159 = Valg af tidsskrifter
+TFM160 = Tæller tidsskrifter
+TFM161 = Uplanlagt tælling
+TFM162 = Skrot vare / produkt
+TFM163 = Uplanlagte bevægelige genstande i lageret
+TFM164 = Placeringsindhold
+TFM165 = Log ud af Mobile WMS
+TFM166 = Placering genstand / produkt
+TFM167 = Opret en palle
+TFM168 = Planlagte palletransporter
+TFM169 = Produktion / Rute rapport færdig
+TFM170 = Proces karantæne ordrer
+TFM171 = Uplanlagt palletransport
+TFM172 = Tildel stregkode til vare / produkt
+TFM173 = gevinst / tab
+TFM174 = Tag tælling
+TFM175 = Stregkodediagnostik
+TFM176 = Print label collector
+TFM177 = Mobile WMS Administrator
+TFM178 = TFMil WMS-bruger
+AddedToDocumentType = Tilføjet %1 ' %2' til dokumenttype: ' %3'
+ Ny kommentar
+MEL0 = Backend Id
+MEL1 = Ingen
+ ; Enum TFMUnderDeliveryValidation
+MEL2 = Advarsel
+ ; Enum TFMUnderDeliveryValidation
+MEL3 = Block
+ ; Enum TFMUnderDeliveryValidation
+MEL4 = TAKE
+ ; Enum TFMActionTypes
+MEL5 = PLACE
+ ; Enum TFMActionTypes
+MEL6 = Modtag
+ ; Enum TFMOrderTypes
+MEL7 = Pick
+ ; Enum TFMOrderTypes
+MEL8 = Ikke nok resterende mængde til post.
+MEL9 = Ok
+ ; Log ind / LockedOrders
+MEL10 = Ordren ( %1) af typen ( %2) er ikke låst.
+MEL11 = XML-element ' %1' og / eller ' %2'.
+MEL12 = Ordre ( %1) type ( %2) er allerede låst af bruger ( %3).
+MEL13 = Kunne ikke låse ordren ' %1'
+MEL14 = Pluklistedag ' %1' eksisterer ikke.
+MEL15 = Ukendt referencetabel.
+MEL16 = Underleveringsvalidering
+MEL17 = Vælg til produktion
+MEL18 = mobil WMS
+MEL19 = Modtagelsesordre hentet
+MEL20 = Kunne ikke bestemme ordretype.
+MEL21 = modtagelsesordre hentet
+MEL22 = Packingslip er sendt korrekt.
+MEL23 = hentet pickorderlines
+MEL24 = Afhentning af afhentning
+MEL25 = Kunne ikke finde tilbagekald.
+MEL26 = Pluklisten er sendt korrekt.
+MEL27 = Brug Udløbsdato
+MEL28 = Varenummer vil indeholde både lotnummer og udløbsdato (dd-mm-yyy) adskilt af ",".
+MEL29 = InventJournal
+MEL30 = Udgivet til Mobile
+MEL31 = Journalen vil være synlig på de mobile enheder.
+MEL32 = Registreret på mobil
+MEL33 = Registreret på mobil.
+MEL34 = Tællejournalen blev opdateret.
+MEL35 = Ordre hentet
+MEL36 = Journal fra Mobile WMS
+MEL37 = Indtast placering (fra)
+MEL38 = FRA
+ ; TFM
+MEL39 = Lokation:
+MEL40 = Indtast batchnummer
+MEL41 = Exp. dato
+MEL42 = Indtast eksp. dato
+MEL43 = Indtast serienummer
+MEL44 = Indtast placering (til)
+MEL45 = TO
+ ; TFM
+MEL46 = Varenummer:
+MEL47 = Overførselsjournalen blev opdateret.
+MEL48 = Indtast placering
+MEL49 = Placering
+ ; MOB
+MEL50 = Uplanlagt tælling af serienumre understøttes ikke!
+MEL51 = Vis salg
+MEL52 = Vis salgsordrer om Mobile.
+MEL53 = Vis køb
+MEL54 = Vis købsordrer på mobil.
+MEL55 = Vis overførsel
+MEL56 = Vis overførselsordrer på mobil.
+MEL57 = Vis produktionsordrer på mobil.
+MEL58 = Vis plukning
+MEL59 = Vis plukruter på mobil.
+MEL60 = Mobile WMS parametre
+MEL61 = Vis ankomst
+MEL62 = Vis ankomst købsordrer på mobil.
+MEL63 = Placering skal angives.
+MEL64 = Pallet skal angives.
+MEL65 = Fejl ved oprettelse af palle.
+MEL66 = Ankomstordre
+MEL67 = Der findes ingen palletransport til pallet %1.
+MEL68 = Til placering kan ikke ændres for transport %1.
+ ; MSA
+MEL69 = Ankomstdagbog %1 er ikke blevet bogført på grund af fejl.
+MEL70 = %1 linje (r) er ikke registreret fra Journal %2 er blevet overført til journal %3.
+MEL71 = Der er oprettet en ny palle.
+MEL72 = Palletransporten blev opdateret.
+MEL73 = Forsendelse
+MEL74 = Fra lager
+MEL75 = Til lagerbygning
+MEL76 = Vælg konfiguration
+MEL77 = Konfiguration
+MEL78 = Resultatopgørelsen blev opdateret.
+MEL79 = Vis produktionsindgang
+MEL80 = Vis produktionsindgangsskrifter på de mobile enheder
+MEL81 = Rapport som færdiggjort
+MEL82 = Produktionsordre %1 blev ikke fundet
+MEL83 = Alle
+MEL84 = Summen af ​​skrot og mængde overstiger den resterende mængde
+MEL85 = Opbevaring af lager
+MEL86 = Overskriv standard
+MEL87 = Menupunkt
+MEL88 = Mobile Menu Options
+MEL89 = Menu tilladelse
+MEL90 = TFMil Menukonfiguration
+MEL91 = Mobile Warehouse setup
+MEL92 = Vis produktion
+MEL93 = Menupunkter
+ProdOrderNotStarted = Produktionsordre %1 har ikke startet status.
+ Ny kommentar
+secMaintainModule = Tasklet Factory Mobile WMS opsætnings- og vedligeholdelsesmodul.
+ Ny kommentar
+MaintainTFM = Vedligeholde Mobile WMS
+ Ny kommentar
+ActionType = Action Type
+ Ny kommentar
+OnlineValidator = Online Validator
+ Ny kommentar
+RequestTypeDoesNotExist = Forespørgsel af typen %1 findes ikke
+ Ny kommentar
+SerialNotAvailable = Serienummer ikke tilgængeligt
+ Ny kommentar
+BatchHasExpired = Batch er udløbet
+ Ny kommentar
+BatchDoesNotExistOnItem = Batch %1 findes ikke på element %2
+ Ny kommentar
+BatchNotAvailable = Kun %1 af %5 findes på stedet %2.  %4 er forbeholdt denne ordre. Du kan ikke vælge hele den forventede mængde %3 fra denne placering.
+ Ny kommentar
+ordersToQuarantine = Denne vare har karantænebehov og skal placeres på lager %1
+ Ny kommentar
+LocationDoesNotExist = Placering eksisterer ikke
+ Ny kommentar
+createQuarantineOrder = Opret karantæneordrer
+ Ny kommentar
+QuarantineOrderCreated = Karantæneordre %1 oprettet
+ Ny kommentar
+ScanBatchNumber = Scan batchnummer
+ Ny kommentar
+ScanBatchNumberHelp = Scan batchnummeret for varen.
+ Ny kommentar
+deviceStringID = Enhedsstreng-id
+ Ny kommentar
+RegistrationCollectorToBinHeader = Scan til placering
+ Ny kommentar
+RegistrationCollectorToBinHelpLabel = Scan den placering, hvor du placerer varen.
+ Ny kommentar
+RegistrationCollectorFromBinHeader = Scan fra placering
+ Ny kommentar
+RegistrationCollectorFromBinHelpLabel = Scan den placering, du tager genstanden fra.
+ Ny kommentar

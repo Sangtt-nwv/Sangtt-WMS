@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectorInformation</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegistrationCollectorInformation extends TFMRegistrationCollector
+{
+    
+    /// <summary>
+    /// Creates a collectorstep for displaying or capturing long strings
+    /// </summary>
+    /// <param name="_id"></param>
+    /// <param name="_name"></param>
+    /// <param name="_header"></param>
+    /// <param name="_lable"></param>
+    /// <param name="_helpLabel"></param>
+    
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>InformationStepMap</Name>
+				<Source><![CDATA[
+    public server static Map InformationStepMap(
+                                            int _id,
+                                            str _name,
+                                            str _header,
+                                            str _label,
+                                            str _helpLabel)
+    {
+        Map stepMap = new Map(Types::String, Types::String);
+    
+        stepMap.insert(TFMConstants::AttributeId(),int2str(_id));
+        stepMap.insert(TFMConstants::AttributeName(),_name);
+        stepMap.insert(TFMConstants::AttributeHeader(),_header);
+        stepMap.insert(TFMConstants::AttributeLabel(), _label);
+        stepMap.insert(TFMConstants::AttributeHelpLabel(), _helpLabel);
+        stepMap.insert(TFMConstants::AttributeInputType(),enum2Symbol(enumNum(TFMInputTypes),TFMInputTypes::Information));
+    
+        return stepMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dataTypeIcon</Name>
+				<Source><![CDATA[
+    public ResourceName dataTypeIcon()
+    {
+        return resourceStr(TFMDatatypeInformation);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

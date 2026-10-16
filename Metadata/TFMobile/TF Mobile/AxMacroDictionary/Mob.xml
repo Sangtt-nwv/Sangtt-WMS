@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMacroDictionary xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>Mob</Name>
+	<Source>&#xD;
+//#define.isAX6(false)&#xD;
+&#xD;
+&#xD;
+//Values&#xD;
+/*#define.ScannedValue('ScannedValue')&#xD;
+#define.All('All')&#xD;
+#define.TAKE('TAKE')&#xD;
+#define.PLACE('PLACE')&#xD;
+#define.True('true')&#xD;
+#define.False('false')&#xD;
+#define.Unlocked('1')&#xD;
+#define.Locked('2')*/&#xD;
+&#xD;
+//#define.ScannedValue(MobConstants::ScannedValue())&#xD;
+&#xD;
+</Source>
+	<Macros />
+</AxMacroDictionary>

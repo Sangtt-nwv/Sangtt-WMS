@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO X++ Core"
+  short_description: "Ground D365FO X++ work in metadata and project rules"
+  default_prompt: "Use $d365fo-xpp-core to implement a metadata-grounded D365FO X++ change."

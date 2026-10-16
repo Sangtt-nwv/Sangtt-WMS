@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMConditionEditor</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMConditionEditor extends FormRun
+{
+    
+    TFMConditionEditorFormClass     formClass;
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        Object fr;
+        super();
+        formClass = TFMConditionEditorFormClass::Construct(element, DeleteConditionButton);
+        element.getPartControlByName('ContextPart').SystemExpand(true);
+        fr = element.getPartControlByName('ContextPart').getPartFormRun();
+        element.setContextGroup(fr.getGroup());
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setContextGroup</Name>
+				<Source><![CDATA[
+    public void setContextGroup(FormGroupControl _fgc)
+    {
+        ConditionFlow.setContextGroup(_fgc);
+        formClass.setContextGroup(_fgc);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>NewConditionButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            formClass.addCondition();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>DeleteConditionButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            formClass.deleteCondition();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">@TFM:ConditionEditor</Caption>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>BtnGroup</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>NewConditionButton</Name>
+								<Type>Button</Type>
+								<Visible>No</Visible>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@TFM:New</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>DeleteConditionButton</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@TFM:Delete</Text>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl>
+				<Name>ValidationHtml</Name>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension>
+					<Name>TFMHtmlViewerCtrl</Name>
+					<ExtensionComponents />
+					<ExtensionProperties>
+						<AxFormControlExtensionProperty>
+							<Name>htmlField</Name>
+							<Type>String</Type>
+						</AxFormControlExtensionProperty>
+						<AxFormControlExtensionProperty>
+							<Name>addCopyLinkField</Name>
+							<Type>String</Type>
+						</AxFormControlExtensionProperty>
+						<AxFormControlExtensionProperty>
+							<Name>formatAsXmlField</Name>
+							<Type>String</Type>
+						</AxFormControlExtensionProperty>
+					</ExtensionProperties>
+				</FormControlExtension>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormContainerControl">
+				<Name>ConditionFlow</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<Type>Container</Type>
+				<FormControlExtension>
+					<Name>TFMDrawFlowControl</Name>
+					<ExtensionComponents />
+					<ExtensionProperties>
+						<AxFormControlExtensionProperty>
+							<Name>parmClassName</Name>
+							<Type>ExtendedDataType</Type>
+							<TypeName>ClassName</TypeName>
+							<Value>TFMDrawFlowControlInteractionStepConditions</Value>
+						</AxFormControlExtensionProperty>
+					</ExtensionProperties>
+				</FormControlExtension>
+				<Controls />
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts>
+		<AxFormPartReference xmlns="">
+			<Name>ContextPart</Name>
+			<MenuItemName>TFMDrawFlowContextPart</MenuItemName>
+		</AxFormPartReference>
+	</Parts>
+</AxForm>

@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRegistrationCollectorQuantityByScan</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMRegistrationCollectorQuantityByScan extends TFMListValuesAndDataTable
+{
+    int minimumValue;
+    int maximumValue;
+    boolean editable;
+    TFMOverDeliveryValidation OverDeliveryValidation;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmminValue</Name>
+				<Source><![CDATA[
+    public int parmminValue(int _minimumValue = minimumValue)
+    {
+        minimumValue = _minimumValue;
+        return minimumValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmmaxValue</Name>
+				<Source><![CDATA[
+    public int parmmaxValue(int _maximumvalue = maximumvalue)
+    {
+        maximumvalue = _maximumvalue;
+        return maximumvalue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOverDeliveryValidation</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS4440", "None: User is allowed to register a higher/lower value. Warn: Warn the user if a value higher or lower than the suggested value is entered. The user must accept the prompt. Block: The user is not allowed to register a value over or under the expected. An error message is displayed")]
+    public TFMOverDeliveryValidation parmOverDeliveryValidation(TFMOverDeliveryValidation _OverdeliveryValidation = OverDeliveryValidation)
+    {
+        OverDeliveryValidation = _OverdeliveryValidation;
+        return OverDeliveryValidation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmeditable</Name>
+				<Source><![CDATA[
+    [TFMCategory("@SYS103414", "Defines if a value is editable")]
+    public boolean parmeditable(boolean _editable = editable)
+    {
+        editable =_editable;
+        return editable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dataTypeIcon</Name>
+				<Source><![CDATA[
+    public ResourceName dataTypeIcon()
+    {
+        return resourceStr(TFMDatatypeQuantityByScan);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>QtyByScanStep</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates a collector for quantity steps, accepts integer and decimal values
+    /// </summary>
+    /// <param name="_id"></param>
+    /// <param name="_name"></param>
+    /// <param name="_header"></param>
+    /// <param name="_label"></param>
+    /// <param name="_helpLabel"></param>
+    /// <param name="_listValues"></parm>
+    /// list of allowed values
+    /// </param>
+    /// <param name="_minValue">
+    /// default is -100.000.000
+    /// </param>
+    /// <param name="_maxValue">
+    /// default is 100.000.000
+    /// </param>
+    /// <param name="_listseparator">
+    /// char that seperates enteries, default is ";"
+    /// </param>
+    /// <param name="_OverdeliveryValidation">
+    /// Warning-level if max is exeeded, default is warn
+    /// </param>
+    /// <param name="-editable">
+    /// Boolean value which determines if the quantity field should be open to manual entry. If set to 'false' the quantity will simply increment by 1 on an accepted scanned value. Default value is 'true'.
+    /// </param>
+    /// <param name="_GS1valueId_Qty">
+    /// identifiers for GS1-barcode prefixes
+    /// </param>
+    
+    
+    public server static TFMRegistrationCollectorQuantityByScan QtyByScanStep(
+                                            int _id,
+                                            str _name,
+                                            str _header,
+                                            str _label,
+                                            str _helpLabel,
+                                            str _listValues,
+                                            int _minValue = -100000000,
+                                            int _maxValue = 100000000,
+                                            str _listseparator = ';',
+                                            TFMOverDeliveryValidation _OverdeliveryValidation = TFMOverDeliveryValidation::Warn,
+                                            boolean _editable = true,
+                                            str _eanAI = '')
+    {
+        TFMRegistrationCollectorQuantityByScan collector = new TFMRegistrationCollectorQuantityByScan(_id,_name,_header,_label,_helpLabel);
+        collector.parmListValues(_listValues);
+        collector.parmListSeparator(_listseparator);
+        collector.parmminValue(_minValue);
+        collector.parmmaxValue(_maxValue);
+        collector.parmOverDeliveryValidation(_OverdeliveryValidation);
+        collector.parmeditable(_editable);
+        collector.parmEanAI(_eanAI);
+        return collector;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>QtyByScanStepMap</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates a collector for quantity steps, accepts integer and decimal values
+    /// </summary>
+    /// <param name="_id"></param>
+    /// <param name="_name"></param>
+    /// <param name="_header"></param>
+    /// <param name="_label"></param>
+    /// <param name="_helpLabel"></param>
+    /// <param name="_listValues"></parm>
+    /// list of allowed values
+    /// </param>
+    /// <param name="_minValue">
+    /// default is -100.000.000
+    /// </param>
+    /// <param name="_maxValue">
+    /// default is 100.000.000
+    /// </param>
+    /// <param name="_listseparator">
+    /// char that seperates enteries, default is ";"
+    /// </param>
+    /// <param name="_OverdeliveryValidation">
+    /// Warning-level if max is exeeded, default is warn
+    /// </param>
+    /// <param name="-editable">
+    /// Boolean value which determines if the quantity field should be open to manual entry. If set to 'false' the quantity will simply increment by 1 on an accepted scanned value. Default value is 'true'.
+    /// </param>
+    /// <param name="_GS1valueId_Qty">
+    /// identifiers for GS1-barcode prefixes
+    /// </param>
+    
+    
+    public server static Map QtyByScanStepMap(
+                                            int _id,
+                                            str _name,
+                                            str _header,
+                                            str _label,
+                                            str _helpLabel,
+                                            str _listValues,
+                                            int _minValue = -100000000,
+                                            int _maxValue = 100000000,
+                                            str _listseparator = ';',
+                                            TFMOverDeliveryValidation _OverdeliveryValidation = TFMOverDeliveryValidation::Warn,
+                                            boolean _editable = true,
+                                            str _eanAI = '')
+    {
+        return TFMRegistrationCollectorQuantityByScan::QtyByScanStep(_id,_name,_header,_label,_helpLabel,_listValues,_minValue,_maxValue,_listseparator,_OverdeliveryValidation,_editable,_eanAI).getMap();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMap</Name>
+				<Source><![CDATA[
+    public Map getMap(boolean _showConditions = false)
+    {
+        Map stepMap = new Map(Types::String, Types::String);
+    
+        stepMap.insert(TFMConstants::AttributeId(),int2str(id));
+        stepMap.insert(TFMConstants::AttributeName(),name);
+        stepMap.insert(TFMConstants::AttributeInputType(),enum2Symbol(enumNum(TFMInputTypes),TFMInputTypes::QuantityByScan));
+        stepMap.insert(TFMConstants::AttributeElementName(),'quantityByScan');
+        stepMap.insert(TFMConstants::AttributeHeader(),header);
+        stepMap.insert(TFMConstants::AttributeLabel(),label);
+        stepMap.insert(TFMConstants::AttributeHelpLabel(),help);
+        stepMap.insert(TFMConstants::AttributeListSeparator(), listSeparator);
+        stepMap.insert(TFMConstants::AttributeListValues(), listValues);
+        stepMap.insert(TFMConstants::AttributeOverDeliveryValidation(), enum2Symbol(enumNum(TFMOverDeliveryValidation),OverdeliveryValidation));
+        stepMap.insert(TFMConstants::AttributeEditable(), strFmt('%1', editable));
+        stepMap.insert(TFMConstants::AttributeMinValue(), int2str(minimumValue));
+        stepMap.insert(TFMConstants::AttributeMaxValue(), int2str(maximumValue));
+        stepMap.insert(TFMConstants::AttributeEanAi(), eanAI);
+    
+        return stepMap;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

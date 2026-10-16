@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicBlock</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Base class for the logic blocks used to encapsulate Data collection and posting logic
+/// </summary>
+class TFMLogicBlock
+{
+    TFMReferenceDataConfiguration       refConf;
+    TFMLogicComponentCollection         components;
+    Name                                name;
+    TFMLogicInputOutputContainer        outputs, inputs;
+    TFMLogicBlockDataInheritanceHandler inheritanceHandler;
+    TFMRequestElement                   request;
+    TFMLogicContext                     logicContext;
+    Map                                 fields;
+    Set                                 categories;
+    int                                 instanceId;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setInstanceID</Name>
+				<Source><![CDATA[
+    public void setInstanceID(int _instanceID)
+    {
+        instanceId = _instanceID;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInstanceID</Name>
+				<Source><![CDATA[
+    public int getInstanceID()
+    {
+        return instanceId ? instanceId : this.GetHashCode();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>inputs</Name>
+				<Source><![CDATA[
+    public TFMLogicInputOutputContainer inputs()
+    {
+        return inputs;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>autoCreatedProcesses</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// This method can be implemented, if the block should deliver its own process instance, and thereby bypass the need to create a class for that purpose
+    /// </summary>
+    /// <returns>A TFMProcess object, if block should provide its own process.</returns>
+    public Set autoCreatedProcesses()
+    {
+        return new Set(Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>outputs</Name>
+				<Source><![CDATA[
+    public TFMLogicInputOutputContainer outputs()
+    {
+        return outputs;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRequest</Name>
+				<Source><![CDATA[
+    public TFMRequestElement parmRequest(TFMRequestElement _request = request)
+    {
+        
+        if (!request && _request)
+        {
+            components.setRequests(_request);
+        }
+        request = _request;
+        return request;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLogicContext</Name>
+				<Source><![CDATA[
+    public TFMLogicContext parmLogicContext(TFMLogicContext _logicContext = logicContext)
+    {
+        logicContext = _logicContext;
+        return logicContext;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addField</Name>
+				<Source><![CDATA[
+    public void addField(str _key, str _value)
+    {
+        fields.insert(_key,_value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFieldValue</Name>
+				<Source><![CDATA[
+    public str getFieldValue(str _key)
+    {
+        return fields.exists(_key) ? fields.lookup(_key) : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFieldMap</Name>
+				<Source><![CDATA[
+    public Map parmFieldMap(Map _fields = fields)
+    {
+        fields = _fields;
+        return fields;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        this.fillInParms();
+        refConf = new TFMReferenceDataConfiguration();
+        components = TFMLogicComponentCollection::Construct();  
+        outputs = TFMLogicInputOutputContainer::Construct();        
+        outputs.addConnectionName('output_1');
+        inputs  = TFMLogicInputOutputContainer::Construct();
+        inputs.addConnectionName('input_1');
+        inheritanceHandler  = TFMLogicBlockDataInheritanceHandler::Construct();
+        fields = new Map(Types::String, Types::String);
+        categories = new Set(Types::String);
+
+        // if the LogicBlock implements step operator then add the category
+        if(this is TFMLogicStepOperatorInterface)
+        {
+            categories.add("@TFM:Logic");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>inheritedValues</Name>
+				<Source><![CDATA[
+    public TFMLogicBlockDataInheritanceHandler inheritedValues()
+    {
+        return inheritanceHandler;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setInheritance</Name>
+				<Source><![CDATA[
+    public void setInheritance(TFMLogicBlockDataInheritanceHandler _inheritance)
+    {
+        inheritanceHandler = _inheritance;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fillInParms</Name>
+				<Source><![CDATA[
+    public void fillInParms()
+    {
+        //Fill all parm methods
+        SetEnumerator methods = TFMFormLookupHelper::parmMethodsOnClass(classIdGet(this),false,Types::Class).getEnumerator();
+        int								j;
+        DictMethod						DM;
+        TFMParameterAttribute			parmAttr;
+        Array							array;
+        while (methods.moveNext())
+        {
+            DM = methods.current();
+            array = DM.getAttributes(classstr(TFMParameterAttribute));
+            if (array != null)
+            {
+                for (j = 1; j <= array.lastIndex(); j++)
+                {
+                    parmAttr = array.value(j);
+                    new SysDictClass(classIdGet(this)).callObject(DM.name(),this,parmAttr.parmDefaultValue());
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initBlock</Name>
+				<Source><![CDATA[
+    public void initBlock(TFMProcess _process)
+    {
+        //if(_process.parmVersion() < 0)
+        //{
+        //    return; // no need to init when no version. It is probably a process template.
+        //}
+
+        //Init parm methods from block as well as components
+        TFMLogicComponent               component;
+        //Find subcomponents parameters
+        MapEnumerator   componentsEnum = components.componentSet().getEnumerator();
+        str             domainKey = TFMProcessBlocksParametersEdit::GetProcessContentForGenericParmsForBlocks(_process, name);
+        this.updateInstance(this,domainKey, classId2Name(classIdGet(this)));
+        while (componentsEnum.moveNext())
+        {
+            component = componentsEnum.currentValue();
+            this.updateInstance(component, domainKey, classId2Name(classIdGet(this)));
+            //edt.populateGroupWithDocParms(classIdGet(component),fgc);
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateInstance</Name>
+				<Source><![CDATA[
+    protected void updateInstance(Object _instance, str _domain, ClassName _className)
+    {
+        ClassId                 instanceClassId = classIdGet(_instance);
+        Set					    methodsOnClass  = TFMFormLookupHelper::parmMethodsOnClass(instanceClassId,false,Types::Class);
+        SetEnumerator		    sEnum = methodsOnClass.getEnumerator();
+        SysDictMethod		    dm;
+        TFMParameterAttribute   parmAttr;
+        anytype                 retVal;
+        Array                   array;
+        int                     j;
+        SysDictClass instanceSysDicClass = new SysDictClass(instanceClassId);
+
+        while (sEnum.moveNext())
+        {
+            //step Through all Parm methods, turn to attributes
+            dm = sEnum.current();
+            if (TFMGenericParms::Exists(_domain,_className, dm.name()))
+            {
+                //Update Parameter from Override
+                instanceSysDicClass.callObject(dm.name(),_instance, TFMGenericParms::getValue(_domain, _className,dm.name()));
+            }
+            /*else
+            {
+                //Initiate standard value
+                array = dm.getAttributes(classstr(TFMParameterAttribute));
+                if (array != null)
+                {
+                    for (j = 1; j <= array.lastIndex(); j++)
+                    {
+                        parmAttr = array.value(j);
+                    
+                        new SysDictClass(classIdGet(_instance)).callObject(dm.name(),_instance, parmAttr.parmDefaultValue());
+                    }
+                }
+            }*/
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Get or set the name of the block within the process/block Collection.
+    /// </summary>
+    /// <param name = "_name">Name to give the block</param>
+    /// <returns>Name of the block</returns>
+    public Name parmName(Name _name = name)
+    {
+        name = _name;
+        return name;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCategories</Name>
+				<Source><![CDATA[
+    public Set parmCategories(Set _categories = categories)
+    {
+        categories = _categories;
+        return categories;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>components</Name>
+				<Source><![CDATA[
+    public TFMLogicComponentCollection components()
+    {
+        return components;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Name of the block Type. Override this method if you want to give the block a translated label, instead of the generated for the Class name.
+    /// </summary>
+    /// <returns>Name of the block</returns>
+    public Name blockName()
+    {
+        return TFMHelper::convertCamelCaseToNiceText(subStr(classId2Name(classIdGet(this)),strLen(classStr(TFMLogicBlock))+1,100));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMBlockSettings);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifyRequest</Name>
+				<Source><![CDATA[
+    public TFMRequestElement modifyRequest(TFMRequestElement _request)
+    {
+        return components.modifyRequest(_request);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

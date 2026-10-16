@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMAppInsightsTelemetryEventHandlers</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMAppInsightsTelemetryEventHandlers
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Global_Pre_error</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Logs errors to AppInsights.
+    /// </summary>
+    /// <param name="args">The arguments for the error method.</param>
+    [PreHandlerFor(classStr(Global), staticMethodStr(Global, error))]
+    public static void Global_Pre_error(XppPrePostArgs args)
+    {
+        if(     !TFMParameters::find().TelemetryDisabled
+            &&  !SysApplicationInsightsTelemetryHelper::overrideUseLegacyTelemetry()
+            &&  strScan(con2Str(xSession::xppCallStack()), 'TFMDocumentConnector', 1, 2000))
+        {
+            SysApplicationInsightsExceptionTelemetry exceptionTelemetry = SysApplicationInsightsExceptionTelemetry::newFromExceptionMessage(Args.getArg('txt'));
+            exceptionTelemetry.addProperty(SysApplicationInsightsClassNameProperty::newFromValue(classStr(Global)));
+            exceptionTelemetry.addProperty(SysApplicationInsightsMethodNameProperty::newFromValue(staticmethodStr(Global, Error)));
+            exceptionTelemetry.addProperty(SysApplicationInsightsCallStackProperty::newFromCurrentCallStack());
+            exceptionTelemetry.addProperty(TFMAppInsightsFeatureNameProperty::newFromValue('TFM'));
+
+            TFMAppInsightsTelemetryLogger::instance().trackException(exceptionTelemetry);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

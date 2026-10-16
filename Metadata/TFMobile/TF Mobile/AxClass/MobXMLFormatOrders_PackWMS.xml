@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatOrders_PackWMS</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// XML Formatter class for pick WMS orders.
+/// </summary>
+[TFMTableNameAttribute(tableStr(WMSPickingRoute),'packing')]
+class MobXMLFormatOrders_PackWMS extends MobXMLFormatOrders_Pick
+{
+    WMSPickingRoute          wMSPickingRoute;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        InventTransferTable inventTransferTable;
+        super();
+    
+        wMSPickingRoute         = common;
+    
+        backendId          = MobOrder::constructFromTableName(tableStr(WMSPickingRoute)).getBackendID(Common);//#PickWMSPickRouteOrderPrefix + wMSPickingRoute.pickingRouteID;
+    
+        if (MobConsolidatedPickingRouteOrders::belongsTo(wMSPickingRoute.pickingRouteID))
+        {
+            backendId = strReplace(backendId,wMSPickingRoute.pickingRouteID, MobConsolidatedPickingRouteOrders::belongsTo(wMSPickingRoute.pickingRouteID));
+        }
+    
+        /*if(MobLockedOrders::find(backendId,MobConstants::Pick()))
+        {
+            status = MobConstants::locked();
+        }
+        else
+        {
+            status = MobConstants::Unlocked();
+        }*/
+    
+        if (wMSPickingRoute.transType == InventTransType::TransferOrderShip)
+        {
+            select firstonly inventTransferTable
+                where inventTransferTable.TransferId == wMSPickingRoute.transRefId;
+    
+            displayLine1            = strfmt('%1 > %2, %3',inventTransferTable.InventLocationIdFrom, inventTransferTable.InventLocationIdTo, inventTransferTable.ReceiveDate);
+        }
+        else if (MobConsolidatedPickingRouteOrders::Exists(wMSPickingRoute.pickingRouteID))
+        {
+            displayLine1            = "@SYS82176"+' ' + new DictField(tablenum(WMSPickingRoute), fieldnum(WMSPickingRoute, PickingRouteID)).Label() + ': ' + MobConsolidatedPickingRouteOrders::belongsTo(wMSPickingRoute.pickingRouteID);
+            fieldsToAdd.insert('TotePicking','true');
+        }
+        else
+        {
+            displayLine1            = new DictField(tablenum(WMSPickingRoute), fieldnum(WMSPickingRoute, PickingRouteID)).Label() + ': ' + wMSPickingRoute.pickingRouteID;
+        }
+        //displayLine2            = strfmt('%1: %2', new DictField(tablenum(WMSPickingRoute), fieldnum(WMSPickingRoute, pickingAreaId)).Label(), wMSpickingRoute.pickingAreaId);
+        displayLine2            = strfmt('%1: %2', enum2str(wMSPickingRoute.transType), wMSPickingRoute.transRefId);
+        displayLine3            = new DictField(tablenum(WMSPickingRoute), fieldnum(WMSPickingRoute, ActivationDateTime)).Label() + ': ' + strfmt('%1', DateTimeUtil::date(WMSPickingRoute.ActivationDateTime));
+        displayLine5            = new DictField(tablenum(SalesTable), fieldnum(SalesTable, SalesType)).label() + ': ' + (MobConsolidatedPickingRouteOrders::belongsTo(wMSPickingRoute.pickingRouteID) ? "@SYS110110" : strfmt('%1', SalesTable::find(wMSPickingRoute.transRefId).SalesType));
+        headerLabel1            = new DictField(tablenum(WMSPickingRoute), fieldnum(WMSPickingRoute, PickingRouteID)).Label();
+        headerLabel2            = substr(enum2str(wMSPickingRoute.transType), 1, 20);
+        headerValue1            = wMSPickingRoute.pickingRouteID;
+        headerValue2            = wMSPickingRoute.transRefId;
+
+        if (MobConsolidatedPickingRouteOrders::Exists(wMSPickingRoute.pickingRouteID))
+        {
+            headerLabel1 = "@SYS110110";
+            headerValue1 = MobConsolidatedPickingRouteOrders::belongsTo(wMSPickingRoute.pickingRouteID);
+            headerLabel2 = "@MobileWMS:SubLists";
+            headerValue2 = strFmt ( '%1', MobConsolidatedPickingRouteOrders::getRouteSiblings(wMSPickingRoute.pickingRouteID).elements());
+        }
+        sorting                 = strKeep(date2Str(DateTimeUtil::date(WMSPickingRoute.ActivationDateTime),321,2,0,2,0,2),'1234567890');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

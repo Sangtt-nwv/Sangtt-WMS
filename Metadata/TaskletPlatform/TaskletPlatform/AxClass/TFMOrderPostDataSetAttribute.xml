@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMOrderPostDataSetAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Attribute class to decorate methods, that returns a dataset to be used when setting up the post prompt override.
+/// </summary>
+public class TFMOrderPostDataSetAttribute extends SysAttribute
+{
+    TableName tableName;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>name</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Retrieves the name of the dataset.
+    /// </summary>
+    /// <returns>
+    ///    The name of dataset.
+    /// </returns>
+    public str name()
+    {
+        return tableName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    void new(str _tableName)
+    {
+        tableName = _tableName;
+        super();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

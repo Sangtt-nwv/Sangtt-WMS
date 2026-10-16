@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxResource xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMApplicationSchema</Name>
+	<FileName>Application.xsd</FileName>
+	<RelativeUriInModelStore>TaskletPlatform\TaskletPlatform\AxResource\ResourceContent\Data\Application.xsd</RelativeUriInModelStore>
+	<TypeOfResource>Data</TypeOfResource>
+</AxResource>

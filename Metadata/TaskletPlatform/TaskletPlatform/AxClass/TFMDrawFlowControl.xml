@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowControl</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[FormControlAttribute('TFMDrawFlowControl','/Resources/html/TFMDrawFlowControl', classStr(TFMDrawFlowControlBuild))]
+class TFMDrawFlowControl extends FormTemplateContainerControl
+{
+    str                             keyId;
+    FormProperty                    updateViewProperty;
+    FormProperty                    updateBlocksProperty;
+    FormProperty                    updateEditorModeProperty;
+    FormProperty                    deleteConnection;
+    FormProperty                    className;
+    FormProperty                    sendUpdatingToJavascriptProperty;
+    FormProperty                    sendNotUpdatingToJavascriptProperty;
+    FormProperty                    sendNodeSelectedToJavascriptProperty;
+    FormProperty                    updateSingleNodeProperty;
+    TFMDrawFlowJsonCreator          jsonMediator;
+    TFMDrawFlowControlInteraction   interactionClass;
+    str                             editorId;
+    str                             connectionJson;
+    int                             counter = 1;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(FormBuildControl _build, FormRun _formRun)
+    {
+        //editorId = this.name();
+        super(_build, _formRun);
+ 
+        this.setTemplateId('TFMDrawFlowControl');
+        this.setResourceBundleName('/Resources/html/TFMDrawFlowControl');
+
+        updateViewProperty = this.addProperty(methodStr(TFMDrawFlowControl, updateViewToJS), Types::String);
+        deleteConnection = this.addProperty(methodStr(TFMDrawFlowControl, deleteConnection), Types::String);
+        updateBlocksProperty = this.addProperty(methodStr(TFMDrawFlowControl, updateBlocks), Types::String);
+        updateEditorModeProperty = this.addProperty(methodStr(TFMDrawFlowControl, updateEditorMode), Types::String);
+        className = this.addProperty(methodStr(TFMDrawFlowControl, parmClassName), Types::String);
+        sendUpdatingToJavascriptProperty = this.addProperty(methodstr(TFMDrawFlowControl, SendUpdatingToJavascript), Types::String);
+        sendNotUpdatingToJavascriptProperty = this.addProperty(methodstr(TFMDrawFlowControl, SendNotUpdatingToJavascript), Types::String);
+        updateSingleNodeProperty = this.addProperty(methodstr(TFMDrawFlowControl, updateSingleNodeHtml), Types::String);
+
+        sendNodeSelectedToJavascriptProperty = this.addProperty(methodstr(TFMDrawFlowControl, SendNodeSelectedToJavascript), Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>applyBuild</Name>
+				<Source><![CDATA[
+    public void applyBuild()
+    {
+        super();
+ 
+        TFMDrawFlowControlBuild build = this.build();
+ 
+        if (build)
+        {
+            this.parmClassName(build.parmClassName());
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendUpdatingToControl</Name>
+				<Source><![CDATA[
+    public void sendUpdatingToControl()
+    {
+        counter++;
+        this.SendUpdatingToJavascript(int2Str(counter));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendNotUpdatingToControl</Name>
+				<Source><![CDATA[
+    public void sendNotUpdatingToControl()
+    {
+        counter++;
+        this.SendNotUpdatingToJavascript(int2Str(counter));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetLogicBlocks</Name>
+				<Source><![CDATA[
+    [FormCommandAttribute(methodStr(TFMDrawFlowControl,GetLogicBlocks))]
+    public str GetLogicBlocks()
+    {
+        return strReplace(FormJsonSerializer::serializeClass(interactionClass.blockList()),'editornameplaceholder', this.getEditorName());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateHtmlForNode</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns the key and html for the block to update
+    /// </summary>
+    /// <param name = "_blockKey"></param>
+    /// <returns></returns>
+    public void updateHtmlForNode(int _id, str _newHtml)
+    {
+        TFMDrawFlowLogicBlockContract blockContract = new TFMDrawFlowLogicBlockContract();
+        blockContract.parmid(_id);
+        blockContract.parmHtml(_newHtml);
+        blockContract.parmPosX(0);
+        blockContract.parmPosY(0);
+        
+        blockContract.parmData(TFMDrawFlowLogicBlockDataContract::Construct('result','result'));
+        blockContract.parmInputs(null);
+        blockContract.parmOutputs(null);
+
+        str serializedContract = FormJsonSerializer::serializeClass(blockContract);
+
+        this.updateSingleNodeHtml(serializedContract);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveBlocks</Name>
+				<Source><![CDATA[
+    [FormCommandAttribute(methodStr(TFMDrawFlowControl,saveBlocks))]
+    public void saveBlocks(str _json)
+    {
+        interactionClass.saveData(_json);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeSelected</Name>
+				<Source><![CDATA[
+    [FormCommand(methodStr(TFMDrawFlowControl,nodeSelected))]
+    public void nodeSelected(int _id)
+    {
+        interactionClass.nodeSelected(_id);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeCreated</Name>
+				<Source><![CDATA[
+    [FormCommand(methodStr(TFMDrawFlowControl, nodeCreated))]
+    public void nodeCreated(int _id, str _json)
+    {
+        TFMDrawFlowContract                 contract = TFMJsonSerializer::deserializeObject(classNum(TFMDrawFlowContract),_json);
+        TFMDrawFlowLogicBlockContract       blockContract = contract.getBlocks().lookup(_id);
+        interactionClass.nodeCreated(blockContract);
+        interactionClass.nodeSelected(_id);
+        this.SendNodeSelected(_id); // to hightlight the newly created class
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodesConnected</Name>
+				<Source><![CDATA[
+    [FormCommand(methodStr(TFMDrawFlowControl, nodesConnected))]
+    public str nodesConnected(str _json)
+    {
+        TFMDrawFlowConnectionContract connection = TFMJsonSerializer::deserializeObject(classNum(TFMDrawFlowConnectionContract),_json);
+        if (interactionClass.allowConnection(connection))
+        {
+            return '';
+        }
+
+        return _json;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>connectionDeleted</Name>
+				<Source><![CDATA[
+    [FormCommand(methodStr(TFMDrawFlowControl, connectionDeleted))]
+    public void connectionDeleted(str _json)
+    {
+        TFMDrawFlowConnectionContract connection = TFMJsonSerializer::deserializeObject(classNum(TFMDrawFlowConnectionContract),_json);
+        interactionClass.connectionDeleted(connection);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeDeleted</Name>
+				<Source><![CDATA[
+    [FormCommand(methodStr(TFMDrawFlowControl, nodeDeleted))]
+    public void nodeDeleted(int _id)
+    {
+        interactionClass.nodeDeleted(_id);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEditorName</Name>
+				<Source><![CDATA[
+    [FormCommandAttribute(methodStr(TFMDrawFlowControl, getEditorName))]
+    public str getEditorName()
+    {
+        editorId = this.name();
+        return editorId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateControlData</Name>
+				<Source><![CDATA[
+    public void updateControlData()
+    {
+        this.updateViewToJS();
+        this.updateBlocks();
+        this.setEditorModeOnControl(true); // default to locked
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setEditorModeOnControl</Name>
+				<Source><![CDATA[
+    public void setEditorModeOnControl(boolean _locked)
+    {
+        this.updateEditorMode(_locked ? 'fixed' : 'edit');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setContextGroup</Name>
+				<Source><![CDATA[
+    public void setContextGroup(FormGroupControl _fgc)
+    {
+       interactionClass.setContextGroup(_fgc);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SendNodeSelected</Name>
+				<Source><![CDATA[
+    public void SendNodeSelected(int _nodeId)
+    {
+        this.SendNodeSelectedToJavascript(int2Str(_nodeId));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteConnection</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, methodStr(TFMDrawFlowControl, deleteConnection))]
+    private str deleteConnection(str _jsonConnection = connectionJson)
+    {
+        deleteConnection.setValueOrBinding(_jsonConnection);
+        return deleteConnection.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateViewToJS</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, methodStr(TFMDrawFlowControl, updateViewToJS))]
+    private str updateViewToJS(str _value = keyId)
+    {
+        counter++;
+        str sReturn = interactionClass.getData();
+        sReturn = strReplace(sReturn, 'editornameplaceholder', this.getEditorName());
+        updateViewProperty.setValueOrBinding('');
+        updateViewProperty.setValueOrBinding(sReturn);
+        this.sendNotUpdatingToControl();
+        return updateViewProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateEditorMode</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, methodStr(TFMDrawFlowControl, updateEditorMode))]
+    private str updateEditorMode(str _value = updateEditorModeProperty.parmValue())
+    {
+        updateEditorModeProperty.setValueOrBinding(_value);
+        return updateEditorModeProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateBlocks</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, methodStr(TFMDrawFlowControl, updateBlocks))]
+    private str updateBlocks(str _value = keyId)
+    {
+        str sReturn = this.GetLogicBlocks();
+        updateBlocksProperty.setValueOrBinding(sReturn);
+        return updateBlocksProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateSingleNodeHtml</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'updateSingleNodeHtml')]
+    private str updateSingleNodeHtml(str _value = updateSingleNodeProperty.parmValue())
+    {
+        updateSingleNodeProperty.setValueOrBinding(_value);
+        return updateSingleNodeProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SendUpdatingToJavascript</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'SendUpdatingToJavascript')]
+    private str SendUpdatingToJavascript(str _value = sendUpdatingToJavascriptProperty.parmValue())
+    {
+        sendUpdatingToJavascriptProperty.setValueOrBinding(_value);
+        return sendUpdatingToJavascriptProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SendNotUpdatingToJavascript</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'SendNotUpdatingToJavascript')]
+    private str SendNotUpdatingToJavascript(str _value = sendNotUpdatingToJavascriptProperty.parmValue())
+    {
+        sendNotUpdatingToJavascriptProperty.setValueOrBinding(_value);
+        return sendNotUpdatingToJavascriptProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SendNodeSelectedToJavascript</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, 'SendNodeSelectedToJavascript')]
+    private str SendNodeSelectedToJavascript(str _value = sendNodeSelectedToJavascriptProperty.parmValue())
+    {
+        sendNodeSelectedToJavascriptProperty.setValueOrBinding(_value);
+        return sendNodeSelectedToJavascriptProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClassName</Name>
+				<Source><![CDATA[
+    [FormPropertyAttribute(FormPropertyKind::Value, extendedtypeStr(ClassName))]
+    public ClassName parmClassName(ClassName _className = className.parmValue())
+    {
+        SysDictClass dc;
+        if (!prmIsDefault(_className))
+        {
+            className.setValueOrBinding(_className);
+
+            dc = new SysDictClass(className2Id(_className));
+            if (!dc || dc.extend() != classNum(TFMDrawFlowControlInteraction))
+            {
+                throw Error ("@TFM:ClassmustinheritfromTFMDrawFlowC");
+            }
+            interactionClass = dc.makeObject();
+
+            interactionClass.setFlowControl(this);
+        }
+        return className.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>interactionClass</Name>
+				<Source><![CDATA[
+    public TFMDrawFlowControlInteraction interactionClass()
+    {
+        return interactionClass;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

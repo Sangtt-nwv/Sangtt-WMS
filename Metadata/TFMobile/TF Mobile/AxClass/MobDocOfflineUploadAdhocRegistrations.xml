@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDocOfflineUploadAdhocRegistrations</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobDocOfflineUploadAdhocRegistrations extends TFMDocumentHandler
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    public Set getDocumentTypes()
+    {
+        Set ret = super();
+
+        ret.add(methodStr(MobDocOfflineUploadAdhocRegistrations,UploadAdhocRegistrations));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {
+        return "@MobileWMS:OfflineAdhocRegistrationshandler";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages pages = new TFMPages();
+
+        TFMPageOfflineManagement offlinePage = new TFMPageOfflineManagement();
+        offlinePage.parmId('OfflineManagementPage');
+        offlinePage.parmTitle('OfflineManagementPage');
+        offlinePage.parmIcon(resourceStr(MobOfflineManagementIcon));
+        TFMPageOfflineManagementConfiguration offlinePageConf = offlinePage.getConfiguration();
+        pages.addPage(offlinePage); 
+
+        TFMPagePendingRegistrations pendingRegistrationPage = new TFMPagePendingRegistrations();
+        pendingRegistrationPage.parmId('ViewAllPendingRegistrations');
+        pendingRegistrationPage.parmTitle('ViewAllPendingRegistrations');
+        pendingRegistrationPage.parmIcon(resourceStr(MobOfflineManagementIcon));
+        TFMPagePendingRegistrationsConfiguration config = pendingRegistrationPage.getConfiguration();
+        config.parmAllRegistrationTypes(true);
+        pages.addPage(pendingRegistrationPage);
+        return pages;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UploadAdhocRegistrations</Name>
+				<Source><![CDATA[
+    public str UploadAdhocRegistrations()
+    {
+        //https://devblog.sertanyaman.com/2017/03/14/synchronous-and-asyncronous-operations-in-ax7/
+        runAsync(classNum(MobDocOfflineUploadAdhocRegistrations), staticMethodStr(MobDocOfflineUploadAdhocRegistrations,startSplittingDocument), [request.parmmessageId()], System.Threading.CancellationToken::None, classNum(MobDocOfflineUploadAdhocRegistrations), staticMethodStr(MobDocOfflineUploadAdhocRegistrations,ClassCallBackTest));
+
+
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>startSplittingDocument</Name>
+				<Source><![CDATA[
+    public static container startSplittingDocument(container _callerparameters)
+    {
+        guid				callerDoc = str2Guid(conPeek(_callerparameters, 1));
+        TFMDocumentQueue	queue;
+        XML					xmlFile;
+        XmlDocument			xmlDoc, xmlDocNew;
+        XmlNode				requestData;
+        XMLElement			newRoot, newRequestData;
+        XmlNode				postAdHocRequestDataNode;
+        XmlNode				subNode, subNodeCopy;
+        str					requestId, RegType;
+        select firstonly queue where queue.MessageId == callerDoc;
+
+        xmlFile = queue.RequestXML();
+        xmlDoc = new XmlDocument();
+        xmlDoc.loadXml(xmlFile);
+        requestData = xmlDoc.root().getNamedElement(MobConstants::requestData());
+        postAdHocRequestDataNode = requestData.firstChild().firstChild();
+
+		while (postAdHocRequestDataNode)
+        {
+            requestId = postAdHocRequestDataNode.getNamedElement('RequestId').innerText();
+            RegType = MobConstants::PostAdhocRegistration();
+
+            xmlDocNew = XmlDocument::newBlank();
+            xmlDocNew.createXmlDeclaration('1.0', 'utf-8', '');
+            newRoot = xmlDocNew.createElement2(MobConstants::request(), MobConstants::RequestDocumentNamespace());
+            newRoot.setAttribute('messageID','{'+requestId+'}');
+            newRoot.setAttribute(strLwr(MobConstants::Name()),RegType);
+            xmlDocNew.appendChild(newRoot);
+            newRequestData = xmlDocNew.createElement(MobConstants::requestData());
+            newRequestData.setAttribute(strLwr(MobConstants::Name()),RegType);
+            subNode = postAdHocRequestDataNode.firstChild();
+			while (subNode)
+            {
+                subNodeCopy = xmlDocNew.createElement(subNode.name());
+                if (subNode.hasChildNodes())
+                {                    
+                    subNodeCopy.innerXML(subNode.innerXML());
+                }
+                else
+                {
+                    subNodeCopy.innerText(subNode.innerText());
+                }
+                newRequestData.appendChild(subNodeCopy);
+                subNode = subNode.nextSibling();
+            }
+            newRoot.appendChild(newRequestData);
+			
+            postAdHocRequestDataNode = postAdHocRequestDataNode.nextSibling();
+
+            new MobDocumentConnector().submit(xmlDocNew.xml(), str2Guid(requestId),queue.DeviceId);
+        }
+        return(['Operation completed : ' + guid2Str(callerDoc)]);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ClassCallBackTest</Name>
+				<Source><![CDATA[
+    public static void ClassCallBackTest(AsyncTaskResult _result)
+    {
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

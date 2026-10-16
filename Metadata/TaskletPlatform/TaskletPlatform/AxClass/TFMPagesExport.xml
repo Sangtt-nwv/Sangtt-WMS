@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPagesExport</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class used when exporting pages to configuration file
+/// </summary>
+public class TFMPagesExport
+{
+    Set referencedFilters;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>GetConfigurationXmlForPages</Name>
+				<Source><![CDATA[
+    public XmlElement GetConfigurationXmlForPages()
+    {
+        XmlDocument				xmlDoc;
+        XmlElement              xmlPagesElement;
+        TFMPages                pages = TFMPagesProvider::getAllPages();
+        MapEnumerator           pagesEnum = pages.getPages().getEnumerator();
+        TFMPagesMapHelper		pagesMapHelper = new TFMPagesMapHelper();
+        TFMPage					page;
+		xmlDoc = new XmlDocument();
+
+        xmlPagesElement = xmlDoc.createElement('pages');
+        xmlPagesElement.setAttribute('tweak','append');
+        pagesMapHelper.init();
+        while(pagesEnum.moveNext())
+        {
+            page = pagesEnum.currentValue();
+            if (page.parmAlwaysIncludeInOutput() || pagesMapHelper.pagesReferenced().exists(page.parmId()))
+            {
+                referencedFilters.add(page.parmFilter());
+                this.addTFMPageXmlToPagesElement(page, xmlPagesElement, false, pages);
+            }
+        }
+
+        return xmlPagesElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getReferencedFilters</Name>
+				<Source><![CDATA[
+    public Set getReferencedFilters()
+    {
+        return referencedFilters;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constructor for class
+    /// </summary>
+    /// <returns>A TFMPagesExport instance</returns>
+    public static TFMPagesExport Construct()
+    {
+        return new TFMPagesExport();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Constructor for class
+    /// </summary>
+    private void new()
+    {
+        referencedFilters = new Set(Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTFMPageXmlToPagesElement</Name>
+				<Source><![CDATA[
+    private void addTFMPageXmlToPagesElement(TFMPage _mobPage, XmlElement _pagesElement, boolean _replace, TFMPages _pages)
+    {
+        XmlNodeList pagesNodeList;
+        XmlDocument xmlDocPagePages = new XmlDocument();
+        XMLNodeListIterator xmlListIterator;
+
+        xmlDocPagePages = _mobPage.getXML(_pages);
+        if(xmlDocPagePages)
+        {
+            pagesNodeList = xmlDocPagePages.SelectNodes('//*[local-name()="page"]');;
+            xmlListIterator = new XMLNodeListIterator(pagesNodeList);
+                
+            while(xmlListIterator.moreValues())
+            {
+                XmlNode node = xmlListIterator.value();
+                XmlElement nodeElement = node as XmlElement;
+                if(_replace)
+                {
+                    nodeElement.setAttribute('tweak', 'replace');
+                }
+                _pagesElement.appendChild(_pagesElement.ownerDocument().importNode(node, true));
+
+                xmlListIterator.nextValue();
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

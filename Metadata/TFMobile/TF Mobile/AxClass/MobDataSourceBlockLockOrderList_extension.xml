@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobDataSourceBlockLockOrderList_extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classStr(TFMDataSourceBlockLockOrderList))]
+final class MobDataSourceBlockLockOrderList_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Addfields</Name>
+				<Source><![CDATA[
+	public Map Addfields(Common _common)
+    {
+        MobOrder		mobOrder	= MobOrder::constructFromTableName(tableId2name(_common.tableId) ,ds.OrderType);
+        //backendId       = mobOrder ? mobOrder.getBackendID(_common) : ''; 
+        //TODO: Reinstate once it compiles
+        return next Addfields(_common);
+	}
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

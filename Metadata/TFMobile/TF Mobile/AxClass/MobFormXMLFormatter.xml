@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobFormXMLFormatter</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.Xml.Linq;
+/// <summary>
+/// Converting xml string to a color formatted html representation.
+/// </summary>
+class MobFormXMLFormatter
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>htmlColorXML</Name>
+				<Source><![CDATA[
+    public static str htmlColorXML(XML _xml)
+    {
+        return TFMFormXMLFormatter::htmlColorXML(_xml);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

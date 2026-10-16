@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMExportSetup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMExportSetup extends RunBase
+{
+    DialogField             checkmarkField;
+    Map                     fields;
+    DialogGroup             dlg;
+    Common                  printFromBuffer;
+    
+    int                     qty;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    // Dialog method to capture runtime user inputs for customer details
+    public Object dialog()
+    {
+        Dialog                      dialog = super();
+        Map                         models = TFMExportSetup::getTables();
+        MapEnumerator               modelEnum = models.getEnumerator();
+        MapEnumerator               tableEnum;                   
+        
+        // Set a title for dialog
+        dialog.caption( 'Export data');
+        fields = new Map (Types::String, Types::Class);
+        while (modelEnum.moveNext())
+        {
+            dlg = dialog.addGroup(modelEnum.currentKey());
+            dlg.hideIfEmpty(false);
+            tableEnum = modelEnum.currentValue().GetEnumerator();
+            while (tableEnum.moveNext())
+            {
+                checkmarkField = dialog.addField(extendedTypeStr(NoYesId), tableEnum.currentValue() ? tableEnum.currentValue() : tableEnum.currentKey(), tableEnum.currentKey());
+                checkmarkField.value(1);
+                fields.insert(tableEnum.currentKey(),checkmarkField);
+            }
+        }
+                
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTables</Name>
+				<Source><![CDATA[
+    public static Map getTables()
+    {
+        Map modelsTables = new Map (Types::String, Types::Class);
+        #ifnot.isAX6
+        Map tablesInModel;
+        
+        Microsoft.Dynamics.AX.Metadata.MetaModel.ModelInfo  modelInfo = TFMVersion::modelForClass(className2Id(classStr(TFMDocumentHandler)));
+        var environment = Microsoft.Dynamics.ApplicationPlatform.Environment.EnvironmentFactory::GetApplicationEnvironment();
+        str packageDir = environment.get_Aos().get_PackageDirectory();
+
+        var runtimeProviderConfiguration = New Microsoft.Dynamics.AX.Metadata.Storage.Runtime.RuntimeProviderConfiguration(packageDir);
+        var metadataProviderFactory =  New Microsoft.Dynamics.AX.Metadata.Storage.MetadataProviderFactory();
+        var provider = metadataProviderFactory.CreateRuntimeProvider(runtimeProviderConfiguration);
+        Microsoft.Dynamics.AX.Metadata.MetaModel.AxTable axTable;
+        var myTables = provider.Tables.ListObjectsForModel(modelInfo.Name);
+        
+        var le = myTables.GetEnumerator();
+        tablesInModel = new Map(Types::String, Types::String);
+        while (le.MoveNext())
+        {
+            axTable = provider.Tables.Read(le.Current);    
+            //if (!strScan(axTable.Tags,'NoExport',1,strLen(axTable.Tags)))
+            if (axTable.TableGroup == Microsoft.Dynamics.AX.Metadata.Core.MetaModel.TableGroup::Parameter)
+            {
+                tablesInModel.insert(axTable.Name,axTable.Label);
+            }
+        }
+        modelsTables.insert("@TFM:MEL18",tablesInModel);
+        MapEnumerator models = TFMVersion::extensionModels().getEnumerator();
+        while (models.moveNext())
+        {
+            
+            tablesInModel = new Map(Types::String, Types::String);
+            myTables = provider.Tables.ListObjectsForModel(models.currentKey());
+
+            le = myTables.GetEnumerator();
+            while (le.MoveNext())
+            {
+                axTable = provider.Tables.Read(le.Current);
+                if (axTable.TableGroup == Microsoft.Dynamics.AX.Metadata.Core.MetaModel.TableGroup::Parameter)
+                {
+                    tablesInModel.insert(axTable.Name,axTable.Label);
+                }
+            }
+            modelsTables.insert(models.currentValue(),tablesInModel);
+        }
+        #endif
+        #if.isAX6
+        #AOT
+        
+        TreeNode                tn  = TreeNode::findNode(#classesPAth + '\\' + classstr(TFMDocumentHandler));
+        ListEnumerator          lEnum = new SysDictClass(classNum(TFMDocumentHandler)).extendedBy(true).getEnumerator();
+        int                     basemodel = tn.AOTGetModel();
+        Set                     modelIds = new Set(Types::Integer);
+    
+        Map getTablesInModel(int _modelId)
+        {
+            Map                     tablesInModel = new Map(Types::String, Types::String);
+            SysModelElement         element;
+            SysModelElementData     elementData;
+            SysDictTable            dt;
+        
+            while select elementData where elementData.ModelId == _modelId
+                join element where element.RootModelElement == elementData.ModelElement && element.ElementType == UtilElementType::Table
+            {
+                dt = new SysDictTable(tableName2id(element.Name));
+            
+                tablesInModel.insert(element.name,dt.label());
+            }
+            return tablesInModel;
+        }
+        modelsTables.insert("@TFM:MEL18",getTablesInModel(basemodel));
+
+        modelIds.add(baseModel);
+        while (lEnum.moveNext())
+        {
+            tn  = TreeNode::findNode(#classesPAth + '\\' + classid2NAme(lEnum.current()));
+            if(!modelIds.in(tn.AOTGetModel()))
+            {
+                modelsTables.insert(SysModelStore::modelId2Name(tn.AOTGetModel()),getTablesInModel(tn.AOTGetModel()));
+                modelIds.add(tn.AOTGetModel());
+            }
+        }
+        #endif
+        return modelsTables;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setBuffer</Name>
+				<Source><![CDATA[
+    public void setBuffer(Common _buffer)
+    {
+        printFromBuffer = _buffer;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prompt</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public boolean prompt()
+    {
+        boolean ret;
+        //FormBuildStringControl      control;
+        ret = super();
+        
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    // Retrieve values from Dialog
+    public boolean getFromDialog()
+    {
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    protected boolean canRunInNewSession()
+    {
+        boolean ret;
+
+        ret = false;
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        MapEnumerator mEnum = fields.getEnumerator();
+        str             output;
+        
+        while ( mEnum.moveNext())
+        {
+            checkmarkField = mEnum.currentValue();
+            if (!checkmarkField.value())
+            {
+                continue;
+            }
+            //Info (mEnum.currentKey() +' '+  strFmt('%1',checkmarkField.value()));
+            
+            output += this.getTable(mEnum.currentKey());
+        }
+        this.sendFileToUser(output);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendFileToUser</Name>
+				<Source><![CDATA[
+    private void sendFileToUser(str _output)
+    {
+        str fileName = 'TFMExport';
+        str contentType = 'application/text';
+        str fileExtension = '.tfe';//SRSPrintDestinationSettings::findFileNameType(SRSReportFileFormat::PDF, SRSImageFileFormat::BMP);
+        #if.isAX6
+        System.IO.StreamWriter sw;
+        str filePath = WinAPI::getSaveFileName(0,['Tasklet Factory Export format','*'+fileExtension],'',"@SYS56237",fileExtension,fileName);
+        InteropPermission perm = new InteropPermission(InteropKind::ClrInterop);
+        perm.assert();
+
+        sw = new System.IO.StreamWriter(filePath);
+        sw.Write(_output);
+        sw.Flush();
+        sw.Close();
+        sw.Dispose();
+
+        CodeAccessPermission::revertAssert();
+        
+        
+        #endif
+        #ifnot.IsAX6 //365
+        System.IO.MemoryStream stream = new System.IO.MemoryStream();
+        System.IO.StreamWriter writer = new System.IO.StreamWriter(stream,System.Text.Encoding::GetEncoding(1252));
+        writer.Write(_output);
+        writer.Flush();
+        
+        stream.Position = 0;
+        FileUploadTemporaryStorageStrategy fileUploadStrategy = new FileUploadTemporaryStorageStrategy();
+        FileUploadTemporaryStorageResult fileUploadResult = fileUploadStrategy.uploadFile(stream, fileName + fileExtension, contentType , fileExtension);
+        Browser br = new Browser();
+        br.navigate(fileUploadResult.getDownloadUrl(),false, false);
+        #endif
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTable</Name>
+				<Source><![CDATA[
+    private str getTable(TableName _tableNAme)
+    {
+        str             output;
+        str             tmpStr;
+        int             endPos;
+        str             addedFields;
+        Map             refs;
+        MapEnumerator   refsEnum;
+        Common table = new SysDictTable(tableName2Id(_tableName)).makeRecord();
+        while select table
+        {
+            addedFields = '';
+            tmpStr = table.xml();
+            endPos = strScan(tmpStr, '</Table:Record>',1, strLen(tmpStr));
+            refs =  this.addClassReferenceKey(table);
+            refs.insert('RecId',int642Str(table.RecId));
+            refsEnum = refs.getEnumerator();
+            while (refsEnum.moveNext())
+            {
+                addedFields += '<Table:Field name="'+refsEnum.currentKey()+'">'+refsEnum.currentValue()+'</Table:Field>' + "@TFM:lineBreak";
+            }
+            tmpStr = subStr(tmpStr,1,endPos-1) + addedFields + subStr(tmpStr,endPos, strLen(tmpStr));
+            //tmpStr = subStr(tmpStr,1,endPos-1) + '<Table:Field name="RecId">'+int642Str(table.RecId)+'</Table:Field>' + subStr(tmpStr,endPos, strLen(tmpStr));
+            
+            output += tmpStr;
+        }
+        return output;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addClassReferenceKey</Name>
+				<Source><![CDATA[
+    private Map addClassReferenceKey(Common _table)
+    {
+        DictTable       dt          = new DictTable(_table.tableId);
+        Map             classRefs   = new Map(Types::String, Types::String);
+        dictField       df;
+        int             fieldCount  = dt.fieldCnt();
+        int             fieldNo     = 0;
+        
+        for (fieldNo = 0; fieldNo <= fieldCount; fieldNo++)
+        {
+            df = new DictField(_table.tableId,dt.fieldCnt2Id(fieldNo));
+            if (df.typeId() && (new DictType(df.typeId()).extend() == extendedTypeNum(ClassId) || df.typeId() == extendedTypeNum(ClassId)))
+            {
+                classRefs.insert(df.name() + 'AOTName', classId2Name(_table.(dt.fieldCnt2Id(fieldNo))));
+            }
+        }
+        
+        return classRefs;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        TFMExportSetup printDialog = new TFMExportSetup();
+        
+        if (_args)
+        {
+            printDialog.setBuffer(_args.record());
+        }
+
+        // Prompt the dialog, if user clicks in OK it returns true
+        if (printDialog.prompt())
+        {
+            printDialog.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return conNull();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container packedClass)
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

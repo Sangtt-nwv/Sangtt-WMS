@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsProcessFinishQuarantineOrders</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Process definition class for Finishing Quarantine orders
+/// </summary>
+class MwmsProcessFinishQuarantineOrders extends TFMProcess
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        MwmsLogicBlockFinishQuarantineOrder qBlock = MwmsLogicBlockFinishQuarantineOrder::Construct();
+        MwmsLogicBlockMoveInvent            mBlock = new MwmsLogicBlockMoveInvent();
+        TFMLogicStepOperatorIf              ifBlock = new TFMLogicStepOperatorIf();
+        TFMRegistrationCollectors           moveCollectors;
+        processName = TFMConstants::QuarantineOrders();
+
+        ifBlock.parmCompareValue1('{Quantity}');
+        ifBlock.parmCompareValue2('0');
+        ifBlock.parmCompareOperator(TFMListValueIf::greaterThan);
+        super();
+        this.addBlock(qBlock);
+        this.addBlock(ifBlock);
+        this.addBlock(mBlock);
+        this.linkBlocks(qBlock,ifBlock,'1','1');
+        this.linkBlocks(ifBlock,mBlock,TFMConstants::True(),'1');
+        //Activate Origin inheritance of values from InventDim
+        moveCollectors = this.blockCollection().getBlockCollectors(mBlock);
+        moveCollectors.getCollector('To' + extendedTypeStr(WMSLocationId)).parmDisableMatchedSource(true);
+
+        TFMRegistrationCollector collectorWHSLicensePlateTo =  moveCollectors.getCollector('To' + fieldStr(WHSLicensePlate, LicensePlateId));
+        if(collectorWHSLicensePlateTo)
+        {
+            collectorWHSLicensePlateTo.parmDisableMatchedSource(true);
+        }
+        this.blockCollection().addBlockAddon(mBlock, new MwmsLogicBlockAddonCancelMoveWhenSimilar());
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

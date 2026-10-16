@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicComponentInventoryMovement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Logic component handling data collection for inventory movement
+/// </summary>
+class MwmsLogicComponentInventoryMovement extends TFMLogicComponent
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>requestClassProvided</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method that tells which request Class it's data can be parsed into
+    /// </summary>
+    /// <returns>The name of the request class the components data can be parsed to</returns>
+    public ClassName requestClassProvided()
+    {
+        return classStr(TFMRequestItemAndDimensionElement);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>headerFieldsNeeded</Name>
+				<Source><![CDATA[
+    public TFMReferenceDataConfiguration headerFieldsNeeded()
+    {
+        TFMReferenceDataConfiguration ret = super();
+
+        TFMRegistrationCollectorList    fromWarehouse = TFMGetReferenceData::createDefaultWarehouseReferenceData(10, strLwr(extendedTypeStr(InventLocationId)), "@SYS25253", methodStr(TFMGetReferenceData,WarehouseList));
+        // Warehouse to move from
+        fromWarehouse.parmLinkedElement(20);
+        fromWarehouse.parmLinkColumn(extendedTypeStr(InventLocationId));
+        fromWarehouse.parmLocked(true);
+        ret.addCollector(fromWarehouse);
+        // Warehouse to move to
+        ret.addCollector(TFMGetReferenceData::createDefaultWarehouseReferenceData(20,'To'+ strLwr(extendedTypeStr(InventLocationId)), "@SYS8519", methodStr(TFMGetReferenceData,WarehouseList)));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registrationCollectors</Name>
+				<Source><![CDATA[
+    public TFMRegistrationCollectors registrationCollectors()
+    {
+
+        TFMRegistrationCollectors ret = super();
+
+        //License plate, ask for to location
+
+        TFMRegistrationCollector    regCol = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(WMSLocationId),'To' + extendedTypeStr(WMSLocationId),"@TFM:MEL44","@SYS50351","@TFM:MEL45");
+        TFMConditions               conditions = TFMConditions::Construct();
+
+        // WMS Location
+        conditions.addCondition(TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[extendedTypeStr(WMSLocationId), '{itemId}'],'active'),methodStr(TFMRegistrationCollector,parmActive) );
+        conditions.addCondition(TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[extendedTypeStr(WMSLocationId), '{itemId}'],'AllowBlank'),methodStr(TFMRegistrationCollector,parmOptional));
+        regCol.parmConditions(conditions);
+        regCol.parmDisableMatchedSource(true);
+        ret.addCollector(regCol);
+
+        // License plate
+        regCol = TFMRegistrationCollector::collectorFromEDT(extendedTypeStr(WHSLicensePlateId),'To' + fieldStr(WHSLicensePlate, LicensePlateId),new DictField(tablenum(WHSLicensePlate), fieldnum(WHSLicensePlate, LicensePlateId)).Label() + ' ('+strlwr("@TFM:MEL45")+')',new DictField(tablenum(WHSLicensePlate), fieldnum(WHSLicensePlate, LicensePlateId)).Label(),"@TFM:MEL45");
+        conditions = TFMConditions::Construct();
+        conditions.addCondition(TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldStr(InventDim, LicensePlateId), '{itemId}'],'active'),methodStr(TFMRegistrationCollector,parmActive) );
+        conditions.addCondition(TFMCondition::Construct(classStr(TFMLogicContextDimensionSetup),[fieldStr(InventDim, LicensePlateId), '{itemId}'],'AllowBlank'),methodStr(TFMRegistrationCollector,parmOptional));
+        regCol.parmConditions(conditions);
+        regCol.parmDisableMatchedSource(true);
+        ret.addCollector(regCol);
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

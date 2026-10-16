@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListValueIf</Name>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>equals</Name>
+			<Label>@TFM:Equals</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>lessThan</Name>
+			<Label>@TFM:LessThan</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>greaterThan</Name>
+			<Label>@TFM:GreaterThan</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+	</EnumValues>
+	<IsExtensible>true</IsExtensible>
+</AxEnum>

@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Runtime Functions"
+  short_description: "Get predefined X++ function signatures right"
+  default_prompt: "Use $xpp-runtime-functions to verify a predefined X++ function call for this D365FO change."

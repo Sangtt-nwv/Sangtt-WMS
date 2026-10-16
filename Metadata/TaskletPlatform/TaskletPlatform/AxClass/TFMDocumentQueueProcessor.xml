@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentQueueProcessor</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Processing class, to process documents waiting in the queue.
+/// </summary>
+class TFMDocumentQueueProcessor extends RunBaseBatch
+{
+    QueryRun queryRun;
+    #tfm
+    #define.CurrentVersion(1)
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+    
+        queryRun = new QueryRun(querystr(TFMDocumentQueueProcessor));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, queryRun.pack()];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Indicate whether or not the class can run in new session or not.
+    /// </summary>
+    /// <returns>True if the class can run in new session. Otherwise false.</returns>
+    protected boolean canRunInNewSession()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryRun</Name>
+				<Source><![CDATA[
+    public QueryRun queryRun()
+    {
+        return queryRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resetQuery</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to reset the Query to the default.
+    /// </summary>
+    public void resetQuery()
+    {
+        queryRun = new QueryRun(querystr(TFMDocumentQueueProcessor));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        TFMDocumentQueue    queue;
+        TFMDocumentQueue    updateQueue;
+        RunAsPermission     runAsPermission;
+        #OCCRetryCount
+        
+        while (queryRun.next())
+        {
+            // Get record from queue with status "Ready For Processing"
+            queue               = queryRun.get(tablenum(TFMDocumentQueue));
+    
+            if (queue.Status != TFMDocumentQueueStatus::Processing && queue.Status != TFMDocumentQueueStatus::Completed && queue.Status != TFMDocumentQueueStatus::NewDocument)
+            {
+                try
+                {
+                    // Update record with status "processing"
+                    ttsbegin;
+                    updateQueue         = TFMDocumentQueue::find(queue.MessageId, true);
+                    updateQueue.Status  = TFMDocumentQueueStatus::Processing;
+                    updateQueue.update();
+                    ttscommit;
+    
+                    // Process record using runas command
+                    runAsPermission     = new RunAsPermission(queue.UserId);
+                    runAsPermission.assert();
+    
+                    if (Global::hasGUI() == false)
+                    {
+                        // BP deviation documented
+                        runas(queue.UserId, classnum(TFMDocumentQueueProcessor), 'processQueueRecord', [queue.MessageId], curext());
+                    }
+                    else
+                    {
+                        TFMDocumentQueueProcessor::processQueueRecord([queue.MessageId]);
+                    }
+                    CodeAccessPermission::revertAssert();
+                }
+                catch (Exception::Deadlock)
+                {
+                    retry;
+                }
+                catch (Exception::UpdateConflict)
+                {
+                    if (appl.ttsLevel() == 0)
+                    {
+                        if (xSession::currentRetryCount() >= #RetryNum)
+                        {
+                            throw Exception::UpdateConflictNotRecovered;
+                        }
+                        else
+                        {
+                            retry;
+                        }
+                    }
+                    else
+                    {
+                        throw Exception::UpdateConflict;
+                    }
+                }
+            }
+        }
+    
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showQueryValues</Name>
+				<Source><![CDATA[
+    public boolean showQueryValues()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version     version = RunBase::getVersion(_packedClass);
+        container   packedQuery;
+    
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version, packedQuery] = _packedClass;
+                if (packedQuery)
+                {
+                    queryRun = new QueryRun(packedQuery);
+                }
+                break;
+    
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static TFMDocumentQueueProcessor construct()
+    {
+        return new TFMDocumentQueueProcessor();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    server client static public ClassDescription description()
+    {
+        return "@TFM:TFM24";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formProcess</Name>
+				<Source><![CDATA[
+    public client static void formProcess(TFMDocumentQueue _mobDocumentQueue)
+    {
+        TFMDocumentQueueProcessor   processor;
+        TFMDocumentQueue            formTFMDocumentQueue;
+        FormDataSource              formDataSource;
+        
+        #if.isAX6
+        if (!_mobDocumentQueue || !_mobDocumentQueue.isFormDataSource())
+        #endif
+        #ifnot.isAX6
+        if (!_mobDocumentQueue || !FormDataUtil::isFormDataSource(_mobDocumentQueue))
+        #endif
+        {
+            throw error(strfmt("@SYS19306",funcname()));
+        }
+        processor = TFMDocumentQueueProcessor::construct();
+    
+        processor.getLast();
+        processor.queryRun().query().dataSourceTable(tablenum(TFMDocumentQueue)).clearRanges();
+    
+        #if.isAX6
+        formDataSource = _mobDocumentQueue.dataSource();
+        #endif
+        #ifnot.isAX6
+        formDataSource = FormDataUtil::getFormDataSource(_mobDocumentQueue);
+        #endif
+    
+        if(formDataSource.getFirst(true))
+        {
+            formTFMDocumentQueue =  formDataSource.getFirst(true);
+        }
+        else
+        {
+            formTFMDocumentQueue = _mobDocumentQueue;
+        }
+    
+        while(formTFMDocumentQueue)
+        {
+            processor.queryRun().query().dataSourceTable(tablenum(TFMDocumentQueue)).addRange(fieldNum(TFMDocumentQueue, MessageId)).value(guid2str(formTFMDocumentQueue.MessageId));
+            formTFMDocumentQueue = formDataSource.getNext();
+        }
+    
+        if (processor.prompt())
+        {
+            #if.isAX6
+            processor.run();
+            #endif
+            #ifnot.isAX6
+            processor.runOperation();
+            #endif
+        }
+    
+        // Reset query to remove special message id ranges from query, so they don't show up next time the normal batch process is executed
+        processor.resetQuery();
+        processor.saveLast();
+    
+        formDataSource.research();
+    
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        TFMDocumentQueueProcessor processor;        
+    
+        processor = TFMDocumentQueueProcessor::construct();
+    
+        if (processor.prompt())
+        {
+            #ifnot.isAx6
+            processor.runOperation();
+            #endif
+            #if.isAX6
+            processor.run();
+            #endif
+            
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processQueueRecord</Name>
+				<Source><![CDATA[
+    server public static void processQueueRecord(container _runAsParms)
+    {
+        #OCCRetryCount
+        TFMDocumentQueue                updateQueue;
+        TFMInputHandler                 documentHandler;
+        TFMDocumentMessageId            messageId;
+        Counter                         infoLogCounter;
+        TFMRequestElement               request;
+        CLRObject                       exception;
+        CLRObject                       exceptionMessage;
+        CLRObject                       innerException;
+        InteropPermission               permission;
+    
+        messageId       = conPeek(_runAsParms, 1);
+    
+        try
+        {
+            ttsbegin;
+    
+            updateQueue     = TFMDocumentQueue::find(messageId, true);
+
+            // Instantiate the handler class
+            
+            request = TFMXmlDeserializer::DeserializeRequest(XmlDocument::newXml(updateQueue.RequestXML()));
+            documentHandler = TFMDocumentTypeProvider::handler(request.parmDocumentType());
+
+            if (!documentHandler)
+            {
+                throw error(strfmt("@TFM:TFM19",request.parmDocumentType()));
+            }
+            documentHandler.parmMessageId(updateQueue.MessageId);
+            documentHandler.setRequest(request);
+            
+            
+            infoLogCounter = infolog.num();
+    
+            //documentHandler.unpack(documentType.Parameters);
+            documentHandler.preProcess();
+            documentHandler.run();
+            updateQueue.Status      = TFMDocumentQueueStatus::Completed;
+            updateQueue.ResultXML   = TFMDocumentConnector::Add2ReturnXml(documentHandler, updateQueue.MessageId, TFMDocumentQueueStatus::Completed);
+    
+            // Recover answer field if it's empty (only happens when runtime errors occured in initial submit
+            if (!updateQueue.AnswerXML)
+            {
+
+                updateQueue.AnswerXML = updateQueue.ResultXML;
+
+            }
+    
+            updateQueue.update();
+            ttscommit;
+        }
+    
+        catch (Exception::Error)
+        {
+            ttsbegin;
+            updateQueue              = TFMDocumentQueue::find(messageId, true);
+            updateQueue.Status       = TFMDocumentQueueStatus::Error;
+            updateQueue.ResultXML    = TFMDocumentConnector::createReturnXml(Info::infoCon2Str(infolog.copy(infoLogCounter+1,infolog.num())), '', updateQueue.MessageId, updateQueue.Status);
+    
+            // Recover answer field if it's empty (only happens when runtime errors occured in initial submit
+            if (!updateQueue.AnswerXML)
+            {
+                //if (updateQueue.SubmitType == TFMDocumentSubmitType::Direct)
+                //{
+                updateQueue.AnswerXML = updateQueue.ResultXML;
+                /*}
+                else
+                {
+                    documentType    = TFMDocumentType::find(updateQueue.DocumentType);
+                    if (!documentType)
+                    {
+                        documentType = TFMDocumentType::find('*');
+                    }
+                    if (documentType)
+                    {
+                        documentHandler = documentType.documentHandler();
+                        updateQueue.AnswerXML = TFMDocumentConnector::createReturnXml(documentHandler.enqueuedAnswer(), '', updateQueue.MessageId, TFMDocumentQueueStatus::ReadyForProcessing);
+                    }
+                }*/
+            }
+    
+            updateQueue.update();
+            ttscommit;
+        }
+        catch (Exception::CLRError)
+        {
+            permission = new InteropPermission(InteropKind::ClrInterop);
+            permission.assert();
+    
+            // BP deviation documented
+            exception = CLRInterop::getLastException();
+            if(exception)
+            {
+                exceptionMessage    = exception.get_Message();
+                innerException      = exception.get_InnerException();
+    
+                while(innerException != null)
+                {
+                    exceptionMessage   = innerException.get_Message();
+                    innerException     = innerException.get_InnerException();
+                }
+            }
+    
+            ttsbegin;
+            updateQueue              = TFMDocumentQueue::find(messageId, true);
+            updateQueue.Status       = TFMDocumentQueueStatus::Error;
+            // BP deviation documented
+            updateQueue.ResultXML    = TFMDocumentConnector::createReturnXml(CLRInterop::getAnyTypeForObject(exceptionMessage), '', updateQueue.MessageId, updateQueue.Status);
+    
+            // Recover answer field if it's empty (only happens when runtime errors occured in initial submit
+            if (!updateQueue.AnswerXML)
+            {
+                //if (updateQueue.SubmitType == TFMDocumentSubmitType::Direct)
+                //{
+                updateQueue.AnswerXML = updateQueue.ResultXML;
+                /*}
+                else
+                {
+                    documentType    = TFMDocumentType::find(updateQueue.DocumentType);
+                    if (!documentType)
+                    {
+                        documentType = TFMDocumentType::find('*');
+                    }
+                    if (documentType)
+                    {
+                        documentHandler = documentType.documentHandler();
+                        updateQueue.AnswerXML = TFMDocumentConnector::createReturnXml(documentHandler.enqueuedAnswer(), '', updateQueue.MessageId, TFMDocumentQueueStatus::ReadyForProcessing);
+                    }
+                }*/
+            }
+    
+            updateQueue.update();
+            ttscommit;
+        }
+        catch (Exception::Deadlock)
+        {
+            retry;
+        }
+        catch (Exception::UpdateConflict)
+        {
+            if (appl.ttsLevel() == 0)
+            {
+                if (xSession::currentRetryCount() >= #RetryNum)
+                {
+                    throw Exception::UpdateConflictNotRecovered;
+                }
+                else
+                {
+                    retry;
+                }
+            }
+            else
+            {
+                throw Exception::UpdateConflict;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

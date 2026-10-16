@@ -1,0 +1,4 @@
+interface:
+  display_name: "D365FO Performance & Caching"
+  short_description: "Speed up X++ with set-based ops, indexes, and caching"
+  default_prompt: "Use $performance-and-caching to diagnose or fix a performance issue for this D365FO change."

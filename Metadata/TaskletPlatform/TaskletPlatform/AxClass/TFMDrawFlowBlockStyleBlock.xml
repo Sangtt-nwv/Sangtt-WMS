@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowBlockStyleBlock</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDrawFlowBlockStyleBlock extends TFMDrawFlowBlockStyle
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>styleProvidedForThisClass</Name>
+				<Source><![CDATA[
+    public ClassName styleProvidedForThisClass()
+    {
+        return classStr(TFMLogicBlock);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>htmlForClass</Name>
+				<Source><![CDATA[
+    public str htmlForClass(Object _object)
+    {
+        TFMLogicBlock block = _object;
+        str           html;
+        str           outputDivsHtml;
+        str           blockType;
+
+        str iconStr = block.blockIcon();
+        if(iconStr)
+        {
+            iconStr = TFMDocGetMedia::getURLFromIconName(iconStr, true);
+        }
+
+        outputDivsHtml = TFMDrawFlowBlockStyleBlock::addOutputLabels(block.outputs());
+
+        blockType = (block is TFMLogicBlockDataCollectionInterface) ? "@SYS103711" : ((block is TFMLogicBlockPostAdhocRegistrationInterface) ? "@TFM:AdhocAction" : ((block is TFMLogicStepOperatorInterface) ? "@SYS9748" : ''));
+
+        html = outputDivsHtml + '<div><div class="title-box" style="vertical-align: middle;text-align: center;"><i class="fab fa-logicblock"></i>'
+            +'<img src="'+ iconStr + '" style="vertical-align: middle;text-align: center;"><b style="vertical-align: middle;text-align: center;">' + block.blockName() + '</b></div>'
+            +'<div class="boxType stroketext">'+ blockType + '</div>'
+            +'</div>';
+
+        return html;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addOutputLabels</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Adds returns output labels divs.
+    /// </summary>
+    /// <param name = "_block"></param>
+    /// <returns></returns>
+    public static str addOutputLabels(TFMLogicInputOutputContainer _block)
+    {
+        str outputDivsHtml;
+        int outputs = 0;
+        
+        while (outputs <= _block.NoOfConnections())
+        {
+            outputs++;
+            str outputName = _block.getConnectionName(outputs);
+            if(outputName && strScan(outputName, 'output', 0, 1000000) < 1)
+            {
+                outputDivsHtml += '<div class="logicblockoutput stroketext logicblockinputoutput_' + int2Str(outputs) + '" style="height: 0px">' + TFMHelper::capitalLetterSentence(outputName) + '</div>';
+            }
+        }
+        return outputDivsHtml;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

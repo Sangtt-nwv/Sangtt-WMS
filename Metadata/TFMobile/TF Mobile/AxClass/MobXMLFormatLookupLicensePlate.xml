@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatLookupLicensePlate</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMTableNameAttribute(tableStr(WHSLicensePlate),'LicensePlateLookup')]
+class MobXMLFormatLookupLicensePlate extends TFMXMLFormatLookup
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        InventSum       iSum;
+        Map             itemIDs = new Map(Types::String,Types::Real);
+        Set             inventDims = new Set(Types::String);
+        SetEnumerator   sEnum;
+        ItemId          itemId;
+        str             itemString = '';
+        str				itemQtyStr = '';
+        str             itemImageStr = '';
+        real            physicalInvent;
+        real            physicalAvail;
+        MapEnumerator   mEnum;
+        WHSLicensePlate licensePlate = common;
+        WMSLocationId   location;
+        TFMMenuItemStateConfiguration MenuItemConf;
+        while select InventDim
+            where InventDim.LicensePlateId == licensePlate.LicensePlateId
+        join iSum
+            where iSum.InventDimId     == InventDim.InventDimId    &&
+                  iSum.Closed          == NoYes::No && iSum.PhysicalInvent
+        {
+            itemIDs.insert(iSum.ItemId, (itemIDs.exists(iSum.ItemId) ? itemIDs.lookup(iSum.ItemId) : 0) + iSum.PhysicalInvent);
+            itemId = iSum.ItemId;
+            physicalInvent += iSum.PhysicalInvent;
+            physicalAvail += iSum.availPhysicalCalculated();
+            location = inventDim.wMSLocationId;
+            inventDims.add(inventDim.inventDimId);
+        }
+
+        mEnum = itemIDs.getEnumerator();
+        while(mEnum.moveNext())
+        {
+            itemString += (itemString ? "@MobileWMS:lineBreak" : '') + mEnum.currentKey();
+            itemQtyStr += (itemQtyStr ? "@MobileWMS:lineBreak" : '') +MobHelper::formatItemQty(mEnum.currentValue(), inventTable::find(mEnum.currentKey()).inventUnitId()) + ' ' +inventTable::find(mEnum.currentKey()).inventUnitId();
+            itemImageStr += (itemImageStr ? ',' : '') + mEnum.currentKey();
+        }
+
+        super();
+        if (itemIDs.elements() == 1)
+        {
+            if (inventDims.elements() == 1)
+            {
+                sEnum = inventDims.getEnumerator();
+                sEnum.moveNext();
+                InventDim.InventDimId = sEnum.current();
+            }
+            imageId = MobHelper::imageIDFromDocuref(MobHelper::FindItemDocuref(itemId,InventDim.InventDimId));
+            fieldsToAdd.insert(strLwr(new DictField(tablenum(InventSum), fieldnum(InventSum, ItemId)).name()), itemid);
+            fieldsToAdd.insert(MobConstants::ItemNumber(), itemid);
+        }
+        else
+        {
+            imageID = itemImageStr;
+        }
+        displayLine1 = new DictField(tablenum(WHSLicensePlate), fieldnum(WHSLicensePlate, LicensePlateId)).Label() + ': ' + licensePlate.LicensePlateId;
+        displayLine2 = "@SYS32314" + ': ' + itemString;
+        displayLine3 = "@SYS309572" + ': ' + itemQtyStr;
+        displayLine4 = new DictField(tablenum(WMSLocation), fieldnum(WMSLocation, WMSLocationId)).Label() + ': ' + location;
+        
+        fieldsToAdd.insert(new DictField(tablenum(WHSLicensePlate), fieldnum(WHSLicensePlate, LicensePlateId)).name(), licensePlate.LicensePlateId);
+        fieldsToAdd.insert(extendedTypeStr(WHSLicensePlateId), licensePlate.LicensePlateId);
+        fieldsToAdd.insert(MobConstants::UnitOfMeasure(), "@MobileWMS:ItemsLabel");
+        fieldsToAdd.insert(extendedTypeStr(InventQtyTotal), strFmt('%1', real2int(physicalInvent)));
+        fieldsToAdd.insert('slash','');
+        if (licensePlate.LicensePlateParent)
+        {
+            fieldsToAdd.insert('dimensionLabelsProduct', "@MobileWMS:ToWarehouse"+MobConstants::lineBreak()+"@MobileWMS:ToLocation");
+            fieldsToAdd.insert('dimensionValuesProduct', licensePlate.LicensePlateParent);
+        }
+        if (MenuItemsConf.exists(MobConstants::LicensePlateInfo()))
+        {
+            MenuItemConf = MenuItemsConf.lookup(MobConstants::LicensePlateInfo());
+            MenuItemConf.parmEnabled(true);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

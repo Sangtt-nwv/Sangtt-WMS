@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobXMLFormatLookupTagCounting</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+#mob
+[TFMTableName(tableStr(inventJournalTable), 'TagCounting')]
+class MobXMLFormatLookupTagCounting extends TFMXMLFormatLookup
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setValues</Name>
+				<Source><![CDATA[
+    protected void setValues()
+    {
+        inventJournalTable      inventJournalTable = common;
+        inventJournalTrans_Tag  inventJournalTrans;
+        Set						itemSet = new Set(Types::String);
+        SetEnumerator			sEnum;
+        int						lineCount;
+                
+        super();
+        
+        if (inventJournalTable == null)
+        {
+            displayLine1 = SysLabel::labelId2String2("@SYS35042");
+            fieldsToAdd.insert(MobConstants::Warehouse(), '');
+            fieldsToAdd.insert(extendedTypeStr(JournalId), '');
+            
+            return;
+        }
+        
+        while select ItemId from inventJournalTrans where inventJournalTrans.journalID == inventJournalTable.JournalId
+        {
+            itemSet.add(inventJournalTrans.ItemId);
+            lineCount++;
+        }
+        sEnum = itemSet.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            imageID += (imageID ? ',' : '') + sEnum.current();
+        }
+        displayLine1 = new DictField(tablenum(inventJournalTable), fieldnum(inventJournalTable, JournalId)).Label() +': '+ inventJournalTable.JournalId;
+        displayLine2 = "@SYS25589" + ': ' +inventJournalTable.Description;
+        displayLine3 = "@SYS23470" + ': ' +strFmt("@SYS343263", lineCount);
+        fieldsToAdd.insert(extendedTypeStr(JournalId), inventJournalTable.JournalId);
+        fieldsToAdd.insert(MobConstants::Warehouse(), inventJournalTable.InventLocationId);
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

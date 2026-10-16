@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxSecurityDuty xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MOBDocumentService</Name>
+	<Label>@MobileWMS:MobileWMS135</Label>
+	<Privileges>
+		<AxSecurityPrivilegeReference>
+			<Name>MobDocumentServiceSubmit</Name>
+		</AxSecurityPrivilegeReference>
+		<AxSecurityPrivilegeReference>
+			<Name>MobService</Name>
+		</AxSecurityPrivilegeReference>
+		<AxSecurityPrivilegeReference>
+			<Name>MobPeriodicMaintenance</Name>
+		</AxSecurityPrivilegeReference>
+	</Privileges>
+</AxSecurityDuty>

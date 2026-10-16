@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestFiltersElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType('filters')]
+class TFMRequestFiltersElement extends TFMRequestElement
+{
+    InventLocationId	location;
+    date				deliveryDate;
+    str					scannedValue;
+    TFMOrderTypes       orderTypes;
+    boolean             initFromParmFilter;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmTfmOrderTypes</Name>
+				<Source><![CDATA[
+    public TFMOrderTypes parmTfmOrderTypes(TFMOrderTypes _type = orderTypes)
+    {
+        orderTypes = _type;
+        return orderTypes;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmWarehouse</Name>
+				<Source><![CDATA[
+    public InventLocationId parmWarehouse(InventLocationId _locationId = location)
+    {
+        location = _locationId;
+        return location;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDeliveryDate</Name>
+				<Source><![CDATA[
+    public Date parmDeliveryDate(Date _deliveryDate = deliveryDate)
+    {
+        deliveryDate = _deliveryDate;
+        return deliveryDate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmScannedValue</Name>
+				<Source><![CDATA[
+    public str parmScannedValue(str _scannedValue = scannedValue)
+    {
+        scannedValue = _scannedValue;
+        return scannedValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();        
+        deliveryDate = TFMHelper::today();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmdeviceID</Name>
+				<Source><![CDATA[
+    public TFMDocumentDeviceId parmdeviceID(TFMDocumentDeviceId _deviceId = deviceId)
+    {
+        TFMDocumentDeviceId ret;
+        TFMDeviceTable		devices = TFMDeviceTable::FindOrCreateDevice(_deviceId);
+
+        ret = super(_deviceId);
+
+		if (devices.InventLocationId)
+        {
+            location = devices.InventLocationId;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInitFromParmFilter</Name>
+				<Source><![CDATA[
+    public boolean parmInitFromParmFilter(boolean _initFromParmFilter = initFromParmFilter)
+    {
+        initFromParmFilter = _initFromParmFilter;
+        return initFromParmFilter;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMTranslations</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMTranslations extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Find</Name>
+				<Source><![CDATA[
+    public static TFMTranslations Find(LabelString _labelString, boolean _select4Update = false)
+    {
+        TFMTranslations translation;
+
+        translation.selectForUpdate(_select4Update);
+
+        select firstonly translation where translation.LabelString == _labelString;
+
+        if (!translation)
+        {
+            translation.LabelId = _labelString;
+            translation.LabelString = _labelString;
+        }
+
+        return translation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FindByLabelId</Name>
+				<Source><![CDATA[
+    public static TFMTranslations FindByLabelId(LabelId _labelId, boolean _select4Update = false)
+    {
+        TFMTranslations translation;
+
+        translation.selectForUpdate(_select4Update);
+
+        select firstonly translation where translation.LabelId == _labelId;
+
+        return translation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetTranslatedValue</Name>
+				<Source><![CDATA[
+    public static str GetTranslatedValue(LabelId _labelId, LanguageId _languageId)
+    {
+        TFMTranslationLines translationLine;
+        Label label;
+        TFMTranslations translation;
+        str translatedValue;
+
+        if(!_labelId)
+        {
+            return '';
+        }
+
+        label = new Label(_languageId);
+
+        if(strScan(_labelId, '@', 0, 1) > 0) 
+        {
+            translatedValue = label.extractString(_labelId);
+            if(translatedValue)
+            {
+                return translatedValue;
+            }
+        }
+
+        translation = TFMTranslations::FindByLabelId(_labelId);
+
+        if(translation && translation.RecId)
+        {
+            // always start to see if there is a user defined translation with a value
+            translationLine = TFMTranslationLines::find(translation.RecId, _languageId);
+         
+            // if there is a LabelString then it is a id from a label file
+            translatedValue = (translationLine.RecId) ? translationLine.Translation : label.extractString(translation.LabelString);
+        } 
+
+        if(!translatedValue)
+        {
+            translatedValue = _labelId;
+        }
+
+        return translatedValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>create</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates a translation header and returns the record.
+    /// </summary>
+    /// <param name = "_labelString"></param>
+    /// <param name = "_labelID"></param>
+    /// <returns></returns>
+    public static TFMTranslations create(LabelId _labelID, LabelString _labelString)
+    {
+        TFMTranslations translation;
+        LabelId _labelIdStripped = strReplace(_labelID, '@', '');
+
+        if(_labelString)
+        {
+            translation.LabelString = _labelString; // the labelId in the lookup is the labelString
+            translation.LabelId = _labelIdStripped;
+        } 
+        else
+        {
+            translation.LabelString = '';
+            translation.LabelId = _labelIdStripped;
+        }
+        
+        translation.insert();
+        return translation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LabelTranslated</Name>
+				<Source><![CDATA[
+    public display LabelString LabelTranslated()
+    {
+        str labelTranslated;
+        TFMTranslationLines lines; 
+
+        if(this.LabelString) // if the labelString is not empty
+        {
+            labelTranslated = SysLabel::isLabelId(this.LabelString) ? SysLabel::labelId2String(this.LabelString,new xInfo().language()) : this.LabelID;
+        } 
+        else
+        {
+            lines = TFMTranslationLines::find(this.RecId, currentUserLanguage());
+            labelTranslated = lines.Translation;
+        }
+
+        return labelTranslated;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>IdDisplay</Name>
+				<Source><![CDATA[
+    public display LabelString IdDisplay()
+    {
+        str diplayValue;
+
+        if(this.LabelString)
+        {
+            diplayValue = "@TFM:LabelId" + this.LabelString;
+        } 
+        else
+        {
+            diplayValue = this.LabelId;
+        }
+
+        return diplayValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>write</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Resets the translations provider when writing to the table.
+    /// </summary>
+    public void write()
+    {
+        super();
+        TFMTranslationProvider::resetProvider();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Inserts makes sure that there is a label Id in case there is a label String.
+    /// </summary>
+    public void insert()
+    {
+        if(!this.LabelId)
+        {
+            this.LabelId = this.LabelString;
+        }
+        super();
+        TFMTranslationProvider::resetProvider();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@TFM:TranslationsDevDesc</DeveloperDocumentation>
+	<Label>@SYS23210</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Parameter</TableGroup>
+	<TitleField1>LabelId</TitleField1>
+	<TitleField2>LabelString</TitleField2>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LabelId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LabelString</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Version</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS9039</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LabelId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LabelString</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Version</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LabelTranslated</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LabelId</Name>
+			<ExtendedDataType>LabelId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LabelString</Name>
+			<ExtendedDataType>LabelString</ExtendedDataType>
+			<Label>@TFM:deviceStringID</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Version</Name>
+			<ExtendedDataType>Version</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Description</Name>
+			<Label>@WAX234</Label>
+			<StringSize>-1</StringSize>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>Idx</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>LabelId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>LabelString</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

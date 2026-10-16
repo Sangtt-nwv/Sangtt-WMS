@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMListsCollection</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMListsCollection
+{
+    Map lists;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        lists = new Map(Types::String, Types::Class);
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addList</Name>
+				<Source><![CDATA[
+	public void addList(TFMList _list)
+    {
+        lists.insert(_list.parmListName(),_list);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getList</Name>
+				<Source><![CDATA[
+	public TFMList getList(str _key)
+    {
+        return lists.exists(_key) ? lists.lookup(_key) : null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>listMap</Name>
+				<Source><![CDATA[
+	public Map listMap()
+    {
+        return lists;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

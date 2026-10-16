@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobInventDimHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobInventDimHelper
+{
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>GetInventDimCollectors</Name>
+				<Source><![CDATA[
+    public static Map GetInventDimCollectors(int _addStart, TFMInventDimSetup _inventDimSetup, InventDimParm _inventDimParm, Map _replaceLabels = null, Map _onlineValidationDocuments = null, InventDim _defaultValues = null, boolean _lockValues = false)
+    {
+        return TFMInventDimHelper::GetInventDimCollectors(_addStart, _inventDimSetup,_inventDimParm, _replaceLabels, _onlineValidationDocuments, _defaultValues, _lockValues );
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getStorageDimensions</Name>
+				<Source><![CDATA[
+    public static Map getStorageDimensions(ItemId _itemId, InventDim _inventDim) 
+    {
+        return TFMInventDimHelper::getStorageDimensions(_itemId, _inventDim);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isStorageDimensionForWMSLocationNotActive</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns true if the storage dimension for the WMSLocationID is set to not active.
+    /// </summary>
+    /// <param name = "_itemId">The itemId to find the InventDimGroupSetup from</param>
+    /// <returns>true if the storage dimension for the WMSLocationID is not active.</returns>
+    public static boolean isStorageDimensionForWMSLocationNotActive(ItemId _itemId)
+    {
+        return TFMInventDimHelper::isStorageDimensionForWMSLocationNotActive(_itemId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTrackingDimensions</Name>
+				<Source><![CDATA[
+    public static Map getTrackingDimensions(ItemId _itemId, InventDim _inventDim)
+    {
+        return TFMInventDimHelper::getTrackingDimensions(_itemId, _inventDim);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProductDimensions</Name>
+				<Source><![CDATA[
+    public static Map getProductDimensions(ItemId _itemId, InventDim _inventDim)
+    {
+        return TFMInventDimHelper::getProductDimensions(_itemId, _inventDim);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>WmsLocationIdFromLicensePlate</Name>
+				<Source><![CDATA[
+    public static WMSLocation WmsLocationIdFromLicensePlate(WHSLicensePlateId _licensePlate)
+    {
+        return TFMInventDimHelper::WmsLocationIdFromLicensePlate(_licensePlate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>flagFieldName</Name>
+				<Source><![CDATA[
+    public static str flagFieldName(FieldName _inventDimFieldName)
+    {
+        return TFMInventDimHelper::flagFieldName(_inventDimFieldName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>inventDimField2GS1</Name>
+				<Source><![CDATA[
+    public static str inventDimField2GS1(FieldName _inventDimFieldName)
+    {
+        return TFMInventDimHelper::inventDimField2GS1(_inventDimFieldName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProductDimensionValues</Name>
+				<Source><![CDATA[
+    public static str getProductDimensionValues(RefRecId _product, FieldName _fieldName)
+    {
+        return TFMInventDimHelper::getProductDimensionValues(_product, _fieldName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>locationMismatch</Name>
+				<Source><![CDATA[
+    public static void locationMismatch(InventDim _inventDim, InventTransId _inventTransID = '')
+    {
+        TFMInventDimHelper::locationMismatch(_inventDim, _inventTransID);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LpContentHtml</Name>
+				<Source><![CDATA[
+    public static str LpContentHtml(WHSLicensePlateId _licensePlate)
+    {
+        return TFMInventDimHelper::LpContentHtml(_licensePlate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LicensePlateDetailedContent</Name>
+				<Source><![CDATA[
+    public static Set LicensePlateDetailedContent(WHSLicensePlateId _LicensePlate)
+    {
+        return TFMInventDimHelper::LicensePlateDetailedContent(_LicensePlate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>LicensePlateContent</Name>
+				<Source><![CDATA[
+    public static Map LicensePlateContent(WHSLicensePlateId _LicensePlate)
+    {
+        return TFMInventDimHelper::LicensePlateContent(_LicensePlate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInventDim</Name>
+				<Source><![CDATA[
+    public static InventDim getInventDim(InventDim _iDim,
+                                        ItemId _itemid,
+                                        TFMRequestInventDimElement _request, str _prefix = '')
+    {
+        return TFMInventDimHelper::getInventDim(_iDim, _itemid, _request, _prefix);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllEnabledDimensions</Name>
+				<Source><![CDATA[
+    public static InventDimParm getAllEnabledDimensions()
+    {
+        return TFMInventDimHelper::getAllEnabledDimensions();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllEnabledProductDimensions</Name>
+				<Source><![CDATA[
+    public static InventDimParm getAllEnabledProductDimensions()
+    {
+        return TFMInventDimHelper::getAllEnabledProductDimensions();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllEnabledStorageDimensions</Name>
+				<Source><![CDATA[
+    public static InventDimParm getAllEnabledStorageDimensions()
+    {
+        return TFMInventDimHelper::getAllEnabledStorageDimensions();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllEnabledTrackingDimensions</Name>
+				<Source><![CDATA[
+    public static InventDimParm getAllEnabledTrackingDimensions()
+    {
+        return TFMInventDimHelper::getAllEnabledTrackingDimensions();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>enabledInventDimCollectors</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectors enabledInventDimCollectors(ItemId _itemId = '', boolean _disableProdDim =false, boolean _disableStorDim = false, boolean _disableTracDim = false, Map _replaceLabels = null, Map _onlineValidationDocuments = null, InventDim _defaultValues = null, boolean _lockValues = false)
+    {
+        return TFMInventDimHelper::enabledInventDimCollectors(_itemId, _disableProdDim, _disableStorDim, _disableTracDim, _replaceLabels, _onlineValidationDocuments , _defaultValues , _lockValues);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetInventDimRegistationCollectors</Name>
+				<Source><![CDATA[
+    public static TFMRegistrationCollectors GetInventDimRegistationCollectors(int _addStart, InventDimParm _inventDimParm, ItemId _itemId = '', Map _replaceLabels = null, Map _onlineValidationDocuments = null, InventDim _defaultValues = null, boolean _lockValues = false)
+    {
+        return TFMInventDimHelper::GetInventDimRegistationCollectors(_addStart, _inventDimParm, _itemId, _replaceLabels, _onlineValidationDocuments, _defaultValues , _lockValues);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMCreateTranslationForm</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMCreateTranslationForm extends FormRun
+{
+    SysTableLookup      sysTableLookup;
+    LanguageTable       LanguageTable;
+    FormStringControl   mandatoryLanguageControl;
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void init()
+    {
+        super();        
+
+        FormGroupControl_NewTranslation.columns(1);
+
+        // Add a translation per used language
+        int i;
+        SysTranslationHelper helper = new SysTranslationHelper(tableNum(TFMTranslations), tableNum(TFMTranslationLines));
+        container conLanguage = SysTranslationDetailHelper::populateLanguageDropDown(helper.getTranslationTableId(), helper.getLanguageFieldId());
+        container languages = conPeek(conLanguage, 3);
+
+        LanguageId orgLanguage = SystemParameters::getSystemLanguageId();
+
+        select firstonly LanguageTable where LanguageTable.LanguageId == orgLanguage;
+
+        if(LanguageTable && LanguageTable.LanguageId)
+        {
+            str orgLanguageLabel = LanguageTable::languageId2Description(orgLanguage);
+            mandatoryLanguageControl = this.addLocale(orgLanguage, orgLanguageLabel);
+            mandatoryLanguageControl.mandatory(true);
+        }
+
+        for (i=5; i <= conlen(languages); i++)
+        {
+            if(orgLanguage != conpeek(languages, i))
+            {
+                this.addLocale(conpeek(languages, i), conpeek(languages, i+1));
+            }
+            i++;
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addLocale</Name>
+				<Source><![CDATA[
+    protected FormStringControl addLocale(str _locale, str _label)
+    {
+        FormStringControl formStringControl = this.FormGroupControl_NewTranslation.addControl(FormControlType::String, _locale);
+        formStringControl.label("@TFM:Translation" + _label);
+        formStringControl.widthMode(FormWidth::SizeToAvailable);
+        formStringControl.limitText(-1);
+        return formStringControl;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>FormStringControl_LabelId</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>lookup</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void lookup()
+        {
+            TFMFormLookupHelper::lookupLabelIDs(this);
+
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonControl_OK</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            FormStringControl       languageControl;
+            FormBuildGroupControl   designFormControl;
+            TFMTranslations         header;
+
+            super();
+
+            if(FormGroupControl_NewTranslation.enableChilds())
+            {
+                if(!element.LabelId_create_new.text())
+                {
+                    info("@TFM:PleaseaddtheIDforthetranslation");
+                    return;
+                }
+
+                if(!element.mandatoryLanguageControl.text())
+                {
+                    info("@TFM:Pleaseaddthetranslationforthesys");
+                    return;
+                }
+
+                // Create the languages in the TFMTranslationsLines.
+                header = TFMTranslations::create(element.LabelId_create_new.text(), null);
+
+                // Add or update the languages. Use the ID from the control (the locale) and the value as the translation on the line.
+                designFormControl = element.form().design().control(element.FormGroupControl_NewTranslation.id());
+                int noOfControls = designFormControl.controlCount();
+                int i;
+                for (i = 2; i <= noOfControls; i++)
+                {
+                    languageControl = element.FormGroupControl_NewTranslation.controlNum(i) as FormStringControl;
+
+                    if(languageControl)
+                    {
+
+                        if(header)
+                        {
+                            TFMTranslationLines::createTranslation(header.RecId, languageControl.text(), languageControl.name());
+                        }
+                    }
+                }
+            } 
+            else
+            {
+                // Add the label file value
+                str labelId = element.FormStringControl_LabelId.text();
+
+                // remove the e.g. TFM: from labelId.
+                int indexOfColon = strFind(labelId, ':', 0, strLen(labelId));
+
+                str cleanedLabelId = (indexOfColon) ? subStr(labelId, indexOfColon+1, strLen(labelId) - indexOfColon) : labelId;
+                TFMTranslations::create(cleanedLabelId, labelId); // we are not using the @ from the label.
+            }
+        
+            element.close();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>FormButtonControl_Cancel</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            super();
+            this.formRun().closeCancel();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>TFMTranslations_DS</Name>
+			<Table>TFMTranslations</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Description</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<AllowAdd>Yes</AllowAdd>
+					<DataField>LabelId</DataField>
+					<Mandatory>Yes</Mandatory>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LabelString</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Version</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>TFMTranslationLabelIdLookupTable_DS</Name>
+			<Table>TFMTranslationLabelIdLookupTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>LabelFile</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LabelId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LabelString</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LookupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Version</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<CrossCompanyAutoQuery>Yes</CrossCompanyAutoQuery>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@TFM:Createlabel</Caption>
+		<DataSource xmlns="">TFMTranslations_DS</DataSource>
+		<DialogSize xmlns="">Large</DialogSize>
+		<Pattern xmlns="">Dialog</Pattern>
+		<PatternVersion xmlns="">1.2</PatternVersion>
+		<Style xmlns="">Dialog</Style>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<WindowType xmlns="">Popup</WindowType>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>FormActionPaneControl</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+				<Style>Strip</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FormGroupControl_LabelId</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<HelpText>Use a system or mobile device label already defined.</HelpText>
+				<Pattern>FieldsFieldGroups</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>FormStringControl_LabelId</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<HelpText>Use an existing label from the system or mobile device labels</HelpText>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<CacheDataMethod>Yes</CacheDataMethod>
+						<DataField>LabelString</DataField>
+						<DataSource>TFMTranslationLabelIdLookupTable_DS</DataSource>
+						<Label>@TFM:Labelid</Label>
+						<LookupOnly>Yes</LookupOnly>
+					</AxFormControl>
+				</Controls>
+				<ColumnsMode>Fill</ColumnsMode>
+				<HideIfEmpty>No</HideIfEmpty>
+				<Caption>@TFM:UseLabelId</Caption>
+				<FrameOptionButton>Radio</FrameOptionButton>
+				<Style>DialogContent</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FormGroupControl_NewTranslation</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<HelpText>Create a new label translated into different languages.</HelpText>
+				<Pattern>FieldsFieldGroups</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>LabelId_create_new</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DisplayHeight>1</DisplayHeight>
+						<DisplayHeightMode>Fixed</DisplayHeightMode>
+						<Label>@TFM:ID</Label>
+						<Mandatory>Yes</Mandatory>
+						<ViewEditMode>Edit</ViewEditMode>
+					</AxFormControl>
+				</Controls>
+				<ColumnsMode>Fill</ColumnsMode>
+				<HideIfEmpty>No</HideIfEmpty>
+				<Caption>@TFM:Createnewlabel</Caption>
+				<FrameOptionButton>Radio</FrameOptionButton>
+				<OptionValue>2</OptionValue>
+				<Style>DialogContent</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormButtonGroupControl">
+				<Name>FormButtonGroupControl</Name>
+				<Type>ButtonGroup</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonControl">
+						<Name>FormButtonControl_OK</Name>
+						<Type>Button</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<SaveRecord>No</SaveRecord>
+						<Text>@SYS301992</Text>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonControl">
+						<Name>FormButtonControl_Cancel</Name>
+						<Type>Button</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Text>@SYS50163</Text>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalRight</ArrangeMethod>
+				<Style>DialogCommitContainer</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

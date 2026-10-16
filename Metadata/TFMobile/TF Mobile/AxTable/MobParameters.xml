@@ -1,0 +1,717 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobParameters</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class MobParameters extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    public static MobParameters find(boolean _forupdate = false)
+    {
+        MobParameters parameter;
+        
+        parameter.selectForUpdate(_forupdate);
+    
+        select firstonly parameter
+            index Key
+            where parameter.Key == 0;
+    
+        if (!parameter && !parameter.isTmp())
+        {
+            Company::createParameter(parameter);
+        }
+    
+        return parameter;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void initValue()
+    {
+        ProdJournalName pjn;
+        UserGroupInfo   userGroup_admin;
+        UserGroupInfo   userGroup_user;
+        
+        this.InventJournalNameCount         = InventJournalName::standardJournalName(InventJournalType::Count);
+        this.InventJournalNameLossProfit    = InventJournalName::standardJournalName(InventJournalType::LossProfit);
+        this.InventJournalNameTagCounting   = InventJournalName::standardJournalName(InventJournalType::TagCounting);
+        this.InventJournalNameTransfer      = InventJournalName::standardJournalName(InventJournalType::Transfer);
+        select firstonly pjn
+            where pjn.JournalType == ProdJournalType::ReportFinished;
+        this.ProdJournalNameFinish          = pjn.JournalNameId;
+
+        this.PickPickingRoute               = NoYes::Yes;
+        this.PickProd                       = NoYes::Yes;
+        this.PickTransfer                   = NoYes::Yes;
+        this.ReceivePurch                   = NoYes::Yes;
+        this.ReceiveTransfer                = NoYes::Yes;
+        this.ReceiveProductionInput         = NoYes::Yes;
+        this.ReceiveRMA                     = NoYes::Yes;
+        this.CancelQtyOnOrder               = NoYes::Yes;
+        this.DocuTypeId                     = DocuType::typeImage();
+
+        super();
+
+        ttsBegin;
+
+        select firstOnly userGroup_admin where userGroup_admin.id == TFMConstants::TFMAdmin();
+        if(!userGroup_admin)
+        {
+            userGroup_admin.id = TFMConstants::TFMAdmin();
+            userGroup_admin.name = "@MobileWMS:MobileWMS177";
+            userGroup_admin.insert();
+
+        }
+
+        select firstOnly userGroup_user where userGroup_user.id == TFMConstants::TFMUser();
+        if(!userGroup_user)
+        {
+            userGroup_user.id = TFMConstants::TFMUser();
+            userGroup_user.name = "@MobileWMS:MobileWMS178";
+            userGroup_user.insert();
+        }
+
+        ttsCommit;
+        TFMGS1Table::defaultSetup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateFieldValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name = "_fieldName"></param>
+    /// <param name = "_arrayIndex"></param>
+    /// <returns></returns>
+    public boolean validateFieldValue(FieldName _fieldName, int _arrayIndex = 1)
+    {
+        boolean ret;
+    
+        ret = super(_fieldName, _arrayIndex);
+    
+        if (_fieldName == fieldStr(MobParameters, PickPickingRoute) && this.PickPickingRoute)
+        {
+            this.PickSale = NoYes::No;
+        }
+        else if (_fieldName == fieldStr(MobParameters, PickSale) && this.PickSale)
+        {
+            this.PickPickingRoute = NoYes::No;
+        }
+        else if (_fieldName == fieldStr(MobParameters, ReceiveArrival) && this.ReceiveArrival)
+        {
+            this.ReceivePurch = NoYes::No;
+        }
+        else if (_fieldName == fieldStr(MobParameters, ReceivePurch) && this.ReceivePurch)
+        {
+            this.ReceiveArrival = NoYes::No;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<DeveloperDocumentation>@MobileWMS:ParametersDevDesc</DeveloperDocumentation>
+	<FormRef>MobParameters</FormRef>
+	<Label>@MobileWMS:MEL60</Label>
+	<TableGroup>Parameter</TableGroup>
+	<CacheLookup>Found</CacheLookup>
+	<ReplacementKey>Key</ReplacementKey>
+	<TableContents>DefaultData</TableContents>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CancelQtyOnOrder</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventJournalNameCount</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventJournalNameLossProfit</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventJournalNameTagCounting</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventJournalNameTransfer</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Key</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>NumberSeqCode_PurchReceive</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PickPickingRoute</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PickProd</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PickSale</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PickTransfer</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ProdJournalNameFinish</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveArrival</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveProductionInput</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceivePurch</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveRMA</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveTransfer</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UnderDeliveryValidation</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Key</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>CancelPick</Name>
+			<Label>@SYS149917</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CancelQtyOnOrder</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>InventJournalTransfer</Name>
+			<Label>@SYS85783</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>InventJournalNameTransfer</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventJournalNameCount</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventJournalNameTagCounting</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InventJournalNameLossProfit</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ProdJournalNameFinish</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>NumberSeq</Name>
+			<Label>@SYS26442</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>NumberSeqCode_PurchReceive</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Pick</Name>
+			<Label>@SYS50416</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>PickSale</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PickPickingRoute</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PickProd</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PickTransfer</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PickRMA</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Receive</Name>
+			<Label>@SYS52744</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ReceivePurch</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveTransfer</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveArrival</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveProductionInput</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiveRMA</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>UnderDeliveryValidation</Name>
+			<Label>@MobileWMS:MEL17</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>UnderDeliveryValidation</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OverDeliveryValidation</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Images</Name>
+			<Label>@SYS56508</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DocuTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ImageFrames</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>OnlineValidation</Name>
+			<Label>@SYS4440</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DEL_ValidateLocation</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DEL_ValidateBatch</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DEL_ValidateSerial</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DEL_ValidateQty</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>CancelQtyOnOrder</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<Label>@SYS147240</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>InventJournalNameCount</Name>
+			<ExtendedDataType>InventJournalNameCount</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>InventJournalNameLossProfit</Name>
+			<ExtendedDataType>InventJournalNameLossProfit</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>InventJournalNameTagCounting</Name>
+			<ExtendedDataType>InventJournalNameTagCounting</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>InventJournalNameTransfer</Name>
+			<ExtendedDataType>InventJournalNameTransfer</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Key</Name>
+			<ExtendedDataType>ParametersKey</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>NumberSeqCode_PurchReceive</Name>
+			<ExtendedDataType>NumberSequenceCode</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>@SYS2499</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PickPickingRoute</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL59</HelpText>
+			<Label>@MobileWMS:MEL58</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PickProd</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL57</HelpText>
+			<Label>@MobileWMS:MobileWMS133</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PickSale</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL52</HelpText>
+			<Label>@MobileWMS:MEL51</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PickTransfer</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL56</HelpText>
+			<Label>@MobileWMS:MEL55</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ProdJournalNameFinish</Name>
+			<ExtendedDataType>ProdJournalNameIdProd</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ReceiveArrival</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL62</HelpText>
+			<Label>@MobileWMS:MEL61</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ReceiveProductionInput</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL80</HelpText>
+			<Label>@MobileWMS:MEL79</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ReceivePurch</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL54</HelpText>
+			<Label>@MobileWMS:MEL53</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ReceiveRMA</Name>
+			<ExtendedDataType>MobPickReturnOrders</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ReceiveTransfer</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>@MobileWMS:MEL56</HelpText>
+			<Label>@MobileWMS:MEL55</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>UnderDeliveryValidation</Name>
+			<Label>@MobileWMS:MEL16</Label>
+			<EnumType>TFMUnderDeliveryValidation</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>OverDeliveryValidation</Name>
+			<Label>@SYS22953</Label>
+			<EnumType>TFMOverDeliveryValidation</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DocuTypeId</Name>
+			<ExtendedDataType>DocuTypeId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DEL_ShowImages</Name>
+			<Label>@SYS31336</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PickRMA</Name>
+			<ExtendedDataType>MobPickReturnOrders</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DEL_ValidateBatch</Name>
+			<ConfigurationKey>SysDeletedObjects82</ConfigurationKey>
+			<Label>@SYS53636</Label>
+			<Visible>No</Visible>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DEL_ValidateSerial</Name>
+			<ConfigurationKey>SysDeletedObjects82</ConfigurationKey>
+			<Label>@SYS477</Label>
+			<Visible>No</Visible>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DEL_ValidateLocation</Name>
+			<ConfigurationKey>SysDeletedObjects82</ConfigurationKey>
+			<Label>@SYS3794</Label>
+			<Visible>No</Visible>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DEL_ValidateQty</Name>
+			<ConfigurationKey>SysDeletedObjects82</ConfigurationKey>
+			<Label>@SYS3065</Label>
+			<Visible>No</Visible>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ImageFrames</Name>
+			<Label>@MobileWMS:Frame</Label>
+			<Visible>No</Visible>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DeveloperMode</Name>
+			<Label>@MobileWMS:DeveloperMode</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>TracingEnabled</Name>
+			<Label>@SYS118475</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SysAADClientId</Name>
+			<ExtendedDataType>SysAADClientId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>EndpointDisplayName</Name>
+			<HelpText>The name of display name of the endpoint</HelpText>
+			<Label>@MobileWMS:EndpointDisplayName</Label>
+			<StringSize>100</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>EndpointTenantId</Name>
+			<HelpText>The name of Tenant ID of the endpoint</HelpText>
+			<Label>@MobileWMS:EndpointTenantID</Label>
+			<StringSize>200</StringSize>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>Key</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Key</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>InventJournalName</Name>
+			<Cardinality>OneMore</Cardinality>
+			<RelatedTable>InventJournalName</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>InventJournalNameTagCounting</Name>
+					<Field>InventJournalNameTagCounting</Field>
+					<RelatedField>JournalNameId</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>JournalType</Name>
+					<RelatedField>JournalType</RelatedField>
+					<ValueStr>InventJournalType::TagCounting</ValueStr>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>ProdJournalName</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<RelatedTable>ProdJournalName</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ProdJournalNameFinish</Name>
+					<SourceEDT>ProdJournalNameIdProd</SourceEDT>
+					<Field>ProdJournalNameFinish</Field>
+					<RelatedField>JournalNameId</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>JournalType</Name>
+					<RelatedField>JournalType</RelatedField>
+					<ValueStr>ProdJournalType::ReportFinished</ValueStr>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>InventJournalNameCount</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<RelatedTable>InventJournalName</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>InventJournalNameCount</Name>
+					<Field>InventJournalNameCount</Field>
+					<RelatedField>JournalNameId</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>JournalType</Name>
+					<RelatedField>JournalType</RelatedField>
+					<ValueStr>InventJournalType::Count</ValueStr>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>InventJournalNameLossProfit</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<RelatedTable>InventJournalName</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>InventJournalNameLossProfit</Name>
+					<Field>InventJournalNameLossProfit</Field>
+					<RelatedField>JournalNameId</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>JournalType</Name>
+					<RelatedField>JournalType</RelatedField>
+					<ValueStr>InventJournalType::LossProfit</ValueStr>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>InventJournalNameTransfer</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<RelatedTable>InventJournalName</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>InventJournalNameTransfer</Name>
+					<Field>InventJournalNameTransfer</Field>
+					<RelatedField>JournalNameId</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>JournalType</Name>
+					<RelatedField>JournalType</RelatedField>
+					<ValueStr>InventJournalType::Transfer</ValueStr>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>NumberSequenceTable</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<RelatedTable>NumberSequenceTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>NumberSeqCode_PurchReceive</Name>
+					<Field>NumberSeqCode_PurchReceive</Field>
+					<RelatedField>NumberSequence</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>SysAADClientTable</Name>
+			<RelatedTable>SysAADClientTable</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>SysAADClientId</Name>
+					<Field>SysAADClientId</Field>
+					<RelatedField>AADClientId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

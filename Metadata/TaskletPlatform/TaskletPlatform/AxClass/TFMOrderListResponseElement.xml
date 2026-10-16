@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMOrderListResponseElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMOrderListResponseElement extends TFMResponseElement
+{
+    Map					records;
+    Map					RecID2OrderType;
+    Map					fieldsMap;
+    ClassName			className;
+    Map					sortingMap;
+    Map					dataSources;
+    FieldName           groupingField;
+    FieldId             groupFieldId;
+    Map                 groupedMap;
+    AscendingDescending	sortOrder;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMOrderListResponseElement Construct(TFMPageID _pageId)
+    {
+        return new TFMOrderListResponseElement(_pageId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(TFMPageID _pageId)
+    {
+        records		= new Map(Types::String, Types::Record);
+        pageId		= _pageId;
+        RecID2OrderType = new Map(Types::Int64, Types::String);
+        className = classStr(TFMXMLFormatOrders);
+        dataSources = new Map(Types::String,Types::Class);
+        sortingMap = new Map(Types::String, Types::String);
+        groupedMap = new Map(Types::String, Types::Class);
+        sortOrder = TFMGenericParms::getValue(_pageId,enumStr(AscendingDescending),'',AscendingDescending::Ascending);
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPageId</Name>
+				<Source><![CDATA[
+    public TFMPageID parmPageId(TFMPageID _pageId = pageId)
+    {
+        pageId = _pageId;
+        if(!prmIsDefault(_pageId))
+        {
+            sortOrder = TFMGenericParms::getValue(_pageId,enumStr(AscendingDescending),'',AscendingDescending::Ascending);
+        }
+        return pageId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmGroupingField</Name>
+				<Source><![CDATA[
+    public FieldName parmGroupingField(FieldName _groupingField = groupingField)
+    {
+        groupingField = _groupingField;
+        return groupingField;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addRecord</Name>
+				<Source><![CDATA[
+	public void addRecord(Common _common, TFMOrderTypes _orderType)
+    {        
+        TFMPageDatasources	ds;
+        TFMXMLFormat		xmlFormat;
+        str					recordKey = strRFix(int2str(records.elements()), 7, '0');
+        str					sortKey = '';
+        int					increment;
+        Set                 groupedRecords;
+        
+        records.insert(recordKey,_common);
+        RecID2OrderType.insert(_common.recId,_orderType); 
+
+        if (!dataSources.exists(tableId2Name(_common.tableId)+RecID2OrderType.lookup(_common.recid)))
+        {
+            ds = TFMPageDatasources::FindOrCreate(pageId,tableId2Name(_common.tableId),RecID2OrderType.lookup(_common.recid));
+            xmlFormat = TFMXMLFormat::constructFromDataSource(ds,className);            
+            dataSources.insert(tableId2Name(_common.tableId)+RecID2OrderType.lookup(_common.recid), xmlFormat);
+        }
+		else
+        {
+            xmlFormat = dataSources.lookup(tableId2Name(_common.tableId)+RecID2OrderType.lookup(_common.recid));
+            ds = xmlFormat.dataSource();
+        }
+
+        if (groupingField || ds.GroupingField)
+        {
+            // add to Grouping Field Map
+            groupFieldId = fieldName2Id(_common.TableId, groupingField ? groupingField : ds.GroupingField);
+            if (groupFieldId)
+            {
+                groupedRecords = groupedMap.exists(strFmt('%1',_common.(groupFieldId))) ? groupedMap.lookup(strFmt('%1',_common.(groupFieldId))) : new Set(Types::String);
+                groupedRecords.add(recordKey);
+                groupedMap.insert(strFmt('%1',_common.(groupFieldId)),groupedRecords);
+            }
+        }
+
+		if (ds.SortingField)
+        {
+            sortKey = ds.sortingKey(_common);
+            increment = 0;
+			while (sortingMap.exists(sortkey + int2Str(increment)))
+            {
+                increment++;
+            }
+            sortingMap.insert( sortkey + int2Str(increment), recordKey);
+        }
+        
+		
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mergeRecordMap</Name>
+				<Source><![CDATA[
+	public void mergeRecordMap(Map _recordMap)
+    {
+        //records = TFMHelper::mergeMaps(records, _recordMap);
+		//Manual traversion is necessary, to ensure the right formatting record. This method is here to make it easier for partners/customers upgrading. Preferably use the addRecord function instead
+        MapEnumerator mEnum = _recordMap.getEnumerator();
+        container     backendIDcon;
+        TFMOrderTypes orderType;
+
+		while (mEnum.moveNext())
+        {			                
+            backendIDcon    = TFMHelper::strSplit(mEnum.currentKey(),'/').pack();
+            orderType		= conLen(backendIDcon) == 7 ? conPeek(backendIDcon,7) : '';
+            this.addRecord(mEnum.currentValue(),orderType);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendToXML</Name>
+				<Source><![CDATA[
+    public void appendToXML(XmlElement _element)
+    {
+        boolean				useSorting = records.elements() <= sortingMap.elements();
+        MapEnumerator		mEnum = useSorting ? sortingMap.getEnumerator() : records.getEnumerator();
+        Common				common;
+        int					i = 10000;        
+        SetEnumerator		sEnum;
+        TFMDataSourceBlock	dsBlock;
+        Map                 groupXMLElements = new Map(Types::String, Types::Class); // Map containing all the group elements
+        XmlElement          elementToAppendTo;
+        TFMXMLFormat		xmlFormat;
+        Set                 groupedRecords;
+
+		while (mEnum.moveNext())
+        {
+            common = useSorting ? records.lookup(mEnum.currentValue()) : mEnum.currentValue();
+            elementToAppendTo = _element;
+            
+            //Find Data Source
+            xmlFormat = dataSources.lookup(tableId2Name(common.tableId)+RecID2OrderType.lookup(common.recId));
+
+            if (groupingField || xmlFormat.dataSource().GroupingField)
+            {
+                groupFieldId = fieldName2Id(common.TableId, groupingField ? groupingField : xmlFormat.dataSource().GroupingField);
+                //replace XML with group, 
+                groupedRecords = groupedMap.exists(strFmt('%1',common.(groupFieldId))) ? groupedMap.lookup(strFmt('%1',common.(groupFieldId))) : new Set(Types::String);
+                if (groupedRecords.elements() > 1)
+                {
+                    elementToAppendTo = groupXMLElements.exists(strFmt('%1',common.(groupFieldId))) ? groupXMLElements.lookup(strFmt('%1',common.(groupFieldId))) : _element.ownerDocument().createElement('Group');
+                    groupXMLElements.insert(strFmt('%1',common.(groupFieldId)),elementToAppendTo);
+                }
+            }
+		    
+            xmlFormat = TFMXMLFormat::constructFromDataSource(xmlFormat.dataSource(),className);
+            xmlFormat.parmDeviceId(deviceId);
+            xmlFormat.clearValues();
+            xmlFormat.parmCommon(common);
+			if (useSorting)
+            {
+                xmlFormat.parmFieldsToAddMap().insert(TFMConstants::Sorting(),int2Str(i));
+            }
+            xmlFormat.run();
+            
+            xmlFormat.appendToXML(elementToAppendTo);
+            fieldsMap = xmlFormat.parmFieldsToAddMap();
+
+            i += sortOrder ? -1 : 1;
+        }
+        mEnum = groupXMLElements.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            elementToAppendTo = mEnum.currentValue();
+            _element.appendChild(elementToAppendTo);
+        }
+
+
+        responseText = strFmt("@TFM:OrdersRetrieved" ,records.elements());
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

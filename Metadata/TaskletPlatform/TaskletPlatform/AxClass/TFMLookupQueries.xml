@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLookupQueries</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLookupQueries
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>lookupQuery</Name>
+				<Source><![CDATA[
+    public static TFMLookupResponseElement lookupQuery(QueryName _queryName, TFMRequestElement _request)
+    {
+        TFMLookupResponseElement response = TFMLookupResponseElement::Construct(_queryName);
+        //Map fields = TFMLookupQueries::fields(_queryName);
+        QueryBuildDataSource    qbd;
+        QueryBuildRange         queryRange;
+        //Map                     retMap = new Map(Types::String, Types::Class);
+        int                     dsCount, i, rangeCount, y;
+        Query                   query = new Query(_queryname);
+        QueryRun                qr;
+        Common                  ds;
+        dsCount = query.dataSourceCount();
+
+        for (i = 1 ; i <= dsCount; i++)
+        {
+            qbd = query.dataSourceNo(i);
+            rangeCount = qbd.rangeCount();
+                        
+            for (y = 1 ; y <= rangeCount; y++)
+            {
+                queryRange = qbd.range(y);
+
+                queryRange.value(_request.getFieldValue(fieldId2Name(qbd.table(),queryRange.field())));
+                
+            }
+        
+        }
+
+        qr = new QueryRun (query);
+        while (qr.next())
+        {
+            ds = qr.getNo(1);
+            response.addResponse(ds, tableId2Name(ds.tableId) + ';' + int642str(ds.RecId),null);
+        }
+
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fields</Name>
+				<Source><![CDATA[
+    public static Map fields(QueryName _queryName)
+    {
+        return TFMLookupQueries::fieldsFromQuery(new Query(_queryname));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldsFromQuery</Name>
+				<Source><![CDATA[
+    public static Map fieldsFromQuery(Query                   _query)
+    {
+        QueryBuildDataSource    qbd;
+        QueryBuildRange         queryRange;
+        Map                     retMap = new Map(Types::String, Types::Class);
+        int                     dsCount, i, rangeCount, y;
+        
+        dsCount = _query.dataSourceCount();
+
+        
+        for (i = 1; i <= _query.queryFilterCount(); i++)
+        {
+            QueryFilter filter = _query.queryFilter(i);
+
+            retMap.insert(tableId2name(filter.dataSource().table())+'.'+filter.field(), filter);
+        }
+        for (i = 1 ; i <= dsCount; i++)
+        {
+            qbd = _query.dataSourceNo(i);            
+            rangeCount = qbd.rangeCount();
+                        
+            for (y = 1 ; y <= rangeCount; y++)
+            {
+                queryRange = qbd.range(y);
+                retMap.insert(tableId2name(qbd.table())+'.'+fieldId2Name(qbd.table(),queryRange.field()),queryRange);
+            }
+        
+        }
+
+        return retMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>applyNamedFilterMapToQuery</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Applies map values to matching named ranges (filters) on a query.
+    ///
+    /// - Map keys must match QueryBuildRange.name()
+    /// - Map values are appended to the existing range value (OR semantics via " , ")
+    /// </summary>
+    /// <param name="_query">The query to modify.</param>
+    /// <param name="_filterMap">Map(str, str) where key = range name, value = filter value.</param>
+    public static void applyNamedFilterMapToQuery(Query _query, Map _filterMap)
+    {
+        QueryBuildDataSource  qbds;
+        QueryBuildRange       qbr;
+        MapEnumerator         mapEnum;
+        str                   filterName;
+        str                   filterValue;
+        str                   existingValue;
+        int                   rangeIdx;
+
+        if (!_query || !_filterMap || !_filterMap.elements())
+        {
+            return;
+        }
+
+        for (int i = 1; i <= _query.dataSourceCount(); i++)
+        {
+            qbds =_query.dataSourceNo(i);
+            for (rangeIdx = 1; rangeIdx <= qbds.rangeCount(); rangeIdx++)
+            {
+                qbr = qbds.range(rangeIdx);
+                filterName = qbr.name();
+                if (_filterMap.exists(filterName) && _filterMap.lookup(filterName))
+                {
+                    qbr.value(_filterMap.lookup(filterName));
+                }
+            }
+        }
+        for (int i = 1; i <= _query.queryFilterCount(); i++)
+        {
+            QueryFilter filter = _query.queryFilter(i);
+            if (_filterMap.exists(filter.field()) && _filterMap.lookup(filter.field()))
+            {
+                filter.value(_filterMap.lookup(filter.field()));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

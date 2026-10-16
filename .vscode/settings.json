@@ -1,0 +1,6 @@
+{
+    "chat.subagents.allowInvocationsFromSubagents": true,
+    "chat.tools.terminal.autoApprove": {
+        "d365fo": true
+    }
+}

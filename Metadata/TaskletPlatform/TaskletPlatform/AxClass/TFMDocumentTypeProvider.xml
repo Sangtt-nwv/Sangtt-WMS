@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocumentTypeProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Class used to create all the standard Document Types.
+/// </summary>
+class TFMDocumentTypeProvider extends TFMProvider
+{
+    Map cachedHandlerIds;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>instance</Name>
+				<Source><![CDATA[
+    public static TFMDocumentTypeProvider instance()
+    {
+        TFMDocumentTypeProvider   provider;
+        System.Runtime.Caching.ObjectCache memCache = System.Runtime.Caching.MemoryCache::Default;
+        str cacheId = classId2Name(classIdGet(provider)) + strLwr(curExt());
+        provider = memCache.Get(cacheId);
+
+        if(!provider)
+        {
+            provider = new TFMDocumentTypeProvider();
+            memCache.Add(cacheId, provider, new System.Runtime.Caching.CacheItemPolicy());
+        }
+
+        return provider;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handler</Name>
+				<Source><![CDATA[
+    public static TFMInputHandler handler(TFMDocumentTypeId _typeId)
+    {
+        return TFMDocumentTypeProvider::instance().getHandler(_typeId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        cachedHandlerIds = new Map(Types::String, Types::Integer);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHandler</Name>
+				<Source><![CDATA[
+    public TFMInputHandler getHandler(TFMDocumentTypeId _typeId)
+    {
+        ClassId         clsId;
+        SysDictClass    sdc;
+
+        clsId   = this.getHandlerId(_typeId);
+        sdc     = new SysDictClass(clsId);
+
+        if (!sdc || !sdc.allowMakeObject())
+        {
+            throw error("@TFM:Cannotcreatehandler");
+        }
+        return sdc.makeObject() as TFMInputHandler;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHandlerId</Name>
+				<Source><![CDATA[
+    public ClassId getHandlerId(TFMDocumentTypeId _typeId)
+    {
+        if (!cachedHandlerIds.exists(_typeId))
+        {
+            this.updateMap();
+        }
+        if (!cachedHandlerIds.exists(_typeId))
+        {
+            throw error(strFmt("@TFM:TFM25",_typeId));
+        }
+        return cachedHandlerIds.lookup(_typeId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTypes</Name>
+				<Source><![CDATA[
+    public Set getTypes()
+    {
+        if(!cachedHandlerIds.elements())
+        {
+            this.updateMap();
+        }
+        return cachedHandlerIds.keySet();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateMap</Name>
+				<Source><![CDATA[
+    protected void updateMap()
+    {
+        ListEnumerator      lEnum           = new DictClass(className2Id(classStr(TFMDocumentHandler))).extendedBy(true).getEnumerator();
+        TFMDocumentHandler  mobHand;        
+        TFMDocumentTypeId   typeID;
+        SetEnumerator       sEnum;
+        SysDictClass        dc;
+        Set					types = new Set(Types::String);        
+        while (lEnum.moveNext())
+        {               
+
+            dc = new SysDictClass(lEnum.current());
+            if (dc == null || !dc.allowMakeObject())
+            {
+                continue;
+            }
+            mobHand = dc.makeObject() as TFMDocumentHandler;
+            types = new Set(Types::String);
+            types = Set::union(types, mobHand.getAllDocumentTypes());
+            types = Set::union(types, mobHand.getAllDocumentTypes(classStr(TFMOrderListGetOrdersDocumentTypeAttribute)));
+            types = Set::union(types, mobHand.getAllDocumentTypes(classStr(TFMOrderListGetOrderLinesDocumentTypeAttribute)));
+            types = Set::union(types, mobHand.getAllDocumentTypes(classStr(TFMOrderListPostOrderDocumentTypeAttribute)));
+            sEnum = types.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                typeID = sEnum.current();
+                cachedHandlerIds.insert(typeID, lEnum.current());               
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>invalidateProvider</Name>
+				<Source><![CDATA[
+    public void invalidateProvider(boolean _requestedByOtherAOS)
+    {
+        cachedHandlerIds = new Map(Types::String, Types::Integer);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>version</Name>
+				<Source><![CDATA[
+    public str version()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMSearchItem</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMSearchType(staticMethodStr(TFMConstants, ItemSearch)), TFMSearchType('InventTable_Search')]
+class TFMSearchItem extends TFMSearchHandler
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>ItemSearch</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to create the filter/header for the Item Search page.
+    /// </summary>
+    /// <returns>The Filter as an XML formatted string.</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration ItemSearch()
+    {
+        TFMReferenceDataConfiguration conf = new  TFMReferenceDataConfiguration();
+        conf.addCollector(this.addDefaultSearchField("@SYS7407", 1, extendedTypeStr(ItemId)));        
+        return conf;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>performSearch</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Nethod to do item search.
+    /// </summary>
+    public void performSearch()
+    {
+        InventTable inventTable;
+        EcoResProductTranslation erpt;
+        EcoResProduct erp;
+        int maxNum = 50;
+        Str x;
+        ItemId itemSrcWildcard, wildcardItemSrcWildcard;
+        Description dSrcWildcard, wildcardDSrcWildcard;
+        str    searchValue = request.parmParameters().getFieldValue(extendedTypeStr(ItemId));
+        
+        
+        itemSrcWildcard = searchValue+'*';
+        wildcardItemSrcWildcard = '*'+searchValue+'*';
+        dSrcWildcard = searchValue+'*';
+        wildcardDSrcWildcard = '*'+searchValue+'*';
+
+        while select inventTable
+                where inventTable.ItemId like itemSrcWildcard
+        {
+            x = inventTable.itemDescriptionOrName();
+            this.addResult(inventTable.ItemId, x,inventTable,strFmt("@SYS14077", inventTable.ItemId), InventTable.itemName(),x,inventTable.itemId);
+            maxNum--;
+            if (maxNum == 0)
+            {
+                break;
+            }
+        }
+    
+        if (maxNum > 0)
+        {
+            while select inventTable
+                    where inventTable.ItemId like wildcardItemSrcWildcard
+            {
+                x = inventTable.itemDescriptionOrName();
+                this.addResult(inventTable.ItemId, x,inventTable,strFmt("@SYS14077", inventTable.ItemId), InventTable.itemName(),x,inventTable.itemId);
+                maxNum--;
+                if (maxNum == 0)
+                {
+                    break;
+                }
+            }
+        }
+    
+        if (maxNum > 0)
+        {
+            while select erpt
+                where erpt.Description like dSrcWildcard
+            {
+                inventTable = inventTable::findByProduct(erpt.Product);
+                this.addResult(inventTable.ItemId, erpt.Description,inventTable,strFmt("@SYS14077", inventTable.ItemId), InventTable.itemName(), erpt.Description,inventTable.itemId);
+    
+                maxNum--;
+                if (maxNum == 0)
+                {
+                    break;
+                }
+    
+                if (maxNum > 0)
+                {
+                    while select erpt
+                where erpt.Description like wildcardDSrcWildcard
+                    {
+                        inventTable = inventTable::findByProduct(erpt.Product);
+                        this.addResult(inventTable.ItemId, erpt.Description,inventTable,strFmt("@SYS14077", inventTable.ItemId), InventTable.itemName(), erpt.Description,inventTable.itemId);
+    
+    
+                        maxNum--;
+                        if (maxNum == 0)
+                        {
+                            break;
+                        }
+                    }
+                }
+    
+            }
+        }
+        if (maxNum > 0)
+        {
+            while select erp
+                where erp.SearchName like dSrcWildcard
+            {
+                inventTable = inventTable::findByProduct(erp.recid);
+                this.addResult(inventTable.ItemId, erp.productDescription(),inventTable,strFmt("@SYS14077", inventTable.ItemId), InventTable.itemName(), erp.productDescription(),inventTable.itemId);
+    
+                maxNum--;
+                if (maxNum == 0)
+                {
+                    break;
+                }
+    
+                if (maxNum > 0)
+                {
+                    while select erp
+                where erp.SearchName like wildcardDSrcWildcard
+                    {
+                        inventTable = inventTable::findByProduct(erp.recid);
+                        this.addResult(inventTable.ItemId, erp.productDescription(),inventTable,strFmt("@SYS14077", inventTable.ItemId), InventTable.itemName(), erp.productDescription(),inventTable.itemId);
+    
+    
+                        maxNum--;
+                        if (maxNum == 0)
+                        {
+                            break;
+                        }
+                    }
+                }
+    
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

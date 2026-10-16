@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawPageUnplannedItemRegistration</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMpageType('UnplannedItemRegistration', "Unplanned Item Registration")]
+class TFMDrawPageUnplannedItemRegistration extends TFMDrawPage
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>DrawPage</Name>
+				<Source><![CDATA[
+    public void DrawPage(TFMPage _page, TFMHtmlViewerCtrl _htmlViewer)
+    {
+        Map								menuItemsMap;
+        Map                             translations = TFMTranslationProvider::getAllTranslationsForCurrentUserLanguage();
+        str                             title;
+        TFMPage					        page;
+        TFMPages                        pages = TFMPagesProvider::getAllPages();
+        str                             unplannedPageContent;
+        str                             htmlOutput;
+
+        Map						filterMap = TFMFormLookupHelper::getConfigurableFilters(_page.parmFilter());
+        MapEnumerator			mEnum = filterMap.getEnumerator();
+
+
+        unplannedPageContent = strFmt('<div style="width: %1px;min-width: %1px;max-width: %1px; overflow: hidden; border: 1px solid rgba(221, 221, 221, 1);background-color: #275eb859">', TFMDrawPage::contentWidth);
+
+
+        menuItemsMap = this.getMenuItemButtons(_page.parmId(), pages);
+
+        unplannedPageContent += '<form>';
+        while (mEnum.moveNext())
+        {
+            unplannedPageContent += this.drawFilter(this.findFilterFields(mEnum.currentKey()));
+            
+        }
+        unplannedPageContent += '</form>'
+            + '<button type="submit" name="Accept1" class="drawPageBottom-right">Accept</button>'; //use label instead.
+
+        unplannedPageContent += '</div>';
+        htmlOutput += TFMDrawPage::drawWithDevice(unplannedPageContent, menuItemsMap, TFMListVisualization::getMenuTitle(_page.parmTitle()), _page.parmIcon());
+        _htmlViewer.parmSkipSanitizer(true);
+        _htmlViewer.parmHtml(htmlOutput);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>drawFilter</Name>
+				<Source><![CDATA[
+    public str drawFilter(Map _fields)
+    {
+        MapEnumerator			fields = _fields.getEnumerator();
+        int						i;
+        str                     fieldOutput;
+
+        while (fields.moveNext())
+        {
+            
+            fieldOutput += '<label class="drawPageLabel" for="'+ fields.currentValue() + '">'+ fields.currentValue() + '</label>'
+                + '<div class="drawPageLine" id="'+ fields.currentValue() + '"></div>';
+            i++;
+        }
+
+        return fieldOutput;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findFilterFields</Name>
+				<Source><![CDATA[
+    public Map findFilterFields(str _path)
+    {
+        str								className = subStr(_path,0,strScan(_path,'.',0,100)-1);
+        str								methodName = strReplace(subStr(_path,strScan(_path,'.',0,100)+1,100),'()','');
+        SysDictClass					sdc = new SysDictClass(className2Id(className));
+        TFMDocumentHandler				docHand = sdc ? sdc.makeObject() : null;
+        container						retValueFromDoc;
+        anytype							retVal = '';
+        str								cDataXML;
+        int								posFrom, posTo;
+        str								id;
+        TFMReferenceDataConfiguration   refData;
+        Map								result = new Map(Types::String,Types::String);
+        SetEnumerator					collectors;
+        TFMRegistrationCollector		collector;
+        if (docHand && SysTest::hasMethod(docHand, methodName))
+        {
+            retValueFromDoc = conNull();
+            retVal = sdc.callObject(methodName,docHand);
+            if (typeOf(retVal) == Types::String)
+            {
+                cDataXML = retVal;           
+
+                while (strScan(cDataXML,'label="',0,1000))
+                {
+                    posFrom = strScan(cDataXML,'id="',0,1000) + 4;
+                    posTo = strScan(cDataXML,'"',posFrom,1000);
+                    id = subStr(cDataXML,posFrom,posTo-posFrom);
+                    posFrom = strScan(cDataXML,'label="',0,1000) + 7;
+                    posTo = strScan(cDataXML,'"',posFrom,1000);
+                    result.insert(id+subStr(cDataXML,posFrom,posTo-posFrom), subStr(cDataXML,posFrom,posTo-posFrom));
+                    cDataXML = subStr(cDataXML,posTo,10000);
+                }
+                
+            }
+            /*else if (typeOf(retVal) == Types::Class && classIdGet(retVal) == classNum(TFMDocumentNodes))
+            {
+                docNodes = retVal;
+                docNodes.appendToXML(_referenceDataElement);
+            }*/
+            else if (typeOf(retVal) == Types::Class && classIdGet(retVal) == classNum(TFMReferenceDataConfiguration))
+            {
+                refData = retVal;
+                collectors = refData.getCollectors().getEnumerator();
+				while (collectors.moveNext())
+                {
+                    collector = collectors.current();
+                    result.insert(int2Str(collector.parmId()) + collector.parmName(), collector.parmLabel());
+                }
+            }
+            
+        }
+        return result;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

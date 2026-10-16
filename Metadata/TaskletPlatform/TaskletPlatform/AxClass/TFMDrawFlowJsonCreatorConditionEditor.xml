@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowJsonCreatorConditionEditor</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMDrawFlowJsonCreatorConditionEditor extends TFMDrawFlowJsonCreator
+{
+    Map depthBreadth;
+    TFMLogicContextTypes    returnType;
+    str                     stepName;
+    MethodName              methodName;
+    static int horizontalBlockSpace = 350;
+    static int verticalBlockSpace = 150;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>classHandled</Name>
+				<Source><![CDATA[
+    public ClassName classHandled()
+    {
+        return classStr(TFMConditions);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmReturnType</Name>
+				<Source><![CDATA[
+    public TFMLogicContextTypes parmReturnType(TFMLogicContextTypes _returnType = returnType)
+    {
+        returnType = _returnType;
+        return returnType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmStepName</Name>
+				<Source><![CDATA[
+    public str parmStepName(str _stepName = stepName)
+    {
+        stepName = _stepName;
+        return stepName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>jSon</Name>
+				<Source><![CDATA[
+    public str jSon(Object _class, MethodName _methodName = '')
+    {
+        TFMConditions                   conditions = _class;
+        TFMCondition                    condition;
+        TFMConnectedConditions          connectedCons = conditions.conditionsForMethod(_methodName);
+        int                             i;
+        MapEnumerator                   mEnum = connectedCons.getEnumerator();
+        TFMDrawFlowContract             contract = TFMDrawFlowContract::Construct();
+        TFMDrawFlowLogicBlockContract   nodeContract;
+        SetEnumerator                   endNode = connectedCons.endNodes().getEnumerator();
+        depthBreadth = new Map(Types::Integer, Types::Integer);
+        //loop through all condition nodes.
+        methodName = _methodName;
+        while (endNode.moveNext())
+        {
+            i = endNode.current();
+            nodeContract = this.updateContractDepthWise(i,contract,connectedCons,connectedCons.getDepth()-1);
+        }
+        
+        contract.addBlockContract(this.createResultNode(connectedCons.getDepth(),nodeContract));
+        
+        return TFMJsonSerializer::serializeClass(contract);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateContractDepthWise</Name>
+				<Source><![CDATA[
+    protected TFMDrawFlowLogicBlockContract updateContractDepthWise(int _conNode, TFMDrawFlowContract _contract, TFMConnectedConditions  _connectedCons, int _depth)
+    {
+        TFMCondition                    condition = _connectedCons.conditionFromHash(_conNode);
+        SetEnumerator                   fromLinks = _connectedCons.getFromLinks(_conNode).getEnumerator();
+        TFMDrawFlowLogicBlockContract   resContract;
+        resContract = this.createContractEntry(condition, _depth, _connectedCons);
+        _contract.addBlockContract(resContract); 
+        while (fromLinks.moveNext())
+        {
+            this.updateContractDepthWise(fromLinks.current(),_contract,_connectedCons, _depth -1);
+        }
+
+        return resContract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>instanceFromJson</Name>
+				<Source><![CDATA[
+    public Object instanceFromJson(str _json)
+    {
+        Object ret;
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveJson2Data</Name>
+				<Source><![CDATA[
+    public void saveJson2Data(str _json, str _keyValue, object _keyObject)
+    {
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createContractEntry</Name>
+				<Source><![CDATA[
+    protected TFMDrawFlowLogicBlockContract createContractEntry(TFMCondition _node, int _depth, TFMConnectedConditions  _connectedCons)
+    {
+        SetEnumerator                   sEnum;
+        TFMDrawFlowBlockStyle           blockStyle;
+        TFMDrawFlowLogicBlockContract   blockContract = new TFMDrawFlowLogicBlockContract();
+        ResourceNode                    rn;
+        int                             y;
+        TFMLogicContextFunctionsDataContract dc;
+        List                            inList = new List(Types::Class), outList = new List(Types::Class);
+        Set                             inputSet;
+        Map                             inlists = new Map(Types::Integer, Types::class);
+        
+        sEnum = _connectedCons.getToLinks(_node.GetHashCode()).getEnumerator();
+        y =1;
+        while (sEnum.moveNext())
+        {
+            outList.addEnd(TFMDrawFlowLogicBlockConnectionContract::Construct(int2Str(sEnum.current()), 'input_'+int2Str(y),''));
+            y++;
+        }
+        
+        blockContract.parmOutputs().insert('output_1',TFMDrawFlowLogicBlockInputsOutputs::Construct(outList));
+        if (classIdGet(_node.parmDataContract()) == classNum(TFMLogicContextFunctionsDataContract))
+        {
+            dc = _node.parmDataContract();
+        }
+        sEnum = _connectedCons.getFromLinks(_node.GetHashCode()).getEnumerator();
+        while (sEnum.moveNext())
+        {            
+            inList = new List(Types::Class);
+            inList.addEnd(TFMDrawFlowLogicBlockConnectionContract::Construct(int2Str(sEnum.current()),'', 'output_1'));
+            inlists.insert(inlists.elements()+1, inList);
+        }
+        
+        for (y = 1; y <= _node.parmDataContract().noOfinputs(); y++)
+        {
+            if (inlists.exists(y))
+            {
+                blockContract.parmInputs().insert('input_'+int2Str(y), TFMDrawFlowLogicBlockInputsOutputs::Construct(inlists.lookup(y)));
+            }
+        }
+        blockContract.parmId(_node.GetHashCode());
+        blockContract.parmData(TFMDrawFlowLogicBlockDataContract::Construct(dc ? dc.parmKeyName() : _node.parmDataContract().parmLogicContextClass(),_node.parmDataContract().parmLogicContextClass()));
+
+        blockStyle = TFMDrawFlowBlockStyle::findStyleClass(classStr(TFMCondition));
+        blockContract.parmHtml(blockStyle.htmlForClass(_node));
+       
+        blockContract.parmPosX(50 +_depth*horizontalBlockSpace);
+        y = 100 + verticalBlockSpace*(depthBreadth.exists(_depth) ? depthBreadth.lookup(_depth) : 0);
+        depthBreadth.insert(_depth, (depthBreadth.exists(_depth) ? depthBreadth.lookup(_depth) : 0) + 1);
+        blockContract.parmPosY(y);
+        
+        
+
+        return blockContract;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createResultNode</Name>
+				<Source><![CDATA[
+    protected TFMDrawFlowLogicBlockContract createResultNode(int _depth, TFMDrawFlowLogicBlockContract _lastNode)
+    {
+        ListEnumerator                  lEnum;
+        TFMDrawFlowLogicBlockContract   blockContract = new TFMDrawFlowLogicBlockContract();
+        ResourceNode                    rn;
+        int                             y;
+        List                            inList = new List(Types::Class), outList = new List(Types::Class);
+        
+        blockContract.parmId(TFMConnectedConditions::resultNodeId);
+        blockContract.parmClass('LogicBlock Undeletable');
+        blockContract.parmHtml('<div class="logicblockinput stroketext logicblockinputoutput_1" style="height: 0px">' + strFmt('%1',returnType) + '</div>'+'<div><div class="title-box"><i class="fab fa-logicblock"></i><img src="'+ '/resources/images/' + new resourceNode(resourceStr(TFMBlockCheckmark)).filename() + '" width="35px"><b>' + strFmt("@TFM:Appliedto1onthestep2", TFMHelper::convertCamelCaseToNiceText(strReplace(methodName,'parm','')), stepName) + '</b></div></div>');
+        blockContract.parmData(TFMDrawFlowLogicBlockDataContract::Construct('TRUT','trut'));
+        if (_lastNode)
+        {
+            inList.addEnd(TFMDrawFlowLogicBlockConnectionContract::Construct(int2Str(_lastNode.parmId()),'', 'output_1'));        
+            
+            outList.addEnd(TFMDrawFlowLogicBlockConnectionContract::Construct(int2Str(blockContract.parmId()), 'input_1',''));
+            _lastNode.parmOutputs().insert('output_1',TFMDrawFlowLogicBlockInputsOutputs::Construct(outList));
+        }
+        blockContract.parmInputs().insert('input_1', TFMDrawFlowLogicBlockInputsOutputs::Construct(inList));
+        blockContract.parmPosX(50 +_depth*horizontalBlockSpace);
+        y = 100;
+        blockContract.parmPosY(y);
+
+        return blockContract;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

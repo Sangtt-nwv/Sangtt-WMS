@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestFinishTote</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType(classStr(TFMPostAdhocRegistration),'FinishPackingOrderLines')]
+class TFMRequestFinishTote extends TFMRequestElement
+{
+    Weight weight;
+    WHSContainerTypeCode	packingBox;
+    NoYes					finishBox; // Is the box from Finland?
+    TFMToteId				toteId;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmToteId</Name>
+				<Source><![CDATA[
+    public TFMToteId parmToteId(TFMToteId _toteId = toteid)
+    {
+        toteid = _toteId;
+        return toteid;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmWeight</Name>
+				<Source><![CDATA[
+    public Weight parmWeight(Weight _weight = weight)
+    {
+        weight = _weight;
+        return weight;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPackingBox</Name>
+				<Source><![CDATA[
+    public WHSContainerTypeCode parmPackingBox(WHSContainerTypeCode _packingBox = packingBox)
+    {
+        packingBox = _packingBox;
+        return packingBox;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFinishBox</Name>
+				<Source><![CDATA[
+    public NoYes parmFinishBox(NoYes _finishBox = finishBox)
+    {
+        finishBox = _finishBox;
+        return finishBox;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

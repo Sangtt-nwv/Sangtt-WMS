@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicBlocksContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+public class TFMLogicBlocksContract
+{
+    Name            blockName;
+    ClassName       className;
+    str             resourcePath;
+    str             purchReqStatus;
+    str             classType;
+    str             boxText;
+    int             numberOfInputs;
+    int             numberOfOutputs;
+    str             editorName;
+    List             categories;
+
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        numberOfInputs = 1;
+        numberOfOutputs= 1;
+
+        editorName = 'editornameplaceholder';
+        categories = new List(Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBlockName</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public Name parmBlockName(Name _blockName = blockName)
+    {
+        blockName = _blockName;
+        return blockName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClassName</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public ClassName parmClassName(ClassName _className = className)
+    {
+        className = _className;
+        return className;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmResourcePath</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute]
+    public str parmResourcePath(str _resourcePath = resourcePath)
+    {
+        resourcePath = _resourcePath;
+        return resourcePath;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClassType</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('ClassType')]
+    public str parmClassType(str _classType = classType)
+    {
+        classType = _classType;
+        return classType ? classType : 'LogicBlock';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBoxText</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('BoxText')]
+    public str parmBoxText(str _boxText = boxText)
+    {
+        boxText = _boxText;
+        return boxText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmNumberOfInputs</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('NumberOfInputs')]
+    public int parmNumberOfInputs(int _numberOfInputs = numberOfInputs)
+    {
+        numberOfInputs = _numberOfInputs;
+        return numberOfInputs;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmNumberOfOutputs</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('NumberOfOutputs')]
+    public int parmNumberOfOutputs(int _numberOfOutputs = numberOfOutputs)
+    {
+        numberOfOutputs = _numberOfOutputs;
+        return numberOfOutputs;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmEditorName</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('editorName')]
+    public str parmEditorName(ClassName _editorName = editorName)
+    {
+        editorName = _editorName;
+        return editorName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCategories</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('categories')]
+    public List parmCategories(List _categories = categories)
+    {
+        categories = _categories;
+        return categories;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

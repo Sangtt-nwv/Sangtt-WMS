@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobBarcodeHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobBarcodeHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getItemBarcode</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Will make an itemBarcode string with relevant information.
+    /// </summary>
+    /// <param name="_itemId">
+    /// ItemNumber to use, defaulted to the itemnumber given.
+    /// </param>
+    /// <param name="_unitOfMeasure">
+    /// UnitOfMeasure to use, defaulted to the unitofmeasure given.
+    /// </param>
+    /// <param name="_inventDim">
+    /// InventDim to use, defaulted to the inventDim given.
+    /// </param>    
+    public static str getItemBarcode( ItemId              _itemId,
+                                    UnitOfMeasureSymbol _unitOfMeasure,
+                                    InventDim           _inventDim)
+    {
+        InventItemBarcode inventItemBarcode;
+        InventItemGTIN    inventItemGTIN;
+        InventDim         dim;
+        InventDimParm     inventDimParm;
+        str					itemBarcode = '';
+        
+        // Get all the regular barcodes defined for this item
+        // Only barcodes for marked for "scanning" are transferred
+        inventDimParm = EcoResProductDimGroupSetup::newItemId(_itemId).inventDimParmActiveDimensions();
+    
+        while select inventItemBarcode
+            where inventItemBarcode.itemId      == _itemId
+               && inventItemBarcode.itemBarCode
+               && inventItemBarcode.useForInput == NoYes::Yes
+            #InventDimExistsJoin(inventItemBarcode.inventDimId,dim,_inventDim,inventDimParm)
+        {
+            itemBarcode = itemBarcode + (itemBarcode ? ';' : '') + inventItemBarcode.itemBarCode;
+        }
+    
+        while select inventItemGTIN
+            where inventItemGTIN.itemId == _itemId
+               && inventItemGTIN.GlobalTradeItemNumber
+            #InventDimExistsJoin(inventItemGTIN.inventDimId,dim,_inventDim,inventDimParm)
+        {
+            itemBarcode = itemBarcode + (itemBarcode ? ';' : '') + inventItemGTIN.GlobalTradeItemNumber;
+            
+        }
+        return itemBarcode;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getItemBarcodeQuantity</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// New method (replaces MobHelper::getItemBarcodes(...))
+    /// Will fill itemBarcode and itemBarcodeQuantity with relevant information.
+    /// </summary>
+    /// <param name="_itemId">
+    /// ItemNumber to use, defaulted to the itemnumber given.
+    /// </param>
+    /// <param name="_unitOfMeasure">
+    /// UnitOfMeasure to use, defaulted to the unitofmeasure given.
+    /// </param>
+    /// <param name="_inventDim">
+    /// InventDim to use, defaulted to the inventDim given.
+    /// </param>
+    /// <remarks>
+    /// Will fill quantity based on both quantity and unitid fields.
+    /// </remarks>
+    public static str getItemBarcodeQuantity(	ItemId              _itemId,
+												UnitOfMeasureSymbol _unitOfMeasure,
+												InventDim           _inventDim,
+												boolean				_barcodeQty)
+    {
+        InventItemBarcode	inventItemBarcode;
+        InventItemGTIN		inventItemGTIN;
+        InventDim			dim;
+        InventDimParm		inventDimParm;
+        InventQty			qty;
+        EcoResProduct		ecoResProduct = InventTable::find(_itemId).Product();
+        str					itemBarcodeQuantity = '';
+    
+        // Get all the regular barcodes defined for this item
+        // Only barcodes for marked for "scanning" are transferred
+        inventDimParm = EcoResProductDimGroupSetup::newItemId(_itemId).inventDimParmActiveDimensions();
+    
+        while select inventItemBarcode
+            where inventItemBarcode.itemId      == _itemId
+               && inventItemBarcode.itemBarCode
+               && inventItemBarcode.useForInput == NoYes::Yes
+            #InventDimExistsJoin(inventItemBarcode.inventDimId,dim,_inventDim,inventDimParm)
+        {
+            qty = inventItemBarcode.qty != 0.0 ? inventItemBarcode.qty : 1.0;
+            
+            if (inventItemBarcode.UnitID && inventItemBarcode.UnitID != _unitOfMeasure)
+            {
+                qty = UnitOfMeasureConverter::convert(  qty,
+                                                        UnitOfMeasure::findBySymbol(inventItemBarcode.UnitID).RecId,
+                                                        UnitOfMeasure::findBySymbol(_unitOfMeasure).RecId,
+                                                        true,
+                                                        ecoResProduct.RecId,
+                                                        false);
+            }
+    
+            if (((qty != 1.0) || (inventItemBarcode.UnitID && inventItemBarcode.UnitID != _unitOfMeasure)) && _barcodeQty)
+            {
+                itemBarcodeQuantity = itemBarcodeQuantity + (itemBarcodeQuantity ? ';' : '') + inventItemBarcode.itemBarCode + '{' + MobHelper::formatLineNum(qty) + '}';
+            }
+        }
+    
+        while select inventItemGTIN
+            where inventItemGTIN.itemId == _itemId
+               && inventItemGTIN.GlobalTradeItemNumber
+            #InventDimExistsJoin(inventItemGTIN.inventDimId,dim,_inventDim,inventDimParm)
+        {
+            qty = 1.0;
+    
+            if (inventItemGTIN.UnitID && inventItemGTIN.UnitID != _unitOfMeasure)
+            {
+                qty = UnitOfMeasureConverter::convert(  qty,
+                                                        UnitOfMeasure::findBySymbol(inventItemGTIN.UnitID).RecId,
+                                                        UnitOfMeasure::findBySymbol(_unitOfMeasure).RecId,
+                                                        true,
+                                                        ecoResProduct.RecId,
+                                                        false);
+            }
+    
+            if ((qty != 1.0) || (inventItemGTIN.UnitID && inventItemGTIN.UnitID != _unitOfMeasure))
+            {
+                itemBarcodeQuantity = itemBarcodeQuantity + (itemBarcodeQuantity ? ';' : '') + inventItemGTIN.GlobalTradeItemNumber + '{' + MobHelper::formatLineNum(qty) + '}';
+            }
+        }
+        return itemBarcodeQuantity;
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

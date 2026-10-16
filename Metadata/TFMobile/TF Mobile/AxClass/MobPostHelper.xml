@@ -1,0 +1,535 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobPostHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobPostHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>inventJournalTransfer</Name>
+				<Source><![CDATA[
+    public static inventJournalTable inventJournalTransfer(Qty _qty, ItemId _itemId, InventDim _inventDimIssue, InventDim _inventDimReceipt, boolean _useQtyForSerial = false)
+    {
+        inventJournalTable inventJournalTable = MobPostHelper::inventJournalTransferHeaderCreate();
+        MobPostHelper::inventJournalTransferLineCreate(inventJournalTable, _qty, _itemId, _inventDimIssue, _inventDimReceipt, _useQtyForSerial);
+        MobPostHelper::postInventJournalTransfer(inventJournalTable);
+        inventJournalTable.reread();
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>inventJournalTransferHeaderCreate</Name>
+				<Source><![CDATA[
+    public static inventJournalTable inventJournalTransferHeaderCreate(Description _description = "@TFM:MEL36")
+    {
+        inventJournalTable      inventJournalTable;
+        InventJournalName       inventJournalName;
+        JournalTableData        journalTableData;
+        NumberSeq               seq;
+        
+        inventJournalName = InventJournalName::find(MobParameters::find().InventJournalNameTransfer);
+    
+        inventJournalTable.initValue();
+        inventJournalTable.initFromInventJournalName(inventJournalName);
+        inventJournalTable.JournalType      = inventJournalType::Transfer;
+    
+        journalTableData                    = journalTableData::newTable(inventJournalTable);
+    
+        inventJournalTable.NumOfLines       = 1;
+        inventJournalTable.Description      = _description;
+    
+        seq = numberSeq::newGetNum(journalTableData.journalStatic().numRefJournalId());
+        inventJournalTable.JournalId    = seq.num();
+        inventJournaltable.insert();
+        seq.used();
+    
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>inventJournalTransferLineCreate</Name>
+				<Source><![CDATA[
+    public static inventJournalTrans inventJournalTransferLineCreate(inventJournalTable _inventJournalTable, Qty _qty, ItemId _itemId, InventDim _inventDimIssue, InventDim _inventDimReceipt, boolean _useQtyForSerial = false, boolean _skipInsert = false)
+    {
+        inventJournalTrans      inventJournalTrans;
+        JournalCheckPost        journalCheckPost;
+        InventTable             inventTable = InventTable::find(_itemId);
+        ttsbegin;
+
+        inventJournalTrans.clear();
+        inventJournalTrans.selectForUpdate(true);
+        inventJournalTrans.initValue();
+        inventJournalTrans.initFromInventJournalTable( _inventJournalTable );
+        inventJournalTrans.initFromInventTable(inventTable);
+
+        inventJournalTrans.Qty = (!_inventDimIssue.inventSerialId || (_inventDimIssue.inventSerialId &&  _useQtyForSerial)) ? _qty  : InventSum::find(_itemId, InventDim::findOrCreate(_inventDimIssue).inventDimId).AvailPhysical;
+        if (!inventJournalTrans.Qty)
+        {
+            throw error ("@MobileWMS:Youcannotmove0ofthisitemcheckifi");
+        }
+        inventJournalTrans.setCostPrice(inventJournalTrans.InventDimId, inventJournalTrans.inventDim(), inventJournalTrans.inventTableModuleInvent());
+    
+        TFMHelper::EnsureInventDim(_inventDimIssue);
+
+        inventJournalTrans.setInventDimId(InventDim::findOrCreate(_inventDimIssue).inventDimId); // calling the setInventDimId to ensure that dimensionlink is working
+
+        inventJournalTrans.ToInventDimId = InventDim::findOrCreate(_inventDimReceipt).inventDimId;
+         
+        inventJournalTrans.Worker        = HcmWorker::userId2Worker(curuserId());
+        if (!_skipInsert)
+        {
+            inventJournalTrans.insert(false);
+    
+            // Calculate the number of lines
+            _inventJournalTable.selectForUpdate(true);
+            InventJournalTable::initTotal(_inventJournalTable);
+            _inventJournalTable.update();
+        }
+        ttscommit;
+
+        return inventJournalTrans;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postInventJournalTransfer</Name>
+				<Source><![CDATA[
+    public static void postInventJournalTransfer(inventJournalTable _inventJournalTable)
+    {
+        JournalCheckPost        journalCheckPost;
+        #MacroLib.TFM
+    
+        journalCheckPost =  inventJournalCheckPost::newPostJournal( _inventJournalTable );
+        
+        #ifnot.isAx6
+        journalCheckPost.runOperation();
+        #endif
+        #if.isAX6
+        JournalCheckPost.run();
+        #endif
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateInventJournalTransfer</Name>
+				<Source><![CDATA[
+    public static void validateInventJournalTransfer(inventJournalTable _inventJournalTable)
+    {
+        JournalCheckPost        journalCheckPost;
+        #MacroLib.TFM
+    
+        journalCheckPost =  inventJournalCheckPost::newPostJournal( _inventJournalTable );
+        
+        journalCheckPost.validate();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddToinventJournalTransferMulti</Name>
+				<Source><![CDATA[
+    public static void AddToinventJournalTransferMulti(inventJournalTable _inventJournalTable, Map _qtys, Map _itemIds, Map _inventDimIssues, Map _inventDimReceipts)
+    {
+        MapEnumerator           mEnum = _itemIds.getEnumerator();
+        InventTable             inventTable;
+        ItemId                  itemId;
+        inventJournalTrans      inventJournalTrans;
+        InventDim               inventDimIssue, inventDimReceive;
+
+        while (mEnum.moveNext())
+        {
+            inventDimIssue = _inventDimIssues.lookup(mEnum.currentKey());
+            inventDimReceive=_inventDimReceipts.lookup(mEnum.currentKey());
+            itemId = mEnum.currentValue();
+            inventTable = InventTable::find(itemId);
+            inventJournalTrans.clear();
+            inventJournalTrans.initFromInventJournalTable(_inventJournalTable);
+            inventJournalTrans.selectForUpdate(true);
+            inventJournalTrans.initValue();
+            inventJournalTrans.initFromInventJournalTable( _inventJournalTable );
+            inventJournalTrans.initFromInventTable(inventTable);
+            
+            if (inventDimIssue.inventSerialId != '')
+            {
+                inventJournalTrans.Qty = InventSum::find(itemId, InventDim::findOrCreate(inventDimIssue).inventDimId).AvailPhysical;
+            }
+            else
+            {
+                inventJournalTrans.Qty          = -_qtys.lookup(mEnum.currentKey());
+            }
+            inventJournalTrans.setCostPrice(inventJournalTrans.InventDimId, inventJournalTrans.inventDim(), inventJournalTrans.inventTableModuleInvent());
+    
+            TFMHelper::EnsureInventDim(inventDimIssue);
+            inventJournalTrans.setInventDimId(InventDim::findOrCreate(inventDimIssue).inventDimId);
+
+            inventJournalTrans.ToInventDimId = InventDim::findOrCreate(inventDimReceive).inventDimId;
+            inventJournalTrans.Worker        = HcmWorker::userId2Worker(curuserId());
+            inventJournalTrans.insert(false);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>inventJournalTransferMulti</Name>
+				<Source><![CDATA[
+    public static inventJournalTable inventJournalTransferMulti(Map _qtys, Map _itemIds, Map _inventDimIssues, Map _inventDimReceipts, boolean _postJournal = true)
+    {
+        inventJournalTable      inventJournalTable;
+        
+        inventJournalTable = MobPostHelper::inventJournalTransferHeaderCreate();
+        
+        MobPostHelper::AddToinventJournalTransferMulti(inventJournalTable,_qtys,_itemIds,_inventDimIssues,_inventDimReceipts);
+        
+        MobPostHelper::postInventJournalTransfer(inventJournalTable);
+        
+        inventJournalTable.reread();
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unplannedMove</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to post an unplanned move journal.
+    /// </summary>
+    /// <param name = "itemid">The item to move.</param>
+    /// <param name = "configId">The config ID of the item.</param>
+    /// <param name = "inventSizeId">The size dimension of the item.</param>
+    /// <param name = "inventColorId">The color dimension of the item.</param>
+    /// <param name = "qty">The quantity of the item.</param>
+    /// <param name = "fromInventSiteId">The Site to move from.</param>
+    /// <param name = "toInventSiteId">The site to move to.</param>
+    /// <param name = "fromInventLocationId">The Location to move from.</param>
+    /// <param name = "toInventLocationId">The Location to move to.</param>
+    /// <param name = "fromWmsLocationId">The WMS Location to move from.</param>
+    /// <param name = "toWmsLocationId">The WMS Location to move to.</param>
+    /// <param name = "inventBatchId">The batch ID dimension of the item.</param>
+    /// <param name = "inventSerialId">The serial number dimension of the item.</param>
+    /// <param name = "inventStyleId">The style dimension of the item.</param>
+    public static void unplannedMove(ItemId itemid, EcoResItemConfigurationName configId,
+                       EcoResItemSizeName inventSizeId,
+                       EcoResItemColorName inventColorId,
+                       InventQty qty,
+                       InventSiteId fromInventSiteId,
+                       InventSiteId toInventSiteId,
+                       InventLocationId fromInventLocationId,
+                       InventLocationId toInventLocationId,
+                       WMSLocationId fromWmsLocationId,
+                       WMSLocationId toWmsLocationId,
+                       InventBatchId inventBatchId,
+                       InventSerialId inventSerialId,
+                       EcoResItemStyleName inventStyleId)
+    {
+        InventJournalName       inventJournalName;
+        NumberSeq               seq;
+        JournalCheckPost        journalCheckPost;
+    
+        InventDim               inventDimIssue;
+        InventDim               inventDimReceipt;
+        InventTable             inventTable;
+        inventJournalTable      inventJournalTable;
+        journalTableData        journalTableData;
+        inventJournalTrans      inventJournalTrans;
+        #MacroLib.TFM
+        
+        inventJournalName = InventJournalName::find(MobParameters::find().InventJournalNameTransfer);
+    
+        inventJournalTable.initValue();
+        inventJournalTable.initFromInventJournalName(inventJournalName);
+        inventJournalTable.JournalType      = inventJournalType::Transfer;
+    
+        journalTableData                    = journalTableData::newTable(inventJournalTable);
+    
+        inventJournalTable.NumOfLines       = 1;
+        inventJournalTable.Description      = "@TFM:MEL36";
+    
+        seq = numberSeq::newGetNum(journalTableData.journalStatic().numRefJournalId());
+        inventJournalTable.JournalId    = seq.num();
+        inventJournaltable.insert();
+        seq.used();
+    
+        inventJournalTrans.clear();
+        inventJournalTrans.initFromInventJournalTable(inventJournalTable);
+        inventJournalTrans.selectForUpdate(true);
+        inventJournalTrans.initValue();
+        inventJournalTrans.initFromInventJournalTable( inventJournalTable );
+        
+    
+        inventTable = InventTable::find(itemId);
+        if (!inventTable)
+        {
+            throw error(strfmt(InventTable::txtNotExist(),itemId));
+        }
+        inventJournalTrans.initFromInventTable(inventTable);
+        inventJournalTrans.Qty              = qty;
+        inventJournalTrans.setCostPrice(inventJournalTrans.InventDimId, inventJournalTrans.inventDim(), inventJournalTrans.inventTableModuleInvent());
+        inventDimIssue.inventSiteId         = fromInventSiteId;
+        inventDimIssue.InventLocationId     = fromInventLocationId;
+        inventDimIssue.configId             = configId;
+        inventDimIssue.inventSizeId         = inventSizeId;
+        inventDimIssue.inventColorId        = inventColorId;
+        inventDimIssue.wMSLocationId        = fromWmsLocationId;
+        inventDimIssue.inventBatchId        = inventBatchId;
+        inventDimIssue.inventSerialId       = inventSerialId;
+        inventDimIssue.InventStyleId        = inventStyleId;
+        TFMHelper::EnsureInventDim(inventDimIssue);
+        
+        inventJournalTrans.setInventDimId(InventDim::findOrCreate(inventDimIssue).inventDimId, inventDimIssue);
+       
+        inventDimReceipt.inventSiteId       = toInventSiteId;
+        inventDimReceipt.InventLocationId   = toInventLocationId;
+        inventDimReceipt.configId           = configId;
+        inventDimReceipt.inventSizeId       = inventSizeId;
+        inventDimReceipt.inventColorId      = inventColorId;
+        inventDimReceipt.wMSLocationId      = toWmsLocationId;
+        inventDimReceipt.inventSerialId     = inventSerialId;
+        inventDimReceipt.inventBatchId      = inventBatchId;
+        inventDimReceipt.InventStyleId      = inventStyleId;
+        TFMHelper::EnsureInventDim(inventDimReceipt);
+        inventJournalTrans.ToInventDimId    = InventDim::findOrCreate(inventDimReceipt).inventDimId;
+        inventJournalTrans.Worker           = HcmWorker::userId2Worker(curUserId());
+        inventJournalTrans.insert(false);
+    
+        JournalCheckPost = InventJournalCheckPost::newPostJournal( inventJournalTable );
+        #ifnot.isAX6
+        JournalCheckPost.runOperation();
+        #endif
+        #if.isAX6
+        JournalCheckPost.run();
+        #endif
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PostUnplannedCount</Name>
+				<Source><![CDATA[
+    public static inventJournalTable PostUnplannedCount(ItemId _itemId, InventDim _inventDim, qty _counted)
+    {
+        inventJournalTable          inventJournalTable;
+        inventJournalTrans          inventJournalTrans;
+        InventJournalName           inventJournalName;
+        JournalTableData            journalTableData;
+        NumberSeq                   seq;
+        JournalCheckPost            JournalCheckPost;
+        InventMov_Jour_Loss_SumUp   inventMov_Jour_Loss_SumUp;
+        itemId                      itemId;
+        InventTable                 inventTable;
+        inventDimParm               inventDimParm;
+        
+        #MacroLib.TFM
+    
+        inventJournalName = InventJournalName::find(MobParameters::find().InventJournalNameCount);
+    
+        inventJournalTable.initValue();
+        inventJournalTable.initFromInventJournalName(inventJournalName);
+        inventJournalTable.JournalType      = inventJournalType::Count;
+    
+        journalTableData                    = journalTableData::newTable(inventJournalTable);
+    
+        inventJournalTable.NumOfLines       = 1;
+        inventJournalTable.Description      = "@TFM:MEL36";
+    
+        seq = numberSeq::newGetNum(journalTableData.journalStatic().numRefJournalId());
+        inventJournalTable.JournalId    = seq.num();
+        inventJournaltable.insert();
+        seq.used();
+    
+        inventJournalTrans.clear();
+        inventJournalTrans.initFromInventJournalTable(inventJournalTable);
+        inventJournalTrans.selectForUpdate(true);
+        inventJournalTrans.initValue();
+        inventJournalTrans.initFromInventJournalTable( inventJournalTable );
+    
+        inventTable = InventTable::find(_itemId);
+        if (!inventTable)
+        {
+            throw error(strfmt(InventTable::txtNotExist(),itemId));
+        }
+        
+        inventJournalTrans.initFromInventTable(inventTable);
+        inventJournalTrans.inventMovement().journalSetQty();
+        inventJournalTrans.Counted      =  _counted;
+        
+        inventJournalTrans.setCostPrice(inventJournalTrans.InventDimId, inventJournalTrans.inventDim(), inventJournalTrans.inventTableModuleInvent());
+    
+        TFMHelper::EnsureInventDim(_inventDim);
+        inventJournalTrans.setInventDimId(InventDim::findOrCreate(_inventDim).inventDimId);
+        
+        inventMov_Jour_Loss_SumUp       = inventJournalTrans.inventMovement();
+    
+        inventDimParm.initFromInventDim(InventDim::find(inventJournalTrans.InventDimId));
+        inventDimParm = InventDimParm::orParms(inventDimParm,InventJournalTable::journalId2inventDimParm(inventJournalTrans.JournalId));
+    
+        inventJournalTrans.InventOnHand = InventSumDatePhysicalDim::onHandQty(inventJournalTrans.TransDate,inventJournalTrans.ItemId,_inventDim,inventDimParm);
+
+
+        inventJournalTrans.inventMovement().journalSetCounted();
+        inventJournalTrans.Worker       = HcmWorker::userId2Worker(curuserId());
+        inventJournalTrans.insert(false);
+    
+        JournalCheckPost =  inventJournalCheckPost::newPostJournal( inventJournalTable );
+        #ifnot.isAx6
+        JournalCheckPost.runOperation();
+        #endif
+        #if.isAX6
+        JournalCheckPost.run();
+        #endif
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MoveLicensePlate</Name>
+				<Source><![CDATA[
+    public static InventJournalTable MoveLicensePlate(WHSLicensePlateId _licensePlateId, InventLocationId _warehouse, wmsLocationId _location, InventDim _inventDimIssueOverride = null, boolean _postJournal = true)
+    {
+        InventSum           isum;
+        InventDim           inventDimIssue;
+        InventDim           inventDimReceipt;
+        inventJournalTable  inventJournalTable;
+        Map                 qtys = new Map(Types::String,Types::Real);
+        Map                 itemIds = new Map(Types::String,Types::String);
+        Map                 inventDimIssues = new Map(Types::String,Types::Record);
+        Map                 inventDimReceipts = new Map(Types::String,Types::Record);
+        
+        while select isum
+            join inventDimIssue where inventDimIssue.inventDimId == isum.InventDimId
+            &&   inventDimIssue.LicensePlateId == _licensePlateId && isum.PhysicalInvent
+        {
+            inventDimReceipt.data(_inventDimIssueOverride ? _inventDimIssueOverride : inventDimIssue);
+            inventDimReceipt.wmsLocationId = _location;
+            inventDimReceipt.inventLocationid = _warehouse;
+
+            inventDimReceipt = InventDim::findOrCreate(inventDimReceipt);
+            qtys.insert(int642Str(isum.RecId),isum.PhysicalInvent);
+            itemIds.insert(int642Str(isum.RecId),isum.ItemId);
+            inventDimIssues.insert(int642Str(isum.RecId), _inventDimIssueOverride ? _inventDimIssueOverride : inventDimIssue);
+            inventDimReceipts.insert(int642Str(isum.RecId),inventDimReceipt);
+        }
+        inventJournalTable = MobPostHelper::inventJournalTransferMulti(qtys,itemIds,inventDimIssues, inventDimReceipts, _postJournal);
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddMoveLicensePlateToJournal</Name>
+				<Source><![CDATA[
+    public static void AddMoveLicensePlateToJournal(InventJournalTable _inventJournalTable, WHSLicensePlateId _licensePlateId, InventLocationId _warehouse, wmsLocationId _location, InventDim _inventDimIssueOverride = null)
+    {
+        InventSum           isum;
+        InventDim           inventDimIssue;
+        InventDim           inventDimReceipt;
+        
+        Map                 qtys = new Map(Types::String,Types::Real);
+        Map                 itemIds = new Map(Types::String,Types::String);
+        Map                 inventDimIssues = new Map(Types::String,Types::Record);
+        Map                 inventDimReceipts = new Map(Types::String,Types::Record);
+        
+        while select isum
+            join inventDimIssue where inventDimIssue.inventDimId == isum.InventDimId
+            &&   inventDimIssue.LicensePlateId == _licensePlateId && isum.PhysicalInvent
+        {
+            inventDimReceipt.data(_inventDimIssueOverride ? _inventDimIssueOverride : inventDimIssue);
+            inventDimReceipt.wmsLocationId = _location;
+            inventDimReceipt.inventLocationid = _warehouse;
+
+            inventDimReceipt = InventDim::findOrCreate(inventDimReceipt);
+            qtys.insert(int642Str(isum.RecId),isum.PhysicalInvent);
+            itemIds.insert(int642Str(isum.RecId),isum.ItemId);
+            inventDimIssues.insert(int642Str(isum.RecId), _inventDimIssueOverride ? _inventDimIssueOverride : inventDimIssue);
+            inventDimReceipts.insert(int642Str(isum.RecId),inventDimReceipt);
+        }
+        MobPostHelper::AddToinventJournalTransferMulti(_inventJournalTable, qtys,itemIds,inventDimIssues, inventDimReceipts);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>MoveLocation</Name>
+				<Source><![CDATA[
+    public static InventJournalTable MoveLocation(InventLocationId _warehouse, wmsLocationId _locationFrom, wmsLocationId _locationTo, InventLocationId _warehouseTo = '', Set _recordsToSkip = null)
+    {
+        InventSum           isum;
+        InventDim           inventDimIssue;
+        InventDim           inventDimReceipt;
+        inventJournalTable  inventJournalTable;
+        Map                 qtys = new Map(Types::String,Types::Real);
+        Map                 itemIds = new Map(Types::String,Types::String);
+        Map                 inventDimIssues = new Map(Types::String,Types::Record);
+        Map                 inventDimReceipts = new Map(Types::String,Types::Record);
+        
+        while select isum where isum.PhysicalInvent
+            join inventDimIssue where inventDimIssue.inventDimId == isum.InventDimId
+            &&   inventDimIssue.wMSLocationId == _locationFrom &&
+                 inventDimIssue.inventLocationId == _warehouse
+   
+        {
+            if (_recordsToSkip != null && _recordsToSkip.in(isum.RecId))
+            {
+                continue;
+            }
+
+            inventDimReceipt.data(inventDimIssue);
+            inventDimReceipt.wmsLocationId = _locationTo;
+            inventDimReceipt.inventLocationid = _warehouseTo ? _warehouseTo : _warehouse;
+
+            inventDimReceipt = InventDim::findOrCreate(inventDimReceipt);
+            qtys.insert(int642Str(isum.RecId),isum.PhysicalInvent);
+            itemIds.insert(int642Str(isum.RecId),isum.ItemId);
+            inventDimIssues.insert(int642Str(isum.RecId), inventDimIssue);
+            inventDimReceipts.insert(int642Str(isum.RecId),inventDimReceipt);
+        }
+        inventJournalTable = MobPostHelper::inventJournalTransferMulti(qtys,itemIds,inventDimIssues, inventDimReceipts);
+        return inventJournalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>reserveItemFromLine</Name>
+				<Source><![CDATA[
+    public static void reserveItemFromLine(Common _buffer, InventDim _inventDimToUse, InventQty _qty)
+    {
+        // Inventory dimensions for 'On order' transactions
+        //InventDim inventDimFrom = InventDim::find(_trans.InventDimId);
+
+        // Create movement for the reservation
+        InventMovement movement = InventMovement::construct(_buffer);
+
+        // Match on all fields
+        InventDimParm inventDimParm;
+        inventDimParm.initFromInventDim(movement.inventdim());
+
+        // Create reservation class
+        InventUpd_Reservation reservation = InventUpd_Reservation::newParameters(movement,
+                                               _inventDimToUse,
+                                               inventDimParm,
+                                               InventDimFixedClass::inventDimParm2InventDimFixed(inventDimParm),
+                                               _qty,
+                                               false);
+        // Set inventory dimension criteria to reserve against at the input location
+        reservation.parmInventDimOnHandSelectionCriteria(_inventDimToUse);
+        reservation.updateNow();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

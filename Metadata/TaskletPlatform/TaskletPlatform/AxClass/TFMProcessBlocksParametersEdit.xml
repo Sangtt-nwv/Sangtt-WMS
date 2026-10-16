@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMProcessBlocksParametersEdit</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMProcessBlocksParametersEdit extends TFMDocumentParametersEdit
+{
+    TFMProcess                      process;
+    ClassName                       classNameReplace;
+    Version                         version;
+    Name                            blockName;
+    Map                             classInstances; // the class instance that has the parm methods. e.g. SubComponent to the block
+    TFMDrawFlowControlInteraction   interactionClass;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmProcess</Name>
+				<Source><![CDATA[
+    public TFMProcess parmProcess(TFMProcess _process = process)
+    {
+        process = _process;
+        return process;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(FormGroupControl _parmsGroup)
+    {
+        classInstances = new Map(Types::String, Types::Class);
+        super(_parmsGroup);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCurrentBlockName</Name>
+				<Source><![CDATA[
+    public Name parmCurrentBlockName(Name _blockName = blockName)
+    {
+        blockName = _blockName;
+        return blockName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setInteractionClass</Name>
+				<Source><![CDATA[
+    public void setInteractionClass(TFMDrawFlowControlInteraction _interactionClass)
+    {
+        interactionClass = _interactionClass;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_modified</Name>
+				<Source><![CDATA[
+    public boolean control_modified(FormControl _control)
+    {
+        MethodName              callMethod = SysTest::hasMethod(_control,methodStr(FormCheckBoxControl, value)) ? methodStr(FormCheckBoxControl, value) : methodStr(FormControl, valueStr);
+        ClassName				usedClass = controlName2ClassName.exists(_control.name()) ? controlName2ClassName.lookup(_control.name()) : currentClass;
+        Object                  classInstance;
+        TFMGenericParms::CreateOrUpdateParameter(TFMProcessBlocksParametersEdit::GetProcessContentForGenericParmsForBlocks(process, blockName),classNameReplace ? classNameReplace : usedClass,_control.name(),  new SysDictClass(classIdGet(_control)).callObject(callMethod,_control));
+        
+        if (classInstances.exists(usedClass))
+        {
+            classInstance = classInstances.lookup(usedClass);
+            new SysDictClass(classIdGet(classInstance)).callObject(_control.name(), classInstance, new SysDictClass(classIdGet(_control)).callObject(callMethod,_control));
+        }
+
+        if(interactionClass)
+        {
+            interactionClass.updateHtmlForCurrentNode();
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetProcessContentForGenericParmsForBlocks</Name>
+				<Source><![CDATA[
+    public static str GetProcessContentForGenericParmsForBlocks(TFMProcess _process, str _blockName)
+    {
+        return TFMProcessBlocksParametersEdit::GetProcessKeyForGenericParms(_process) + '/' + _blockName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetProcessKeyForGenericParms</Name>
+				<Source><![CDATA[
+    public static str GetProcessKeyForGenericParms(TFMProcess _process)
+    {
+        return 'process:' + _process.parmProcessName() + '/' + int2Str(_process.parmVersion());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>control_EnumModified</Name>
+				<Source><![CDATA[
+    public boolean control_EnumModified(FormComboBoxControl _control)
+    {
+        Object                  classInstance;
+        MethodName              callMethod = SysTest::hasMethod(_control,methodStr(FormCheckBoxControl, value)) ? methodStr(FormCheckBoxControl, value) : methodStr(FormControl, valueStr);
+        str						value      = new SysDictClass(classIdGet(_control)).callObject(callMethod,_control);
+        ClassName				usedClass  = controlName2ClassName.exists(_control.name()) ? controlName2ClassName.lookup(_control.name()) : currentClass;
+        anytype                 typeFromValue = TFMDocCustomFunctionFlow::ConvertToType(value,Types::Enum,enumId2Name(_control.enumTypeValue()));
+
+        TFMGenericParms::CreateOrUpdateParameter(TFMProcessBlocksParametersEdit::GetProcessContentForGenericParmsForBlocks(process, blockName),classNameReplace ? classNameReplace : usedClass, _control.name(), typeFromValue);
+
+        if (classInstances.exists(usedClass))
+        {
+            classInstance = classInstances.lookup(usedClass);
+            new SysDictClass(classIdGet(classInstance)).callObject(_control.name(), classInstance, typeFromValue); // update parm value on classInstance.
+        }
+
+        if(interactionClass)
+        {
+            interactionClass.updateHtmlForCurrentNode();
+        }
+        
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateGroupWithParmsFromInstance</Name>
+				<Source><![CDATA[
+    public ClassName populateGroupWithParmsFromInstance(object _class, FormGroupControl _fgc, Name _groupingNameOverride = '', boolean _retainControls = false)
+    {
+        ClassName           ret     = this.populateGroupWithDocParms(classIdGet(_class),_fgc, _groupingNameOverride, _retainControls, _class);
+        MapEnumerator       mEnum   = controlName2Class.getEnumerator();
+        FormControl         fc;
+        FormStringControl   fsc;
+
+        classInstances.insert(classId2Name(classIdGet(_class)), _class);
+
+        while (mEnum.moveNext())
+        {
+            fc = mEnum.currentValue();
+            if (fc is FormStringControl)
+            {
+                fsc = fc;
+                if (!fsc.extendedDataType())
+                {
+                    continue;
+                }
+                if(!TFMProcessBlocksParametersEdit::addLookupIfPresent(fsc,this,extendedTypeId2name(fsc.extendedDataType())))
+                {
+                    TFMProcessBlocksParametersEdit::addLookupIfPresent(fsc,_class,extendedTypeId2name(fsc.extendedDataType()));
+                }
+            }
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClassNameReplace</Name>
+				<Source><![CDATA[
+    public ClassName parmClassNameReplace(ClassName _classNameReplace = classNameReplace)
+    {
+        classNameReplace = _classNameReplace;
+        return classNameReplace;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getValue</Name>
+				<Source><![CDATA[
+    protected anytype getValue(ClassName _domain, MethodName _key)
+    {
+        return TFMGenericParms::getValue(TFMProcessBlocksParametersEdit::GetProcessContentForGenericParmsForBlocks(process, blockName), classNameReplace ? classNameReplace : _domain, _key);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>valueExists</Name>
+				<Source><![CDATA[
+    protected boolean valueExists(ClassName _domain, MethodName _key)
+    {
+
+        return TFMGenericParms::Exists(TFMProcessBlocksParametersEdit::GetProcessContentForGenericParmsForBlocks(process, blockName), classNameReplace ? classNameReplace : _domain, _key);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addLookupIfPresent</Name>
+				<Source><![CDATA[
+    public static boolean addLookupIfPresent(FormControl _control, Object _cls, str _extendedTypeName)
+    {
+        SysDictClass                    sdc = new SysDictClass(classIdGet(_cls));
+        TFMLookupMethodForEDTattribute  attr = new TFMLookupMethodForEDTattribute(_extendedTypeName);
+        methodName                      localMethodName;
+        MapEnumerator                   mEnum = TFMAttributeHandler::getMethodNamesFromSysAttribute(sdc.id(),attr).getEnumerator();
+        //Use first entry
+        if (!mEnum || !mEnum.moveNext())
+        {
+            return false;
+        }
+        
+        localMethodName = mEnum.currentKey();
+        if(_control is FormStringControl)
+        {
+            FormStringControl ctrlString = _control;
+            ctrlString.registerOverrideMethod(methodStr(FormStringControl, lookup), localMethodName,_cls);
+        }
+        else if(_control is FormCheckBoxControl)
+        {
+            FormCheckBoxControl ctrl = _control;
+            ctrl.registerOverrideMethod(methodStr(FormCheckBoxControl, lookup), localMethodName,_cls);
+        }
+        
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupContextFields</Name>
+				<Source><![CDATA[
+    [TFMLookupMethodForEDT(extendedTypestr(TFMFlowContextField))]
+    public void lookupContextFields(FormStringControl _fsc)
+    {
+        TFMLogicBlockCollection         blockCollection = process.blockCollection();
+        SetEnumerator                   HeadersAndFields = blockCollection.getBlockHeadersAndFields().getEnumerator();        
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpTableName), _fsc);
+        TmpTableName                    tmpLookup;
+        
+        sysTableLookup.addLookupfield(fieldnum(TmpTableName, TableName),true);
+        
+        tmpLookup.setTmp();
+        while (HeadersAndFields.moveNext())
+        {
+            
+            tmpLookup.TableName  = HeadersAndFields.current();
+            tmpLookup.insert();
+            
+        }
+
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupVariableNames</Name>
+				<Source><![CDATA[
+    [TFMLookupMethodForEDT(extendedTypestr(TFMFlowVariableName))]
+    public void lookupVariableNames(FormStringControl _fsc)
+    {
+        TFMLogicBlockCollection         blockCollection = process.blockCollection();
+        SetEnumerator                   HeadersAndFields = blockCollection.getBlocksVariables().getEnumerator();
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpTableName), _fsc);
+        TmpTableName                    tmpLookup;
+
+        sysTableLookup.addLookupfield(fieldnum(TmpTableName, TableName),true);
+        
+        tmpLookup.setTmp();
+        while (HeadersAndFields.moveNext())
+        {
+            
+            tmpLookup.TableName  = HeadersAndFields.current();
+            tmpLookup.insert();
+            
+        }
+
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

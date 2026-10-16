@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMConnectionPoint</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// A connection point is where a condition is connected to a configuration junction/parameter. It could be a parm-method on a Registration Collector, page configuration, or a post event from a process.
+/// </summary>
+class TFMConnectionPoint
+{
+    Object          connectedClass;
+    SysDictMethod   connectedMethod;
+
+}
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+</AxClass>

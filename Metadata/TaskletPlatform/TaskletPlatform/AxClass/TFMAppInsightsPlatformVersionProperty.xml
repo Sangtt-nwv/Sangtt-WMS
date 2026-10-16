@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMAppInsightsPlatformVersionProperty</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMAppInsightsPlatformVersionProperty extends SysApplicationInsightsProperty
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>newFromValue</Name>
+				<Source><![CDATA[
+    static TFMAppInsightsPlatformVersionProperty newFromValue(str _version)
+    {
+        return new TFMAppInsightsPlatformVersionProperty(_version);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initialize</Name>
+				<Source><![CDATA[
+    protected container initialize()
+    {
+        return ['PlatformVersion', SysApplicationInsightsComplianceDatatype::SystemMetadata];
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

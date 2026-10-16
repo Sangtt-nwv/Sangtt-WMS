@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobImageCombiner</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobImageCombiner
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>combineImages</Name>
+				<Source><![CDATA[
+	public static str combineImages(ResourceName _resName)
+    {
+        return TFMImageCombiner::combineImages(_resName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>combineImage</Name>
+				<Source><![CDATA[
+	public static str combineImage(str _base64Base, str _resourceName, real _centerX, real _centerY, real _w, real _h, boolean _scaleRelativeTocanvas = false) //X and Y are center placement of the image. outline for all is the incoming base64 image
+    {
+        return TFMImageCombiner::combineImage(_base64Base, _resourceName, _centerX, _centerY, _w, _h, _scaleRelativeTocanvas);
+	}
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

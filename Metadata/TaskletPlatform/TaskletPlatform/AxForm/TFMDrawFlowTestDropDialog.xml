@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>TFMDrawFlowTestDropDialog</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class TFMDrawFlowTestDropDialog extends FormRun
+{
+    Map                             headerFieldsMap;
+    FormButtonControl               fbc;
+    Map                             regColControls;
+    TFMRequestBasicElement          request;
+    Map                             resultDataset;
+    TFMProcess                      process;
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        
+        TFMRegistrationCollector        regCol;
+        FormStringControl               fst;
+        Object                          caller = element.args().caller();
+        process = caller.getProcess();
+
+        TFMReferenceDataConfiguration   datCon = process.getHeaders();
+        SetEnumerator                   sEnum = datCon.getCollectors().getEnumerator();
+        
+        super();
+        headerFieldsMap = new Map(Types::String, Types::Class);
+        while (sEnum.moveNext())
+        {
+            regCol = sEnum.current();
+            if (!regCol.parmActive() || (regCol.parmLogicBlockConnected() && !regCol.parmDisableMatchedSource()))
+            {
+                continue;
+            }
+            fst = HeaderFields.addControl(FormControlType::String, regCol.parmName());
+            headerFieldsMap.insert(fst.name(), fst);
+            fst.label(regCol.parmLabel());
+        }
+        //element.control(element.controlId(formControlStr(TFMDrawFlowTestDropDialog,OkButton))).visible(false);
+        fbc = element.design().addControl(FormControlType::Button,'acceptButton', HeaderFields);
+
+        fbc.text("@TFM:Accept");
+
+        fbc.registerOverrideMethod(methodStr(FormButtonControl, clicked), formMethodStr(TFMDrawFLowTestDropDialog, clickedAccept), this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>clickedAccept</Name>
+				<Source><![CDATA[
+    public void clickedAccept(FormButtonControl _formButtonControl)
+    {
+        // Call registration Collectors
+        MapEnumerator                                   mEnum = headerFieldsMap.getEnumerator();
+        FormStringControl                               fst;        
+        
+        TFMRegistrationConfigurationResponseElement     responseElement;
+
+        if (!process)
+        {
+            return;
+        }
+        
+        request = new TFMRequestBasicElement();
+        request.addField('ContentType', process.parmProcessName(),true);
+        request.addField('DocumentType', TFMConstants::GetRegistrationConfiguration(), true);
+
+        while (mEnum.moveNext())
+        {
+            fst = mEnum.currentValue();
+            request.addField(fst.name(), fst.valueStr(), true);
+        }
+       
+        
+        responseElement = process.runProcess(request);
+        while (HeaderFields.controlCount())
+        {
+            HeaderFields.formRun().design().removeControl(HeaderFields.controlNum(1).id());
+        }
+        
+        regColControls = new Map (Types::String, Types::Class);
+        //TODO: Change this part to "emulator"
+        
+        this.addControlsFromCollectors(responseElement.getCollectors());
+
+        _formButtonControl.visible(false);
+
+        fbc = element.design().addControl(FormControlType::Button,'postButton', HeaderFields);
+
+        fbc.text("@TFM:Post");
+
+        fbc.registerOverrideMethod(methodStr(FormButtonControl, clicked), formMethodStr(TFMDrawFLowTestDropDialog, clickedPost), this);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addControlsFromCollectors</Name>
+				<Source><![CDATA[
+    public void addControlsFromCollectors(TFMRegistrationCollectors _collectors)
+    {
+        MapEnumerator               mEnum = _collectors.collectorMap().getEnumerator();
+        FormStringControl           fst;
+        TFMRegistrationCollector    regCol;
+        while (mEnum.moveNext())
+        {
+            regCol = mEnum.currentValue();
+            if (!regCol.parmActive())
+            {
+                continue;
+            }
+            fst = HeaderFields.addControl(FormControlType::String, regCol.parmName());
+            fst.label(regCol.parmLabel());
+            fst.text(regCol.parmDefaultValue());
+            fst.visible(regCol.parmVisible());
+            regColControls.insert(fst.name(), fst);
+        }
+
+        mEnum = _collectors.AdditionalValues().getEnumerator();
+        while (mEnum.moveNext())
+        {
+            request.addField(mEnum.currentKey(), mEnum.currentValue(), true);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>clickedPost</Name>
+				<Source><![CDATA[
+    public void clickedPost(FormButtonControl _formButtonControl)
+    {
+        MapEnumerator                                   mEnum = regColControls.getEnumerator();
+        FormStringControl                               fst;
+        TFMResponseElement                              responseElement;
+        TFMPostResponseData                             postResponseElement;
+        TFMRegistrationConfigurationResponseElement     getConfResponseElement;
+        
+        while (mEnum.moveNext())
+        {
+            fst = mEnum.currentValue();
+            request.addField(fst.name(), fst.valueStr(), true);            
+        }
+        request.addField('DocumentType', TFMConstants::PostAdhocRegistration(), true);
+
+        if (!process)
+        {
+            return;
+        }
+        ttsbegin;
+        responseElement = process.runProcess(request);
+
+        if (responseElement is TFMRegistrationConfigurationResponseElement)
+        {
+            getConfResponseElement = responseElement;
+            this.addControlsFromCollectors(getConfResponseElement.getCollectors());
+            ttsabort;
+            return;
+        }
+        postResponseElement = responseElement;
+        resultDataset = this.getDataSet(request.logicContext().getDataContextMap() );
+        info(postResponseElement.parmResponseText());
+        ttsabort;
+        _formButtonControl.visible(false);
+        fbc = element.design().addControl(FormControlType::Button,'resultButton', HeaderFields);
+
+        fbc.text("@TFM:ShowResults");
+
+        fbc.registerOverrideMethod(methodStr(FormButtonControl, clicked), formMethodStr(TFMDrawFLowTestDropDialog, clickedShowResult), this);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>clickedShowResult</Name>
+				<Source><![CDATA[
+    public void clickedShowResult(FormButtonControl _formButtonControl)
+    {
+        TFMShowDataResults::ShowResults(resultDataset);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDataSet</Name>
+				<Source><![CDATA[
+    protected Map getDataSet(Map _dataContext)
+    {
+        MapEnumerator       mEnum = _dataContext.getEnumerator(), inlineMEnum;
+        Map                 inlineDataContext;
+        Map                 transferData = new Map(Types::String, Types::String);
+        Common              data;
+        while (mEnum.moveNext())
+        {
+            inlineDataContext = mEnum.currentValue();
+            inlineMEnum = inlineDataContext.getEnumerator();
+            while (inlineMEnum.moveNext())
+            {
+                data = inlineMEnum.currentValue();
+                
+                transferData.insert(TFMHelper::descriptionFromCommon(data), data.xml());
+            }
+        }
+        return transferData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>close</Name>
+				<Source><![CDATA[
+    public void close()
+    {
+        super();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="" />
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">@SYS4001418</Caption>
+		<Pattern xmlns="">DropDialog</Pattern>
+		<PatternVersion xmlns="">1.2</PatternVersion>
+		<Style xmlns="">DropDialog</Style>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>HeaderFields</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+				<Style>DialogContent</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormButtonGroupControl">
+				<Name>FormButtonGroupControl1</Name>
+				<Type>ButtonGroup</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormCommandButtonControl">
+						<Name>OkButton</Name>
+						<Type>CommandButton</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Command>OK</Command>
+						<DefaultButton>Yes</DefaultButton>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalRight</ArrangeMethod>
+				<Style>DialogCommitContainer</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

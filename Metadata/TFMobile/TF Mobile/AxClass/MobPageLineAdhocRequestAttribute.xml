@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobPageLineAdhocRequestAttribute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The attribute to add if the adhoc action should appear on the 'adhoc' menu items in the add menu item lookup page.
+/// </summary>
+class MobPageLineAdhocRequestAttribute extends TFMPageLineAdhocRequestAttribute {}
+                    ]]></Declaration>
+                    <Methods>
+                    </Methods>
+                    </SourceCode>
+                    </AxClass>

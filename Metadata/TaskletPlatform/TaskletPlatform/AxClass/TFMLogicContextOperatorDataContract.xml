@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicContextOperatorDataContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicContextOperatorDataContract extends TFMLogicContextDataContract
+{
+
+    
+
+}
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+</AxClass>

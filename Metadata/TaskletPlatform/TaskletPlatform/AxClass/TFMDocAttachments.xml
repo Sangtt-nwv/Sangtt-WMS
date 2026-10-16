@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocAttachments</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// The TFMDocQuarantineOrder class is the document handler for the quarantine order creation in Mobile WMS.
+/// </summary>
+[TFMMenu('attachments',"@SYS73813","@SYS73813",resourceStr(TFMAttachmentIcon),false,true), TFMDocumentType(classStr(TFMLookup),'attachments')]
+class TFMDocAttachments extends TFMDocumentHandler
+{
+    #tfm
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getDocumentTypes</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public Set getDocumentTypes()
+    {
+        //Obsolete way to declare Document Types. Use attribute on class instead. This is left here intensionally, to force backwards compatibility, for easier migration support
+        Set ret = new Set(Types::String);
+
+        ret.add(methodStr(TFMDocAttachments,findAttachments));
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages ret = super();
+        TFMPageLookup				UIRPage = new TFMPageLookup();
+        TFMPageLookupConfiguration	conf;
+        TFMMenuItemStateConfiguration showImageMenuItemStateConf;
+
+        UIRPage.parmId('attachments');
+        UIRPage.parmFilter(methodStr(TFMDocAttachments,AttachmentCfgHeader));
+        UIRPage.parmIcon('attachment');
+        UIRPage.parmTitle('Attachments');
+        UIRPage.parmIsMandatoryContextMenu(true);
+        UIRPage.parmAvailableForMenuPages(false);
+        UIRPage.parmAlwaysIncludeInOutput(true);
+        conf = UIRPage.getConfiguration();
+        conf.parmListId(classStr(TFMListAttachments));
+        conf.parmNavigateTo(TFMConstants::Predefined_ShowImage_Page());
+
+        // set up show image because the imageProperty is needed to show the attachment.
+        showImageMenuItemStateConf = TFMMenuItemStateConfiguration::Construct(TFMConstants::MenuItemShowImage(), -1, new TFMPageActionAttribute(TFMPageMenuItemTypes::showImage, '', false, true, 0, false));
+        showImageMenuItemStateConf.parmTitle('showImage');
+        showImageMenuItemStateConf.parmEnabled(true);
+        if(!showImageMenuItemStateConf.parmAdditionalProperties())
+        {
+            showImageMenuItemStateConf.parmAdditionalProperties(new TFMPageMenuItemsAdditionalProperties());
+        }
+        showImageMenuItemStateConf.parmAdditionalProperties().addParameter('imageProperty', ['imageId']);
+        
+        UIRPage.addActionClass(showImageMenuItemStateConf);
+
+        ret.addPage(UIRPage);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret = new Map(Types::String, Types::String);
+
+        ret.insert('Attachments', "@SYS73813");
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>registerImage</Name>
+				<Source><![CDATA[
+    public Map registerImage()
+    {
+        Map ret = super();
+
+        ret.insert('attachment',resourceStr(TFMAttachmentIcon));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResult</Name>
+				<Source><![CDATA[
+    public XML getResult()
+    {
+        XML ret;
+        XmlElement  tmpRootElement;
+        
+        tmpRootElement = resultXml.firstChild();
+
+        ret  = tmpRootElement.innerXml();
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findAttachments</Name>
+				<Source><![CDATA[
+    [TFMLookupResponse(classStr(TFMLookup),'attachments')]
+    private TFMLookupResponseElement findAttachments()
+    {        
+        DocuRef						docuRef;
+        Common						record = request.getReferredRecord();
+        str							imageID;
+        TFMLookupResponseElement	lookupResponse = TFMLookupResponseElement::Construct(classStr(TFMLookup),'attachments');
+        XmlElement					tmpRootElement;
+        str							backendId;
+        DocuTypeId                  docuTypeId = TFMParameters::find().DocuTypeId;
+        
+        while select docuRef
+            where (docuRef.RefCompanyId == record.dataAreaId) &&
+                    docuRef.RefTableId == record.TableID  &&
+                    docuRef.RefRecId == record.RecId &&
+                    docuRef.TypeId == docuTypeId
+        {
+
+            backendId = tableStr(DocuRef) + '/' + fieldStr(DocuRef,RecId) + '/' + int642Str(docuRef.RecId);//#PickProdOrderPrefix + prodJournalTable.JournalId;
+
+            lookupResponse.addResponse(docuRef, backendId,null);
+            
+        }
+        return lookupResponse;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public TFMDocumentHandlerDescription description()
+    {
+        TFMDocumentHandlerDescription ret;
+
+        ret = "@SYS73813";
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AttachmentCfgHeader</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to get the header/filter used in the attachment screen.
+    /// </summary>
+    /// <returns>The header/filter used in the attachment screen</returns>
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration AttachmentCfgHeader()
+    {
+        TFMReferenceDataConfiguration ref = new TFMReferenceDataConfiguration();
+
+        ref.addCollector(TFMGetReferenceData::defaultReferenceIdentity());
+        return ref;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMStepsSuccessionGraph</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMStepsSuccessionGraph
+{
+    
+    TFMWorkflowName			workflowId;
+    Map                     ancestors;
+    Map                     treeNodes;
+    TFMGraphGeneric         graph;
+    
+	
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>buildTree</Name>
+				<Source><![CDATA[
+    protected int buildTree()
+    {
+        TFMGraphTreeNodeWorkflow	treeNode;
+        TFMWorkflowSteps			steps;
+        MapEnumerator				mEnum = ancestors.getEnumerator();
+        SetEnumerator				sEnum;
+        int							depth = 0;
+        SysTestNodeId				stepID;
+        Map							prevNextNodes = new Map(Types::Integer, Types::Integer);
+        Map							nextPrevNodes = new Map(Types::Integer, Types::Integer);
+        Map							depthMap = new Map(Types::Integer, Types::Integer);
+        Map							nodesForNode;
+		int							maxDepth;
+        int							prevStep = -5;
+        TFMWorkflowBlock			block;
+        SetEnumerator				collectors;
+        TFMRegistrationCollector	collector;
+        int							firstId = 5000;
+        int							lastId = 0;
+        SetEnumerator				pagesUsingValidation;
+        SetEnumerator				stepEnum;
+        Set							dynamicSteps = new Set(Types::String);
+        Set							normalSteps;
+		str							stepInfo;
+        Set							stepIds = new Set(Types::Integer);
+        str							name;
+        Map							replaceMap = new Map(Types::String, Types::String);
+		
+        replaceMap.insert('FromBin', "@SYS50352");
+        replaceMap.insert('ToBin', "@SYS50351");
+        replaceMap.insert('ExpirationDate', "@SYS35063");
+        replaceMap.insert('LotNumber', "@SYS53635");
+        replaceMap.insert('ToteId',"@TFM:Tote");
+        replaceMap.insert('SerialNumber',"@SYS52571");
+        replaceMap.insert('Quantity',"@SYS3065");
+
+
+        while select steps order by workflowstepid where steps.WorkflowName == workflowId
+        {
+            block = new sysDictClass(className2Id(steps.CallClass)).makeObject();
+            
+            normalSteps = block.steps();
+            dynamicSteps = block.dynamicSteps(null, true);
+            if (dynamicSteps == null)
+            {
+                dynamicSteps = new Set(Types::Class);
+			}
+            collectors = Set::union(normalSteps,dynamicSteps).getEnumerator();
+            while ( collectors.moveNext())
+            {
+                collector = collectors.current();
+                collector.updateParmsFromOverride('Workflow:' + workflowId,collector.parmName());
+                stepIds.add(collector.parmId());
+                firstId = min(firstId, collector.parmId());
+                lastId  = max(lastId,  collector.parmId());
+            }
+            
+            /*if (dynamicSteps != null)
+            {
+                collectors = dynamicSteps.getEnumerator();
+                while ( collectors.moveNext())
+                {
+                    collector = collectors.current();
+                    stepIds.add(collector.parmId());
+                    firstId = min(firstId, collector.parmId());
+                    lastId  = max(lastId,  collector.parmId());
+                }
+
+            }*/
+        }
+        
+        depth = 0;
+        stepEnum = stepIds.getEnumerator();
+		while (stepEnum.moveNext())
+        {
+            if (prevStep >= 0)
+            {
+                nextPrevNodes.insert(stepEnum.current(), prevStep);
+                prevNextNodes.insert(prevStep,stepEnum.current());
+                
+            }
+            depthMap.insert(stepEnum.current(),depth);
+            depth++;
+            prevStep = stepEnum.current();
+        }
+        depth = 0;
+        treeNodes = new Map(Types::integer,Types::Class);
+		while select steps order by workflowstepid where steps.WorkflowName == workflowId
+        {
+            block = new sysDictClass(className2Id(steps.CallClass)).makeObject();
+            normalSteps = block.steps();
+            dynamicSteps = block.dynamicSteps(null, true);
+            if (dynamicSteps == null)
+            {
+                dynamicSteps = new Set(Types::Class);
+            }
+            collectors = Set::union(normalSteps,dynamicSteps).getEnumerator();
+            
+            while ( collectors.moveNext())
+            {
+
+                collector = collectors.current();
+                collector.updateParmsFromOverride('Workflow:' + workflowId,collector.parmName());
+                treeNode = new TFMGraphTreeNodeWorkflow();
+                treeNode.parmGroupName(strReplace(steps.CallClass,classStr(TFMWorkflowBlock),''));
+                treeNode.parmDepthPos(depthMap.exists(collector.parmId()) ? depthMap.lookup(collector.parmId()) : depth);
+                treeNode.parmResourceName(collector.dataTypeIcon());
+                //treeNode.parmLabel(steps.stepName(false,steps.CallClass));
+                
+                name = replaceMap.exists(collector.parmName()) ? replaceMap.lookup(collector.parmName()) : collector.parmHeader();
+                treeNode.parmLabel(name);
+                pagesUsingValidation = TFMWorkflowStepsOnlineValidation::servicesUsingValidation(workflowId,collector.parmName()).getEnumerator();
+                stepInfo = '';
+				while (pagesUsingValidation.moveNext())
+                {
+                    stepInfo +=  TFMConstants::lineBreak()  + pagesUsingValidation.current();
+                }
+                treeNode.parmSubText(stepInfo);
+                treeNode.parmreturnVariable('trut');
+                nodesForNode = new Map(Types::Integer, Types::Integer);
+                if (prevNextNodes.exists(collector.parmId()))
+                {
+                    nodesForNode.insert(prevNextNodes.lookup(collector.parmId()), prevNextNodes.lookup(collector.parmId()));
+                    
+                }
+                treeNode.parmNextNodes(nodesForNode);
+                
+                nodesForNode = new Map(Types::Integer, Types::Integer);
+                if (nextPrevNodes.exists(collector.parmId()))
+                {
+                    
+                    nodesForNode.insert(nextPrevNodes.lookup(collector.parmId()), nextPrevNodes.lookup(collector.parmId()));
+                    
+                }
+                treeNode.parmPrevNodes(nodesForNode);
+                treeNodes.insert(collector.parmId(), treeNode);
+                
+                depth++;
+            }
+            
+        }
+        /*collectors = dynamicSteps.getEnumerator();
+        depth = 0;
+		while (collectors.moveNext())
+        {
+            depth++;
+            stepInfo = collectors.current();
+            treeNode = new TFMGraphTreeNodeWorkflow();
+            treeNode.parmGroupName(stepInfo);
+            treeNode.parmDepthPos(depthMap.exists(lastId + depth) ? depthMap.lookup(lastId + depth) : depth);
+            treeNode.parmResourceName(resourceStr(TFMDataTypeString));
+            treeNode.parmLabel("@TFM:DynamicStep");
+            nodesForNode = new Map(Types::Integer, Types::Integer);
+            if (prevNextNodes.exists(lastId + depth))
+            {
+                nodesForNode.insert(prevNextNodes.lookup(lastId + depth), prevNextNodes.lookup(lastId + depth));
+                    
+            }
+            treeNode.parmNextNodes(nodesForNode);
+                
+            nodesForNode = new Map(Types::Integer, Types::Integer);
+            if (nextPrevNodes.exists(lastId + depth))
+            {
+                    
+                nodesForNode.insert(nextPrevNodes.lookup(lastId + depth), nextPrevNodes.lookup(lastId + depth));
+                    
+            }
+            treeNode.parmPrevNodes(nodesForNode);
+            treeNodes.insert(lastId + depth, treeNode);
+        }*/
+
+        return firstId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initializes the graph object.
+    /// </summary>
+    protected void init()
+    {
+        TFMWorkflowSteps steps;
+
+        select firstonly steps order by WorkflowStepId where steps.WorkflowName == WorkflowId;
+		//Find all ancestors and all children
+
+        ancestors.insert(this.buildTree(),0);
+
+        //Build tree in memory
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mouseClick</Name>
+				<Source><![CDATA[
+    public SysTestNodeId mouseClick(int _x, int _y)
+    {
+        return 0;//graph.mouseClick(_x, _y);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Initializes a new instance of the Graph class.
+    /// </summary>
+    /// <param name="_fwC">
+    /// A reference to the <c>FormWindowControl</c> object, where the graph is drawn.
+    /// </param>
+    /// <param name="_jobType">
+    /// The jobtype from which to generate the tree.
+    /// </param>
+    protected void new(TFMHtmlViewerCtrl _htmlViewer, TFMWorkflowName  _workflowId)
+    {
+        workflowId = _workflowId;
+        ancestors   = new Map(Types::integer, Types::integer);
+        treeNodes = new Map(Types::integer,Types::Class);
+		
+        this.init();
+		
+        graph = TFMGraphWorkflow::construct(_htmlViewer,ancestors, treeNodes,_workflowId,max(treeNodes.elements()*175,_htmlViewer.widthValue()), 200);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>draw</Name>
+				<Source><![CDATA[
+    public void draw()
+    {
+        graph.draw();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>htmlViewer</Name>
+				<Source><![CDATA[
+    public void htmlViewer(TFMHtmlViewerCtrl _htmlViewer)
+    {
+        graph.htmlViewer(_htmlViewer);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    /*protected static Map con2Map(Map _inMap, container _inCon)
+    {
+        SysTestNodeId  curStatus;
+        int             i;
+
+        for (i = 1; i <= conLen(_inCon); i++)
+        {
+            curStatus = conPeek(_inCon,i);
+            if (!_inMap.exists(curStatus))
+            {
+                _inMap.insert(curStatus,curStatus);
+            }
+        }
+        return _inMap;
+    }*/
+
+    public static TFMStepsSuccessionGraph construct(TFMHtmlViewerCtrl _htmlViewer, TFMWorkflowName _wfId)
+    {
+        return new TFMStepsSuccessionGraph(_htmlViewer,_wfId);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,729 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDrawFlowControlInteractionStepConditions</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Interaction class for interactions on conditions
+/// </summary>
+class TFMDrawFlowControlInteractionStepConditions extends TFMDrawFlowControlInteraction
+{
+    TFMRequestElement           dummyRequest;
+    TFMLogicContext             contextObject;
+    TFMConditions               conditions;
+    TFMCondition                activeCondition;
+    MethodName                  methodName;
+    Map                         lookupOptions;
+    TFMLogicContextTypes        returnType;
+    str                         domain;    
+    TFMProcessID                processId;
+    Version                     version;
+    TFMProcess                  process;
+    str                         stepName;
+    int                         resultNodeId;
+    Map                         ParameterName2Idx;
+    str                         functionHelpText;
+    TFMLogicBlockName           blockName;
+    TFMHtmlViewerCtrl           htmlValidationViewer;
+    int                         linkedIdToResult;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>blockList</Name>
+				<Source><![CDATA[
+    public List blockList()
+    {
+        // List all elements present in the context object here.
+        List                        ret = new List(Types::Class);
+        TFMLogicBlocksContract      contract;
+        resourceNode                rn;
+        MapEnumerator               mEnum;
+        SysDictClass                sdc;
+        SetEnumerator               sEnum;
+        ListEnumerator              lEnum = new SysDictClass(classNum(TFMLogicContextObject)).extendedBy(true).getEnumerator();
+        TFMLogicContextObject       toolClass;
+        TFMLogicContextTypes        typeHandled;
+ 
+        while(lEnum.moveNext())
+        {
+            if (new SysDictClass(lEnum.current()).isAbstract())
+            {
+                continue;
+            }
+            toolClass = new SysDictClass(lEnum.current()).makeObject();
+            contract = new TFMLogicBlocksContract();
+            contract.parmBlockName(toolClass.Name());
+            contract.parmClassName(classId2Name(lEnum.current()));
+
+            str iconStr = toolClass.icon();
+            if(iconStr)
+            {
+                str iconUrlBase = TFMDocGetMedia::getURLFromIconName(iconStr, true);
+                contract.parmResourcePath(iconUrlBase);
+            }
+
+            contract.parmClassType('ToolClass');
+            
+            contract.parmNumberOfInputs(toolClass.noOfInputs() == -1 ? 1 : toolClass.noOfInputs()); // -1 is defined as infnite inputs, no limits
+            if (toolClass.outputType())
+            {
+                contract.parmCategories().addEnd(strFmt('%1', toolClass.outputType()));
+            }
+            if (toolClass.categories())
+            {
+                sEnum = toolClass.categories().getEnumerator();
+                while (sEnum.moveNext())
+                {                
+                    contract.parmCategories().addEnd(sEnum.current());
+                }
+            }
+            sEnum = toolClass.inputTypes().getEnumerator();
+            while (sEnum.moveNext())
+            {
+                typeHandled = sEnum.current();
+                contract.parmCategories().addEnd(strFmt('%1', typeHandled));
+            }
+            ret.addEnd(contract);
+        }
+        
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmConditions</Name>
+				<Source><![CDATA[
+    public TFMConditions parmConditions(TFMConditions _conditions = conditions)
+    {
+        conditions = _conditions;  
+        
+        return conditions;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBlockName</Name>
+				<Source><![CDATA[
+    public TFMLogicBlockName parmBlockName(TFMLogicBlockName _blockName = blockName)
+    {
+        blockName = _blockName;
+        return blockName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMethodName</Name>
+				<Source><![CDATA[
+    public MethodName parmMethodName(MethodName _methodName = methodName)
+    {
+        methodName = _methodName;
+        return methodName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProcessId</Name>
+				<Source><![CDATA[
+    public TFMProcessID getProcessId()
+    {
+        return processId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDomain</Name>
+				<Source><![CDATA[
+    public str getDomain()
+    {
+        return domain;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getVersion</Name>
+				<Source><![CDATA[
+    public Version getVersion()
+    {
+        return version;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDomainAndProcess</Name>
+				<Source><![CDATA[
+    public void setDomainAndProcess(str _domainAndProcess)
+    {
+        int colPos = strScan(_domainAndProcess,':',1,100);
+        Domain = subStr(_domainAndProcess,1,colPos-1);
+        processId = subStr(_domainAndProcess,colPos+1, 1000);
+        colPos = strScan(processId,'/',1,100);
+        version = str2Int(subStr(processId,colPos+1, 1000));
+        processId = subStr(processId,1,colPos-1);
+        process = TFMProcessProvider::GetAllProcessesImpl().getProcess(processId, version);
+        flowControl.setEditorModeOnControl(process.parmLocked());
+        htmlValidationViewer = flowControl.formRun().control(flowControl.formRun().controlId(formControlStr(TFMConditionEditor,ValidationHtml)));
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>allowEdit</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    /// <returns></returns>
+    public boolean allowEdit()
+    {   
+        return !process.parmLocked();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setStepName</Name>
+				<Source><![CDATA[
+    public void setStepName(str _stepName)
+    {
+        stepName = _stepName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeDeleted</Name>
+				<Source><![CDATA[
+    public void nodeDeleted(int _id)
+    {
+        conditions.removeCondition(_id, methodName);
+        this.updateValidationHtml();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>connectionDeleted</Name>
+				<Source><![CDATA[
+    public void connectionDeleted(TFMDrawFlowConnectionContract _connection)
+    {
+        if (_connection.parmInputId() == resultNodeId || _connection.parmOutputId() == resultNodeId)
+        {
+            linkedIdToResult = 0;
+            return;
+        }
+        conditions.deletedConnection(_connection.parmOutputId(), _connection.parmInputId(), methodName);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmReturnType</Name>
+				<Source><![CDATA[
+    public TFMLogicContextTypes parmReturnType(TFMLogicContextTypes _returnType = returnType)
+    {
+        returnType = _returnType;
+        this.updateValidationHtml();
+        return returnType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        resultNodeId = TFMConnectedConditions::resultNodeId;
+        linkedIdToResult = 1;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveData</Name>
+				<Source><![CDATA[
+    public void saveData(str _json)
+    {
+        boolean validate = conditions.validateCondition(methodName, returnType);
+
+        if (!validate)
+        {
+            return;
+        }
+
+        if (!linkedIdToResult)
+        {
+            this.writeToValidationHtml("@TFM:ResultNodenotconnected",false);
+            return;
+        }
+
+        conditions.saveConditionToData(domain, processId, version, stepName, methodName);
+        Info("@TFM:Conditionsaved");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeCreated</Name>
+				<Source><![CDATA[
+    public void nodeCreated(TFMDrawFlowLogicBlockContract _createdNode)
+    {
+        boolean isOperatorClass = new SysDictClass(className2Id(_createdNode.parmData().parmClassName())).extend() == classNum(TFMLogicContextTools);
+        TFMCondition kondi = isOperatorClass ? TFMCondition::ConstructOperator(_createdNode.parmData().parmClassName()) : TFMCondition::Construct(_createdNode.parmData().parmClassName(),conNull(),'');
+        
+        linkedIdToResult = linkedIdToResult == 1  && !conditions.conditionsForMethod(methodName).getEnumerator().moveNext() ? 0 : linkedIdToResult; //Set resultNode is linked, if there are conditions present during loading
+
+        conditions.addCondition(kondi,methodName, _createdNode.parmId());
+
+        this.updateValidationHtml();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateValidationHtml</Name>
+				<Source><![CDATA[
+    public void updateValidationHtml()
+    {
+        boolean                 ret = true;
+        str                     resultMessage;
+        
+
+        [ret, resultMessage]= conditions.validateConditionAndGetMessage(methodName, returnType);
+
+        if (ret && !linkedIdToResult)
+        {
+            resultMessage = "@TFM:ResultNodenotconnected";
+            ret = false;
+        }
+        
+        this.writeToValidationHtml(resultMessage, ret);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeToValidationHtml</Name>
+				<Source><![CDATA[
+    public void writeToValidationHtml(str _resultMessage, boolean _status)
+    {
+        resourceNode            rn = _status ? new resourceNode(resourceStr(TFMBlockCheckmark)) : new resourceNode(resourceStr(TFMBlockError));
+        str                     resultMessage = _status && !_resultMessage ? "@TFM:ConditionsetupisOK" : _resultMessage;
+        htmlValidationViewer.parmHtml('<table style="margin-left: auto; margin-right: auto;"><tr><td><img src="/resources/images/' + rn.filename() + '" width="35px"></td><td><h1> ' + resultMessage+'</h1></td></tr></table>');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>allowConnection</Name>
+				<Source><![CDATA[
+    public boolean allowConnection(TFMDrawFlowConnectionContract _connection)
+    {
+        TFMCondition kondiTo = conditions.conditionFromHash(_connection.parmInputId(), methodName);
+        TFMCondition kondiFrom = conditions.conditionFromHash(_connection.parmOutputId(), methodName);
+        TFMConnectedConditions cons = conditions.conditionsForMethod(methodName);
+        this.updateValidationHtml();
+        if (_connection.parmInputId() == resultNodeId || _connection.parmOutputId() == resultNodeId)
+        {
+            if (returnType == kondiFrom.parmDataContract().outputType())
+            {
+                linkedIdToResult = _connection.parmInputId() == resultNodeId ? kondiFrom.GetHashCode() : kondiTo.GetHashCode();
+                this.updateValidationHtml();
+                return true;
+            }
+            this.writeToValidationHtml(strFmt("@TFM:ConnectionnotallowedYouaretrying", kondiFrom.parmDataContract().outputType(), returnType), false);
+            return false;
+        }
+        if (cons.checkForLoop(kondiFrom.GetHashCode(), kondiTo.GetHashCode()))
+        {
+            this.writeToValidationHtml("@TFM:Loopingnodesdetected", false);
+            return false;
+        }
+
+        if (kondiTo.parmDataContract().inputTypes().in(kondiFrom.parmDataContract().outputType()))
+        {
+            conditions.addLink(kondiFrom, kondiTo, methodName);
+            this.updateValidationHtml();
+            return true;
+        }
+        
+        this.writeToValidationHtml(strFmt("@TFM:ConnectionnotallowedYouaretrying", kondiFrom.parmDataContract().outputType(), kondiTo.parmDataContract().inputTypes()), false);
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getData</Name>
+				<Source><![CDATA[
+    public str getData()
+    {
+        TFMDrawFlowJsonCreatorConditionEditor localMediator;
+        jsonMediator = TFMDrawFlowJsonCreator::Construct(classStr(TFMConditions));
+        this.updateValidationHtml();
+        localMediator = jsonMediator;
+        localMediator.parmReturnType(returnType);
+        
+        localMediator.parmStepName(stepName);
+        
+        return localMediator.jSon(conditions,methodName);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nodeSelected</Name>
+				<Source><![CDATA[
+    public void nodeSelected(int _id)
+    {
+        FormStringControl           fsc;
+        TFMCondition                condition = conditions.conditionFromHash(_id,methodName);
+        
+        
+
+        while (fgc && fgc.controlCount())
+        {
+            fgc.formRun().design().removeControl(fgc.controlNum(1).id());
+        }
+
+        flowControl.setEditorModeOnControl(process.parmLocked());
+
+        if (fgc == null || condition == null)
+        {
+            return;
+        }
+        fgc.enabled(!process.parmLocked());
+        this.addParmsAndFields(condition, fgc);
+        this.updateValidationHtml();
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addParmsAndFields</Name>
+				<Source><![CDATA[
+    protected void addParmsAndFields(TFMCondition _condition, FormGroupControl _conditionGroup)
+    {
+        TFMHtmlViewerCtrl           infoSection     = _conditionGroup.addControlEX(classStr(TFMHtmlViewerCtrl),'BlockInfo');
+        FormGroupControl            strCtrl2Group = _conditionGroup.addControl(FormControlType::Group, 'Conditionstr2Group' + int2Str(_condition.GetHashCode()));
+        TFMHtmlViewerCtrl           funcInfoSection;
+        FormGroupControl            strCtrl3Group = _conditionGroup.addControl(FormControlType::Group, 'Conditionstr3Group' + int2Str(_condition.GetHashCode()));
+        FormControl                 ctrlParm;
+        SysDictType                 sdt;
+        FormStringControl           strCtrl3;
+        int                         idx;
+        IdentifierName              EdtName;
+        TFMLogicContextObject       localContextObject = conditions.parmContext().getContextObject(_condition.parmDataContract().parmLogicContextClass());
+        ClassName                   cls = classId2Name(classIdGet(localContextObject));
+        MapEnumerator               mEnum = TFMHelper::getParametersFromClassAndMethod(cls,methodStr(TFMLogicContextObject, process)).getEnumerator();
+        TFMLogicContextDataContract dc = _condition.parmDataContract();
+        TFMLogicContextFunctionsDataContract fdc;
+
+        str                         blockDesc = _condition.parmDataContract().getDescription();
+
+        activeCondition = _condition;
+
+        infoSection.parmHtml('<i>'+blockDesc+'</i>');
+
+        if (!(dc is TFMLogicContextFunctionsDataContract))
+        {
+            return;
+        }
+
+        fdc = dc;
+
+        strCtrl2Group.caption("@TFM:Parameters");
+        strCtrl3Group.caption("@TFM:Function");
+        ParameterName2Idx = new Map(Types::String, Types::Integer);
+        while (mEnum.moveNext())
+        {
+            idx++;
+            EdtName = mEnum.currentValue();
+            ParameterName2Idx.insert(mEnum.currentKey(), idx);
+
+            if (extendedTypeName2Id(EdtName))
+            {
+                sdt = new SysDictType(extendedTypeName2Id(EdtName));
+                ctrlParm = TFMFormHelper::type2FormControl(strCtrl2Group, sdt.baseType(), sdt.id(), mEnum.currentKey(),conPeek(fdc.parmParameters(),idx),'',methodStr(TFMDrawFlowControlInteractionStepConditions, parametervalueModified), this);            
+                //Test if object has custom Lookup for parameter
+                if (!TFMProcessBlocksParametersEdit::addLookupIfPresent(ctrlParm, localContextObject, EdtName))
+                {
+                    TFMProcessBlocksParametersEdit::addLookupIfPresent(ctrlParm, this, EdtName);
+                }
+                if (classIdGet(ctrlParm) == classNum (FormStringControl))
+                {
+                    strCtrl3 = ctrlParm;
+                    strCtrl3.registerOverrideMethod(methodStr(FormStringControl, validate), methodStr(TFMDrawFlowControlInteractionStepConditions, validateString), this);
+
+                }
+            }            
+            else
+            {
+                ctrlParm = strCtrl2Group.addControl(FormControlType::String, mEnum.currentKey());
+            }
+        }
+        funcInfoSection     = strCtrl2Group.addControlEX(classStr(TFMHtmlViewerCtrl),'parametersInfo');
+        TFMBlockConnectionNode node= process.blockCollection().blockNodes().lookup(blockName);
+        TFMLogicBlock   lBlock = node.parmBlock();
+        funcInfoSection.parmHtml(lBlock.inheritedValues().fieldsFound());
+        strCtrl3 = strCtrl3Group.addControl(FormControlType::String, 'StringControl3'+int2Str(_condition.GetHashCode()));
+        strCtrl3.text(fdc.parmKeyName());
+        strCtrl3.registerOverrideMethod(methodStr(FormStringControl, modified), methodStr(TFMDrawFlowControlInteractionStepConditions, keyNameModified),this);
+        this.addDataContractLookupIfPresent(strCtrl3,localContextObject);
+        funcInfoSection     = _conditionGroup.addControlEX(classStr(TFMHtmlViewerCtrl),'functionInfo');
+
+        funcInfoSection.parmHtml(functionHelpText);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateString</Name>
+				<Source><![CDATA[
+    protected boolean validateString(FormStringControl _fst)
+    {
+        if (subStr(_fst.text(),1,1) == '{' && subStr(_fst.text(),strLen(_fst.text()),1) == '}')
+        {
+            return true;
+        }
+        return _fst.validate();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDataContractLookupIfPresent</Name>
+				<Source><![CDATA[
+    protected void addDataContractLookupIfPresent(FormStringControl _control, Object _cls)
+    {
+        SysDictClass                sdc = new SysDictClass(classIdGet(_cls));
+        SysDictMethod               sdm = new SysDictMethod(UtilElementType::ClassInstanceMethod,classIdGet(_cls),methodStr(TFMLogicContextObject,process ));
+        DataContractAttribute       sda = sdm.getAttribute(Classstr(DataContractAttribute));
+        
+        if (!sda)
+        {
+            //Remove control, not applicable
+            FormGroupControl parentCon = _control.parentControl();
+            parentCon.caption('');
+            _control.formRun().design().removeControl(_control.id());
+            functionHelpText = '';
+            return;
+        }
+        this.updateContractLookupOptions(sda.Name());
+
+        _control.registerOverrideMethod(methodStr(FormStringControl, lookup), methodStr(TFMDrawFlowControlInteractionStepConditions, lookupDataContractOptions),this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateContractLookupOptions</Name>
+				<Source><![CDATA[
+    protected void updateContractLookupOptions(className _dataContractName)
+    {
+        SysDictClass objectType = new SysDictClass(classname2id(_dataContractName));
+        Set objectMethods = objectType.methods(true, false, true); // Find all valid data members on this type
+        SysDictMethod objectMethod;
+        SetEnumerator se = objectMethods.getEnumerator();
+        str dataMemberName;
+        DataMemberAttribute memberAttribute;
+        TFMDescriptionAttribute      funcDesc;
+        
+        boolean continueReading;
+
+        lookupOptions = new Map(Types::String, Types::Class);
+        functionHelpText = '';
+        while (se.moveNext())
+        {
+            objectMethod = se.current();
+            memberAttribute = objectMethod.getAttribute(classStr(DataMemberAttribute));
+            funcDesc = objectMethod.getAttribute(classStr(TFMDescriptionAttribute));
+            if (memberAttribute != null)
+            {
+                dataMemberName = memberAttribute.Name();
+                if (!dataMemberName)
+                {
+                    dataMemberName = objectMethod.name();
+                }
+                lookupOptions.insert(dataMemberName, objectMethod);
+                functionHelpText += (functionHelpText ? '<br/>' :'')+'<b>'+dataMemberName+'</b>' + (funcDesc ? ': <p>'+funcDesc.parmDescription() + '</p>' : '' );
+            }
+            
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupDataContractOptions</Name>
+				<Source><![CDATA[
+    public void lookupDataContractOptions(FormStringControl _callingControl)
+    {
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpTableName), _callingControl);
+        TmpTableName                    tmpLookup;
+        MapEnumerator			        mEnum = lookupOptions.getEnumerator();
+
+        sysTableLookup.addLookupfield(fieldNum(TmpTableName,TableName),true);
+
+        tmpLookup.setTmp();
+        while (mEnum.moveNext())
+        {
+            tmpLookup.TableName  = mEnum.currentKey();
+            tmpLookup.insert();
+        }
+
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parametervalueModified</Name>
+				<Source><![CDATA[
+    public boolean parametervalueModified(FormControl _callingControl)
+    {
+        int                                     Idx = ParameterName2Idx.lookup(_callingControl.name());
+        TFMLogicContextFunctionsDataContract    dc = activeCondition.parmDataContract();
+        Object                                  obj = _callingControl;
+        
+        dc.parmParameters(conPoke(dc.parmParameters(),idx, SysTest::hasMethod(_callingControl, methodStr(FormcheckboxControl, value)) ? obj.value() : _callingControl.valueStr()));
+        
+        this.updateHtmlForCurrentNode();
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>keyNameModified</Name>
+				<Source><![CDATA[
+    public boolean keyNameModified(FormControl _callingControl)
+    {        
+        TFMLogicContextFunctionsDataContract    dc = activeCondition.parmDataContract();
+        dc.parmKeyName(_callingControl.valueStr());        
+        this.updateHtmlForCurrentNode();
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupContextVariable</Name>
+				<Source><![CDATA[
+    [TFMLookupMethodForEDT(ExtendedTypeStr(TFMFlowVariableContextLookupField))]
+    public void lookupContextVariable(FormStringControl _fsc)
+    {
+        TFMBlockConnectionNode  node= process.blockCollection().blockNodes().lookup(blockName);
+        TFMLogicBlock           lBlock = node.parmBlock();
+        Args                    args = new Args();
+        Object                  formRun;
+
+        args.name(formStr(TFMLogicContextLookup));
+        args.caller(_fsc);
+        formRun = classfactory.formRunClass(args);
+        formRun.setBlock(lBlock);
+        formRun.init();
+        _fsc.performFormLookup(formRun);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupContextDataSources</Name>
+				<Source><![CDATA[
+    [TFMLookupMethodForEDT(ExtendedTypeStr(TableName))]
+    public void lookupContextDataSources(FormStringControl _fsc)
+    {
+        TFMBlockConnectionNode          node= process.blockCollection().blockNodes().lookup(blockName);
+        TFMLogicBlock                   lBlock = node.parmBlock();
+        MapEnumerator                   blockDataSources = lBlock.inheritedValues().datasourcesAvailable().getEnumerator();
+        SetEnumerator                   dataSets;
+        SysTableLookup                  sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpTableName), _fsc);
+        TmpTableName                    tmpLookup;
+        
+        sysTableLookup.addLookupfield(fieldnum(TmpTableName, TableName),true);
+        
+        tmpLookup.setTmp();
+        while (blockDataSources.moveNext())
+        {
+            dataSets = blockDataSources.currentValue().getEnumerator();
+            while (dataSets.moveNext())
+            {
+                tmpLookup.TableName  = dataSets.current();
+                tmpLookup.insert();
+            }
+        }
+        blockDataSources = lBlock.inheritedValues().prePostDatasourcesAvailable().getEnumerator();
+        while (blockDataSources.moveNext())
+        {
+            
+            tmpLookup.TableName  = blockDataSources.currentValue();
+            tmpLookup.insert();
+            
+        }
+
+        // BP deviation documented
+        sysTableLookup.parmTmpBuffer(tmpLookup);
+        sysTableLookup.performFormLookup();
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookupExpression</Name>
+				<Source><![CDATA[
+    [TFMMethodParameter(methodStr(TFMLogicContextExecuteExpression,process), extendedTypestr(TFMExpression)), TFMLookupMethodForEDT(extendedTypestr(TFMExpression))]
+    public void lookupExpression(FormStringControl _callingControl)
+    {
+        Args		args = new Args();
+        FormRun		formRun;
+        args.name(formStr(TFMExpressionEditor));
+        args.caller(_callingControl);
+        formRun = classfactory.formRunClass(args);
+        formRun.init();
+        formRun.run();
+        formRun.wait();
+        this.parametervalueModified(_callingControl);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateHtmlForCurrentNode</Name>
+				<Source><![CDATA[
+    public void updateHtmlForCurrentNode()
+    {
+        TFMDrawFlowBlockStyle           blockStyle;
+        str html;
+        int conditionId = conditions.getConditionId(activeCondition.GetHashCode(),methodName);
+        blockStyle = TFMDrawFlowBlockStyle::findStyleClass(classStr(TFMCondition));
+        if(activeCondition && conditionId)
+        {
+            html = blockStyle.htmlForClass(activeCondition);          
+
+            flowControl.updateHtmlForNode(conditionId, html);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

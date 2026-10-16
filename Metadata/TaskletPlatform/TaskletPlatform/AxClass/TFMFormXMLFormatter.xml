@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMFormXMLFormatter</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.Xml.Linq;
+/// <summary>
+/// Converting xml string to a color formatted html representation.
+/// </summary>
+class TFMFormXMLFormatter
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>htmlColorXML</Name>
+				<Source><![CDATA[
+    public static str htmlColorXML(XML _xml)
+    {
+        Xml xml;
+        if(_xml)
+        {
+            xml = strReplace(_xml, '&lt;' , '<');
+            xml = strReplace(xml, '&gt;' , '>');
+        } 
+        else
+        {
+            xml = '<?xml version="1.0" encoding="UTF-8" standalone="no" ?><value>Nothing</value>';
+        }
+        return strFmt('%1',xml);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestLineElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType('Line')]
+class TFMRequestLineElement extends TFMRequestElement
+{
+    str lineNumber;
+    List registrations;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void new()
+    {
+        super();
+        registrations = new List(Types::Class);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLineNumber</Name>
+				<Source><![CDATA[
+    public str parmLineNumber(str _lineNumber = lineNumber)
+    {
+        lineNumber = _lineNumber;
+        return lineNumber;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRegistration</Name>
+				<Source><![CDATA[
+    public TFMRequestRegistrationElement parmRegistration(TFMRequestRegistrationElement _registration)
+    {
+        registrations.addEnd(_registration);
+        return _registration;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Registrations</Name>
+				<Source><![CDATA[
+    public List Registrations()
+    {
+        return registrations;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

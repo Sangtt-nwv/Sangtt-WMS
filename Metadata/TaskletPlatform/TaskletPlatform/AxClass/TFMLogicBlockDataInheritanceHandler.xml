@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMLogicBlockDataInheritanceHandler</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TFMLogicBlockDataInheritanceHandler
+{
+    Set fieldNames;
+    Map datasourcesAvailable;    
+    Map prePostDataSourcesAvailable;
+    Set previousBlocks;
+    str parentBlockName;
+    Map variableLookups;
+    Set variables;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Construct</Name>
+				<Source><![CDATA[
+    public static TFMLogicBlockDataInheritanceHandler Construct(str _parentBlockName = '')
+    {
+        return new TFMLogicBlockDataInheritanceHandler(_parentBlockName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(str _parentBlockName)
+    {
+        fieldNames                  = new Set(Types::String);
+        datasourcesAvailable        = new Map(Types::Integer, Types::String);
+        prePostDataSourcesAvailable = new Map(Types::Integer, Types::String);
+        parentBlockName             = _parentBlockName;
+        previousBlocks              = new Set(Types::String);        
+        variableLookups             = new Map(Types::String, Types::String);
+        variables                   = new Set(Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addVariableName</Name>
+				<Source><![CDATA[
+    public void addVariableName(TFMFlowVariableName _variableName)
+    {
+        variables.add(_variableName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>variableExists</Name>
+				<Source><![CDATA[
+    public boolean variableExists(TFMFlowVariableName _varName)
+    {
+        return variables.in(_varName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>variableNames</Name>
+				<Source><![CDATA[
+    public SetEnumerator variableNames()
+    {
+        return variables.getEnumerator();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addVariableLookup</Name>
+				<Source><![CDATA[
+    public void addVariableLookup(TFMFlowVariableName _variableName, ClassName _lookupClass)
+    {
+        variableLookups.insert(_variableName, _lookupClass);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>VariableLookupClass</Name>
+				<Source><![CDATA[
+    public ClassName VariableLookupClass(TFMFlowVariableName _variableName)
+    {
+        return variableLookups.exists(_variableName) ? variableLookups.lookup(_variableName) : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>previousBlocksEnumerator</Name>
+				<Source><![CDATA[
+    public SetEnumerator previousBlocksEnumerator()
+    {
+        return previousBlocks.getEnumerator();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldNamesEnumerator</Name>
+				<Source><![CDATA[
+    public SetEnumerator fieldNamesEnumerator()
+    {
+        return fieldNames.getEnumerator();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateContextPreDataCollection</Name>
+				<Source><![CDATA[
+    public void updateContextPreDataCollection(TFMRequestElement _request)
+    {
+        TFMLogicContext context = _request.logicContext();
+        MapEnumerator   mEnum = prePostDataSourcesAvailable.getEnumerator();
+        str             contentStr;
+        TableName       tblName;
+        FieldName       fieldName;
+        Name            blockName;
+        QueryRun        qr;
+        Common          record;
+        str             value;
+        InventDim       inventDim;
+        while (mEnum.moveNext())
+        {
+            contentStr = mEnum.currentValue();
+            tblName     = TFMHelper::matchRegex(contentStr, @'^([^{}]+)\{');
+            fieldName   = TFMHelper::matchRegex(contentStr, @'\{([^{}]+)\}');
+            blockName   = TFMHelper::matchRegex(contentStr, @'\[([^\[\]]+)\]');
+            value       = _request.getFieldValue(fieldName);
+            qr          = TFMSearchGenericTable::makeKeyFieldQuery(tblName, value);
+            while (qr.next())
+            {
+                record = qr.get(tableName2Id(tblName));
+                record.reread();
+                if (record)
+                {
+                    context.addDataContext(record,blockName);
+                }
+            }
+        }
+
+        inventDim = _request.parmInventDim();
+        if (inventDim)
+        {
+            context.addDataContext(inventDim,'headerInput');
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>valueFromSource</Name>
+				<Source><![CDATA[
+    public str valueFromSource(TFMRequestElement _request, Name _block, TableName _dataSourceName, str _fieldName)
+    {
+        TFMLogicContext context = _request.logicContext();
+        TableName       relatedTableName;
+        FieldName       relationFieldName;
+        FieldName       fieldNameForValue = _fieldName;
+        QueryRun        qr;
+        Common          record = context.getDataContext(_dataSourceName,_block);
+        str             value;
+        if (record && strScan(_fieldName,'[',1,140))
+        {
+            //Field is in a related table
+            relatedTableName = TFMHelper::matchRegex(_fieldName, @'^(.*?)\[');
+            relationFieldName = TFMHelper::matchRegex(_fieldName, @'\[(.*?)\]');
+            fieldNameForValue = TFMHelper::matchRegex(_fieldName, @'\](.*)$');
+            qr = TFMGenericDataHelper::getRelatedTableFromspecifiedField(record,relationFieldName,relatedTableName,fieldStr(InventDim, InventDimId)); //TODO: Make it work generically
+            qr.next();
+            record = qr.get(tableName2Id(relatedTableName));
+        }
+        if (record)
+        {
+            value = strFmt(record.(fieldName2Id(record.TableId, fieldNameForValue)));
+        }
+        
+        //str value = _block +','+_dataSourceName+','+_fieldName + ',' + int642Str(record.RecId);
+        return value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addFieldName</Name>
+				<Source><![CDATA[
+    public void addFieldName(str _fieldName)
+    {
+        fieldNames.add(_fieldName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addBlock</Name>
+				<Source><![CDATA[
+    public void addBlock(str _blockName)
+    {
+        if (!previousBlocks.in(_blockName))
+        {
+            previousBlocks.add(_blockName);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPreviousBlocks</Name>
+				<Source><![CDATA[
+    public Set getPreviousBlocks()
+    {
+        return previousBlocks;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addAvailableDataSource</Name>
+				<Source><![CDATA[
+    public void addAvailableDataSource(TableName _tableName, Name _blockName)
+    {
+        datasourcesAvailable.insert(100-datasourcesAvailable.elements(), _tableName+'['+_blockName+']');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddPrePostDataSourcesAvailable</Name>
+				<Source><![CDATA[
+    public void AddPrePostDataSourcesAvailable(TableName _tableName, Name _referencedFieldName, Name _blockName)
+    {
+        prePostDataSourcesAvailable.insert(100-prePostDataSourcesAvailable.elements(), _tableName+ '{'+_referencedFieldName+'}' +'['+_blockName+']');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>datasourcesAvailable</Name>
+				<Source><![CDATA[
+    public Map datasourcesAvailable()
+    {
+        return datasourcesAvailable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>prePostDatasourcesAvailable</Name>
+				<Source><![CDATA[
+    public Map prePostDatasourcesAvailable()
+    {
+        return prePostDataSourcesAvailable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>makeClone</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Make a clone of current object. This is used when traversing Block tree with multiple blocks and branches. Each block has its own inheritance object, with everything it can inherit up to that point.
+    /// </summary>
+    /// <returns>An inheritance object</returns>
+    public TFMLogicBlockDataInheritanceHandler makeClone()
+    {
+        TFMLogicBlockDataInheritanceHandler inheritance = TFMLogicBlockDataInheritanceHandler::Construct();
+        SetEnumerator                       sEnum = fieldNames.getEnumerator();
+        MapEnumerator                       mEnum = datasourcesAvailable.getEnumerator();
+        
+        while (sEnum.moveNext())
+        {
+            inheritance.addFieldName(sEnum.current());
+        }
+        sEnum = previousBlocks.getEnumerator();
+        while (sEnum.moveNext())
+        {
+            inheritance.addBlock(sEnum.current());
+        }
+        while (mEnum.moveNext())
+        {
+            inheritance.datasourcesAvailable().insert(mEnum.currentKey(),mEnum.currentValue());
+        }
+        mEnum = prePostDataSourcesAvailable.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            inheritance.prePostDatasourcesAvailable().insert(mEnum.currentKey(),mEnum.currentValue());
+        }
+        mEnum = variableLookups.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            inheritance.addVariableLookup(mEnum.currentKey(), mEnum.currentValue());
+        }
+
+        return inheritance;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>applyInheritanceToStep</Name>
+				<Source><![CDATA[
+    public str applyInheritanceToStep(TFMRegistrationCollector _collector)
+    {
+        //find matches
+        MapEnumerator   mEnum = datasourcesAvailable.getEnumerator();
+        int             braceSpace;
+        TableName       tableName;
+        Name            blockName;
+        SysDictField    foundFieldName;
+        Set             fieldsInherited, subFieldInherited;
+        SetEnumerator   sEnum, fieldEnum;
+        SysDictField    sdf;
+        while ( mEnum.moveNext())
+        {
+            braceSpace = strScan(mEnum.currentValue(),'[',1,100);
+            tableName = subStr(mEnum.currentValue(),1,braceSpace-1);
+            blockName = subStr(mEnum.currentValue(),braceSpace+1, strLen(mEnum.currentValue()) - braceSpace - 1);
+            
+            
+            if (_collector.origins().hasTable(tableName))
+            {
+                //Make Connection
+                _collector.origins().setMatchedSource('[' + blockName + ']' + tableName);
+                this.updateCollector(_collector, blockName, tableName, '');
+                return '[' + blockName + ']' + tableName;
+            }
+            else if (_collector.origins().hasTable(tableStr(InventDim)))
+            {
+                fieldsInherited = TFMLogicBlockDataInheritanceHandler::fieldsInheritedFromEDT(tableName,extendedTypeStr(InventDimId));
+                if (fieldsInherited.elements())
+                {
+                    //Determine which field to match
+                    sEnum = fieldsInherited.getEnumerator();
+                    while (sEnum.moveNext())
+                    {
+                        sdf = sEnum.current();
+                        _collector.origins().setMatchedSource('[' + blockName + ']' + tableName + '(' + sdf.name() + ')');
+
+                        this.updateCollector(_collector, blockName, tableName, sdf.name());
+                        fieldEnum = _collector.origins().fieldsFromTable(tableStr(InventDim)).getEnumerator();
+                        while (fieldEnum.moveNext())
+                        {
+                            return '[' + blockName + ']' + tableName + '(' + sdf.name() + ') |-| ' + tableStr(InventDim) + ' (' + fieldEnum.current() +', ' + fieldStr(InventDim, inventDimId) + ')';
+                        }
+                    }
+                }
+            }
+            else
+            {
+                //Try dataType
+                sEnum = _collector.origins().dataTypesEnumerator();
+                while (sEnum.moveNext())
+                {
+
+                    fieldsInherited = TFMLogicBlockDataInheritanceHandler::fieldsInheritedFromEDT(tableName,sEnum.current());
+
+                    fieldEnum = fieldsInherited.getEnumerator();
+                    while (fieldEnum.moveNext())
+                    {
+                        sdf = fieldEnum.current();
+                        _collector.origins().setMatchedSource('[' + blockName + ']' + tableName + '(' + sdf.name() + ')');
+
+                        this.updateCollector(_collector, blockName, tableName, sdf.name());
+
+                        return '[' + blockName + ']' + tableName + '(' + sdf.name() + ')';
+                    }
+                }
+                //Reverse Match if datatype is inventDim Field                
+                fieldEnum = _collector.origins().dataTypesEnumerator();
+                while (fieldEnum.moveNext())
+                {
+                    subFieldInherited = TFMLogicBlockDataInheritanceHandler::fieldsInheritedFromEDT(tableStr(InventDim),fieldEnum.current()); //See if the field is present in inventdim table
+                    if (!subFieldInherited.elements())
+                    {
+                        continue;
+                    }
+                    sEnum = subFieldInherited.getEnumerator();
+
+                    sEnum.moveNext();
+                    foundFieldName = sEnum.current();
+                    fieldsInherited = TFMLogicBlockDataInheritanceHandler::fieldsInheritedFromEDT(tableName,extendedTypeStr(InventDimId));
+                    if (fieldsInherited.elements())
+                    {
+                        //Determine which field to match
+                        sEnum = fieldsInherited.getEnumerator();
+                        while (sEnum.moveNext())
+                        {
+                            sdf = sEnum.current();
+                            _collector.origins().setMatchedSource('[' + blockName + ']' + tableName + '.{' + sdf.name() + '.'+foundFieldName.name()+'}');
+
+                            this.updateCollector(_collector, blockName, tableName, tableStr(InventDim) + '['+sdf.name()+ ']'+foundFieldName.name());
+
+                            return '[' + blockName + ']' + tableName + '(' + sdf.name() + ') |-| ' + tableStr(InventDim) + ' (' + foundFieldName.name() +', ' + fieldStr(InventDim, inventDimId) + ')';
+                            
+                        }
+                    }
+                }
+            }
+        }
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateCollector</Name>
+				<Source><![CDATA[
+    protected void updateCollector(TFMRegistrationCollector _collector, TFMLogicBlockName _blockName, TFMLogicBlockTableName _tableName, TFMInventDimIdFieldName _referenceField)
+    {
+        //Prevent selfreference of block
+        if (!previousBlocks.in(_blockName))
+        {
+            Info (_collector.parmName() + ' ' + _blockName + ' ' + _tableName + ' ' + _referenceField);
+            return;
+        }
+        _collector.parmLogicBlockConnected(_blockName);
+        _collector.parmLogicBlockDataSource(_tableName);
+        _collector.parmOptionalInventDimIdFieldToUse(_referenceField);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldsInheritedFromEDT</Name>
+				<Source><![CDATA[
+    public static Set fieldsInheritedFromEDT(TableName _tableName, ExtendedDataTypeName _dataTypeName)
+    {        
+        Set             allFields =  new SysDictTable(tableName2Id(_tableName)).fields();
+        Set             fieldsInheritingFromEDT = new Set(allFields.typeId());
+        SetEnumerator   sEnum = allFields.getEnumerator();
+        SysDictField    sdf;
+        str             typeName;
+
+        //Special handling of InventDimId, as InventDimId field would normally be the first served
+        if (_dataTypeName == extendedTypeStr(InventDimId) && fieldName2Id(tableName2Id(_tableName),extendedTypeStr(InventDimId)))
+        {
+            sdf = new SysDictField(tableName2Id(_tableName),fieldName2Id(tableName2Id(_tableName),extendedTypeStr(InventDimId)));
+            fieldsInheritingFromEDT.add(sdf);
+        }
+
+        while(sEnum.moveNext())
+        {
+            sdf = sEnum.current();
+            //if (sdf.extendedFieldId() == extendedTypeName2Id(_dataTypeName))
+            typeName = sdf.typeName();
+            
+            if ((sdf.typeName() == _dataTypeName || (sdf.typeId() && TFMLogicBlockDataInheritanceHandler::extendsFromType(sdf.typeId(),_dataTypeName))) && sdf.name() != extendedTypeStr(InventDimId))
+            {
+                fieldsInheritingFromEDT.add(sdf);
+            }
+        }
+        
+        return fieldsInheritingFromEDT;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>extendsFromType</Name>
+				<Source><![CDATA[
+    static protected boolean extendsFromType(ExtendedTypeId _typeId, ExtendedDataTypeName _possibleAncestor)
+    {
+        boolean             ret;
+        SysDictType         sdt = new SysDictType(_typeId);
+        str                 typeNameForDebugPurpose = sdt.name();
+        ExtendedTypeId      ancestorID = extendedTypeName2Id(_possibleAncestor);
+        if (sdt.extend() && sdt.extend() == ancestorID)
+        {
+            ret = true;
+        }
+        else if (sdt.extend())
+        {
+            ret = TFMLogicBlockDataInheritanceHandler::extendsFromType(sdt.extend(),_possibleAncestor);
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldsFound</Name>
+				<Source><![CDATA[
+    public str fieldsFound()
+    {
+        str                                 retStr = '<details style="border: 1px solid #aaaaaa; border-radius: 5px; padding: 0.5em 0.5em 0;"><summary style="font-weight: bold; margin: -0.5em -0.5em 0; padding: 0.5em;">'+"@TFM:Fieldsthatcanbeusedfromthecontex"+'</summary>';
+        SetEnumerator                       sEnum = fieldNames.getEnumerator();
+        
+        while (sEnum.moveNext())
+        {
+            retStr += '{'+ sEnum.current() + '}<br>';
+        }
+        return retStr + '</details>';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InheritanceContent</Name>
+				<Source><![CDATA[
+    public str InheritanceContent()
+    {
+        str                                 retStr = this.fieldsFound();
+        SetEnumerator                       sEnum = fieldNames.getEnumerator();
+        MapEnumerator                       mEnum = datasourcesAvailable.getEnumerator();
+        Set                                 dataSourceOriginBlock;
+        str                                 prefix = '<details style="border: 1px solid #aaaaaa; border-radius: 5px; padding: 0.5em 0.5em 0;"><summary style="font-weight: bold; margin: -0.5em -0.5em 0; padding: 0.5em;">%1</summary>';
+        
+        retStr += strFmt(prefix,'DataSources Found');
+        while (mEnum.moveNext())
+        {
+            retStr += mEnum.currentValue() + '<br>';
+        }
+        retStr += '</details>';
+        retStr += strFmt(prefix,'Pre Post DataSources Found');
+        mEnum = prePostDataSourcesAvailable.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            retStr += mEnum.currentValue() + '<br>';
+        }
+        retStr += '</details>';
+        sEnum = previousBlocks.getEnumerator();
+        retStr += strFmt(prefix,'Previous blocks Found');
+        while (sEnum.moveNext())
+        {
+            retStr += sEnum.current() + '<br>';
+        }
+        retStr += '</details>';
+        sEnum = variables.getEnumerator();
+        retStr += strFmt(prefix,'Variables found:');
+        while (sEnum.moveNext())
+        {
+            retStr += sEnum.current() + '<br>';
+        }
+        retStr += '</details>';
+        retStr += strFmt(prefix,'Variable Lookups found');
+        mEnum = variableLookups.getEnumerator();
+        while (mEnum.moveNext())
+        {
+            retStr += mEnum.currentKey() +': '+  mEnum.currentValue() + '<br>';
+        }
+        retStr += '</details>';
+        return retStr;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

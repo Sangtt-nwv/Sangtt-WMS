@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestItemAndDimensionElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[   TFMDocumentType(classStr(TFMPostAdhocRegistration), 'RegisterItemImage'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(TFMConstants,UnplannedCount)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration),staticMethodStr(TFMConstants,UnplannedCount)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(TFMConstants,NegativeAdjustment)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticMethodStr(TFMConstants,NegativeAdjustment)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(TFMConstants,RegisterBarcode)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticMethodStr(TFMConstants,UnplannedMove)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(TFMConstants,UnplannedMove)),
+    TFMDocumentType(classStr(TFMLookup), staticMethodStr(TFMConstants,ProfitLossJournal)),
+    TFMDocumentType(classStr(TFMLookup), staticMethodStr(TFMConstants,ProfitLossJournalLine)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticMethodStr(TFMConstants,CreateProfitLossJournalLine)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticMethodStr(TFMConstants,CreateProfitLossJournal)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(TFMConstants,CreateProfitLossJournal)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(TFMConstants,CreateProfitLossJournalLine)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(TFMConstants,ProfitLossJournalLine)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticMethodStr(TFMConstants,CreateTagCountingJournalLine)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(TFMConstants,TagCountingJournalLine)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(TFMConstants,CreateTagCountingJournalLine)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(TFMConstants,CreateTagCountingJournal)),
+    TFMDocumentType(classStr(TFMLookup), staticMethodStr(TFMConstants,TagCountingJournalLine)),
+    TFMDocumentType(classStr(TFMLookup), staticMethodStr(TFMConstants,TagCountingJournal)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticMethodStr(TFMConstants,CancelPickLine)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), 'AddItemToCart'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'AddItemToCart'),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticmethodStr(TFMConstants,AddCountLine)),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), staticmethodStr(TFMConstants,AddPickLine)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticmethodStr(TFMConstants,AddCountLine)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), staticmethodStr(TFMConstants,AddPickLine)),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration),'SFCConsumeMaterials'),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration),'SFCConsumeMaterials'),
+    TFMDocumentType(classStr(TFMLookup), '*Journal'),
+    TFMDocumentType(classStr(TFMLookup), '*JournalLine'),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), 'Create*JournalLine'),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), 'Create*Journal'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'Create*Journal'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'Create*JournalLine'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), '*JournalLine'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'PostJournal'),
+    TFMDocumentType(classStr(TFMPostAdhocRegistration), 'DeleteJournalLine'),
+    TFMDocumentType(classStr(TFMGetRegistrationConfiguration), 'DeleteJournalLine')
+	]
+class TFMRequestItemAndDimensionElement extends TFMRequestInventDimElement
+{
+    Qty         qty;
+    BarcodeSetupId              barcodeSetupId;
+    BarCodeString               barcode;
+    UnitOfMeasureSymbol         unit;
+    str                         lineNumber;
+    str                         journalId;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmQuantity</Name>
+				<Source><![CDATA[
+    public Qty parmQuantity(Qty _qty = qty)
+    {
+        qty = _qty;
+        if (qty == 0 && serialId)
+        {
+            qty = InventSum::find(itemId, this.createInventDim(inventDim).inventDimId).AvailPhysical;
+        }
+        return qty;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmQuantityRemaining</Name>
+				<Source><![CDATA[
+    public Qty parmQuantityRemaining(Qty _qty = qty)
+    {
+        return this.parmQuantity(_qty);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUnitOfMeasure</Name>
+				<Source><![CDATA[
+    public UnitOfMeasureSymbol parmUnitOfMeasure (UnitOfMeasureSymbol _unit = unit)
+    {
+        unit = _unit;
+        return unit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBarcodeSetupId</Name>
+				<Source><![CDATA[
+    public BarcodeSetupId parmBarcodeSetupId(BarcodeSetupId _barcodeSetupId = barcodeSetupId)
+    {
+        barcodeSetupId = _barcodeSetupId;
+        return barcodeSetupId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBarcode</Name>
+				<Source><![CDATA[
+    public BarCodeString parmBarcode(BarCodeString _barcode = barcode)
+    {
+        barcode = _barcode;
+        return barcode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLineNumber</Name>
+				<Source><![CDATA[
+    public str parmLineNumber(str _lineNumber = lineNumber)
+    {
+        lineNumber = _lineNumber;
+        return lineNumber;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmJournalId</Name>
+				<Source><![CDATA[
+    public str parmJournalId(str _journalId = journalId)
+    {
+        journalId = _journalId;
+        return journalId;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

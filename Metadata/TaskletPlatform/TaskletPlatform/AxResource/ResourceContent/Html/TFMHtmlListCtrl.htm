@@ -1,0 +1,14 @@
+
+<script src="/resources/scripts/Sortable.js"></script>
+<script src="/resources/scripts/TFMHtmlListCtrl.js"></script>
+<link href="/resources/styles/TFMHtmlListCtrl.css" rel="stylesheet" type="text/css" />
+<div id="TFMHtmlListCtrl" data-dyn-bind="sizing: { height: $data.Height, width: $data.Width }, visible: $data.Visible">
+    <div style="display: block;">
+        <div id="listitemloader" class="listitemloader" style="display: block;"><img src="resources/images/loading.gif" alt="Loading" /></div>
+        <div id="listitem-grid" class="listitemrow">
+            <div class="listitem-col-promoted">
+                <div id="listitems" class="listgrid"></div>
+            </div>
+        </div>
+    </div>
+</div>

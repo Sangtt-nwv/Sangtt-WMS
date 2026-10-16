@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMDocWorkLog</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType(classStr(TFMLookup), 'WorkLog'), 
+TFMMenu('WorkLog',"@SYS38403","@SYS38403",methodStr(TFMimageHandlerCombinedImages,worklog),true,true,['Miscellaneous'])]
+class TFMDocWorkLog extends TFMDocumentHandler
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public TFMDocumentHandlerDescription description()
+    {    
+        return "@SYS38403";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTranslations</Name>
+				<Source><![CDATA[
+    public Map addTranslations()
+    {
+        Map ret = super();
+        ret.insert('WorkLog', "@SYS38403");
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pages</Name>
+				<Source><![CDATA[
+    public TFMPages pages()
+    {
+        TFMPages					ret = super();
+        TFMPageLookup				page = ret.getPage('WorkLog');
+        if(page)
+        {
+            TFMPageLookupConfiguration	config = page.getConfiguration();
+            config.parmListId(classStr(TFMListWorkLogList));
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>workLogLookup</Name>
+				<Source><![CDATA[
+	[TFMLookupResponse(classStr(TFMLookup), 'WorkLog')]
+	public TFMLookupResponseElement workLogLookup()
+    {
+        TFMLookupResponseElement	response = TFMLookupResponseElement::Construct(classStr(TFMLookup), 'WorkLog');
+        TFMDocumentQueue			queue;
+        TransDate					chosenDate = str2Date(request.getFieldValue(extendedTypeStr(TransDate)),123);
+        utcdatetime					fromDate = DateTimeUtil::newDateTime(chosenDate,0,DateTimeUtil::getUserPreferredTimeZone());
+        utcdatetime					toDate = DateTimeUtil::newDateTime(chosenDate+1,0,DateTimeUtil::getUserPreferredTimeZone());
+        TFMDocumentTypeId			typeId;
+        str							content;
+        str							iconToUse;
+        TFMDocumentHandler			documentHandler;
+        Map							handlerMap = new Map(Types::String,Types::Class);
+        Map							previousXMLs = new Map(Types::String, Types::String);
+        Map							fieldNames = new Map(Types::String, Types::Class);
+        Map							name2Label = new Map(Types::String, Types::String);
+        TFMRequestElement			localRequest;
+        TFMRequestBasicElement		basicOrderRequest;
+        MapEnumerator				mEnum;
+        ListEnumerator				lEnum, regsEnum;
+        TFMRequestLineElement		orderLines;
+        TFMRequestRegistrationElement regElement;
+        Common						buffer;
+        SysDictField				sdf;
+        container					backIdCon;
+        str							parms, vals;
+        Map							refDataLabels = this.getLabelsFromDocuments();
+        int							i	= 10000;
+        Map							responses = new Map(Types::Integer, Types::Record);
+        Map							items = new Map(Types::String, Types::Real);
+        Map							itemUnits = new Map(Types::String, Types::String);
+        Set							lookups = new Set(Types::String);
+        XML							extractXML;
+        Map							onlineStepXMLs = new Map(Types::String, Types::Class);
+        Set							additionalXMLs;
+        SetEnumerator				sEnum;
+        XmlDocument                 requestXmlDocument;
+
+
+        while select queue order by RecId asc where queue.CreatedDateTime >= fromDate && queue.CreatedDateTime <= toDate &&
+			queue.UserId == curUserId() && queue.DeviceId == request.parmdeviceID()
+        {
+            //if (queue.DocumentType == 'GetMedia' || queue.DocumentType == 'GetReferenceData' || (content == queue.ContentSubject && typeId	== queue.DocumentType))
+            
+            if ((!strScan(queue.DocumentType,'Post',1,50) && !strScan(queue.ContentSubject,'Post',1,50)) || queue.DocumentType == methodStr(TFMDocPostMedia,PostMedia))
+            {
+				//Saves all non-post documents for later, to use the collectors to present the parameters in a coherent way.
+				if (queue.DocumentType == 'Lookup')
+                {
+                    lookups.add(queue.ContentSubject);
+                }
+                previousXMLs.insert(queue.ContentSubject,queue.AnswerXML());
+                continue;
+
+            }
+            if (strScan(queue.AnswerXML(),'registrationCollectorConfiguration',1,1000))
+            {
+				//Partial posting, but backend needed more info
+                additionalXMLs = onlineStepXMLs.exists(queue.ContentSubject) ? onlineStepXMLs.lookup(queue.ContentSubject) : new Set(Types::String);
+                additionalXMLs.add(queue.AnswerXML());
+                onlineStepXMLs.insert(queue.ContentSubject, additionalXMLs);
+                continue;
+            }
+
+            content = queue.ContentSubject;
+            typeId	= queue.DocumentType;
+            requestXmlDocument = TFMXMLDeserializer::getXmlDocument(queue.RequestXML());
+            localRequest = TFMXmlDeserializer::DeserializeRequest(requestXmlDocument);
+            content = content ? content : localRequest.getFieldValue('RegistrationType');
+            queue.ContentSubject = content;
+            if (!handlerMap.exists(typeId + '/' + content))
+            {
+                documentHandler = TFMDocumentTypeProvider::handler(queue.DocumentType);
+                documentHandler.setRequestXml(requestXmlDocument);
+                documentHandler = documentHandler.subHandler();
+                handlerMap.insert(typeId + '/' + content,documentHandler);
+            }
+            documentHandler = handlerMap.lookup(typeId + '/' + content);
+            
+            mEnum = localRequest.getFieldMap().getEnumerator();
+            if (previousXMLs.exists(queue.ContentSubject))
+            {
+                extractXML = previousXMLs.lookup(queue.ContentSubject);
+                if (lookups.in(queue.ContentSubject))
+                {
+					//reformat lookup registration flow to look as getRegistrationConfiguration
+                    extractXML = this.lookup2Registration(extractXML);
+                }
+                name2Label = this.UpdateNameMap(fieldNames.exists(content) ? fieldNames.lookup(content) : new Map(Types::String, Types::String),extractXML);
+            }
+            additionalXMLs = onlineStepXMLs.exists(queue.ContentSubject) ? onlineStepXMLs.lookup(queue.ContentSubject) : new Set(Types::String);
+
+            sEnum = additionalXMLs.getEnumerator();
+			while (sEnum.moveNext())
+            {
+                name2Label = this.UpdateNameMap(name2Label,sEnum.current());
+            }
+            parms = '';
+            vals = '';
+			while (mEnum.moveNext())
+            {
+                if ( (mEnum.currentKey() == 'name' && mEnum.currentValue() == queue.DocumentType) || (mEnum.currentKey() == 'RegistrationType' && mEnum.currentValue() == queue.ContentSubject) || strLen(mEnum.currentValue()) > 50)
+                {
+                    continue;
+                }
+                if (/*lookups.in(queue.ContentSubject) && */!name2Label.exists(mEnum.currentKey()) && !refDataLabels.exists(mEnum.currentKey()))
+                {
+                    continue;
+                }
+                parms += (parms ? '\r\n' : '')+(name2Label.exists(mEnum.currentKey()) ? name2Label.lookup(mEnum.currentKey()) : (refDataLabels.exists(mEnum.currentKey()) ? refDataLabels.lookup(mEnum.currentKey()) : mEnum.currentKey()) );
+                vals += (vals ? '\r\n' : '')+ mEnum.currentValue();
+                
+            }
+            queue.DocumentType = documentHandler.description();
+			if (classIdGet(localRequest) == classnum(TFMRequestBasicElement))
+            {
+                items = new Map(Types::String, Types::Real);
+                itemUnits = new Map(Types::String, Types::String);
+                basicOrderRequest = localRequest;
+                if (basicOrderRequest.parmOrder())
+                {
+                	lEnum = basicOrderRequest.parmOrder().Lines().getEnumerator();
+					backIdCon = strSplit(basicOrderRequest.parmOrder().parmBackendID(),'/').pack();
+					while (lEnum.moveNext())
+					{
+						orderLines = lEnum.current();
+						regsEnum = orderLines.Registrations().getEnumerator();
+						while (regsEnum.moveNext())
+						{
+							regElement = regsEnum.current();
+							items.insert(regElement.ExtraInfo().parmItemId(),(items.exists(regElement.ExtraInfo().parmItemId()) ? items.lookup(regElement.ExtraInfo().parmItemId()) : 0) + (regElement.parmSerialNumber() && !regElement.parmQuantity() ? 1 : regElement.parmQuantity()));
+							itemUnits.insert(regElement.ExtraInfo().parmItemId(),regElement.parmUnitOfMeasure());
+						}
+					}
+					//buffer = TFMHelper::BackendId2Buffer(basicOrderRequest.parmOrder().parmBackendID());
+					sdf = new SysDictField(tableName2Id(conPeek(backIdCon,4)),fieldName2Id(tableName2Id(conPeek(backIdCon,4)),conPeek(backIdCon,5)));
+					queue.DocumentType = sdf.label() + ' ' + conPeek(backIdCon,6);
+
+					mEnum = items.getEnumerator();
+					while (mEnum.moveNext())
+					{
+						parms += (parms ? '\r\n' : '') + mEnum.currentKey();
+						vals += (vals ? '\r\n' : '') + strFmt('%1 %2', mEnum.currentValue(), itemUnits.lookup(mEnum.currentKey()));
+					}
+                }
+            }
+            parms += (parms ? '\r\n' : '') + "@SYS38406";
+            vals += (vals ? '\r\n' : '') + strFmt('%1', time2StrHM(DateTimeUtil::time(DateTimeUtil::applyTimeZoneOffset(queue.CreatedDateTime,DateTimeUtil::getUserPreferredTimeZone()))));
+            queue.ResultXML = parms + '|' + vals;
+            fieldNames.insert(content,name2Label);
+            iconToUse = documentHandler.getIcon();
+            queue.RequestXML =iconToUse;
+            
+            responses.insert(i,queue);
+            onlineStepXMLs.remove(queue.ContentSubject);
+            i--;
+        }
+        mEnum = responses.getEnumerator();
+		while (mEnum.moveNext())
+        {
+            response.addResponse(mEnum.currentValue());
+        }
+
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lookup2Registration</Name>
+				<Source><![CDATA[
+	protected XML lookup2Registration(XML _lookupXML)
+    {
+        XmlDocument		xmlDoc = new XmlDocument();
+        XmlElement		xmlElement;
+        XML				resXML = _lookupXML;
+        XmlCDataSection cData;
+        xmlDoc.loadXml(_lookupXML);
+
+        xmlElement = xmlDoc.getNamedElement('response').getNamedElement('responseData');
+        xmlElement = xmlElement != null ? xmlElement.getNamedElement('LookupResponse') : null;
+        xmlElement = xmlElement != null ? xmlElement.getNamedElement('RegistrationCollector') : null;
+
+		if (xmlElement != null)
+        {
+            resXML = xmlElement.firstChild().value();
+            resXML = strReplace(strReplace(resXML,'<![CDATA[', ''),']]]]><![CDATA[>','');
+            resXML = '<?xml version="1.0" encoding="utf-8"?><response><description /><responseData>'+resXML+'</responseData></response>';
+        }
+
+        return resXML;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>UpdateNameMap</Name>
+				<Source><![CDATA[
+	protected Map UpdateNameMap(Map _nameMap, XML _response)
+    {
+        Map nameMap = _nameMap;
+        XmlDocument xmlDoc = XmlDocument::newXml(_response);
+        XmlElement	stepsElement;
+        XmlElement	stepElement;
+        str			value;
+		if (!strScan(_response,'<steps>',1,10000))
+        {
+            return nameMap;
+        }
+        stepsElement = xmlDoc.getNamedElement('response').getNamedElement('responseData').firstChild().firstChild();
+        //stepsElement = xmlDoc.getNamedElement('steps');
+        stepElement = stepsElement.firstChild();
+		while(stepElement)
+        {
+            if (stepElement.getAttribute('name') == tableStr(ReferenceIdentity))
+            {
+                stepElement = stepElement.nextSibling();
+                continue;
+            }
+            value = stepElement.getAttribute('header') ? stepElement.getAttribute('header') : stepElement.getAttribute('label');
+            nameMap.insert(stepElement.getAttribute('name'),value);
+            stepElement = stepElement.nextSibling();
+        }
+
+        return nameMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLabelsFromDocuments</Name>
+				<Source><![CDATA[
+    protected Map getLabelsFromDocuments()
+    {
+        DictClass						dc = new DictClass(className2Id(classStr(TFMDocumentHandler)));
+        DictClass						subClass;
+        TFMReferenceDataMethodAttribute refDataAttribute = new TFMReferenceDataMethodAttribute();
+        List							extendingClasses = dc.extendedBy(true);
+        ListEnumerator					lEnum = extendingClasses.getEnumerator();
+        TFMDocumentHandler				docHand;
+        TFMReferenceDataConfiguration   refData;
+        str								methodName;
+        str								cDataXML;
+        container						retValueFromDoc;
+        TFMDocumentNodes				docNodes;
+        Set								methodSet;
+        SetEnumerator					sEnum;
+        anytype							retVal = '';
+        Set								otherSet;
+        MapEnumerator					mEnum;
+        Map								labels = new Map(Types::String, Types::String);
+        SetEnumerator					colEnum;
+        TFMRegistrationCollector		collector;
+        while (lEnum.moveNext())
+        {
+            subClass = new DictClass(lEnum.current());
+            if (subClass == null || subClass.isAbstract())
+            {
+                continue;
+            }
+            docHand = subClass.makeObject() as TFMDocumentHandler;
+            methodSet = docHand.getReferenceDataMethods();
+
+            if (methodSet == null)
+            {
+                methodSet = new Set(Types::String);
+            }
+            otherSet = new Set(Types::String);
+            mEnum = TFMAttributeHandler::getMethodNamesFromSysAttribute(subClass.id(),refDataAttribute,true).getEnumerator();
+            while (mEnum.moveNext())
+            {
+                otherSet.add(mEnum.currentKey());
+            }
+            methodSet = Set::union(methodSet,otherSet);
+
+            sEnum  = methodSet.getEnumerator();
+            while (sEnum.moveNext())
+            {
+                try
+                {
+                    methodName = sEnum.current();
+                    if (SysTest::hasMethod(docHand, methodName))
+                    {
+                        retValueFromDoc = conNull();
+                        retVal = subClass.callObject(methodName,docHand);
+                        if (typeOf(retVal) == Types::String)
+                        {
+                            cDataXML = '<?xml version="1.0" encoding="utf-8"?><response><description /><responseData>'+strReplace(retVal,'lines','steps')+'</responseData></response>';
+                            labels = this.UpdateNameMap(labels,cDataXML);
+                        }
+                        else if (typeOf(retVal) == Types::Class && new SysDictClass(classIdGet(retVal)).id() == classNum(TFMReferenceDataConfiguration))
+                        {
+                            refData = retVal;
+                            colEnum = refData.getCollectors().getEnumerator();
+							while (colEnum.moveNext())
+                            {
+                                collector = colEnum.current();
+                                if (collector.parmName() == tableStr(ReferenceIdentity))
+                                {
+                                    continue;
+                                }
+                                labels.insert(collector.parmName(),collector.parmLabel());
+                            }
+                            
+
+                        }
+                        
+                    }
+                }
+                catch (Exception::Error)
+                {
+                    continue;
+                }
+            }
+        }
+        return labels;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>WorkLogCfgHeader</Name>
+				<Source><![CDATA[
+    [TFMReferenceDataMethod]
+    public TFMReferenceDataConfiguration WorkLogCfgHeader()
+    {
+        TFMReferenceDataConfiguration	refData = new TFMReferenceDataConfiguration();
+        TFMRegistrationCollectorDate	dateCol = new TFMRegistrationCollectorDate(1,extendedTypeStr(TransDate),"@SYS101554", "@SYS101554", "@SYS101554");
+
+        refData.addCollector(dateCol);
+
+        return refData;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

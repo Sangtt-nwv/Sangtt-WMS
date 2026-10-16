@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMRequestGetOrderLinesElement</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[TFMDocumentType('Get*OrderLines')]
+class TFMRequestGetOrderLinesElement extends TFMRequestElement
+{
+    TFMBackendId            BackendID;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmBackendID</Name>
+				<Source><![CDATA[
+    public TFMBackendId parmBackendID(TFMBackendId _backendId = BackendID)
+    {
+        BackendID = _backendId;
+        return BackendID;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TFMPageXsdParserProvider</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TFMPageXsdParserProvider extends TFMCachedProvider
+{
+    private TFMPageXsdParser parser;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>instance</Name>
+				<Source><![CDATA[
+    public static TFMPageXsdParserProvider instance()
+    {
+        TFMPageXsdParserProvider   provider;
+        provider = TFMCachedProvider::getProviderInstance(classStr(TFMPageXsdParserProvider));
+        return provider;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEntity</Name>
+				<Source><![CDATA[
+    public anytype getEntity()
+    {
+        return parser;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setEntity</Name>
+				<Source><![CDATA[
+    public void setEntity(anytype _entity)
+    {
+        this.parser = _entity;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructEntityImpl</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Fetches all lists from table and classes.
+    /// </summary>
+    /// <returns>TFMListsCollection element</returns>
+    public anytype constructEntityImpl()
+    {
+        TFMPageXSDParser createdParser;
+        createdParser = new TFMPageXSDParser();
+        return createdParser;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>invalidateProvider</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Method to invalidate provider, thereby forcing reinitialization
+    /// </summary>
+    public void invalidateProvider(boolean _requestedByOtherAOS = false)
+    {
+        parser = null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>version</Name>
+				<Source><![CDATA[
+    public str version()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MobPageAdhocMenuItemsAdditionalProperties</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MobPageAdhocMenuItemsAdditionalProperties extends MobPageMenuItemsAdditionalProperties
+{
+
+    MobDocumentTypeId           documentType;
+    MobDocumentContentSubject   contentType;
+    boolean						refreshOnSuccess;
+    MobPageID                   pageId;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmRefreshOnSuccess</Name>
+				<Source><![CDATA[
+    public boolean parmRefreshOnSuccess(boolean	_refreshOnSuccess = refreshOnSuccess)
+    {
+        refreshOnSuccess = _refreshOnSuccess;
+        return refreshOnSuccess;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmContentType</Name>
+				<Source><![CDATA[
+    public MobDocumentContentSubject parmContentType(MobDocumentContentSubject _contentType = contentType)
+    {
+        contentType = _contentType;
+ 
+        return contentType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDocumentType</Name>
+				<Source><![CDATA[
+    public MobDocumentTypeId parmDocumentType(MobDocumentTypeId _documentType = documentType)
+    {
+        documentType = _documentType;
+ 
+        return documentType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmNavigateTo</Name>
+				<Source><![CDATA[
+    public MobPageID parmNavigateTo(MobPageID _pageId = pageId)
+    {
+        pageId = _pageId;
+ 
+        return pageId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getparameters</Name>
+				<Source><![CDATA[
+    public Map getparameters()
+    {
+        Map ret = super();
+        ret.insert('/onSuccessfulPost/navigateTo',[pageId]);
+        ret.insert('/onSuccessfulPost/refreshOnSuccess',[refreshOnSuccess]);
+        ret.insert('/documentName', [documentType]);
+        ret.insert('/registrationType', [contentType]);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

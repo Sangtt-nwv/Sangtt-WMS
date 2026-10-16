@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>MwmsLogicStepOperatorOnHand</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class MwmsLogicStepOperatorOnHand extends TFMLogicBlock implements TFMLogicStepOperatorInterface
+{
+
+    InventSum					  inventSum;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getInventSum</Name>
+				<Source><![CDATA[
+    [TFMOrderPostDataSet(tableStr(InventSum))]
+    public InventSum getInventSum()
+    {
+        return inventSum;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockName</Name>
+				<Source><![CDATA[
+    public Name blockName()
+    {
+        return "On Hand";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runLogic</Name>
+				<Source><![CDATA[
+    public str runLogic ( TFMRequestElement _request )
+    {
+        TFMRequestItemAndDimensionElement   requestItemAndDim = _request.convertToOtherRequestType(classStr(TFMRequestItemAndDimensionElement));
+        ItemId                              itemId = requestItemAndDim.parmItemId();          
+        InventDim                           inventDim = requestItemAndDim.parmInventDim();
+        InventDimParm                       inventDimParm;
+
+        inventDimParm.initFromInventDim(inventDim);
+        inventSum = InventSum::findSum(itemId, inventDim, inventDimParm);
+        _request.logicContext().addDataContext(inventSum, this.blockName());
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>blockIcon</Name>
+				<Source><![CDATA[
+    public str blockIcon()
+    {
+        return resourceStr(TFMOnhandBlob);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
